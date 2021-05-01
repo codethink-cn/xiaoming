@@ -13,7 +13,12 @@ import com.taixue.xiaoming.bot.api.plugin.XiaomingPlugin;
 import com.taixue.xiaoming.bot.api.user.GroupXiaomingUser;
 import com.taixue.xiaoming.bot.api.user.XiaomingUser;
 import com.taixue.xiaoming.bot.core.command.executor.CommandExecutorImpl;
+import com.taixue.xiaoming.bot.core.user.XiaomingUserImpl;
+import com.taixue.xiaoming.bot.host.XiaomingLauncher;
+import com.taixue.xiaoming.bot.util.AtUtil;
 import com.taixue.xiaoming.bot.util.CommandWordUtil;
+import love.forte.simbot.core.SimbotApp;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -239,4 +244,67 @@ public class CoreCommandExecutor extends CommandExecutorImpl {
                 "小明正在学习的技能有：百科词条、和MC服务器互通。期待更好的小明把~\n" +
                 "如果你想要编写小明的功能，欢迎打开上述链接查看开发文档。");
     }
+
+    /*
+    @Command("(关闭小明|stop)")
+    @RequirePermission("stop")
+    public void onStop(final XiaomingUser user) {
+        final XiaomingLauncher instance = XiaomingLauncher.getInstance();
+        instance.getShutdownHook().setUser(user);
+        instance.getConsoleCommandRunnable().close();
+        System.exit(0);
+    }*/
+/*
+    public void unloadGroupInteactor(CommandSender sender, GroupInteractor interactor) {
+        UserDataIsolator userDataIsolator = interactor.getUserDataIsolator();
+        if (userDataIsolator.getValue().isEmpty()) {
+            sender.sendMessage("\t\t该交互器没有和任何用户交互");
+        }
+        else {
+            sender.sendMessage("\t\t该交互器正在和 {} 名用户交互：", userDataIsolator.getValue().size());
+            Set<GroupInteractorUser> userData = (Set<GroupInteractorUser>) (Object) userDataIsolator.getValue().keySet();
+            for (GroupInteractorUser userDatum : userData) {
+                sender.sendMessage("\t\t\t所在群：{}\n", userDatum.getGroup());
+                sender.sendMessage("\t\t\tQQ：{}\n", userDatum.getQQ());
+                sender.sendMessage("\t\t\t最后输入：{}\n", userDatum.getMessage());
+                try {
+                    interactor.onUserOut(userDatum.getQQ());
+                }
+                catch (Exception exception) {
+
+                }
+            }
+        }
+    }
+
+    public void unloadAllPlugins(CommandSender sender) {
+        Map<String, XiaomingPlugin> loadedPlugins = XiaomingBot.getInstance().getPluginManager().getLoadedPlugins();
+        for (XiaomingPlugin value : loadedPlugins.values()) {
+            try {
+                sender.sendMessage("正在卸载插件 {}", value.getName());
+                value.onDisable();
+                sender.sendMessage("插件 {} 卸载完成", value.getName());
+            }
+            catch (Exception exception) {
+                sender.sendError("卸载 {} 卸载时出现异常：{}", value.getName(), exception);
+                exception.printStackTrace();
+            }
+        }
+    }
+    */
+
+    /*
+    @Command( + " qq {qq}")
+    @RequirePermission("console.qq")
+    public void onSetConsoleQQ(@NotNull final XiaomingUserImpl user,
+                               @CommandParameter("qq") final String qqString) {
+        long qq = AtUtil.parseQQ(qqString);
+        if (qq == -1) {
+            user.sendError("{} 似乎不是一个正确的 QQ 哦", qqString);
+        }
+
+        XiaomingLauncher.getInstance().getConsoleXiaomingUser().setQQ(qq);
+        user.sendMessage("已设置控制台执行身份为 QQ：{}", qqString);
+
+     */
 }

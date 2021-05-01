@@ -36,6 +36,7 @@ public class CallLimitCommandExecutor extends CommandExecutorImpl {
             return;
         }
 
+        /*
         final UserCallRecord callRecords = callLimitManager.getGroupCallLimiter().getCallRecords(user.getQQ());
         if (Objects.isNull(callRecords)) {
             builder.append("你还可以在群里召唤").append(config.getTop() - 1).append("次小明哦");
@@ -54,6 +55,7 @@ public class CallLimitCommandExecutor extends CommandExecutorImpl {
                 builder.append("你还可以在群里召唤").append(remainCallTimes).append("次小明哦");
             }
         }
+         */
         user.sendMessage(builder.toString());
     }
 
@@ -67,7 +69,7 @@ public class CallLimitCommandExecutor extends CommandExecutorImpl {
         } else {
             final CallLimitConfig groupCallLimitConfig = callLimitManager.getGroupCallLimiter().getConfig();
             groupCallLimitConfig.setPeriod(time);
-            callLimitManager.readySave();
+            getXiaomingBot().getConfig().readySave();
             user.sendMessage("成功设置群内召唤周期为{}，在这段时间内最多召唤{}次小明",
                     TimeUtil.toTimeString(time),
                     groupCallLimitConfig.getTop());
@@ -84,7 +86,7 @@ public class CallLimitCommandExecutor extends CommandExecutorImpl {
         final CallLimitConfig groupCallLimitConfig = callLimitManager.getGroupCallLimiter().getConfig();
         int time = Integer.parseInt(timeString);
         groupCallLimitConfig.setTop(time);
-        callLimitManager.readySave();
+        getXiaomingBot().getConfig().readySave();
         callLimitManager.getGroupCallLimiter().getRecords().clear();
         user.sendMessage("成功设置群内召唤上限为{}次，已清空所有纪录。未来每{}内最多召唤这么多次小明",
                 time,
@@ -104,7 +106,7 @@ public class CallLimitCommandExecutor extends CommandExecutorImpl {
         }
         final CallLimitConfig config = callLimitManager.getGroupCallLimiter().getConfig();
         config.setCoolDown(time);
-        callLimitManager.readySave();
+        getXiaomingBot().getConfig().readySave();
         user.sendMessage("成功设置小明的召唤冷却时间为{}", TimeUtil.toTimeString(config.getPeriod()));
     }
 
@@ -116,12 +118,13 @@ public class CallLimitCommandExecutor extends CommandExecutorImpl {
                 .append(config.getTop()).append("次小明，召唤技能冷却时间为")
                 .append(TimeUtil.toTimeString(config.getCoolDown())).append("。").append("\n");
 
+
         if (user.hasPermission("limit.private.bypass")) {
             builder.append("但是你不受召唤限制哦");
             user.sendMessage(builder.toString());
             return;
         }
-
+        /*
         final UserCallRecord callRecords = callLimitManager.getPrivateCallLimiter().getCallRecords(user.getQQ());
         if (Objects.isNull(callRecords)) {
             builder.append("你还可以私聊召唤").append(config.getTop() - 1).append("次小明哦");
@@ -140,6 +143,7 @@ public class CallLimitCommandExecutor extends CommandExecutorImpl {
                 builder.append("你还可以私聊召唤").append(remainCallTimes).append("次小明哦");
             }
         }
+         */
         user.sendMessage(builder.toString());
     }
 
@@ -153,7 +157,7 @@ public class CallLimitCommandExecutor extends CommandExecutorImpl {
         } else {
             final CallLimitConfig config = callLimitManager.getPrivateCallLimiter().getConfig();
             config.setPeriod(time);
-            callLimitManager.readySave();
+            getXiaomingBot().getConfig().readySave();
             user.sendMessage("成功设置私聊召唤周期为{}，在这段时间内最多召唤{}次小明",
                     TimeUtil.toTimeString(time),
                     config.getTop());
@@ -170,7 +174,7 @@ public class CallLimitCommandExecutor extends CommandExecutorImpl {
         final CallLimitConfig config = callLimitManager.getPrivateCallLimiter().getConfig();
         int time = Integer.parseInt(timeString);
         config.setTop(time);
-        callLimitManager.readySave();
+        getXiaomingBot().getConfig().readySave();
         callLimitManager.getPrivateCallLimiter().getRecords().clear();
         user.sendMessage("成功设置私聊召唤上限为{}次，已清空所有纪录。未来每{}内最多召唤这么多次小明",
                 time,
@@ -190,7 +194,7 @@ public class CallLimitCommandExecutor extends CommandExecutorImpl {
         }
         final CallLimitConfig config = callLimitManager.getPrivateCallLimiter().getConfig();
         config.setCoolDown(time);
-        callLimitManager.readySave();
+        getXiaomingBot().getConfig().readySave();
         user.sendMessage("成功设置小明的私聊召唤冷却时间为{}", TimeUtil.toTimeString(config.getPeriod()));
     }
 }

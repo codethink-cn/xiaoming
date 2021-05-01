@@ -28,18 +28,18 @@ public interface PluginManager extends XiaomingObject {
     @Nullable
     XiaomingPlugin getPlugin(String pluginName);
 
-    boolean unloadPlugin(XiaomingUser sender, String pluginName);
+    boolean unloadPlugin(XiaomingUser sender, String pluginName) throws Exception;
 
-    void reloadAll(XiaomingUser sender);
-
-    boolean reloadPlugin(XiaomingUser sender,
-                         String pluginName);
+    void reloadAll(XiaomingUser sender) throws Exception;
 
     boolean reloadPlugin(XiaomingUser sender,
-                         XiaomingPlugin plugin);
+                         String pluginName) throws Exception;
+
+    boolean reloadPlugin(XiaomingUser sender,
+                         XiaomingPlugin plugin) throws Exception ;
 
     boolean reloadPlugin(XiaomingUser user,
-                         PluginProperty property);
+                         PluginProperty property) throws Exception ;
 
     void disablePlugin(XiaomingUser user,
                        XiaomingPlugin plugin);
@@ -48,7 +48,7 @@ public interface PluginManager extends XiaomingObject {
                          XiaomingPlugin plugin);
 
     void unloadPlugin(XiaomingUser user,
-                      XiaomingPlugin plugin);
+                      XiaomingPlugin plugin) throws Exception;
 
     /**
      * 获取一个插件的 plugin.json

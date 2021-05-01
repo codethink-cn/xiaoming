@@ -52,10 +52,10 @@ public class PluginPropertyImpl extends HashMap<String, Object> implements Plugi
     @Override
     public String getVersion() {
         try {
-            return (String) getOrDefault("version", "unknow");
+            return (String) getOrDefault("version", "unknown");
         } catch (Exception exception) {
             exception.printStackTrace();
-            return "unknow";
+            return "unknown";
         }
     }
 

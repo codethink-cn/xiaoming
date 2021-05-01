@@ -9,6 +9,7 @@
         <module name="host" />
         <module name="core" />
         <module name="api" />
+        <module name="example" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>

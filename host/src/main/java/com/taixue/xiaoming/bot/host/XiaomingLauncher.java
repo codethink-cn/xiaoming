@@ -9,6 +9,7 @@ import com.taixue.xiaoming.bot.api.bot.XiaomingBot;
 import com.taixue.xiaoming.bot.api.listener.dispatcher.user.ConsoleDispatcherUser;
 import com.taixue.xiaoming.bot.api.listener.interactor.InteractorManager;
 import com.taixue.xiaoming.bot.api.plugin.PluginManager;
+import com.taixue.xiaoming.bot.api.plugin.XiaomingPlugin;
 import com.taixue.xiaoming.bot.api.user.XiaomingUser;
 import com.taixue.xiaoming.bot.core.base.HostObjectImpl;
 import com.taixue.xiaoming.bot.core.bot.XiaomingBotImpl;
@@ -36,6 +37,8 @@ import com.taixue.xiaoming.bot.host.hook.ShutdownHook;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 小明的启动器类
@@ -77,10 +80,15 @@ public class XiaomingLauncher extends HostObjectImpl implements SimbotProcess {
     final GroupCommandExecutor groupCommandExecutor = new GroupCommandExecutor();
     final EmojiCommandExecutor emojiCommandExecutor = new EmojiCommandExecutor();
     final PermissionCommandExecutor permissionCommandExecutor = new PermissionCommandExecutor();
-    final ConsoleCommandRunnable consoleCommandRunnable = new ConsoleCommandRunnable();
     final AccountCommandExecutor accountCommandExecutor = new AccountCommandExecutor();
     final CallLimitCommandExecutor callLimitCommandExecutor = new CallLimitCommandExecutor();
     final DebugCommandExecutor debugCommandExecutor = new DebugCommandExecutor();
+
+    final ConsoleCommandRunnable consoleCommandRunnable = new ConsoleCommandRunnable();
+
+    public ConsoleCommandRunnable getConsoleCommandRunnable() {
+        return consoleCommandRunnable;
+    }
 
     /**
      * 定时保存相关运行时数据
@@ -88,6 +96,12 @@ public class XiaomingLauncher extends HostObjectImpl implements SimbotProcess {
     final RegularCounterSaveRunnable regularCounterSaveRunnable = new RegularCounterSaveRunnable();
 
     final CoreInteractor coreInteractor = new CoreInteractor();
+
+    final ShutdownHook shutdownHook = new ShutdownHook();
+
+    public ShutdownHook getShutdownHook() {
+        return shutdownHook;
+    }
 
     /**
      * 登录所有的机器人账号
@@ -142,7 +156,6 @@ public class XiaomingLauncher extends HostObjectImpl implements SimbotProcess {
         commandManager.registerAsCore(groupCommandExecutor);
         commandManager.registerAsCore(emojiCommandExecutor);
         commandManager.registerAsCore(permissionCommandExecutor);
-        commandManager.registerAsCore(consoleCommandRunnable);
         commandManager.registerAsCore(accountCommandExecutor);
         commandManager.registerAsCore(callLimitCommandExecutor);
         commandManager.registerAsCore(debugCommandExecutor);
@@ -164,7 +177,6 @@ public class XiaomingLauncher extends HostObjectImpl implements SimbotProcess {
         // 加载插件
         final PluginManager pluginManager = xiaomingBot.getPluginManager();
         pluginManager.loadAllPlugins(consoleXiaomingUser);
-
     }
 
     /**
@@ -228,19 +240,9 @@ public class XiaomingLauncher extends HostObjectImpl implements SimbotProcess {
                 "                                        @" + AUTHOR + "\n" +
                 "version: " + VERSION + "\n" +
                 "github: " + GITHUB + "\n");
-    }
 
-    public void close(final XiaomingUser user) {
-        user.sendMessage("正在关闭进程池");
-        XIAOMING_BOT.getService().shutdown();
-
-        final RegularSaveDataManager regularSaveDataManager = getXiaomingBot().getRegularSaveDataManager();
-        if (regularSaveDataManager.getSaveSet().isEmpty()) {
-            user.sendMessage("没有任何需要保存的数据");
-        } else {
-            user.sendMessage("正在保存数据");
-            regularSaveDataManager.save(user);
-        }
+        // 设置关闭时的数据保存操作
+        Runtime.getRuntime().addShutdownHook(new Thread(shutdownHook));
     }
 
     public static void main(final String[] args) {
@@ -248,16 +250,6 @@ public class XiaomingLauncher extends HostObjectImpl implements SimbotProcess {
         PathUtil.CONFIG_DIR.mkdirs();
         PathUtil.PLUGIN_DIR.mkdirs();
         PathUtil.ACCOUNT_DIR.mkdirs();
-
-//        // 获取系统类型
-//        final String osType = System.getProperties().getProperty("os.name").toLowerCase().startsWith("win") ? "INT" : "USR2";
-//
-//        // 设置小明关闭监听器
-//        Signal sig = new Signal(osType);
-//        Signal.handle(sig, signal -> {
-//            Thread t = new Thread(new ShutdownHook(), "ShutdownHook-Thread");
-//            Runtime.getRuntime().addShutdownHook(t);
-//        });
 
         // 启动小明
         SimbotApp.run(XiaomingLauncher.class, args);

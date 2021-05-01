@@ -1,0 +1,7 @@
+{
+  "@class": "com.taixue.xiaoming.bot.core.plugin.PluginPropertyImpl",
+  "name": "example-plugin-name",
+  "main": "com.taixue.xiaoming.bot.example.ExamplePlugin",
+  "author": "Chuanwise",
+  "version": "1.0.TEST"
+}

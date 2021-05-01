@@ -19,6 +19,7 @@
         <module>api</module>
         <module>host</module>
         <module>core</module>
+        <module>example</module>
     </modules>
 
     <dependencies>

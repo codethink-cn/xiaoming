@@ -197,11 +197,11 @@ public class PluginManagerImpl extends HostObjectImpl implements PluginManager {
      * 卸载插件
      */
     @Override
-    public boolean unloadPlugin(final XiaomingUser sender,
-                                final String pluginName) {
+    public boolean unloadPlugin(final XiaomingUser user,
+                                final String pluginName) throws Exception {
         final XiaomingPlugin plugin = getPlugin(pluginName);
         if (Objects.nonNull(plugin)) {
-            unloadPlugin(sender, plugin);
+            unloadPlugin(user, plugin);
             return true;
         } else {
             return false;
@@ -213,7 +213,7 @@ public class PluginManagerImpl extends HostObjectImpl implements PluginManager {
      * @param sender
      */
     @Override
-    public void reloadAll(final XiaomingUser sender) {
+    public void reloadAll(final XiaomingUser sender) throws Exception {
         for (XiaomingPlugin loadedPlugin : loadedPlugins) {
             reloadPlugin(sender, loadedPlugin);
         }
@@ -221,7 +221,7 @@ public class PluginManagerImpl extends HostObjectImpl implements PluginManager {
 
     @Override
     public boolean reloadPlugin(final XiaomingUser sender,
-                                final String pluginName) {
+                                final String pluginName) throws Exception {
         if (!isLoaded(pluginName)) {
             return false;
         }
@@ -231,13 +231,13 @@ public class PluginManagerImpl extends HostObjectImpl implements PluginManager {
 
     @Override
     public boolean reloadPlugin(final XiaomingUser sender,
-                                final XiaomingPlugin plugin) {
+                                final XiaomingPlugin plugin) throws Exception {
         return reloadPlugin(sender, plugin.getProperty());
     }
 
     @Override
     public boolean reloadPlugin(final XiaomingUser user,
-                                final PluginProperty property) {
+                                final PluginProperty property) throws Exception {
         final XiaomingPlugin plugin = property.getPlugin();
         unloadPlugin(user, plugin);
         return tryLoadPlugin(user, property);
@@ -272,15 +272,10 @@ public class PluginManagerImpl extends HostObjectImpl implements PluginManager {
 
     @Override
     public void unloadPlugin(final XiaomingUser user,
-                             final XiaomingPlugin plugin) {
+                             final XiaomingPlugin plugin) throws Exception {
         disablePlugin(user, plugin);
         loadedPlugins.remove(plugin.getName());
-        try {
-            plugin.unHookAll();
-        } catch (Exception exception) {
-            user.sendError("和插件脱钩时出现异常：{}，相关插件可能不会正常运行。", exception);
-            exception.printStackTrace();
-        }
+        plugin.unHookAll();
         getXiaomingBot().getInteractorManager().getPluginInteractors().remove(plugin);
         getXiaomingBot().getCommandManager().getPluginCommandExecutors().remove(plugin);
     }
