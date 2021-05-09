@@ -35,3 +35,6 @@ hs_err_pid*
 /logs/
 /plugins/
 /.idea/
+/xiaoming-api/src/test/
+/xiaoming-core/src/test/
+/xiaoming-host/src/test/
