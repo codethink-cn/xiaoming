@@ -1,0 +1,28 @@
+package com.chuanwise.xiaoming.core.config;
+
+import com.chuanwise.xiaoming.api.bot.XiaomingBot;
+import com.chuanwise.xiaoming.api.config.Statistician;
+import com.chuanwise.xiaoming.api.object.XiaomingObject;
+import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@NoArgsConstructor
+public class StatisticianImpl extends JsonFilePreservable implements Statistician {
+    volatile long callNumber = 0;
+
+    @Setter
+    transient XiaomingBot xiaomingBot;
+
+    public StatisticianImpl(XiaomingBot xiaomingBot) {
+        this.xiaomingBot = xiaomingBot;
+    }
+
+    @Override
+    public void increaseCallCounter() {
+        callNumber++;
+        getXiaomingBot().getRegularPreserveManager().readySave(this);
+    }
+}
