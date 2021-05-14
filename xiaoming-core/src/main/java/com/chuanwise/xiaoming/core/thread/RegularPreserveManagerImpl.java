@@ -3,17 +3,15 @@ package com.chuanwise.xiaoming.core.thread;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
 import com.chuanwise.xiaoming.api.runnable.RegularPreserveManager;
-import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
-import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.core.object.HostXiaomingObjectImpl;
+import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import lombok.Getter;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @Getter
-public class RegularPreserveManagerImpl extends HostXiaomingObjectImpl implements RegularPreserveManager {
+public class RegularPreserveManagerImpl extends HostObjectImpl implements RegularPreserveManager {
     Set<Preservable> preservables = new CopyOnWriteArraySet<>();
 
     public RegularPreserveManagerImpl(XiaomingBot xiaomingBot) {
@@ -49,7 +47,7 @@ public class RegularPreserveManagerImpl extends HostXiaomingObjectImpl implement
 
     @Override
     public void run() {
-        final ConsoleXiaomingUser user = getXiaomingBot().getConsoleXiaomingUser();
+        final XiaomingUser user = getXiaomingBot().getConsoleXiaomingUser();
         while (!getXiaomingBot().isStop()) {
             try {
                 Thread.sleep(getXiaomingBot().getConfig().getAutoSaveDeltaTime());
@@ -70,12 +68,12 @@ public class RegularPreserveManagerImpl extends HostXiaomingObjectImpl implement
                 if (preservables.isEmpty()) {
                     user.sendMessage("成功保存了 {} 个文件", savedFileNumber);
                 } else {
-                    user.useBuffer();
+                    user.enableBuffer();
                     user.sendError("本次保存了 {} 个文件，还有 {} 个文件保存失败：");
                     for (Preservable preservable : preservables) {
                         user.sendMessage(preservable.getMedium().toString());
                     }
-                    user.sendMessage(user.getBufferAndClose());
+                    user.sendMessage(user.getBufferAndClear());
                 }
             }
         }

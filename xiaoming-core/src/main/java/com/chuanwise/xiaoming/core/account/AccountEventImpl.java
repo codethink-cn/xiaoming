@@ -1,8 +1,6 @@
 package com.chuanwise.xiaoming.core.account;
 
 import com.chuanwise.xiaoming.api.account.AccountEvent;
-import com.chuanwise.xiaoming.api.object.HostXiaomingObject;
-import com.chuanwise.xiaoming.core.object.HostXiaomingObjectImpl;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 

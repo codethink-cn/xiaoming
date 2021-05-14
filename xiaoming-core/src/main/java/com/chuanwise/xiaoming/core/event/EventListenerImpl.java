@@ -2,12 +2,9 @@ package com.chuanwise.xiaoming.core.event;
 
 import com.chuanwise.xiaoming.api.annotation.HandlerMethod;
 import com.chuanwise.xiaoming.api.event.EventListener;
-import com.chuanwise.xiaoming.api.object.HostXiaomingObject;
-import com.chuanwise.xiaoming.core.object.HostXiaomingObjectImpl;
 import com.chuanwise.xiaoming.core.object.XiaomingObjectImpl;
 import lombok.Getter;
 import net.mamoe.mirai.event.Event;
-import net.mamoe.mirai.event.EventHandler;
 import org.slf4j.Logger;
 
 import java.lang.reflect.Method;

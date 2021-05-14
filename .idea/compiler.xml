@@ -12,10 +12,10 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="xiaoming-api" target="11" />
-      <module name="xiaoming-bot" target="11" />
-      <module name="xiaoming-core" target="11" />
-      <module name="xiaoming-host" target="11" />
+      <module name="xiaoming-api" target="1.8" />
+      <module name="xiaoming-bot" target="1.8" />
+      <module name="xiaoming-core" target="1.8" />
+      <module name="xiaoming-host" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

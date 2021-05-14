@@ -1,26 +1,25 @@
 package com.chuanwise.xiaoming.host;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.command.executor.CommandManager;
-import com.chuanwise.xiaoming.api.config.Configuration;
-import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.preserve.PreservableFactory;
-import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
+import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.PathUtil;
 import com.chuanwise.xiaoming.core.bot.XiaomingBotImpl;
-import com.chuanwise.xiaoming.core.command.executor.*;
-import com.chuanwise.xiaoming.core.user.ConsoleXiaomingUserImpl;
+import com.chuanwise.xiaoming.core.plugin.PluginPropertyImpl;
+import com.chuanwise.xiaoming.core.plugin.XiaomingPluginImpl;
 import com.chuanwise.xiaoming.host.config.BotAccount;
 import com.chuanwise.xiaoming.host.config.LauncherConfig;
 import com.chuanwise.xiaoming.core.preserve.JsonFilePreservableFactory;
+import com.chuanwise.xiaoming.host.interactor.GroupInteractorTest;
+import com.chuanwise.xiaoming.host.interactor.InteractorTest;
 import com.chuanwise.xiaoming.host.runnable.ConsoleListenerRunnable;
+import com.chuanwise.xiaoming.host.user.ConsoleXiaomingUser;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.mamoe.mirai.BotFactory;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
@@ -43,7 +42,7 @@ public class XiaomingLauncher {
     final LauncherConfig launcherConfig = filePreservableFactory.
             loadOrProduce(LauncherConfig.class, new File(PathUtil.LAUNCHER_DIR, "launcher.json"), LauncherConfig::new);
 
-    final ConsoleXiaomingUser consoleXiaomingUser = new ConsoleXiaomingUserImpl();
+    final XiaomingUser consoleXiaomingUser = new ConsoleXiaomingUser(xiaomingBot);
 
     /**
      * 控制台指令接收线程
@@ -129,6 +128,7 @@ public class XiaomingLauncher {
         }
 
         final XiaomingLauncher launcher = new XiaomingLauncher();
+
         // 设置关闭时的数据保存操作
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             // 如果小明此时还没有关闭则关闭
@@ -136,6 +136,21 @@ public class XiaomingLauncher {
                 launcher.stop();
             }
         }));
+
         launcher.launch();
+
+        // launch 后，从 launcher 获得已经被启动的小明实例
+        final XiaomingBot xiaomingBot = launcher.getXiaomingBot();
+
+        // 小明已经启动完成，不能再以内核身份注册指令，所以只能伪装成一个插件
+        // 创建插件实例
+        final XiaomingPluginImpl plugin = new XiaomingPluginImpl();
+        // 设置插件对应的插件文件
+        plugin.setProperty(new PluginPropertyImpl(new File("测试插件.jar")));
+        // 设置插件日志器
+        plugin.setLog(LoggerFactory.getLogger(plugin.getCompleteName()));
+
+        xiaomingBot.getInteractorManager().register(new GroupInteractorTest(), plugin);
+        xiaomingBot.getInteractorManager().register(new InteractorTest(), plugin);
     }
 }

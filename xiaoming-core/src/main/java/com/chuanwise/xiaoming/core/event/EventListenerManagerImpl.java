@@ -5,7 +5,7 @@ import com.chuanwise.xiaoming.api.event.EventListener;
 import com.chuanwise.xiaoming.api.event.EventListenerManager;
 import com.chuanwise.xiaoming.api.event.ListenerResponseEvent;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
-import com.chuanwise.xiaoming.core.object.HostXiaomingObjectImpl;
+import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import lombok.Getter;
 import net.mamoe.mirai.event.Event;
 
@@ -18,7 +18,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * 消息处理函数管理器
  */
 @Getter
-public class EventListenerManagerImpl extends HostXiaomingObjectImpl implements EventListenerManager {
+public class EventListenerManagerImpl extends HostObjectImpl implements EventListenerManager {
     Set<EventListener> coreListeners = new CopyOnWriteArraySet<>();
 
     Map<XiaomingPlugin, Set<EventListener>> pluginListeners = new ConcurrentHashMap<>();
@@ -32,6 +32,7 @@ public class EventListenerManagerImpl extends HostXiaomingObjectImpl implements 
     @Override
     public void call(Event event) {
         final Class<? extends Event> clazz = event.getClass();
+        getLog().info("event occured: " + clazz.getName());
         for (EventListener listener : coreListeners) {
             try {
                 if (listener.onEvent(event)) {

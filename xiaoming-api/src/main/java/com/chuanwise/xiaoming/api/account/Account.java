@@ -33,10 +33,6 @@ public interface Account extends Preservable<File> {
 
     void setAlias(String alias);
 
-    void setEvents(List<AccountEvent> events);
-
-    void setHistories(List<AccountEvent> histories);
-
     boolean isBlockPlugin(String pluginName);
 
     void blockPlugin(String pluginName);

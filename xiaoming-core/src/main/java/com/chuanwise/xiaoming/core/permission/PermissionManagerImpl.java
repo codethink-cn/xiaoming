@@ -22,8 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Data
 @NoArgsConstructor
 public class PermissionManagerImpl extends JsonFilePreservable implements PermissionManager {
-    Map<String, PermissionGroup> groups = new ConcurrentHashMap<>();
-    Map<Long, PermissionUserNode> users = new ConcurrentHashMap<>();
+    Map<String, PermissionGroupImpl> groups = new ConcurrentHashMap<>();
+    Map<Long, PermissionUserNodeImpl> users = new ConcurrentHashMap<>();
     transient PermissionGroup defaultGroup;
 
     transient XiaomingBot xiaomingBot;
@@ -32,7 +32,17 @@ public class PermissionManagerImpl extends JsonFilePreservable implements Permis
         this.xiaomingBot = xiaomingBot;
     }
 
-    public void setGroups(Map<String, PermissionGroup> groups) {
+    @Override
+    public Map<Long, PermissionUserNode> getUsers() {
+        return ((Map) users);
+    }
+
+    @Override
+    public Map<String, PermissionGroup> getGroups() {
+        return (Map) groups;
+    }
+
+    public void setGroups(Map<String, PermissionGroupImpl> groups) {
         this.groups = groups;
         PermissionGroup defaultGroup = groups.get(DEFAULT_PERMISSION_GROUP_NAME);
         if (Objects.nonNull(defaultGroup)) {
@@ -46,8 +56,8 @@ public class PermissionManagerImpl extends JsonFilePreservable implements Permis
     }
 
     @Override
-    public boolean userHasPermission(final long qq,
-                                     final String node) {
+    public boolean userHasPermission(long qq,
+                                     String node) {
         final PermissionUserNode userNode = getUserNode(qq);
         if (Objects.isNull(userNode)) {
             return groupHasPermission(defaultGroup, node);
@@ -74,7 +84,7 @@ public class PermissionManagerImpl extends JsonFilePreservable implements Permis
     }
 
     @Override
-    public boolean userHasPermissions(final long qq,
+    public boolean userHasPermissions(long qq,
                                       @NotNull final String[] nodes) {
         for (String node : nodes) {
             if (!userHasPermission(qq, node)) {
@@ -85,18 +95,18 @@ public class PermissionManagerImpl extends JsonFilePreservable implements Permis
     }
 
     @Override
-    public boolean groupHasPermission(final String groupName, final String node) {
+    public boolean groupHasPermission(String groupName, final String node) {
         final PermissionGroup group = getGroup(groupName);
         return Objects.nonNull(group) && groupHasPermission(group, node);
     }
 
     @Override
-    public PermissionGroup getGroup(final String groupName) {
+    public PermissionGroup getGroup(String groupName) {
         return groups.get(groupName);
     }
 
     @Override
-    public boolean groupHasPermission(final PermissionGroup group,
+    public boolean groupHasPermission(PermissionGroup group,
                                       final String node) {
         for (String n : group.getPermissions()) {
             final int accessable = PermissionUtil.accessable(n, node);
@@ -122,7 +132,7 @@ public class PermissionManagerImpl extends JsonFilePreservable implements Permis
         if (Objects.equals(groupName, DEFAULT_PERMISSION_GROUP_NAME)) {
             this.defaultGroup = group;
         }
-        groups.put(groupName, group);
+        groups.put(groupName, ((PermissionGroupImpl) group));
     }
 
     @Override
@@ -150,17 +160,17 @@ public class PermissionManagerImpl extends JsonFilePreservable implements Permis
     }
 
     @Override
-    public PermissionUserNode getUserNode(final long qq) {
+    public PermissionUserNode getUserNode(long qq) {
         return users.get(qq);
     }
 
     @Override
-    public PermissionUserNode getOrPutUserNode(final long qq) {
+    public PermissionUserNode getOrPutUserNode(long qq) {
         PermissionUserNode userNode = getUserNode(qq);
         if (Objects.isNull(userNode)) {
             userNode = new PermissionUserNodeImpl();
             userNode.setGroup(PermissionManager.DEFAULT_PERMISSION_GROUP_NAME);
-            users.put(qq, userNode);
+            users.put(qq, ((PermissionUserNodeImpl) userNode));
         }
         return userNode;
     }

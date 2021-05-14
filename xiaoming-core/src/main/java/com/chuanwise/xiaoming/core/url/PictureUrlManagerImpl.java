@@ -3,6 +3,7 @@ package com.chuanwise.xiaoming.core.url;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.url.PictureUrlManager;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,9 +11,14 @@ import java.util.*;
 import java.util.regex.Matcher;
 
 @Data
+@Slf4j
 public class PictureUrlManagerImpl extends UrlManagerImpl implements PictureUrlManager {
     transient XiaomingBot xiaomingBot;
-    transient Logger log = LoggerFactory.getLogger(getClass());
+
+    @Override
+    public Logger getLog() {
+        return log;
+    }
 
     @Override
     public String requireRecordedCatCode(String miraiCode) {

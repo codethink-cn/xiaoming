@@ -18,8 +18,9 @@ public class BotAccount {
     String password;
 
     public void setPassword(String password) {
-        md5 = MD5Utils.getInstance().getMD5(password);
-        this.password = null;
+        if (Objects.nonNull(password)) {
+            md5 = MD5Utils.getInstance().getMD5(password);
+        }
     }
 
     public BotAccount(long qq, String password) {

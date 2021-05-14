@@ -14,10 +14,12 @@ import lombok.NoArgsConstructor;
 public class ConfigurationImpl extends JsonFilePreservable implements Configuration {
     boolean debug = false;
 
-    CallLimitConfig groupCallConfig = new CallLimitConfigImpl();
-    CallLimitConfig privateCallConfig = new CallLimitConfigImpl();
+    CallLimitConfigImpl groupCallConfig = new CallLimitConfigImpl();
+    CallLimitConfigImpl privateCallConfig = new CallLimitConfigImpl();
 
     long autoSaveDeltaTime = TimeUtil.MINUTE_MINS * 10;
 
-    XiaomingBot xiaomingBot;
+    transient XiaomingBot xiaomingBot;
+
+    int maxThreadNumber = 100;
 }

@@ -2,46 +2,43 @@ package com.chuanwise.xiaoming.core.bot;
 
 import com.chuanwise.xiaoming.api.account.AccountManager;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.command.executor.CommandManager;
+import com.chuanwise.xiaoming.api.classloader.XiaomingClassLoader;
 import com.chuanwise.xiaoming.api.config.Configuration;
 import com.chuanwise.xiaoming.api.config.Statistician;
 import com.chuanwise.xiaoming.api.error.ErrorMessageManager;
-import com.chuanwise.xiaoming.api.event.UserInteractRunnable;
-import com.chuanwise.xiaoming.api.event.UserInteractor;
 import com.chuanwise.xiaoming.api.exception.NoSuchBotException;
 import com.chuanwise.xiaoming.api.exception.XiaomingInitializeException;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
-import com.chuanwise.xiaoming.api.interactor.MessageWaiter;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.text.TextManager;
 import com.chuanwise.xiaoming.api.url.PictureUrlManager;
+import com.chuanwise.xiaoming.api.user.Receiptionist;
+import com.chuanwise.xiaoming.api.user.ReceiptionistManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.TimeUtil;
 import com.chuanwise.xiaoming.api.word.WordManager;
 import com.chuanwise.xiaoming.api.event.EventListenerManager;
-import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
 import com.chuanwise.xiaoming.api.plugin.PluginManager;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
 import com.chuanwise.xiaoming.api.runnable.RegularPreserveManager;
 import com.chuanwise.xiaoming.core.account.AccountManagerImpl;
-import com.chuanwise.xiaoming.api.event.UserInteractManager;
-import com.chuanwise.xiaoming.core.command.executor.*;
 import com.chuanwise.xiaoming.core.error.ErrorMessageManagerImpl;
-import com.chuanwise.xiaoming.core.event.UserInteractManagerImpl;
 import com.chuanwise.xiaoming.core.interactor.ErrorReportInteractor;
+import com.chuanwise.xiaoming.core.interactor.InteractorManagerImpl;
+import com.chuanwise.xiaoming.core.interactor.core.*;
 import com.chuanwise.xiaoming.core.permission.PermissionGroupImpl;
 import com.chuanwise.xiaoming.core.response.ResponseGroupManagerImpl;
 import com.chuanwise.xiaoming.core.text.TextManagerImpl;
 import com.chuanwise.xiaoming.core.thread.RegularPreserveManagerImpl;
-import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
 import com.chuanwise.xiaoming.core.config.ConfigurationImpl;
 import com.chuanwise.xiaoming.core.config.StatisticianImpl;
 import com.chuanwise.xiaoming.core.url.PictureUrlManagerImpl;
+import com.chuanwise.xiaoming.core.user.ReceptionistManagerImpl;
 import com.chuanwise.xiaoming.core.word.WordManagerImpl;
 import com.chuanwise.xiaoming.core.event.EventListenerManagerImpl;
-import com.chuanwise.xiaoming.core.interactor.InteractorManagerImpl;
+import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.core.limit.UserCallLimitManagerImpl;
 import com.chuanwise.xiaoming.core.permission.PermissionManagerImpl;
 import com.chuanwise.xiaoming.core.plugin.PluginManagerImpl;
@@ -51,13 +48,15 @@ import com.chuanwise.xiaoming.api.util.PathUtil;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.BotFactory;
 import net.mamoe.mirai.event.Event;
+import net.mamoe.mirai.event.EventChannel;
 import net.mamoe.mirai.event.EventHandler;
 import net.mamoe.mirai.event.ListenerHost;
+import net.mamoe.mirai.event.events.BotEvent;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -74,15 +73,16 @@ import java.util.concurrent.TimeUnit;
  */
 @NoArgsConstructor
 @Getter
+@Slf4j
 public class XiaomingBotImpl implements XiaomingBot {
     public static final String VERSION = "1.0 TEST";
     public static final String AUTHOR = "Chuanwise";
     public static final String GITHUB = "https://github.com/Chuanwise/xiaoming-bot";
 
-    /**
-     * 日志记录器
-     */
-    Logger log = LoggerFactory.getLogger(getClass());
+    @Override
+    public Logger getLog() {
+        return log;
+    }
 
     /**
      * mirai 机器人引用
@@ -122,7 +122,6 @@ public class XiaomingBotImpl implements XiaomingBot {
         load("statistician");
         load("permissionManager");
         load("wordManager");
-        load("commandManager");
         load("pluginManager");
         load("interactorManager");
         load("eventListenerManager");
@@ -132,10 +131,13 @@ public class XiaomingBotImpl implements XiaomingBot {
         load("errorMessageManager");
         load("urlInMiraiCodeManager");
         load("textManager");
+        load("receiptionistManager");
     }
 
-    void initialize() {
-        // 创建一些文件夹
+    /**
+     * 创建一些小明必要的的文件夹
+     */
+    void makeDirectories() {
         if (!accountDirectory.isDirectory() && !accountDirectory.mkdirs()) {
             final String message = "无法创建账户文件夹：" + accountDirectory.getAbsolutePath();
             throw new XiaomingInitializeException(message);
@@ -151,15 +153,19 @@ public class XiaomingBotImpl implements XiaomingBot {
             throw new XiaomingInitializeException(message);
         }
 
-        final File logDir = PathUtil.LOG_DIR;
-        if (!logDir.isDirectory() && !logDir.mkdirs()) {
-            final String message = "无法创建日志文件夹：" + logDir.getAbsolutePath();
+        if (!textDirectory.isDirectory() && !textDirectory.mkdirs()) {
+            final String message = "无法创建文本文件夹：" + textDirectory.getAbsolutePath();
             throw new XiaomingInitializeException(message);
         }
 
-        File lastestLog = new File(logDir, "lastest.log");
+        if (!logDirectory.isDirectory() && !logDirectory.mkdirs()) {
+            final String message = "无法创建日志文件夹：" + logDirectory.getAbsolutePath();
+            throw new XiaomingInitializeException(message);
+        }
+
+        File lastestLog = new File(logDirectory, "lastest.log");
         if (lastestLog.isFile()) {
-            final File dest = new File(logDir, TimeUtil.FORMAT.format(lastestLog.lastModified()) + ".log");
+            final File dest = new File(logDirectory, TimeUtil.FORMAT.format(lastestLog.lastModified()) + ".log");
             lastestLog.renameTo(dest);
         }
         try {
@@ -168,40 +174,55 @@ public class XiaomingBotImpl implements XiaomingBot {
             }
         } catch (IOException exception) {
             exception.printStackTrace();
-            final String message = "无法创建日志文件 " + logDir.getAbsolutePath() + " 时出现异常：" + exception;
+            final String message = "无法创建日志文件 " + logDirectory.getAbsolutePath() + " 时出现异常：" + exception;
             throw new XiaomingInitializeException(message);
         }
+    }
 
-        // 载入一大堆配置
-        load();
-
+    /**
+     * 注册内核所需的一些监听器之类
+     */
+    void registerCoreModules() {
         // 注册内核指令处理器
-        commandManager.register(new AccountCommandExecutor(this), null);
-        commandManager.register(new ErrorCommandExecutor(this), null);
-        commandManager.register(new CallLimitCommandExecutor(this), null);
-        commandManager.register(new CoreCommandExecutor(this), null);
-        commandManager.register(new PermissionCommandExecutor(this), null);
-        commandManager.register(new ResponseGroupCommandExecutor(this), null);
-        commandManager.register(new WordCommandExecutor(this), null);
-        commandManager.denyCoreRegister();
+        interactorManager.register(new GlobalCommandInteractor(this), null);
+
+        interactorManager.register(new AccountCommandInteractor(this), null);
+        interactorManager.register(new ErrorCommandInteractor(this), null);
+        interactorManager.register(new CallLimitCommandInteractor(this), null);
+        interactorManager.register(new CoreCommandInteractor(this), null);
+        interactorManager.register(new PermissionCommandInteractor(this), null);
+        interactorManager.register(new ResponseGroupCommandInteractor(this), null);
+        interactorManager.register(new WordCommandInteractor(this), null);
+        // 注册内核交互器
+        interactorManager.register(new ErrorReportInteractor(), null);
+        interactorManager.denyCoreRegister();
 
         // 注册内核监听器
-        eventListenerManager.register(userInteractManager, null);
+        eventListenerManager.register(receiptionistManager, null);
         eventListenerManager.denyCoreRegister();
 
         // 设置调用限制
         userCallLimitManager.getGroupCallLimiter().setConfig(config.getGroupCallConfig());
         userCallLimitManager.getPrivateCallLimiter().setConfig(config.getPrivateCallConfig());
+    }
 
-        // 注册内核交互器
-        interactorManager.register(new ErrorReportInteractor(), null);
-        interactorManager.denyCoreRegister();
+    void initialize() {
+        makeDirectories();
+
+        load();
+
+        registerCoreModules();
 
         // 加载所有的插件
-        pluginManager.loadAllPlugins(consoleXiaomingUser);
+        try {
+            pluginManager.loadAllPlugins(consoleXiaomingUser);
+        } catch (Throwable throwable) {
+            getLog().error("加载所有插件时出现异常：", throwable);
+        }
 
         // 将 mirai 的事件转发到小明的中央消息处理器
-        miraiBot.getEventChannel().registerListenerHost(new ListenerHost() {
+        final EventChannel<BotEvent> eventChannel = miraiBot.getEventChannel();
+        eventChannel.registerListenerHost(new ListenerHost() {
             @EventHandler
             public void onEvent(Event event) {
                 eventListenerManager.callLater(event);
@@ -237,7 +258,16 @@ public class XiaomingBotImpl implements XiaomingBot {
         miraiBot.login();
 
         execute(eventListenerManager);
+
+        post();
         getLog().info("小明机器人启动完成");
+    }
+
+    /**
+     * 小明启动后的一些操作
+     */
+    void post() {
+        responseGroupManager.sendMessageToTaggedGroup("tag", "小明启动成功 " + wordManager.get("happy"));
     }
 
     /**
@@ -271,11 +301,6 @@ public class XiaomingBotImpl implements XiaomingBot {
      * 表情包管理器
      */
     WordManager wordManager;
-
-    /**
-     * 指令处理器管理器
-     */
-    CommandManager commandManager;
 
     /**
      * 插件管理器
@@ -331,18 +356,15 @@ public class XiaomingBotImpl implements XiaomingBot {
             case "pluginManager":
                 pluginManager = new PluginManagerImpl(this, pluginDirectory);
                 return true;
-            case "commandManager":
-                commandManager = new CommandManagerImpl(this);
-                return true;
             case "wordManager":
                 wordManager = filePreservableFactory
-                        .loadOrProduce(WordManager.class, new File(configDirectory, "words.json"), WordManagerImpl::new);
+                        .loadOrProduce(WordManagerImpl.class, new File(configDirectory, "words.json"), WordManagerImpl::new);
                 wordManager.setXiaomingBot(this);
                 return true;
             case "permissionManager":
                 permissionManager = filePreservableFactory
-                        .loadOrProduce(PermissionManager.class, new File(configDirectory, "permissions.json"), () -> {
-                            PermissionManager manager = new PermissionManagerImpl();
+                        .loadOrProduce(PermissionManagerImpl.class, new File(configDirectory, "permissions.json"), () -> {
+                            PermissionManagerImpl manager = new PermissionManagerImpl();
                             final PermissionGroupImpl group = new PermissionGroupImpl();
                             group.setAlias("默认组");
                             manager.addGroup(PermissionManager.DEFAULT_PERMISSION_GROUP_NAME, group);
@@ -366,8 +388,8 @@ public class XiaomingBotImpl implements XiaomingBot {
                         .loadOrProduce(ResponseGroupManagerImpl.class, new File(configDirectory, "groups.json"), ResponseGroupManagerImpl::new);
                 responseGroupManager.setXiaomingBot(this);
                 return true;
-            case "userInteractManager":
-                userInteractManager = new UserInteractManagerImpl(this);
+            case "receiptionistManager":
+                receiptionistManager = new ReceptionistManagerImpl(this);
                 return true;
             case "errorMessageManager":
                 errorMessageManager = filePreservableFactory
@@ -380,7 +402,7 @@ public class XiaomingBotImpl implements XiaomingBot {
                 pictureUrlManager.setXiaomingBot(this);
                 return true;
             case "textManager":
-                textManager = new TextManagerImpl(this, textFile);
+                textManager = new TextManagerImpl(this, textDirectory);
                 return true;
             default:
                 return false;
@@ -406,10 +428,10 @@ public class XiaomingBotImpl implements XiaomingBot {
      * 控制台小明使用者
      */
     @Setter
-    ConsoleXiaomingUser consoleXiaomingUser;
+    XiaomingUser consoleXiaomingUser;
 
     @Override
-    public void setConsoleXiaomingUser(ConsoleXiaomingUser consoleXiaomingUser) {
+    public void setConsoleXiaomingUser(XiaomingUser consoleXiaomingUser) {
         this.consoleXiaomingUser = consoleXiaomingUser;
         consoleXiaomingUser.setXiaomingBot(this);
     }
@@ -429,7 +451,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     /**
      * 用户交互线程管理器
      */
-    UserInteractManager userInteractManager;
+    ReceiptionistManager receiptionistManager;
 
     /**
      * 错误记录器
@@ -442,21 +464,17 @@ public class XiaomingBotImpl implements XiaomingBot {
     @Deprecated
     PictureUrlManager pictureUrlManager;
 
-    File textFile = PathUtil.TEXT_DIR;
+    /**
+     * 提示文字管理器
+     */
+    File textDirectory = PathUtil.TEXT_DIR;
     TextManager textManager;
 
-    @Override
-    public synchronized void stop(XiaomingUser user) {
-        if (isStop()) {
-            throw new XiaomingRuntimeException("can not stop a stopped xiaoming bot");
-        }
+    File logDirectory = PathUtil.LOG_DIR;
 
-        user.sendMessage("正在尝试关闭小明");
-        stop = true;
+    XiaomingClassLoader xiaomingClassLoader = new XiaomingClassLoader(getClass().getClassLoader());
 
-        // 保存所有的文件
-        regularPreserveManager.save();
-
+    void shutdownService(XiaomingUser user) {
         // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
         service.shutdown();
 
@@ -466,25 +484,18 @@ public class XiaomingBotImpl implements XiaomingBot {
             events.notifyAll();
         }
 
-        final Map<Long, UserInteractor> islocator = userInteractManager.getIslocator();
-        synchronized (islocator) {
-            for (Map.Entry<Long, UserInteractor> entry : islocator.entrySet()) {
-                final long qq = entry.getKey();
-                final UserInteractRunnable runnable = entry.getValue().getUserInteractRunnable();
-                final XiaomingUser currentUser = runnable.getUser();
+        for (Map.Entry<Long, Receiptionist> entry : receiptionistManager.getReceiptionists().entrySet()) {
+            final long qq = entry.getKey();
+            final Receiptionist receiptionist = entry.getValue();
+            final XiaomingUser currentUser = receiptionist.getUser();
 
-                final MessageWaiter messageWaiter = runnable.getMessageWaiter();
-                if (Objects.nonNull(messageWaiter)) {
-                    getLog().warn("正等待用户" + currentUser.getName() + "的下一次输入，已终止此次交互");
-                    synchronized (messageWaiter) {
-                        messageWaiter.notifyAll();
-                    }
-                    currentUser.sendError(user.getName() + "正在关闭小明，我们下次见哦");
-                } else {
-                    synchronized (currentUser) {
-                        currentUser.notifyAll();
-                    }
-                }
+            if (receiptionist.isReceipting() && currentUser != user) {
+                getLog().warn("正等待用户" + currentUser.getName() + "的下一次输入，已终止此次交互");
+                currentUser.sendError(user.getName() + "正在关闭小明，我们下次见哦");
+            }
+            // 唤醒在这上面等待的所有线程
+            synchronized (currentUser) {
+                currentUser.notifyAll();
             }
         }
 
@@ -504,6 +515,21 @@ public class XiaomingBotImpl implements XiaomingBot {
                 getLog().warn("等待线程池关闭被强行中止");
             }
         }
+    }
+
+    @Override
+    public synchronized void stop(XiaomingUser user) {
+        if (isStop()) {
+            throw new XiaomingRuntimeException("can not stop a stopped xiaoming bot");
+        }
+
+        user.sendMessage("正在尝试关闭小明");
+        stop = true;
+
+        // 保存所有的文件
+        regularPreserveManager.save();
+
+        shutdownService(user);
 
         if (service.isShutdown()) {
             getLog().info("线程池成功关闭");

@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import java.util.*;
 
 @Data
-@NoArgsConstructor
 public class WordManagerImpl extends JsonFilePreservable implements WordManager {
     transient static final Random RANDOM = new Random();
 
@@ -21,18 +20,20 @@ public class WordManagerImpl extends JsonFilePreservable implements WordManager 
         this.xiaomingBot = xiaomingBot;
     }
 
+    public WordManagerImpl() {}
+
     @Override
     public Map<String, Set<String>> getValues() {
         return values;
     }
 
     @Override
-    public Set<String> getSet(final String key) {
+    public Set<String> getSet(String key) {
         return values.get(key);
     }
 
     @Override
-    public String get(final String key) {
+    public String get(String key) {
         final Set<String> strings = getSet(key);
         if (Objects.isNull(strings)) {
             return key;

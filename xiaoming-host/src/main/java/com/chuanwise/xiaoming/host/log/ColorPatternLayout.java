@@ -14,7 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ColorPatternLayout extends PatternLayout {
-   static final Map<String, String> COLORS = new HashMap<>() {{
+   static final Map<String, String> COLORS = new HashMap<String, String>() {{
         put("black", "\033[30m");
         put("red", "\033[31m");
         put("green", "\033[32m");
@@ -61,7 +61,7 @@ public class ColorPatternLayout extends PatternLayout {
         maxLogHeadLength = Math.max(maxLogHeadLength, currentLength);
 
         // 填充对齐使用的空格
-        builder.append(StringUtil.getINSTANCE().getSpaceString(maxLogHeadLength - currentLength))
+        builder.append(StringUtil.getSpaceString(maxLogHeadLength - currentLength))
                 .append(shortClassName)
                 .append(color("gray"))
                 .append(" : ");

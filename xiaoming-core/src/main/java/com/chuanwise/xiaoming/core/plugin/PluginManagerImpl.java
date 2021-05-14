@@ -8,7 +8,7 @@ import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.JsonSerializerUtil;
 import com.chuanwise.xiaoming.api.util.PluginLoaderUtil;
 import com.chuanwise.xiaoming.core.error.ErrorMessageImpl;
-import com.chuanwise.xiaoming.core.object.HostXiaomingObjectImpl;
+import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import lombok.Getter;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
@@ -30,7 +30,7 @@ import java.util.zip.ZipEntry;
  * 如果最终加载插件数和插件文件总数相等，所有插件均加载成功，否则有的插件加载失败。
  */
 @Getter
-public class PluginManagerImpl extends HostXiaomingObjectImpl implements PluginManager {
+public class PluginManagerImpl extends HostObjectImpl implements PluginManager {
     final File directory;
 
     public PluginManagerImpl(XiaomingBot xiaomingBot, File directory) {
@@ -96,7 +96,12 @@ public class PluginManagerImpl extends HostXiaomingObjectImpl implements PluginM
 
         // 扩展类加载器
         try {
-            classLoader = PluginLoaderUtil.extendClassLoader(property.getFile(), Thread.currentThread().getContextClassLoader());
+            /*
+            final XiaomingClassLoader xiaomingClassLoader = getXiaomingBot().getXiaomingClassLoader();
+            xiaomingClassLoader.addURL(property.getFile().toURI().toURL());
+
+             */
+            classLoader = PluginLoaderUtil.extendURLClassLoader(property.getFile(), (URLClassLoader) XiaomingBot.class.getClassLoader());
         } catch (Exception exception) {
             user.sendError("严重错误：无法扩展类加载器");
             getLog().error("无法扩展类加载器", exception);
@@ -135,7 +140,7 @@ public class PluginManagerImpl extends HostXiaomingObjectImpl implements PluginM
         plugin.setClassLoader(classLoader);
         plugin.setXiaomingBot(getXiaomingBot());
         plugin.setDataFolder(new File(directory, plugin.getName()));
-        plugin.setLogger(LoggerFactory.getLogger(plugin.getName()));
+        plugin.setLog(LoggerFactory.getLogger(plugin.getName()));
         return plugin;
     }
 
@@ -249,7 +254,6 @@ public class PluginManagerImpl extends HostXiaomingObjectImpl implements PluginM
         // disablePlugin(user, plugin);
         enabledPlugins.remove(plugin.getName());
         getXiaomingBot().getInteractorManager().getPluginInteractors().remove(plugin);
-        getXiaomingBot().getCommandManager().getPluginCommandExecutors().remove(plugin);
     }
 
     @Override

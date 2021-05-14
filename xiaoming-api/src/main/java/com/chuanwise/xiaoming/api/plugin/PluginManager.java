@@ -1,6 +1,6 @@
 package com.chuanwise.xiaoming.api.plugin;
 
-import com.chuanwise.xiaoming.api.object.HostXiaomingObject;
+import com.chuanwise.xiaoming.api.object.HostObject;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import org.apache.commons.collections4.BidiMap;
@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.jar.JarFile;
 
-public interface PluginManager extends XiaomingObject, HostXiaomingObject {
+public interface PluginManager extends XiaomingObject, HostObject {
     /**
      * 判断插件是否存在
      * @param name

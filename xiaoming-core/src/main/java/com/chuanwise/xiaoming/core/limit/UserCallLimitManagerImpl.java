@@ -10,8 +10,8 @@ import lombok.Setter;
 
 @NoArgsConstructor
 public class UserCallLimitManagerImpl extends JsonFilePreservable implements UserCallLimitManager {
-    UserCallLimiter groupCallLimiter = new UserCallLimiterImpl();
-    UserCallLimiter privateCallLimiter = new UserCallLimiterImpl();
+    UserCallLimiterImpl groupCallLimiter = new UserCallLimiterImpl();
+    UserCallLimiterImpl privateCallLimiter = new UserCallLimiterImpl();
 
     @Setter
     transient XiaomingBot xiaomingBot;
@@ -25,7 +25,7 @@ public class UserCallLimitManagerImpl extends JsonFilePreservable implements Use
         return groupCallLimiter;
     }
 
-    public void setGroupCallLimiter(UserCallLimiter groupCallLimiter) {
+    public void setGroupCallLimiter(UserCallLimiterImpl groupCallLimiter) {
         this.groupCallLimiter = groupCallLimiter;
     }
 
@@ -34,7 +34,7 @@ public class UserCallLimitManagerImpl extends JsonFilePreservable implements Use
         return privateCallLimiter;
     }
 
-    public void setPrivateCallLimiter(UserCallLimiter privateCallLimiter) {
+    public void setPrivateCallLimiter(UserCallLimiterImpl privateCallLimiter) {
         this.privateCallLimiter = privateCallLimiter;
     }
 

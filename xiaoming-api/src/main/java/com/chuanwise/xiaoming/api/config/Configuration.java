@@ -21,4 +21,6 @@ public interface Configuration extends Preservable<File>, XiaomingObject {
     long getAutoSaveDeltaTime();
 
     void setAutoSaveDeltaTime(long autoSaveDeltaTime);
+
+    int getMaxThreadNumber();
 }

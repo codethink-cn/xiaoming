@@ -18,7 +18,6 @@ public class CommandWords {
     public static final String HELP_REGEX = "(帮助|说明|help)";
     public static final String GROUP_REGEX = "(群聊|群|group)";
     public static final String PRIVATE_REGEX = "(私聊|私|private)";
-    public static final String COMMAND_EXECUTOR_REGEX = "(指令处理器|指令交互器|command-executor|command|executor)";
     public static final String INTERACTOR_REGEX = "(交互器|interactor)";
     public static final String ILLEGAL_REGEX = "(非法|违规|禁用|禁止|illegal)";
     public static final String DISABLE_REGEX = "(关闭|禁用|禁止|disable)";
@@ -40,4 +39,5 @@ public class CommandWords {
     public static final String MESSAGE_REGEX = "(消息|信息|message|报告|report)";
     public static final String EDIT_REGEX = "(修改|编辑|edit|modify)";
     public static final String USE_REGEX = "(使用|use)";
+    public static final String RECEIPTION_REGEX = "(接待员|招待员|接待者|招待者|receiptionist)";
 }

@@ -1,39 +1,249 @@
 package com.chuanwise.xiaoming.api.interactor;
 
-import com.chuanwise.xiaoming.api.annotation.RequirePermission;
-import com.chuanwise.xiaoming.api.object.XiaomingObject;
+import com.chuanwise.xiaoming.api.annotation.*;
+import com.chuanwise.xiaoming.api.event.InteractorResponseEvent;
+import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
+import com.chuanwise.xiaoming.api.interactor.detail.InteractorMethodDetail;
+import com.chuanwise.xiaoming.api.interactor.filter.FilterMatcher;
+import com.chuanwise.xiaoming.api.interactor.filter.ParameterFilterMatcher;
+import com.chuanwise.xiaoming.api.object.PluginObject;
+import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.jetbrains.annotations.NotNull;
-import org.slf4j.Logger;
+import com.chuanwise.xiaoming.api.util.ArrayUtils;
+import com.chuanwise.xiaoming.api.util.AtUtil;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.regex.Matcher;
 
 /**
  * 小明的上下文相关交互器
+ * 指令处理器和上下文相关交互器的父类
  * @author Chuanwise
  */
-public interface Interactor extends XiaomingObject {
+public interface Interactor extends PluginObject {
     /**
-     * 重新统计交互方法详情
+     * 初始化方法，主要是加载子交互函数之类
      */
-    void reloadInteractorDetails(Logger logger);
+    void initialize();
+
+    default boolean isLegalUser(XiaomingUser user) {
+        return true;
+    }
+
+    default void onIllegalUser(XiaomingUser user) {
+        user.sendError("你还不能使用这个功能哦");
+    }
 
     /**
-     * 和一个用户交互。如果交互成功，返回 true
+     * 查看用户是否具有交互资格
+     * @param user 申请发起用户
+     * @return 其是否具有交互资格
+     */
+    default boolean willInteract(XiaomingUser user) {
+        final XiaomingPlugin plugin = getPlugin();
+
+        // 检查是否屏蔽插件
+        if (Objects.nonNull(plugin) && user.isBlockPlugin(plugin.getName())) {
+            return false;
+        }
+
+        final Class<? extends Interactor> clazz = getClass();
+
+        final GroupInteractor[] groupInteractors = clazz.getAnnotationsByType(GroupInteractor.class);
+        final TempInteractor[] tempInteractors = clazz.getAnnotationsByType(TempInteractor.class);
+        final PrivateInteractor[] privateInteractors = clazz.getAnnotationsByType(PrivateInteractor.class);
+
+        final boolean hasGroupRestrict = groupInteractors.length > 0;
+        final boolean hasTempRestrict = tempInteractors.length > 0;
+        final boolean hasPrivateRestrict = privateInteractors.length > 0;
+
+        // 如果三个注解都没有，就通过
+        if (!hasGroupRestrict && !hasTempRestrict && !hasPrivateRestrict) {
+            return true;
+        }
+
+        // 群交互验证
+        boolean groupVerify = false;
+        if (hasGroupRestrict) {
+            if (user.inGroup()) {
+                final GroupInteractor annotation = groupInteractors[0];
+                final long group = annotation.value();
+                final long qq = annotation.qq();
+                groupVerify = (group == 0 || user.getGroup().getId() == group) && (qq == 0 || user.getQQ() == qq);
+            } else {
+                groupVerify = false;
+            }
+        }
+
+        // 临时会话验证
+        boolean tempVerify = false;
+        if (hasTempRestrict) {
+            if (user.inTemp()) {
+                final TempInteractor annotation = tempInteractors[0];
+                final long group = annotation.value();
+                final long qq = annotation.qq();
+                tempVerify = (group == 0 || user.getGroup().getId() == group) && (qq == 0 || user.getQQ() == qq);
+            } else {
+                tempVerify = false;
+            }
+        }
+
+        // 私聊会话验证
+        boolean privateVerify = false;
+        if (hasPrivateRestrict) {
+            if (user.inPrivate()) {
+                final PrivateInteractor annotation = privateInteractors[0];
+                final long qq = annotation.value();
+                privateVerify = qq == 0 || user.getQQ() == qq;
+            } else {
+                privateVerify = false;
+            }
+        }
+
+        // 如果什么都没有打，默认全区域的交互器
+        return groupVerify || tempVerify || privateVerify;
+    }
+
+    /**
+     * 和一个用户交互。本方法不检查用户是否能与该交互器交互
      * @param user 当前交互用户
      * @return 是否交互成功
      * @throws Exception 交互途中抛出的异常
      */
-    boolean interact(XiaomingUser user) throws Exception;
+    default boolean interact(XiaomingUser user) throws Exception {
+        boolean interacted = false;
+        for (InteractorMethodDetail methodDetail : getMethodDetails()) {
+            // 验证响应条件，得到过滤器
+            if (!methodDetail.willInteract(user)) {
+                continue;
+            }
+
+            final FilterMatcher filter = methodDetail.getMatchableFilter(user);
+            if (Objects.isNull(filter)) {
+                continue;
+            }
+
+            if (!isLegalUser(user)) {
+                onIllegalUser(user);
+                return true;
+            }
+
+            final Method method = methodDetail.getMethod();
+            final Parameter[] parameters = method.getParameters();
+            List<Object> arguments = new ArrayList<>(parameters.length);
+            final Class<? extends XiaomingUser> userClass = user.getClass();
+
+            boolean isParameterFilter = filter instanceof ParameterFilterMatcher;
+            Matcher matcher = null;
+            Set<String> parameterNames = null;
+            if (isParameterFilter) {
+                matcher = ((ParameterFilterMatcher) filter).getMatcher(user.getQQ());
+                parameterNames = ((ParameterFilterMatcher) filter).getParameterNames();
+            }
+
+            for (Parameter parameter : parameters) {
+                final Class<?> type = parameter.getType();
+                if (type.isAssignableFrom(userClass)) {
+                    arguments.add(user);
+                } else if (isParameterFilter && Matcher.class.isAssignableFrom(type)) {
+                    arguments.add(matcher);
+                } else if (FilterMatcher.class.isAssignableFrom(type)) {
+                    arguments.add(filter);
+                } else if (InteractorMethodDetail.class.isAssignableFrom(type)) {
+                    arguments.add(methodDetail);
+                } else if (isParameterFilter && parameter.isAnnotationPresent(FilterParameter.class)) {
+                    // 带有 FilterParameter 注解，可能是 String 也可能不是
+                    final FilterParameter filterParameter = parameter.getAnnotation(FilterParameter.class);
+                    final String parameterName = filterParameter.value();
+                    final String parameterValue = matcher.group(parameterName);
+                    final String defaultValue = filterParameter.defaultValue();
+
+                    // 如果是 String，就直接填充，否则交给 onParameter
+                    if (String.class.isAssignableFrom(type)) {
+                        if (parameterNames.contains(parameterName)) {
+                            arguments.add(parameterValue);
+                        } else {
+                            arguments.add(defaultValue);
+                        }
+                    } else {
+                        final Object argument = onParameter(user, parameterName, parameterValue, defaultValue);
+                        if (Objects.nonNull(argument)) {
+                            arguments.add(argument);
+                        } else {
+                            throw new XiaomingRuntimeException("unfillable parameter: " +
+                                    "name: \"" + parameterName + "\", " +
+                                    "value: \"" + parameterValue + "\", " +
+                                    "type: " + type.getName() + ", " +
+                                    "defaultValue: \"" + defaultValue + "\", " +
+                                    "at method: " + method.getName() + ", " +
+                                    "in interactor: " + getClass().getName() + ", " +
+                                    "registered by: " + (Objects.isNull(getPlugin()) ? "core" : getPlugin().getCompleteName()));
+                        }
+                    }
+                } else {
+                    final Object argument = onParameter(user, parameter);
+                    if (Objects.nonNull(argument)) {
+                        arguments.add(argument);
+                    } else {
+                        throw new XiaomingRuntimeException("unfillable parameter: " +
+                                "type: " + type.getName() + ", " +
+                                "at method: " + method.getName() + ", " +
+                                "in interactor: " + getClass().getName() + ", " +
+                                "registered by: " + (Objects.isNull(getPlugin()) ? "core" : getPlugin().getCompleteName()));
+                    }
+                }
+            }
+
+            method.invoke(this, arguments.toArray(new Object[0]));
+            getXiaomingBot().getEventListenerManager().callLater(new InteractorResponseEvent(this, methodDetail, user));
+            interacted = true;
+            if (methodDetail.isBlocking()) {
+                return true;
+            }
+        }
+        return interacted;
+    }
+
+    /**
+     * 注册一个响应方法
+     * @param method 响应方法
+     * @return 是否注册成功
+     */
+    default boolean register(Method method) {
+        final Filter[] formats = method.getAnnotationsByType(Filter.class);
+        if (formats.length == 0) {
+            return false;
+        }
+
+        // 复制一份 String[] 类型的指令格式
+        register(method,
+                ArrayUtils.copyAs(method.getAnnotationsByType(RequirePermission.class), String.class, RequirePermission::value),
+                ArrayUtils.copyAs(formats, FilterMatcher.class, FilterMatcher::filterMatcher));
+        return true;
+    }
+
+    /**
+     * 注册一个指定权限和过滤器的响应函数
+     * @param method 响应函数
+     * @param requirePermissions 所需权限
+     * @param matchers 过滤器
+     */
+    default void register(Method method, String[] requirePermissions, FilterMatcher[] matchers) {
+        // 阻断式响应
+        final Blocking[] blockings = method.getAnnotationsByType(Blocking.class);
+        boolean isBlocking = false;
+        if (blockings.length > 0) {
+            isBlocking = blockings[0].value();
+        }
+
+        getMethodDetails().add(new InteractorMethodDetail(method, requirePermissions, matchers, isBlocking));
+    }
 
     /**
      * 解析未知的参数
-     * @param user 当前交互人
+     * @param user 当前用户
      * @param parameter 无法自动注入的参数
      * @return 注入结果。如果为 {@code null} 则注入失败
      */
@@ -42,32 +252,66 @@ public interface Interactor extends XiaomingObject {
     }
 
     /**
-     * 判断是否会与当前用户交互
-     * @param user 当前交互人
-     * @return 是否会与其交互
+     * 解析未知的使用 @FilterParameter 注解的参数
+     * @param user 当前用户
+     * @param parameterName 参数名
+     * @param currentValue 当前值
+     * @param defaultValue 默认值
+     * @return 注入结果。如果为 {@code null} 则注入失败
      */
-    default boolean willInteract(XiaomingUser user) {
-        return false;
+    default Object onParameter(XiaomingUser user, String parameterName, String currentValue, String defaultValue) {
+        if ("qq".equalsIgnoreCase(parameterName)) {
+            long qq = AtUtil.parseQQ(currentValue);
+            if (qq == -1) {
+                user.sendError("{}不是一个合理的QQ哦", currentValue);
+                return null;
+            } else {
+                return qq;
+            }
+        }
+        return null;
     }
 
     /**
-     * 交互方法的细节
-     * @author Chuanwise
+     * 获得用户可用的指令格式
+     * @param user 获取用户
+     * @return 指令格式集合
      */
-    @Data
-    @AllArgsConstructor
-    class InteractorMethodDetail {
-        private Method method;
-        private String[] requiredPermissions;
-
-        public InteractorMethodDetail(@NotNull final Method method) {
-            this.method = method;
-
-            final List<String> requiredPermissions = new ArrayList<>();
-            for (RequirePermission requiredPermission : method.getAnnotationsByType(RequirePermission.class)) {
-                requiredPermissions.add(requiredPermission.value());
+    default Set<String> getUsageStrings(XiaomingUser user) {
+        Set<String> usages = new HashSet<>();
+        for (InteractorMethodDetail detail : getMethodDetails()) {
+            if (detail.willInteract(user)) {
+                for (String usage : detail.getUsages()) {
+                    usages.add(usage);
+                }
             }
-            this.requiredPermissions = requiredPermissions.toArray(new String[0]);
+        }
+        return usages;
+    }
+
+    /**
+     * 向用户显示指令格式
+     * @param user 获取用户
+     */
+    default void showUsageStrings(XiaomingUser user) {
+        StringBuilder builder = new StringBuilder();
+
+        Set<String> usageStrings = getUsageStrings(user);
+        if (usageStrings.isEmpty()) {
+            builder.append("你没有权限执行该组任何一个指令");
+        } else {
+            String[] strings = usageStrings.toArray(new String[0]);
+            Arrays.sort(strings);
+            builder.append("该组指令中你可能有权执行的有如下 " + usageStrings.size() + " 条：");
+            for (String s : strings) {
+                builder.append("\n").append(s);
+            }
         }
     }
+
+    /**
+     * 获得指令处理方法集合
+     * @return
+     */
+    Set<InteractorMethodDetail> getMethodDetails();
 }

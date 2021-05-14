@@ -19,38 +19,15 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * 响应群管理器
  */
 @Getter
-@NoArgsConstructor
 public class ResponseGroupManagerImpl extends JsonFilePreservable implements ResponseGroupManager {
-    Set<ResponseGroup> groups = new CopyOnWriteArraySet<>();
+    Set<ResponseGroupImpl> groups = new CopyOnWriteArraySet<>();
 
     @Setter
     transient XiaomingBot xiaomingBot;
 
-    public ResponseGroupManagerImpl(XiaomingBot xiaomingBot) {
-        this.xiaomingBot = xiaomingBot;
+    public Set<ResponseGroup> getGroups() {
+        return (Set) groups;
     }
 
-    @Override
-    public ResponseGroup fromCode(long group) {
-        for (ResponseGroup responseGroup : groups) {
-            if (responseGroup.getCode() == group) {
-                return responseGroup;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public void addGroup(ResponseGroup group) {
-        groups.add(group);
-    }
-
-    public void sendMessageToTaggedGroup(String tag, String message) {
-        for (ResponseGroup responseGroup : getXiaomingBot().getResponseGroupManager().fromTag("log")) {
-            final Group group = getXiaomingBot().getMiraiBot().getGroup(responseGroup.getCode());
-            if (Objects.nonNull(group)) {
-                group.sendMessage(message);
-            }
-        }
-    }
+    public ResponseGroupManagerImpl() {}
 }

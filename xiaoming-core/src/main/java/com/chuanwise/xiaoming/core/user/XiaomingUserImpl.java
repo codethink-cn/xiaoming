@@ -1,46 +1,131 @@
 package com.chuanwise.xiaoming.core.user;
 
-import com.chuanwise.xiaoming.api.event.UserInteractRunnable;
-import com.chuanwise.xiaoming.api.event.UserInteractor;
+import com.chuanwise.xiaoming.api.account.Account;
+import com.chuanwise.xiaoming.api.bot.XiaomingBot;
+import com.chuanwise.xiaoming.api.user.Receiptionist;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.core.object.XiaomingObjectImpl;
-import lombok.Data;
+import com.chuanwise.xiaoming.core.object.HostObjectImpl;
+import lombok.Getter;
+import lombok.Setter;
+import net.mamoe.mirai.contact.Friend;
+import net.mamoe.mirai.contact.Group;
+import net.mamoe.mirai.contact.Member;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 小明的使用者对象
  * @author Chuanwise
  */
-@Data
-public abstract class XiaomingUserImpl extends XiaomingObjectImpl implements XiaomingUser {
+@Getter
+public class XiaomingUserImpl extends HostObjectImpl implements XiaomingUser {
+    public XiaomingUserImpl(XiaomingBot xiaomingBot) {
+        super(xiaomingBot);
+    }
+
     /**
      * 当前消息
      */
     String message;
-    StringBuilder buffer = new StringBuilder();
-    boolean useBuffer;
-    List<String> recentInputs = new ArrayList<>();
-    UserInteractor userInteractor;
+
+    @Override
+    public void setMessage(String message) {
+        if (Objects.nonNull(message)) {
+            recentInputs.add(message);
+        }
+        this.message = message;
+    }
 
     /**
-     * 交互线程
+     * 发送消息的缓存机制
      */
-    UserInteractRunnable userInteractRunnable;
+    StringBuilder buffer = new StringBuilder();
+
+    @Setter
+    boolean usingBuffer;
+
+    /**
+     * 当前输入
+     */
+    List<String> recentInputs = new ArrayList<>();
 
     @Override
-    public boolean sendError(String message, Object... arguments) {
-        return sendMessage(getXiaomingBot().getWordManager().get("error") + " " + message, arguments);
+    public void clearRecentInputs() {
+        if (!recentInputs.isEmpty()) {
+            recentInputs = new ArrayList<>();
+        }
+    }
+
+    /**
+     * 招待员
+     */
+    Receiptionist receptionist = new ReceptionistImpl(this);
+
+    /**
+     * 该用户的多重身份
+     */
+    Member asGroupMember, asTempMember;
+
+    @Override
+    public void setAsTempMember(Member asTempMember) {
+        this.asTempMember = asTempMember;
+        asPrivate = null;
+        asGroupMember = null;
     }
 
     @Override
-    public boolean sendWarning(String message, Object... arguments) {
-        return sendMessage(getXiaomingBot().getWordManager().get("warning") + " " + message, arguments);
+    public void setAsGroupMember(Member asGroupMember) {
+        this.asGroupMember = asGroupMember;
+        asTempMember = null;
+        asPrivate = null;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
-        recentInputs.add(message);
+    Friend asPrivate;
+
+    @Override
+    public void setAsPrivate(Friend asPrivate) {
+        this.asPrivate = asPrivate;
+        asTempMember = null;
+        asGroupMember = null;
+    }
+
+    @Override
+    public long getQQ() {
+        if (inGroup()) {
+            return asGroupMember.getId();
+        } else if (inTemp()) {
+            return asTempMember.getId();
+        } else {
+            return asPrivate.getId();
+        }
+    }
+
+    @Override
+    public String getName() {
+        final Account account = getAccount();
+        if (Objects.nonNull(account) && Objects.nonNull(account.getAlias())) {
+            return account.getAlias();
+        } else if (inGroup()) {
+            return asGroupMember.getNick();
+        } else if (inTemp()) {
+            return asTempMember.getNick();
+        } else {
+            return asPrivate.getNick();
+        }
+    }
+
+    @Override
+    public String getCompleteName() {
+        if (inGroup()) {
+            final Group group = asGroupMember.getGroup();
+            return "[" + group.getName() + "(" + group.getId() + ")] " + getName() + "(" + getQQ() +")";
+        } else if (inTemp()) {
+            final Group group = asTempMember.getGroup();
+            return getName() + "(" + getQQ() +")" + " 来自 [" + group.getName() + "(" + group.getId() + ")]";
+        } else {
+            return getName() + "(" + getQQ() +")";
+        }
     }
 }

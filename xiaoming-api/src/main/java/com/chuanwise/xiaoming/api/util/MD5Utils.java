@@ -4,6 +4,7 @@ import lombok.Getter;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Objects;
 
 /**
  * 使用 MD5 加密数据的工具类
@@ -19,6 +20,7 @@ public class MD5Utils {
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             MD = null;
+            System.exit(-1);
         }
         MD5 = MD;
     }
@@ -32,7 +34,11 @@ public class MD5Utils {
     }
 
     public byte[] getMD5(byte[] inputs) {
-        return MD5.digest(inputs);
+        if (Objects.nonNull(MD5)) {
+            return MD5.digest(inputs);
+        } else {
+            return inputs;
+        }
     }
 
     public byte[] getMD5(String inputs) {

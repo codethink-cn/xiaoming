@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -18,9 +19,24 @@ public class AccountImpl extends JsonFilePreservable implements Account {
     String alias;
     Set<String> blockPlugins = new CopyOnWriteArraySet<>();
 
-    List<AccountEvent> events = new ArrayList<>();
-    List<AccountEvent> histories = new ArrayList<>();
-    List<AccountEvent> commands = new ArrayList<>();
+    List<AccountEventImpl> events = new ArrayList<>();
+    List<AccountEventImpl> histories = new ArrayList<>();
+    List<AccountEventImpl> commands = new ArrayList<>();
+
+    @Override
+    public List<AccountEvent> getHistories() {
+        return (List) histories;
+    }
+
+    @Override
+    public List<AccountEvent> getEvents() {
+        return (List) events;
+    }
+
+    @Override
+    public List<AccountEvent> getCommands() {
+        return (List) commands;
+    }
 
     public AccountImpl(long qq, String alias) {
         setQq(qq);

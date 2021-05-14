@@ -44,13 +44,11 @@ public interface XiaomingPlugin extends XiaomingObject {
 
     default void onUnload() {}
 
-    boolean onMessage(XiaomingUser user);
-
     PluginProperty getProperty();
 
-    Logger getLogger();
+    Logger getLog();
 
-    void setLogger(Logger logger);
+    void setLog(Logger log);
 
     void setProperty(PluginProperty property);
 
@@ -96,5 +94,9 @@ public interface XiaomingPlugin extends XiaomingObject {
 
     default <T extends Preservable<File>> T loadFileOrProduce(Class<T> clazz, String fileName, Supplier<T> supplier) {
         return loadFileOrProduce(clazz, new File(getDataFolder(), fileName), supplier);
+    }
+
+    default boolean onMessage(XiaomingUser user) {
+        return false;
     }
 }

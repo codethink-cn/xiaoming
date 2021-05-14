@@ -7,6 +7,7 @@ import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import lombok.Getter;
 import lombok.Setter;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
@@ -19,15 +20,11 @@ public class XiaomingPluginImpl implements XiaomingPlugin {
     PluginProperty property;
 
     @Setter
-    Logger logger;
+    Logger log = LoggerFactory.getLogger(getClass());
 
     @Setter
     File dataFolder;
 
     @Setter
     ClassLoader classLoader;
-    @Override
-    public boolean onMessage(XiaomingUser user) {
-        return false;
-    }
 }

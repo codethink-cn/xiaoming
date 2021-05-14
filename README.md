@@ -45,7 +45,6 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 请在资源文件夹 `resources` 中创建 `plugin.json`，内容如下：
 ```json
 {
-  "@class": "com.taixue.xiaoming.bot.core.plugin.PluginPropertyImpl",
   "name": "example-plugin-name",
   "main": "com.taixue.xiaoming.bot.example.ExamplePlugin",
   "author": "Chuanwise",
@@ -53,19 +52,16 @@ public class ExamplePlugin extends XiaomingPluginImpl {
   "fronts": [ "lexicons" ]
 }
 ```
-#### @class
-必须为 `com.taixue.xiaoming.bot.core.plugin.PluginPropertyImpl`
-
-#### name：插件名
+#### `name`：插件名
 选填，默认值为 `jar` 文件名。建议自行设计一个名字。
 
-#### main：插件主类名
+#### `main`：插件主类名
 必填，值为插件主类名。
 
-#### version：版本
+#### `version`：版本
 选填，默认值为 `(unknown)`
 
-#### fronts：前置插件名列表
+#### `fronts`：前置插件名列表
 选填，默认值为空。小明只会在加载完全部 `fronts` 里的插件后加载本插件。
 
 除上述内容外你还可以增加其他的键，可以在插件主类中获得他们的值。
@@ -73,9 +69,10 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 将此插件打包为 `jar` 文件后放在 `小明根目录/plugins`，重新启动小明或执行小明指令 `#加载 <你的插件名>`（此热加载功能尚在实现中）即可加载本插件。
 
 ### 更进一步
-尚未完工，敬请期待。
+#### 处理群消息
+
 
 ## 插件实例
-* `xiaoming-bot-lexicons`：(词库插件)[https://github.com/Chuanwise/xiaoming-bot-lexicons/settings]，让你的小明回复自由起来，还有色图收集器的作用哦！
-* `xiaoming-bot-toolkit`：(实用工具插件)[https://github.com/Chuanwise/xiaoming-bot-toolkit]：为你的小明增加一些鸡肋功能吧！
-* `xiaoming-bot-nwu`：(西大插件)[https://github.com/Chuanwise/xiaoming-bot-nwu]，把你的小明推荐给你的老师吧！
+* `xiaoming-bot-lexicons`：(词库插件)[https://github.com/Chuanwise/xiaoming-bot-lexicons/settings] ：让你的小明回复骚起来！
+* `xiaoming-bot-toolkit`：(实用工具插件)[https://github.com/Chuanwise/xiaoming-bot-toolkit] ：为你的小明增加一些鸡肋功能吧！
+* `xiaoming-bot-nwu`：(西大插件)[https://github.com/Chuanwise/xiaoming-bot-nwu] ：把你的小明推荐给你的老师吧！

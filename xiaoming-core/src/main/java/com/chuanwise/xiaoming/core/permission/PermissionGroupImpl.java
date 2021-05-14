@@ -1,12 +1,7 @@
 package com.chuanwise.xiaoming.core.permission;
 
-import com.chuanwise.xiaoming.api.event.EventListenerManager;
-import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.permission.PermissionGroup;
-import com.chuanwise.xiaoming.core.event.EventListenerImpl;
-import com.chuanwise.xiaoming.core.object.XiaomingObjectImpl;
 import lombok.Data;
-import net.mamoe.mirai.event.EventHandler;
 
 import java.util.ArrayList;
 import java.util.List;

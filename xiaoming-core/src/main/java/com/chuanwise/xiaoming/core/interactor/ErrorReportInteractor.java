@@ -1,19 +1,15 @@
 package com.chuanwise.xiaoming.core.interactor;
 
-import com.chuanwise.xiaoming.api.annotation.InteractMethod;
+import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.error.ErrorMessageManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.error.ErrorMessageImpl;
+import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 
 import java.util.Objects;
 
-public class ErrorReportInteractor extends InteractorImpl {
-    @Override
-    public boolean willInteract(XiaomingUser user) {
-        return Objects.equals(user.getMessage(), "#反馈");
-    }
-
-    @InteractMethod
+public class ErrorReportInteractor extends CommandInteractorImpl {
+    @Filter("反馈")
     public void onMessage(XiaomingUser user) {
         user.sendMessage("你遇到了什么问题，或有什么建议呢？赶快告诉小明吧 {}，" +
                 "当你说完了，告诉我「结束」就可以啦", getXiaomingBot().getWordManager().get("happy"));

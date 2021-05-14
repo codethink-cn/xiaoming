@@ -2,16 +2,25 @@ package com.chuanwise.xiaoming.api.response;
 
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
+import net.mamoe.mirai.contact.Group;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
  * 响应群管理器
  */
 public interface ResponseGroupManager extends XiaomingObject, Preservable<File> {
-    ResponseGroup fromCode(long group);
+    default ResponseGroup fromCode(long group) {
+        for (ResponseGroup responseGroup : getGroups()) {
+            if (responseGroup.getCode() == group) {
+                return responseGroup;
+            }
+        }
+        return null;
+    }
 
     /**
      * 获得所有具有若干个标记的群
@@ -28,9 +37,18 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
         return result;
     }
 
-    void addGroup(ResponseGroup group);
+    default void addGroup(ResponseGroup group) {
+        getGroups().add(group);
+    }
 
     Set<ResponseGroup> getGroups();
 
-    void sendMessageToTaggedGroup(String tag, String message);
+    default void sendMessageToTaggedGroup(String tag, String message) {
+        for (ResponseGroup responseGroup : getXiaomingBot().getResponseGroupManager().fromTag("log")) {
+            final Group group = getXiaomingBot().getMiraiBot().getGroup(responseGroup.getCode());
+            if (Objects.nonNull(group)) {
+                group.sendMessage(message);
+            }
+        }
+    }
 }

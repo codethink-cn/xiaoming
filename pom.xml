@@ -8,6 +8,7 @@
     <artifactId>xiaoming-bot</artifactId>
     <packaging>pom</packaging>
     <version>0.1.TEST</version>
+    <url>https://github.com/Chuanwise/xiaoming-bot</url>
 
     <modules>
         <module>xiaoming-host</module>

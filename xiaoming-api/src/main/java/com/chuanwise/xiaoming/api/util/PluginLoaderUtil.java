@@ -29,16 +29,21 @@ public class PluginLoaderUtil {
      * @param jarFile
      * @return
      */
-    public static ClassLoader extendClassLoader(final File jarFile,
-                                                final ClassLoader father)
+    public static URLClassLoader extendURLClassLoader(final File jarFile,
+                                                      final URLClassLoader father)
             throws Exception {
-        return URLClassLoader.newInstance(new URL[]{jarFile.toURI().toURL()}, father);
+        final Method addURL = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
+        final boolean accessible = addURL.isAccessible();
+        addURL.setAccessible(true);
+        addURL.invoke(father, jarFile.toURI().toURL());
+        addURL.setAccessible(accessible);
+        return father;
     }
 
 
     @Nullable
-    public static Class loadClass(final File jarFile, final String className, final ClassLoader classLoader)
+    public static Class loadClass(final File jarFile, final String className, final URLClassLoader classLoader)
             throws Exception {
-        return extendClassLoader(jarFile, ((URLClassLoader) classLoader)).loadClass(className);
+        return extendURLClassLoader(jarFile, ((URLClassLoader) classLoader)).loadClass(className);
     }
 }
