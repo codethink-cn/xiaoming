@@ -1,7 +1,7 @@
 package com.chuanwise.xiaoming.api.user;
 
 import com.chuanwise.xiaoming.api.account.Account;
-import com.chuanwise.xiaoming.api.exception.InteactorTimeoutException;
+import com.chuanwise.xiaoming.api.exception.InteractorTimeoutException;
 import com.chuanwise.xiaoming.api.exception.ReceiptCancelledException;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
@@ -11,6 +11,7 @@ import com.chuanwise.xiaoming.api.util.TimeUtil;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.Member;
+import net.mamoe.mirai.contact.NormalMember;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.At;
 
@@ -80,6 +81,19 @@ public interface XiaomingUser extends XiaomingObject {
             exception.printStackTrace();
             return false;
         }
+    }
+
+    default boolean sendPrivateMessage(long group, long who, Object message, Object... arguments) {
+        Objects.requireNonNull(message);
+        final Group miraiGroup = getXiaomingBot().getMiraiBot().getGroup(group);
+        if (Objects.nonNull(miraiGroup)) {
+            final NormalMember member = miraiGroup.get(who);
+            if (Objects.nonNull(member)) {
+                member.sendMessage(ArgumentUtil.replaceArguments(message.toString(), arguments));
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -254,14 +268,14 @@ public interface XiaomingUser extends XiaomingObject {
     default String nextInput() {
         return nextInput(MAX_WAIT_TIME, para -> {
             sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
-            throw new InteactorTimeoutException();
+            throw new InteractorTimeoutException();
         });
     }
 
     default String nextInput(long maxWaitTime) {
         return nextInput(maxWaitTime, para -> {
             sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
-            throw new InteactorTimeoutException();
+            throw new InteractorTimeoutException();
         });
     }
 

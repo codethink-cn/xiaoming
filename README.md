@@ -2,8 +2,7 @@
 小明机器人是一款插件化、便于上手、简单小巧的 QQ 机器人框架。
 
 * QQ群：`1028582500`
-* 作者：椽子
-* 组织：太学
+* 作者：`椽子`
 
 **请遵循 `Apache-2.0` 开源协议使用小明机器人框架**。
 
@@ -17,15 +16,16 @@
 * `Git`：锦上添花
 
 ## 快速开始
-使用 `mvn` 安装 `core` 后，便可以开始编写小明插件。首先在 `pom.xml` 中添加依赖：
+你可以下载最新的 `RELEASE`，将之添加在项目的库中，或使用 `mvn` 安装 `core` 后，在 `pom.xml` 中添加依赖：
 ```xml
 <dependency>
-    <groupId>com.taixue.xiaoming.bot</groupId>
-    <artifactId>xiaoming-bot-core</artifactId>
+    <groupId>com.chuanwise</groupId>
+    <artifactId>xiaoming-core</artifactId>
     <version>1.0</version>
 </dependency>
 ```
-随后创建插件主类。插件主类必须实现 `com.taixue.xiaoming.bot.api.plugin.XiaomingPlugin` 接口。你可以选择继承自内核的实现 `com.taixue.xiaoming.bot.core.plugin.XiaomingPluginImpl`，例如：
+
+随后创建插件主类。插件主类必须实现 `com.chuanwise.xiaoming.api.plugin.XiaomingPlugin` 接口。你可以选择继承自内核的实现 `com.chuanwise.xiaoming.core.plugin.XiaomingPluginImpl`，例如：
 
 ```java
 package com.chuanwise.xiaoming.example;
@@ -154,44 +154,229 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 `@Filter("文本信息")`
 `@Filter(value = "文本信息", pattern = FilterPattern.EQUALS)`
 
-
 小明不喜欢那种无条件触发的交互方法，这可能会让小明所在的群非常吵，所以交互方法至少要有一个 `Filter`。但如果你仍然希望该交互方法被无条件触发，只需要使用`@Filter(value = "", pattern = FilterPattern.STARTS_WITH)`。或直接监听聊天消息。
 
-<!-- ## 重要的类
-### XiaomingUser
-所有小明的用户，都是一个 `XiaomingUser` 的实例，就连控制台也不例外。本类将同一 `QQ` 用户在不同区域内的状态统一起来，以便进行上下文相关交互。
+## 核心
+小明由本体和各个组件组成。
 
-该类的方法有：
+### 小明本体：`XiaomingBot`
+几乎在所有的类下，你都可以通过 `getXiaomingBot()` 获得该类所属的小明机器人本体。本体提供了大量组件的获取方法，方便你进行各类操作。
+
+小明本体的方法主要是各类组件的引用，即以 `get` 开头的大部分无参方法。
+
+方法名|组件说明
+---|---
+`getUserCallLimitManager()`|用户调用限制器
+`getTextManager()`|说明文本管理器
+`getRegularPreserveManager()`|文件定时保存线程
+`getEventListenerManager()`|监听器管理器
+`getResponseGroupManager()`|响应群管理器
+`getFilePreservableFactory()`|文件加载器
+`getReceiptionistManager()`|接待线程管理器
+`getLicenseManager()`|强制验证管理器
+`getPluginManager()`|插件管理器
+`getInteractorManager()`|交互器管理器
+`getConsoleXiaomingUser()`|控制台小明用户
+`getStatistician()`|统计数据管理器
+`getAccountManager()`|账户管理器
+`getWordManager()`|提示语管理器
+`getPermissionManager()`|权限管理器
+`getService()`|小明线程池
+`getConfig()`|小明配置信息
+
+这些组件将在下文逐一介绍。
+
+此外还有一些功能性方法：
+
+方法名|组件说明
+---|---
+`load()`|重新加载所有小明组件
+`load(String name)`|重新加载指定的小明组件
+`setMiraiBot()`|设置小明核心的 `mirai` 机器人
+`getMiraiBot()`|获得小明核心的 `mirai` 机器人
+`isStop()`|判断小明是否停机
+`start()`|启动小明
+`setConsoleXiaomingUser()`|设置小明的控制台用户
+`execute(Thread thread)`|执行一个线程
+`execute(Runnable runnable)`|执行一个线程
+`stop()`|关闭小明
+
+请不要直接使用类似 `new Thread(runnable).start();` 的方式执行线程。请采用 `getXiaomingBot().execute(runnable)` 的方式。只有通过这种方式启动的线程才会收到小明的关闭通知。
+
+### 小明使用者：`XiaomingUser`
+每一个小明的使用者都是该类的对象，就连控制台也不例外。
+
+`XiaomingUser` 类有非常多实用方法，主要有三类：发送消息类、接收消息类和其他类。
 
 #### 发送消息类
-boolean **sendMessage**(Object message, Object... arguments)
+发送消息类方法有很多的重载形式，返回值皆为 `boolean` ，表示消息是否被发送成功。倒数两个参数一般是 `Object` 和 `Object...`。前者是消息。小明执行它的 `toString()` 方法得到消息内容。在消息内容中可以存在 `{}`，将会被按顺序替换为 `Object...` 中的参数。例如：`user.sendPrivateMessage("小明不能帮你做这件事哦，因为你缺少权限：{}", permissionNode)`，等同于 `user.sendPrivateMessage("小明不能帮你做这件事哦，因为你缺少权限：" + permissionNode)`。
 
-项目|详情
+方法原型|说明
 ---|---
-返回值类型|`boolean`
-返回值含义|消息是否成功被发送
-Object message|消息对象
-Object... arguments|`message.toString()` 中包含的参数
+`sendError(Object, Object...)`|给当前用户发送错误消息
+`sendWarn(Object, Object...)`|给当前用户发送警告消息
+`sendMessage(Object, Object...)`|给当前用户发送普通消息
+`sendPrivateError(Object, Object...)`|给当前用户私发错误消息
+`sendPrivateWarn(Object, Object...)`|给当前用户私发警告消息
+`sendPrivateMessage(Object, Object...)`|给当前用户私发普通消息
 
-小明会执行 `message.toString()`，并将其中的 `{}` 按顺序替换为 `arguments` 内的 `argument.toString()` 值。例如：
+上述方法是通常使用的发送消息的方法。此外你还可以使用下列方法：
+
+方法原型|说明
+---|---
+`sendGroupMessage(Object, Object...)`|如果小明为群聊或群临时会话用户，则向其对应的群中发送消息
+`sendGroupMessage(long, Object, Object...)`|在指定的群中发消息
+`sendGroupAtMessage(Object, Object...)`|先 @ 用户，再给用户发消息
+`sendGroupAtMessage(long, long, Object, Object...)`|在指定的群中先 @ 特定用户，再给其发消息
+`sendPrivateMessage(Object, Object...)`|给当前小明用户发送私聊消息
+`sendPrivateMessage(long, Object, Object...)`|给指定的用户发送私聊消息
+`sendPrivateMessage(long, long, Object, Object...)`|给指定的群中的用户发送私聊消息。第一个 `long` 为群号，第二个为 `QQ` 号。
+
+#### 接收消息类
+返回类型|方法原型|说明
+---|---|---
+`String`|`nextInput()`|获得用户在十分钟之内的下一次输入
+`String`|`nextInput(long)`|获得用户在指定时长之内的下一次输入
+`String`|`nextInput(long, Function)`|获得用户在指定时长之内的下一次输入。超时时执行指定的方法。
+`String`|`nextInput(Function)`|获得用户在十分钟之内的下一次输入。超时时执行指定的方法。
+
+默认超时后会退出当前交互器。你可以通过捕捉 `InteractorTimeoutException` 异常以阻止超时退出。
+
+#### 其他
+在发送较长的消息时，使用 `StringBuffer` 构造字符串存在换行的麻烦。小明内也集成了一个 `StringBuffer`，用来收集若干次 `sendMessage` 类消息的输出。与之相关的方法有：
+
+返回类型|方法原型|说明
+---|---|---
+`StringBuffer`|`getBuffer()`|获得当前的消息缓冲区
+`void`|`appendBuffer(String)`|在当前消息缓冲区中增加一行文字
+`void`|`enableBuffer()`|接下来让小明将消息存放在缓冲区中
+`void`|`setUsingBuffer(boolean)`|启动或关闭缓冲区
+`void`|`clearBuffer()`|清除缓冲区信息
+`String`|`getBufferAndClear()`|提取缓冲区消息，并清除后关闭缓冲区
+`boolean`|`isUsingBuffer()`|判断当前是否正在使用缓冲区
+
+你可以通过缓冲区机制实现多次输出的合并。例如小明有一个指令是 `批处理<remain>`，你可以通过类似下面的方法避免频繁发送每次指令执行时的输出：
+
 ```java
-String permissionNode = "test.node";
-if (!user.hasPermission(permissionNode)) {
-    user.sendMessage("小明不能帮你做这件事哦，因为你还缺少权限：{}", permissionNode);
+package com.chuanwise.xiaoming.core.interactor.core;
+
+// import ...
+
+/**
+ * 全局指令处理器
+ * @author Chuanwise
+ */
+public class GlobalCommandInteractor extends CommandInteractorImpl {
+    public static final String BAT_REGEX = "(批处理|bat)";
+    /**
+     * 批处理指令
+     * @param user 指令执行者
+     * @param remain 指令
+     */
+    @Filter(BAT_REGEX + "{remain}")
+    public void onMultipleCommands(XiaomingUser user, @FilterParameter("remain") String remain) {
+        final String[] subCommands = remain.split(Pattern.quote("\\n"), 0);
+
+        // 接下来使用小明缓冲区，将输出到这里
+        user.enableBuffer();
+        int commandNumber = 0;
+        try {
+            for (int i = 0; i < subCommands.length; i++) {
+                String command = subCommands[i];
+                if (command.isEmpty()) {
+                    continue;
+                }
+                user.setMessage(command);
+                if (getXiaomingBot().getInteractorManager().onCommand(user)) {
+                    commandNumber++;
+                } else {
+                    user.sendError("无效的命令：{}，批处理任务被中断。", command);
+                    break;
+                }
+            }
+        } catch (Exception exception) {
+            user.sendError("执行{}个指令时出现异常，批处理任务被中断。");
+            exception.printStackTrace();
+        }
+
+        // 提取缓冲区信息，恢复正常输出
+        final String bufferString = user.getBufferAndClear();
+        user.sendPrivateMessage(bufferString);
+
+        if (commandNumber == 0) {
+            user.sendError("小明没能成功执行任何一个指令");
+        } else {
+            user.sendMessage("成功执行了 {} 个指令", commandNumber);
+        }
+    }
 }
-``` -->
+```
 
+此外小明还有记录最近几条有效输入记录的功能。它主要用于异常报告，但也可供平时使用。与之相关的方法为：
 
-sendMessage
+返回类型|方法原型|说明
+---|---|---
+`List<String>`|`getRecentInputs()`|获得最近的几次有效输入
+`void`|`clearRecentInputs()`|清除最近几次有效输入
 
-## 核心
+判断和获取用户会话环境的方法：
+
+返回类型|方法原型|说明
+---|---|---
+`boolean`|`inPrivate()`|判断用户当前是否在私聊
+`boolean`|`inGroup()`|判断用户当前是否在群聊
+`boolean`|`inTemp()`|判断用户当前是否在临时会话
+`Group`|`getGroup()`|如果用户当前在临时会话或群聊，获得相关的群
+`Friend`|`getAsPrivate()`|如果此时为私聊，获得私聊会话
+`Member`|`getAsTempMember()`|如果此时为临时会话，获得临时会话
+`Member`|`getAsGroupMember()`|如果此时为群聊，获得群聊会话
+`ResponseGroup`|`getResponseGroup()`|如果此时为临时会话或群聊，获得对应的响应群（临时会话时可能会失败）
+`long`|`getQQ()`|获取用户 `QQ`
+`String`|`getMessage()`|获取用户输入
+`void`|`setMessage(String)`|改变用户输入
+
+其他相关方法：
+
+返回类型|方法原型|说明
+---|---|---
+`String`|`getCompleteName()`|获取用户全名（包含群号等信息）
+`Receptionist`|`getReceptionist()`|获得该用户的接待线程
+`boolean`|`hasPermission(String[])`|判断用户是否有所需权限
+`boolean`|`hasPermission(String)`|判断用户是否有所需权限
+`boolean`|`requirePermission(String)`|当用户没有所需权限时提醒，并返回 `false`
+`boolean`|`isBlockPlugin(String)`|判断用户是否屏蔽某插件
+`Account`|`getAccount()`|获取该用户在小明这里的账户信息。如果此前无相关信息返回 `null`
+`Account`|`getOrPutAccount()`|获取或新建该用户在小明这里的账户信息
+`XiaomingBot`|`getXiaomingBot()`|获取小明本体
+
+### 用户调用限制器：`UserCallLimitManager`
+其主要的方法只有两个，分别为：
+方法名|说明
+---|---
+`getPrivateCallLimiter()`|获得最近的私聊调用限制记录
+`getGroupCallLimiter()`|获得最近的群聊调用限制记录
+
+上述方法返回的都是 `UserCallLimiter` 类型的对象。该类型判断是否到调用限制所用的工具，其方法主要有：
+
+方法名|说明
+---|---
+`isTooManySoUncallable(long qq)`|判断用户是否因为调用次数过多而达到限制
+`addCallRecord(long qq)`|增加一条新的调用记录
+`shouldNotice()`|判断是否应该提醒用户
+`uncallable(long qq)`|判断用户是否能调用
+`getCallRecords(long qq)`|获得某个用户最近的调用记录。如果无记录返回 `null`
+`getOrPutCallRecords(long qq)`|获得或新增某个用户最近的调用记录
+`isTooFastSoUncallable(long qq)`|判断用户是否因为调用过快而达到限制
+`getConfig()`|获得当前的调用限制配置
+`setConfig(CallLimitConfig config)`|设置新的调用限制配置
+
 ### 过滤器：`Filter`
 过滤器是一个注解，只能标注在方法上。负责验证信息并用于判断触发的交互方法。
 
 参数名|含义|默认值（如果有）
 ---|---|---
-value|由下一个参数而定|
-pattern|过滤方式|`FilterPattern.PARAMETER`
+`value`|由下一个参数而定|
+`pattern`|过滤方式|`FilterPattern.PARAMETER`
 
 `FilterPattern` 是过滤方式，是一个枚举类型，其所有可能的取值有：
 
