@@ -4,20 +4,16 @@ import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.exception.InteactorTimeoutException;
 import com.chuanwise.xiaoming.api.exception.ReceiptCancelledException;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
+import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.util.ArgumentUtil;
-import com.chuanwise.xiaoming.api.util.AtUtil;
+
 import com.chuanwise.xiaoming.api.util.TimeUtil;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.Member;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.At;
-import net.mamoe.mirai.message.data.Message;
-import org.jetbrains.annotations.NotNull;
 
-import java.io.BufferedWriter;
-import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +23,7 @@ import java.util.function.Function;
  * @author Chuanwise
  */
 public interface XiaomingUser extends XiaomingObject {
-    long MAX_WAIT_TIME = TimeUnit.MINUTES.toMillis(10);
+    long MAX_WAIT_TIME = TimeUnit.MINUTES.toMillis(1);
 
     /**
      * 给当前使用者发普通消息
@@ -38,7 +34,7 @@ public interface XiaomingUser extends XiaomingObject {
     default boolean sendMessage(Object message, Object... arguments) {
         Objects.requireNonNull(message);
         if (inGroup()) {
-            return sendGroupMessage(getAsGroupMember().getGroup().getId(), message, arguments);
+            return sendGroupAtMessage(message, arguments);
         } else {
             return sendPrivateMessage(message, arguments);
         }
@@ -149,6 +145,17 @@ public interface XiaomingUser extends XiaomingObject {
     }
 
     /**
+     * 在群聊发送消息，不带 @
+     * @param message 消息格式
+     * @param arguments 消息参数
+     * @return 是否发送成功
+     */
+    default boolean sendGroupAtMessage(Object message, Object... arguments) {
+        Objects.requireNonNull(message);
+        return sendGroupMessage(new At(getQQ()).serializeToMiraiCode() + " " + message.toString(), arguments);
+    }
+
+    /**
      * 给当前使用者发错误消息
      * @param message 消息。其中可用 {} 引用参数
      * @param arguments 实参
@@ -174,7 +181,7 @@ public interface XiaomingUser extends XiaomingObject {
      * @param arguments 实参
      * @return
      */
-    default boolean sendWarning(Object message, Object... arguments) {
+    default boolean sendWarn(Object message, Object... arguments) {
         return sendMessage(getXiaomingBot().getWordManager().get("warning") + " " + message.toString(), arguments);
     }
 
@@ -184,7 +191,7 @@ public interface XiaomingUser extends XiaomingObject {
      * @param arguments 消息参数
      * @return 是否发送成功
      */
-    default boolean sendPrivateWarning(Object message, Object... arguments) {
+    default boolean sendPrivateWarn(Object message, Object... arguments) {
         return sendPrivateMessage(getXiaomingBot().getWordManager().get("warning") + " " + message.toString(), arguments);
     }
 
@@ -246,6 +253,13 @@ public interface XiaomingUser extends XiaomingObject {
 
     default String nextInput() {
         return nextInput(MAX_WAIT_TIME, para -> {
+            sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
+            throw new InteactorTimeoutException();
+        });
+    }
+
+    default String nextInput(long maxWaitTime) {
+        return nextInput(maxWaitTime, para -> {
             sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
             throw new InteactorTimeoutException();
         });
@@ -410,6 +424,15 @@ public interface XiaomingUser extends XiaomingObject {
             return false;
         } else {
             return true;
+        }
+    }
+
+    default ResponseGroup getResponseGroup() {
+        final Group group = getGroup();
+        if (Objects.nonNull(group)) {
+            return getXiaomingBot().getResponseGroupManager().fromCode(group.getId());
+        } else {
+            return null;
         }
     }
 }

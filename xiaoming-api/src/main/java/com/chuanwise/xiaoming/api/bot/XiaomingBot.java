@@ -1,11 +1,11 @@
 package com.chuanwise.xiaoming.api.bot;
 
 import com.chuanwise.xiaoming.api.account.AccountManager;
-import com.chuanwise.xiaoming.api.classloader.XiaomingClassLoader;
 import com.chuanwise.xiaoming.api.config.Configuration;
 import com.chuanwise.xiaoming.api.config.Statistician;
 import com.chuanwise.xiaoming.api.error.ErrorMessageManager;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
+import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.text.TextManager;
 import com.chuanwise.xiaoming.api.user.ReceiptionistManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
@@ -17,7 +17,6 @@ import com.chuanwise.xiaoming.api.plugin.PluginManager;
 import com.chuanwise.xiaoming.api.preserve.PreservableFactory;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
 import com.chuanwise.xiaoming.api.runnable.RegularPreserveManager;
-import lombok.extern.slf4j.Slf4j;
 import net.mamoe.mirai.Bot;
 import org.slf4j.Logger;
 
@@ -90,4 +89,6 @@ public interface XiaomingBot {
     ReceiptionistManager getReceiptionistManager();
 
     Logger getLog();
+
+    LicenseManager getLicenseManager();
 }

@@ -9,6 +9,7 @@ import com.chuanwise.xiaoming.api.error.ErrorMessageManager;
 import com.chuanwise.xiaoming.api.exception.NoSuchBotException;
 import com.chuanwise.xiaoming.api.exception.XiaomingInitializeException;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
+import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.text.TextManager;
 import com.chuanwise.xiaoming.api.url.PictureUrlManager;
@@ -25,9 +26,10 @@ import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
 import com.chuanwise.xiaoming.api.runnable.RegularPreserveManager;
 import com.chuanwise.xiaoming.core.account.AccountManagerImpl;
 import com.chuanwise.xiaoming.core.error.ErrorMessageManagerImpl;
-import com.chuanwise.xiaoming.core.interactor.ErrorReportInteractor;
+import com.chuanwise.xiaoming.core.interactor.core.ReportInteractor;
 import com.chuanwise.xiaoming.core.interactor.InteractorManagerImpl;
 import com.chuanwise.xiaoming.core.interactor.core.*;
+import com.chuanwise.xiaoming.core.license.LicenceManagerImpl;
 import com.chuanwise.xiaoming.core.permission.PermissionGroupImpl;
 import com.chuanwise.xiaoming.core.response.ResponseGroupManagerImpl;
 import com.chuanwise.xiaoming.core.text.TextManagerImpl;
@@ -132,6 +134,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         load("urlInMiraiCodeManager");
         load("textManager");
         load("receiptionistManager");
+        load("licenseManager");
     }
 
     /**
@@ -184,8 +187,10 @@ public class XiaomingBotImpl implements XiaomingBot {
      */
     void registerCoreModules() {
         // 注册内核指令处理器
+        // 全局交互器
         interactorManager.register(new GlobalCommandInteractor(this), null);
 
+        interactorManager.register(new PluginInteractor(this), null);
         interactorManager.register(new AccountCommandInteractor(this), null);
         interactorManager.register(new ErrorCommandInteractor(this), null);
         interactorManager.register(new CallLimitCommandInteractor(this), null);
@@ -194,7 +199,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         interactorManager.register(new ResponseGroupCommandInteractor(this), null);
         interactorManager.register(new WordCommandInteractor(this), null);
         // 注册内核交互器
-        interactorManager.register(new ErrorReportInteractor(), null);
+        interactorManager.register(new ReportInteractor(), null);
         interactorManager.denyCoreRegister();
 
         // 注册内核监听器
@@ -404,6 +409,11 @@ public class XiaomingBotImpl implements XiaomingBot {
             case "textManager":
                 textManager = new TextManagerImpl(this, textDirectory);
                 return true;
+            case "licenseManager":
+                licenseManager = filePreservableFactory
+                        .loadOrProduce(LicenceManagerImpl.class, new File(configDirectory, "license.json"), LicenceManagerImpl::new);
+                licenseManager.setXiaomingBot(this);
+                return true;
             default:
                 return false;
         }
@@ -463,6 +473,11 @@ public class XiaomingBotImpl implements XiaomingBot {
      */
     @Deprecated
     PictureUrlManager pictureUrlManager;
+
+    /**
+     * 用户须知管理器
+     */
+    LicenseManager licenseManager;
 
     /**
      * 提示文字管理器

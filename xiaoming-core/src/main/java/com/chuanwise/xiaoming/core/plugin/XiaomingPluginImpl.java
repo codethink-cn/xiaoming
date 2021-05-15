@@ -16,8 +16,12 @@ public class XiaomingPluginImpl implements XiaomingPlugin {
     @Setter
     XiaomingBot xiaomingBot;
 
-    @Setter
     PluginProperty property;
+
+    public void setProperty(PluginProperty property) {
+        this.property = property;
+        property.setPlugin(this);
+    }
 
     @Setter
     Logger log = LoggerFactory.getLogger(getClass());

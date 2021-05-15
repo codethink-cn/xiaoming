@@ -1,6 +1,7 @@
 package com.chuanwise.xiaoming.core.plugin;
 
 import com.chuanwise.xiaoming.api.plugin.PluginProperty;
+import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,15 +17,16 @@ import java.util.concurrent.ConcurrentHashMap;
 @NoArgsConstructor
 public class PluginPropertyImpl extends ConcurrentHashMap<String, Object> implements PluginProperty {
     transient File file;
+    transient XiaomingPlugin plugin;
 
     @Override
     public String getName() {
         final String jarFileName = file.getName();
         final Object nameObject = get("name");
         if (nameObject instanceof String) {
-            return ((String) nameObject).toLowerCase();
+            return ((String) nameObject);
         } else {
-            return jarFileName.substring(jarFileName.lastIndexOf('.') + 1);
+            return jarFileName.substring(0, jarFileName.lastIndexOf('.'));
         }
     }
 

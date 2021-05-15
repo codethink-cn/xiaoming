@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.api.event;
 
+import com.chuanwise.xiaoming.api.object.PluginObject;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import net.mamoe.mirai.event.Event;
 import net.mamoe.mirai.event.ListenerHost;
@@ -12,7 +13,7 @@ import java.util.Set;
 /**
  * 小明的事件监听器
  */
-public interface EventListener extends ListenerHost, XiaomingObject {
+public interface EventListener extends ListenerHost, PluginObject {
     /**
      * 重新载入消息处理方法
      */

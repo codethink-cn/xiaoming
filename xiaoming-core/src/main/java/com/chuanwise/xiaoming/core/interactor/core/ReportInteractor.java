@@ -1,4 +1,4 @@
-package com.chuanwise.xiaoming.core.interactor;
+package com.chuanwise.xiaoming.core.interactor.core;
 
 import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.error.ErrorMessageManager;
@@ -8,7 +8,10 @@ import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 
 import java.util.Objects;
 
-public class ErrorReportInteractor extends CommandInteractorImpl {
+/**
+ * @author Chuanwise
+ */
+public class ReportInteractor extends CommandInteractorImpl {
     @Filter("反馈")
     public void onMessage(XiaomingUser user) {
         user.sendMessage("你遇到了什么问题，或有什么建议呢？赶快告诉小明吧 {}，" +

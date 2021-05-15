@@ -69,10 +69,6 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    /**
-     * 启动小明
-     * @param user 启动人
-     */
     @GroupInteractor
     @Filter(CommandWords.THIS_REGEX + CommandWords.GROUP_REGEX + CommandWords.ENABLE_REGEX + CommandWords.XIAOMING_REGEX)
     @RequirePermission("group.enable")
@@ -88,7 +84,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
         }
 
         if (responseGroup.hasTag(ENABLE_TAG)) {
-            user.sendWarning("本群已经是小明的响应群了哦");
+            user.sendWarn("本群已经是小明的响应群了哦");
         } else {
             responseGroup.addTag(ENABLE_TAG);
             user.sendMessage("成功在本群启用小明 (๑•̀ㅂ•́)و✧");
@@ -96,10 +92,6 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    /**
-     * 关闭小明
-     * @param user 关闭人
-     */
     @GroupInteractor
     @Filter(CommandWords.THIS_REGEX + CommandWords.GROUP_REGEX + CommandWords.DISABLE_REGEX + CommandWords.XIAOMING_REGEX)
     @RequirePermission("group.disable")
@@ -116,7 +108,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
             responseGroup.removeTag(ENABLE_TAG);
             user.sendMessage("本群不再是小明的响应群啦。未来希望启动小明输入 #启动小明 就可以啦。");
         } else {
-            user.sendWarning("本群曾是小明的响应群，但是现在还不是哦");
+            user.sendWarn("本群曾是小明的响应群，但是现在还不是哦");
             getXiaomingBot().getRegularPreserveManager().readySave(responseGroupManager);
         }
     }

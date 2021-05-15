@@ -5,8 +5,10 @@ import net.mamoe.mirai.event.Event;
 import net.mamoe.mirai.event.ListenerHost;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * 监听器管理器
@@ -36,18 +38,31 @@ public interface EventListenerManager extends Runnable {
      * @param plugin 目标插件
      * @return 该插件注册的所有监听器的集合。如果该插件从未注册过，返回 {@code null}
      */
-    Set<EventListener> getPluginListeners(XiaomingPlugin plugin);
+    default Set<EventListener> getPluginListeners(XiaomingPlugin plugin) {
+        return getPluginListeners().get(plugin);
+    }
 
     /**
      * 获得，或新建一个插件注册的所有监听器。
      * @param plugin 注册的插件
      * @return
      */
-    Set<EventListener> getOrPutPluginListeners(XiaomingPlugin plugin);
+    default Set<EventListener> getOrPutPluginListeners(XiaomingPlugin plugin) {
+        Set<EventListener> listeners = getPluginListeners(plugin);
+        if (Objects.isNull(listeners)) {
+            listeners = new CopyOnWriteArraySet<>();
+            getPluginListeners().put(plugin, listeners);
+        }
+        return listeners;
+    }
 
     Set<EventListener> getCoreListeners();
 
     Map<XiaomingPlugin, Set<EventListener>> getPluginListeners();
+
+    default void remove(XiaomingPlugin plugin) {
+        getPluginListeners().remove(plugin);
+    }
 
     Queue<Event> getEvents();
 

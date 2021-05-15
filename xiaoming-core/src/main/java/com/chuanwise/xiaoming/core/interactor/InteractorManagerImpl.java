@@ -68,6 +68,8 @@ public class InteractorManagerImpl extends HostObjectImpl implements InteractorM
 
             if (usePlugin) {
                 if (plugin.onMessage(user)) {
+                    // 增加调用统计次数
+                    getXiaomingBot().getStatistician().increaseCallCounter();
                     getXiaomingBot().getEventListenerManager().callLater(new PluginResponseEvent(plugin, user));
                 }
                 for (Interactor interactor : interactors) {

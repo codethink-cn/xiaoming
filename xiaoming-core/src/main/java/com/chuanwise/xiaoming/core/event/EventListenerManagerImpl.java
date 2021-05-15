@@ -56,26 +56,12 @@ public class EventListenerManagerImpl extends HostObjectImpl implements EventLis
     public void register(EventListener listener, XiaomingPlugin plugin) {
         if (Objects.nonNull(plugin)) {
             getOrPutPluginListeners(plugin).add(listener);
+            listener.setPlugin(plugin);
         } else {
             coreListeners.add(listener);
         }
         listener.reloadHandlerMethods(getLog());
         listener.setXiaomingBot(getXiaomingBot());
-    }
-
-    @Override
-    public Set<EventListener> getPluginListeners(XiaomingPlugin plugin) {
-        return pluginListeners.get(plugin);
-    }
-
-    @Override
-    public Set<EventListener> getOrPutPluginListeners(XiaomingPlugin plugin) {
-        Set<EventListener> listeners = getPluginListeners(plugin);
-        if (Objects.isNull(listeners)) {
-            listeners = new CopyOnWriteArraySet<>();
-            pluginListeners.put(plugin, listeners);
-        }
-        return listeners;
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.chuanwise.xiaoming.core.event;
 
 import com.chuanwise.xiaoming.api.annotation.HandlerMethod;
 import com.chuanwise.xiaoming.api.event.EventListener;
+import com.chuanwise.xiaoming.core.object.PluginObjectImpl;
 import com.chuanwise.xiaoming.core.object.XiaomingObjectImpl;
 import lombok.Getter;
 import net.mamoe.mirai.event.Event;
@@ -19,7 +20,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @author Chuanwise
  */
 @Getter
-public class EventListenerImpl extends XiaomingObjectImpl implements EventListener {
+public class EventListenerImpl extends PluginObjectImpl implements EventListener {
     Set<Method> handlerMethods = new CopyOnWriteArraySet<>();
 
     @Override

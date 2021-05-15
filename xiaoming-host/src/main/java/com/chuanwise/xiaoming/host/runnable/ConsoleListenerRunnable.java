@@ -100,7 +100,7 @@ public class ConsoleListenerRunnable extends HostObjectImpl implements Runnable 
 
                 if (!camouflaged) {
                     if (!warned) {
-                        user.sendWarning("不伪装时，身份默认为小明本人和自己的私聊");
+                        user.sendWarn("不伪装时，身份默认为小明本人和自己的私聊");
                         warned = true;
                     }
                     user.setAsPrivate(miraiBot.getAsFriend());
@@ -109,7 +109,7 @@ public class ConsoleListenerRunnable extends HostObjectImpl implements Runnable 
 
                 try {
                     if (!getXiaomingBot().getInteractorManager().onCommand(user)) {
-                        user.sendError("小明不知道你的意思 qwq");
+                        user.sendError("小明不知道你的意思 {}", getXiaomingBot().getWordManager().get("error"));
                     }
                 } catch (Exception exception) {
                     if (exception instanceof InterruptedException) {

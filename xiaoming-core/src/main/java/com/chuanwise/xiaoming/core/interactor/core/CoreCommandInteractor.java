@@ -9,9 +9,10 @@ import com.chuanwise.xiaoming.api.interactor.command.CommandInteractor;
 import com.chuanwise.xiaoming.api.config.Configuration;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
-import com.chuanwise.xiaoming.api.plugin.PluginManager;
+import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.runnable.RegularPreserveManager;
+import com.chuanwise.xiaoming.api.text.TextManager;
 import com.chuanwise.xiaoming.api.user.Receiptionist;
 import com.chuanwise.xiaoming.api.user.ReceiptionistManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
@@ -20,6 +21,7 @@ import com.chuanwise.xiaoming.api.util.TimeUtil;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class CoreCommandInteractor extends CommandInteractorImpl {
     public String getInteractorString() {
@@ -55,72 +57,8 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
         return builder.toString();
     }
 
-    public String getLoadedPluginString() {
-        StringBuilder builder = new StringBuilder();
-
-        final PluginManager pluginManager = getXiaomingBot().getPluginManager();
-        final Set<XiaomingPlugin> loadedPlugins = pluginManager.getLoadedPlugins();
-        builder.append("加载的插件：");
-        if (loadedPlugins.isEmpty()) {
-            builder.append("（无）");
-        } else {
-            for (XiaomingPlugin value : loadedPlugins) {
-                builder.append("\n").append(value.getCompleteName());
-            }
-        }
-        builder.append("\n");
-
-        final Set<XiaomingPlugin> enabledPlugins = pluginManager.getEnabledPlugins();
-        builder.append("启动的插件：");
-        if (enabledPlugins.isEmpty()) {
-            builder.append("（无）");
-        } else {
-            for (XiaomingPlugin value : enabledPlugins) {
-                builder.append("\n").append(value.getCompleteName());
-            }
-        }
-
-        return builder.toString();
-    }
-
-    public String getPluginMessage(XiaomingPlugin plugin) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("插件：").append(plugin.getCompleteName());
-        builder.append("\n");
-
-        final Set<Interactor> interactors = getXiaomingBot().getInteractorManager().getInteractors(plugin);
-        builder.append("交互器：");
-        if (Objects.isNull(interactors) || interactors.isEmpty()) {
-            builder.append("（无）");
-        } else {
-            for (Interactor interactor : interactors) {
-                builder.append("\n")
-                        .append(interactor.getClass().getName());
-            }
-        }
-        return builder.toString();
-    }
-
     public CoreCommandInteractor(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
-    }
-
-    @Filter(CommandWords.PLUGIN_REGEX)
-    @RequirePermission("plugin.list")
-    public void onLoadedPlugins(XiaomingUser user) {
-        user.sendMessage(getLoadedPluginString());
-    }
-
-    @Filter(CommandWords.PLUGIN_REGEX + " {plugin}")
-    @RequirePermission("plugin.look")
-    public void onLoadedPlugins(XiaomingUser user,
-                                @FilterParameter("plugin") String pluginName) {
-        final XiaomingPlugin plugin = getXiaomingBot().getPluginManager().getPlugin(pluginName);
-        if (Objects.isNull(plugin)) {
-            user.sendError("没有找到插件：{}", pluginName);
-        } else {
-            user.sendPrivateMessage(getPluginMessage(plugin));
-        }
     }
 
     @Filter("(维护|调试|debug)")
@@ -163,6 +101,66 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
             user.sendMessage("当前没有任何文件等待保存哦");
         } else {
             manager.save(user);
+        }
+    }
+
+
+    @Filter(CommandWords.USE_REGEX + CommandWords.XIAOMING_REGEX)
+    public void onUseXiaoming(XiaomingUser user) {
+        final Configuration config = getXiaomingBot().getConfig();
+        if (config.isEnableLicense()) {
+            final LicenseManager licenceManager = getXiaomingBot().getLicenseManager();
+            final long qq = user.getQQ();
+            if (licenceManager.isAgreed(qq)) {
+                user.sendMessage("你此前已经同意了小明使用协议");
+            } else {
+                user.sendPrivateMessage(getXiaomingBot().getTextManager().loadOrFail(config.getLicenseName()));
+                user.sendPrivateMessage("如果你同意上述协议，请在一分钟之内告诉我「同意」");
+
+                if (Objects.equals(user.nextInput(TimeUnit.MINUTES.toMillis(1)), "同意")) {
+                    user.sendPrivateMessage("你已经可以使用小明了，未来记得遵守我们的约定");
+                    licenceManager.agree(qq);
+                } else {
+                    user.sendPrivateMessage("如果未来希望使用小明，仍然可以告诉我「使用小明」");
+                }
+                getXiaomingBot().getRegularPreserveManager().readySave(licenceManager);
+            }
+        } else {
+            user.sendMessage("不需要专门启动小明哦，小明为人民服务 {}", getXiaomingBot().getWordManager().get("happy"));
+        }
+    }
+
+    @Filter(CommandWords.ENABLE_REGEX + CommandWords.USE_REGEX + "(验证|verify)")
+    @RequirePermission("license.enable")
+    public void onEnableUseVerify(XiaomingUser user) {
+        final Configuration config = getXiaomingBot().getConfig();
+        if (config.isEnableLicense()) {
+            user.sendMessage("强制小明使用验证本就是启动的");
+        } else {
+            final TextManager textManager = getXiaomingBot().getTextManager();
+            final String licenseName = config.getLicenseName();
+            String license = textManager.load(licenseName);
+            if (Objects.isNull(license)) {
+                user.sendMessage("你还没有设置《小明使用协议》，告诉小明它的内容吧");
+                license = user.nextInput();
+                textManager.save(licenseName, license);
+            }
+            config.enableLisence();
+            user.sendMessage("已启动强制小明使用验证");
+            getXiaomingBot().getRegularPreserveManager().readySave(config);
+        }
+    }
+
+    @Filter(CommandWords.DISABLE_REGEX + CommandWords.USE_REGEX + "(验证|verify)")
+    @RequirePermission("license.disable")
+    public void onDisableUseVerify(XiaomingUser user) {
+        final Configuration config = getXiaomingBot().getConfig();
+        if (config.isEnableLicense()) {
+            config.disableLisence();
+            getXiaomingBot().getRegularPreserveManager().readySave(config);
+            user.sendMessage("已关闭强制小明使用验证");
+        } else {
+            user.sendMessage("强制小明使用验证并没有开启哦");
         }
     }
 
@@ -257,8 +255,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
 
     @Filter(CommandWords.RECEIPTION_REGEX + " {qq}")
     @RequirePermission("receiptionist")
-    public void onReceiptionist(XiaomingUser user,
-                                @FilterParameter("qq") long qq) {
+    public void onReceiptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
         final ReceiptionistManager receiptionistManager = getXiaomingBot().getReceiptionistManager();
         final Receiptionist receiptionist = receiptionistManager.getReceiptionist(qq);
 
@@ -268,67 +265,4 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
             user.sendMessage("招待器{}", receiptionist.isReceipting() ? "忙碌" : "空闲");
         }
     }
-
-    /*
-    @Command("(关闭小明|stop)")
-    @RequirePermission("stop")
-    public void onStop(XiaomingUser user) {
-        final XiaomingLauncher instance = XiaomingLauncher.getInstance();
-        instance.getShutdownHook().setUser(user);
-        instance.getConsoleCommandRunnable().close();
-        System.exit(0);
-    }*/
-/*
-    public void unloadGroupInteactor(CommandSender sender, GroupInteractor interactor) {
-        UserDataIsolator userDataIsolator = interactor.getUserDataIsolator();
-        if (userDataIsolator.getValue().isEmpty()) {
-            sender.sendMessage("\t\t该交互器没有和任何用户交互");
-        }
-        else {
-            sender.sendMessage("\t\t该交互器正在和 {} 名用户交互：", userDataIsolator.getValue().size());
-            Set<GroupInteractorUser> userData = (Set<GroupInteractorUser>) (Object) userDataIsolator.getValue().keySet();
-            for (GroupInteractorUser userDatum : userData) {
-                sender.sendMessage("\t\t\t所在群：{}\n", userDatum.getGroup());
-                sender.sendMessage("\t\t\tQQ：{}\n", userDatum.getQQ());
-                sender.sendMessage("\t\t\t最后输入：{}\n", userDatum.getMessage());
-                try {
-                    interactor.onUserOut(userDatum.getQQ());
-                }
-                catch (Exception exception) {
-
-                }
-            }
-        }
-    }
-
-    public void unloadAllPlugins(CommandSender sender) {
-        Map<String, XiaomingPlugin> loadedPlugins = XiaomingBot.getInstance().getPluginManager().getLoadedPlugins();
-        for (XiaomingPlugin value : loadedPlugins.values()) {
-            try {
-                sender.sendMessage("正在卸载插件 {}", value.getName());
-                value.onDisable();
-                sender.sendMessage("插件 {} 卸载完成", value.getName());
-            }
-            catch (Exception exception) {
-                sender.sendError("卸载 {} 卸载时出现异常：{}", value.getName(), exception);
-                exception.printStackTrace();
-            }
-        }
-    }
-    */
-
-    /*
-    @Command( + " qq {qq}")
-    @RequirePermission("console.qq")
-    public void onSetConsoleQQ(@NotNull final XiaomingUserImpl user,
-                               @CommandParameter("qq") String qqString) {
-        long qq = AtUtil.parseQQ(qqString);
-        if (qq == -1) {
-            user.sendError("{} 似乎不是一个正确的 QQ 哦", qqString);
-        }
-
-        XiaomingLauncher.getInstance().getConsoleXiaomingUser().setQQ(qq);
-        user.sendMessage("已设置控制台执行身份为 QQ：{}", qqString);
-
-     */
 }

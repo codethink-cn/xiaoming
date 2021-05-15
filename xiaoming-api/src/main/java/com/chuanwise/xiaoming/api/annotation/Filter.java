@@ -4,9 +4,9 @@ import java.lang.annotation.*;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@Repeatable(Fliters.class)
+@Repeatable(Filters.class)
 public @interface Filter {
     String value();
 
-    FliterPattern pattern() default FliterPattern.PARAMETER;
+    FilterPattern pattern() default FilterPattern.PARAMETER;
 }

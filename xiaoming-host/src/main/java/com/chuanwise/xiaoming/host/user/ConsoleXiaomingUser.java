@@ -27,7 +27,7 @@ public class ConsoleXiaomingUser extends XiaomingUserImpl {
     }
 
     @Override
-    public boolean sendWarning(Object message, Object... arguments) {
+    public boolean sendWarn(Object message, Object... arguments) {
         getLog().warn(ArgumentUtil.replaceArguments(message.toString(), arguments));
         return true;
     }
@@ -45,7 +45,7 @@ public class ConsoleXiaomingUser extends XiaomingUserImpl {
     }
 
     @Override
-    public boolean sendPrivateWarning(Object message, Object... arguments) {
+    public boolean sendPrivateWarn(Object message, Object... arguments) {
         getLog().warn("私聊警告：" + ArgumentUtil.replaceArguments(message.toString(), arguments));
         return true;
     }

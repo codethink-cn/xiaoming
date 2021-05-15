@@ -3,8 +3,7 @@ package com.chuanwise.xiaoming.api.annotation;
 /**
  * @author Chuanwise
  */
-
-public enum FliterPattern {
+public enum FilterPattern {
     EQUALS,
     STARTS_WITH,
     ENDS_WITH,
@@ -12,5 +11,5 @@ public enum FliterPattern {
     ENDS_REGEX,
     EQUALS_IGNORE_CASE,
     MATCHES,
-    PARAMETER
+    PARAMETER,
 }

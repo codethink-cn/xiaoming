@@ -32,9 +32,7 @@ public interface Interactor extends PluginObject {
         return true;
     }
 
-    default void onIllegalUser(XiaomingUser user) {
-        user.sendError("你还不能使用这个功能哦");
-    }
+    default void onIllegalUser(XiaomingUser user) {}
 
     /**
      * 查看用户是否具有交互资格
@@ -114,23 +112,30 @@ public interface Interactor extends PluginObject {
      */
     default boolean interact(XiaomingUser user) throws Exception {
         boolean interacted = false;
-        for (InteractorMethodDetail methodDetail : getMethodDetails()) {
-            // 验证响应条件，得到过滤器
-            if (!methodDetail.willInteract(user)) {
+        boolean isAgreed = !getXiaomingBot().getConfig().isEnableLicense() || getXiaomingBot().getLicenseManager().isAgreed(user.getQQ());
+        boolean isLegalUser = isLegalUser(user);
+
+        for (InteractorMethodDetail detail : getMethodDetails()) {
+            // 验证响应条件
+            if (!detail.willInteract(user)) {
                 continue;
             }
-
-            final FilterMatcher filter = methodDetail.getMatchableFilter(user);
+            // 得到匹配当前输入的一个过滤器
+            final FilterMatcher filter = detail.getMatchableFilter(user);
             if (Objects.isNull(filter)) {
                 continue;
             }
-
-            if (!isLegalUser(user)) {
+            // 判断是否为合法用户
+            if (!isAgreed) {
+                user.sendError("你还没有同意《小明使用须知》，告诉小明「使用小明」以开始使用小明吧");
+                return false;
+            }
+            if (!isLegalUser) {
                 onIllegalUser(user);
                 return true;
             }
 
-            final Method method = methodDetail.getMethod();
+            final Method method = detail.getMethod();
             final Parameter[] parameters = method.getParameters();
             List<Object> arguments = new ArrayList<>(parameters.length);
             final Class<? extends XiaomingUser> userClass = user.getClass();
@@ -152,7 +157,7 @@ public interface Interactor extends PluginObject {
                 } else if (FilterMatcher.class.isAssignableFrom(type)) {
                     arguments.add(filter);
                 } else if (InteractorMethodDetail.class.isAssignableFrom(type)) {
-                    arguments.add(methodDetail);
+                    arguments.add(detail);
                 } else if (isParameterFilter && parameter.isAnnotationPresent(FilterParameter.class)) {
                     // 带有 FilterParameter 注解，可能是 String 也可能不是
                     final FilterParameter filterParameter = parameter.getAnnotation(FilterParameter.class);
@@ -168,11 +173,11 @@ public interface Interactor extends PluginObject {
                             arguments.add(defaultValue);
                         }
                     } else {
-                        final Object argument = onParameter(user, parameterName, parameterValue, defaultValue);
+                        final Object argument = onParameter(user, type, parameterName, parameterValue, defaultValue);
                         if (Objects.nonNull(argument)) {
                             arguments.add(argument);
                         } else {
-                            throw new XiaomingRuntimeException("unfillable parameter: " +
+                            throw new XiaomingRuntimeException("unsetable parameter: " +
                                     "name: \"" + parameterName + "\", " +
                                     "value: \"" + parameterValue + "\", " +
                                     "type: " + type.getName() + ", " +
@@ -197,11 +202,14 @@ public interface Interactor extends PluginObject {
             }
 
             method.invoke(this, arguments.toArray(new Object[0]));
-            getXiaomingBot().getEventListenerManager().callLater(new InteractorResponseEvent(this, methodDetail, user));
+            getXiaomingBot().getEventListenerManager().callLater(new InteractorResponseEvent(this, detail, user));
             interacted = true;
-            if (methodDetail.isBlocking()) {
+            if (detail.isBlocking()) {
                 return true;
             }
+
+            // 增加调用统计次数
+            getXiaomingBot().getStatistician().increaseCallCounter();
         }
         return interacted;
     }
@@ -254,12 +262,13 @@ public interface Interactor extends PluginObject {
     /**
      * 解析未知的使用 @FilterParameter 注解的参数
      * @param user 当前用户
+     * @param clazz 形参类型
      * @param parameterName 参数名
      * @param currentValue 当前值
      * @param defaultValue 默认值
      * @return 注入结果。如果为 {@code null} 则注入失败
      */
-    default Object onParameter(XiaomingUser user, String parameterName, String currentValue, String defaultValue) {
+    default <T> Object onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
         if ("qq".equalsIgnoreCase(parameterName)) {
             long qq = AtUtil.parseQQ(currentValue);
             if (qq == -1) {

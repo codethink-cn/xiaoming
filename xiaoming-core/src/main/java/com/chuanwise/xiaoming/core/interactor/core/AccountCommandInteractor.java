@@ -60,4 +60,15 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
             user.sendError("成功屏蔽了插件：{}", plugin);
         }
     }
+
+    @Filter(CommandWords.ALIAS_REGEX + " {qq} {alias}")
+    @RequirePermission("account.user.alias")
+    public void onSetUserAlias(XiaomingUser user,
+                               @FilterParameter("qq") long qq,
+                               @FilterParameter("alias") String alias) {
+        final Account account = accountManager.getOrPutAccount(qq);
+        account.setAlias(alias);
+        user.sendMessage("成功将该用户的备注设置为{}", alias);
+        getXiaomingBot().getRegularPreserveManager().readySave(account);
+    }
 }

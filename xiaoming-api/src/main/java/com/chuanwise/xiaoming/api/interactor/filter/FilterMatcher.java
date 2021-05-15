@@ -1,7 +1,7 @@
 package com.chuanwise.xiaoming.api.interactor.filter;
 
 import com.chuanwise.xiaoming.api.annotation.Filter;
-import com.chuanwise.xiaoming.api.annotation.FliterPattern;
+import com.chuanwise.xiaoming.api.annotation.FilterPattern;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 
@@ -59,7 +59,7 @@ public abstract class FilterMatcher {
      * @param pattern 过滤方法
      * @return 过滤结果
      */
-    public static FilterMatcher filterMatcher(String format, FliterPattern pattern) {
+    public static FilterMatcher filterMatcher(String format, FilterPattern pattern) {
         switch (pattern){
             case MATCHES:
                 return match(format);

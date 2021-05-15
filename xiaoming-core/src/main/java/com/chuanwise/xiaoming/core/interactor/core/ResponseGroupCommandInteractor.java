@@ -42,7 +42,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     public void onListGroups(XiaomingUser user) {
         final Set<ResponseGroup> groups = groupManager.getGroups();
         if (groups.isEmpty()) {
-
+            user.sendMessage("小明没有任何响应群");
         } else {
             StringBuilder builder = new StringBuilder();
             builder.append("小明的响应群有 ").append(groups.size()).append("个：");
@@ -57,8 +57,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
 
     @Filter(CommandWords.GROUP_REGEX + " {group}")
     @RequirePermission("group.look")
-    public void onLookGroup(XiaomingUser user,
-                            @FilterParameter("group") String groupString) {
+    public void onLookGroup(XiaomingUser user, @FilterParameter("group") String groupString) {
         ResponseGroup group;
         if (groupString.matches("\\d+")) {
             group = groupManager.fromCode(Long.parseLong(groupString));
@@ -83,8 +82,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
 
     @Filter(CommandWords.REMOVE_REGEX + CommandWords.GROUP_REGEX + " {group}")
     @RequirePermission("group.remove")
-    public void onRemoveGroup(XiaomingUser user,
-                              @FilterParameter("group") String groupString) {
+    public void onRemoveGroup(XiaomingUser user, @FilterParameter("group") String groupString) {
         ResponseGroup group;
         if (groupString.matches("\\d+")) {
             group = groupManager.fromCode(Long.parseLong(groupString));
@@ -130,7 +128,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @Filter(TAG_REGEX + CommandWords.GROUP_REGEX + " {group} " + " {tag}")
+    @Filter(TAG_REGEX + CommandWords.GROUP_REGEX + " {group} {tag}")
     @RequirePermission("group.tag.add")
     public void onAddGroupTag(XiaomingUser user,
                               @FilterParameter("group") String groupString,
@@ -149,6 +147,22 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
             tags.add(tag);
             getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
             user.sendMessage("成功为{}添加了新的标记：{}", getGroupName(group), tag);
+        }
+    }
+
+    @GroupInteractor
+    @Filter(TAG_REGEX + CommandWords.THIS_REGEX + CommandWords.GROUP_REGEX + " {tag}")
+    @RequirePermission("group.tag.add")
+    public void onAddGroupTag(XiaomingUser user,
+                              @FilterParameter("tag") String tag) {
+        final ResponseGroup group = user.getResponseGroup();
+        final Set<String> tags = group.getTags();
+        if (tags.contains(tag)) {
+            user.sendError("本群已经有这个标记了哦");
+        } else {
+            tags.add(tag);
+            getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
+            user.sendMessage("成功为本群添加了新的标记：{}", tag);
         }
     }
 
