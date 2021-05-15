@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.core.user;
 
+import com.chuanwise.xiaoming.api.exception.InteractorTimeoutException;
 import com.chuanwise.xiaoming.api.exception.ReceiptCancelledException;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.user.Receiptionist;
@@ -46,6 +47,7 @@ public class ReceptionistImpl extends HostObjectImpl implements Receiptionist {
                 user.clearRecentInputs();
             }
         } catch (ReceiptCancelledException exception) {
+        } catch (InteractorTimeoutException exception) {
         } catch (Exception exception) {
             getLog().error("和用户" + user.getCompleteName() + "时出现异常", exception);
             user.sendPrivateError("小明遇到了一个问题，这个问题已经上报了，期待更好的小明吧 {}", getXiaomingBot().getWordManager().get("happy"));
@@ -67,14 +69,6 @@ public class ReceptionistImpl extends HostObjectImpl implements Receiptionist {
     @Override
     public void run() {
         while (!getXiaomingBot().isStop() && recentFreeTime < NO_RECEIPT_TIME && running) {
-            // 在用户身上等待，直到 ListenerManager 唤醒接待员或超时唤醒
-            try {
-                synchronized (user) {
-                    user.wait(RECEIPT_PERIOD);
-                }
-            } catch (InterruptedException ignored) {
-            }
-
             // 如果携带新消息，则招待，否则不招待
             synchronized (user) {
                 if (Objects.nonNull(user.getMessage())) {
@@ -83,6 +77,13 @@ public class ReceptionistImpl extends HostObjectImpl implements Receiptionist {
                 } else {
                     recentFreeTime++;
                 }
+            }
+            // 在用户身上等待，直到 ListenerManager 唤醒接待员或超时唤醒
+            try {
+                synchronized (user) {
+                    user.wait(RECEIPT_PERIOD);
+                }
+            } catch (InterruptedException ignored) {
             }
         }
         stop();

@@ -10,6 +10,9 @@ import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
+import com.chuanwise.xiaoming.core.response.ResponseGroupImpl;
+import net.mamoe.mirai.Bot;
+import net.mamoe.mirai.contact.Group;
 
 import java.util.Objects;
 import java.util.Set;
@@ -128,6 +131,47 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         }
     }
 
+    @Filter(CommandWords.NEW_REGEX + CommandWords.GROUP_REGEX + " {group}")
+    @RequirePermission("group.add")
+    public void onAddGroup(XiaomingUser user, @FilterParameter("group") String groupString) {
+        final long group;
+        if (groupString.matches("\\d+")) {
+            group = Long.parseLong(groupString);
+        } else {
+            user.sendError("找不到响应群：{}", groupString);
+            return;
+        }
+        ResponseGroup responseGroup = groupManager.fromCode(group);
+        if (Objects.nonNull(responseGroup) && responseGroup.hasTag("enable")) {
+            user.sendError("该群已经是小明的响应群了哦");
+            return;
+        } else if (Objects.isNull(responseGroup)) {
+            final Bot miraiBot = getXiaomingBot().getMiraiBot();
+            final Group miraiBotGroup = miraiBot.getGroup(group);
+            boolean alreadyIn;
+
+            if (Objects.isNull(miraiBotGroup)) {
+                alreadyIn = false;
+                responseGroup = new ResponseGroupImpl(group);
+            } else {
+                alreadyIn = true;
+                responseGroup = new ResponseGroupImpl(group, miraiBotGroup.getName());
+            }
+            responseGroup.addTag("enable");
+            groupManager.addGroup(responseGroup);
+            if (alreadyIn) {
+                user.sendMessage("成功将该群设置为小明的响应群。");
+                user.sendGroupMessage(group, getXiaomingBot().getTextManager().loadOrFail("new-response-group"));
+            } else {
+                user.sendMessage("成功将该群设置为小明的响应群，但小明还不在这个群中。");
+            }
+        } else {
+            responseGroup.addTag("enable");
+            user.sendMessage("成功将该群设置为小明的响应群。");
+        }
+        getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
+    }
+
     @Filter(TAG_REGEX + CommandWords.GROUP_REGEX + " {group} {tag}")
     @RequirePermission("group.tag.add")
     public void onAddGroupTag(XiaomingUser user,
@@ -147,6 +191,44 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
             tags.add(tag);
             getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
             user.sendMessage("成功为{}添加了新的标记：{}", getGroupName(group), tag);
+        }
+    }
+
+    @Filter(CommandWords.REMOVE_REGEX + CommandWords.GROUP_REGEX + TAG_REGEX + " {group} {tag}")
+    @RequirePermission("group.tag.remove")
+    public void onRemoveGroupTag(XiaomingUser user,
+                              @FilterParameter("group") String groupString,
+                              @FilterParameter("tag") String tag) {
+        final ResponseGroup group;
+        if (groupString.matches("\\d+")) {
+            group = groupManager.fromCode(Long.parseLong(groupString));
+        } else {
+            user.sendError("找不到响应群：{}", groupString);
+            return;
+        }
+        final Set<String> tags = group.getTags();
+        if (tags.contains(tag)) {
+            tags.remove(tag);
+            user.sendMessage("成功移除了在该群上的标记：{}", tag);
+            getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
+        } else {
+            user.sendMessage("该群并没有标记：{}", tag);
+        }
+    }
+
+    @GroupInteractor
+    @Filter(CommandWords.REMOVE_REGEX + CommandWords.THIS_REGEX +  CommandWords.GROUP_REGEX + TAG_REGEX + " {tag}")
+    @RequirePermission("group.tag.remove")
+    public void onRemoveGroupTag(XiaomingUser user,
+                              @FilterParameter("tag") String tag) {
+        final ResponseGroup group = user.getResponseGroup();
+        final Set<String> tags = group.getTags();
+        if (tags.contains(tag)) {
+            tags.remove(tag);
+            user.sendMessage("成功移除本群的标记：{}", tag);
+            getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
+        } else {
+            user.sendMessage("本群并没有标记：{}", tag);
         }
     }
 

@@ -271,7 +271,7 @@ public interface PluginManager extends XiaomingObject, HostObject {
         return getPluginProperty(new JarFile(pluginFile));
     }
 
-    void pushAllUnloadLoader(XiaomingUser user);
+    void flushPluginMap(XiaomingUser user);
 
     File getDirectory();
 

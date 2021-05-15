@@ -25,6 +25,7 @@ public class ResponseGroupManagerImpl extends JsonFilePreservable implements Res
     @Setter
     transient XiaomingBot xiaomingBot;
 
+    @Override
     public Set<ResponseGroup> getGroups() {
         return (Set) groups;
     }

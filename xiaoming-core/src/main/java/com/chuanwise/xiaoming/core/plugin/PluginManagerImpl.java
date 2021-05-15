@@ -12,7 +12,6 @@ import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import lombok.Getter;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -123,11 +122,9 @@ public class PluginManagerImpl extends HostObjectImpl implements PluginManager {
     public void loadAllPlugins(XiaomingUser user) {
         int loadedPluginNumber = enabledPlugins.size();
 
-        // 本次需要加载的插件
-
         // 如果还没有更新过存在插件列表就更新一下
         if (existingPlugins.isEmpty()) {
-            pushAllUnloadLoader(user);
+            flushPluginMap(user);
         }
 
         if (existingPlugins.isEmpty()) {
@@ -182,7 +179,8 @@ public class PluginManagerImpl extends HostObjectImpl implements PluginManager {
     }
 
     @Override
-    public void pushAllUnloadLoader(XiaomingUser user) {
+    public void flushPluginMap(XiaomingUser user) {
+        existingPlugins.clear();
         for (File pluginFile : directory.listFiles()) {
             if (pluginFile.isFile() && pluginFile.getName().endsWith(".jar")) {
                 try {

@@ -2,17 +2,17 @@ package com.chuanwise.xiaoming.core.plugin;
 
 import com.chuanwise.xiaoming.api.plugin.PluginProperty;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.io.File;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Chuanwise
  */
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class PluginPropertyImpl extends ConcurrentHashMap<String, Object> implements PluginProperty {
@@ -38,5 +38,19 @@ public class PluginPropertyImpl extends ConcurrentHashMap<String, Object> implem
         } else {
             return "unknown";
         }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        PluginPropertyImpl that = (PluginPropertyImpl) o;
+        return Objects.equals(file, that.file);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), file);
     }
 }

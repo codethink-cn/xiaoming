@@ -33,6 +33,7 @@ public class XiaomingUserImpl extends HostObjectImpl implements XiaomingUser {
     @Override
     public void setMessage(String message) {
         if (Objects.nonNull(message)) {
+            message = message.trim();
             recentInputs.add(message);
         }
         this.message = message;

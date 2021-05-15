@@ -5,6 +5,8 @@ import com.chuanwise.xiaoming.api.annotation.FilterParameter;
 import com.chuanwise.xiaoming.api.annotation.GroupInteractor;
 import com.chuanwise.xiaoming.api.annotation.RequirePermission;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
+import com.chuanwise.xiaoming.api.config.Configuration;
+import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
@@ -14,6 +16,7 @@ import com.chuanwise.xiaoming.core.response.ResponseGroupImpl;
 import net.mamoe.mirai.contact.Group;
 
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 /**
@@ -22,50 +25,55 @@ import java.util.regex.Pattern;
  */
 public class GlobalCommandInteractor extends CommandInteractorImpl {
     public static final String ENABLE_TAG = "enable";
-    public static final String BAT_REGEX = "(批处理|bat)";
 
     public GlobalCommandInteractor(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
+        setExternalUse(true);
     }
 
-    /**
-     * 批处理指令
-     * @param user 指令执行者
-     * @param remain 指令
-     */
-    @Filter(BAT_REGEX + "{remain}")
-    public void onMultipleCommands(XiaomingUser user,
-                                   @FilterParameter("remain") String remain) {
-        final String[] subCommands = remain.split(Pattern.quote("\\n"), 0);
+    @Filter(CommandWords.USE_REGEX + CommandWords.XIAOMING_REGEX)
+    @RequirePermission("enable")
+    public void onUseXiaoming(XiaomingUser user) {
+        final Configuration config = getXiaomingBot().getConfig();
+        if (config.isEnableLicense()) {
+            final LicenseManager licenceManager = getXiaomingBot().getLicenseManager();
+            final long qq = user.getQQ();
+            if (licenceManager.isAgreed(qq)) {
+                user.sendMessage("你此前已经同意了小明使用协议");
+            } else {
+                user.sendPrivateMessage(getXiaomingBot().getTextManager().loadOrFail(config.getLicenseName()));
+                user.sendPrivateMessage("如果你同意上述协议，请告诉我「同意」");
 
-        user.enableBuffer();
-        int commandNumber = 0;
-        try {
-            for (int i = 0; i < subCommands.length; i++) {
-                String command = subCommands[i];
-                if (command.isEmpty()) {
-                    continue;
-                }
-                user.setMessage(command);
-                if (getXiaomingBot().getInteractorManager().onCommand(user)) {
-                    commandNumber++;
+                final String nextInput = user.nextInput();
+                if (Objects.equals(nextInput, "同意")) {
+                    user.sendMessage("你已经可以使用小明了，未来记得遵守我们的约定");
+                    licenceManager.agree(qq);
                 } else {
-                    user.sendError("无效的命令：{}，批处理任务被中断。", command);
-                    break;
+                    user.sendMessage("如果未来希望使用小明，仍然可以告诉我「使用小明」");
                 }
+                getXiaomingBot().getRegularPreserveManager().readySave(licenceManager);
             }
-        } catch (Exception exception) {
-            user.sendError("执行{}个指令时出现异常，批处理任务被中断。");
-            exception.printStackTrace();
-        }
-
-        final String bufferString = user.getBufferAndClear();
-        user.sendPrivateMessage(bufferString);
-
-        if (commandNumber == 0) {
-            user.sendError("小明没能成功执行任何一个指令");
         } else {
-            user.sendMessage("成功执行了 {} 个指令", commandNumber);
+            user.sendMessage("不需要专门启动小明哦，小明为人民服务 {}", getXiaomingBot().getWordManager().get("happy"));
+        }
+    }
+
+    @Filter(CommandWords.CANCEL_REGEX + CommandWords.USE_REGEX + CommandWords.XIAOMING_REGEX)
+    @RequirePermission("disable")
+    public void onCancelUseXiaoming(XiaomingUser user) {
+        final Configuration config = getXiaomingBot().getConfig();
+        if (config.isEnableLicense()) {
+            final LicenseManager licenceManager = getXiaomingBot().getLicenseManager();
+            final long qq = user.getQQ();
+            if (licenceManager.isAgreed(qq)) {
+                licenceManager.remove(qq);
+                user.sendMessage("已取消使用小明。如果未来希望使用小明，仍然可以告诉我「使用小明」");
+                getXiaomingBot().getRegularPreserveManager().readySave(licenceManager);
+            } else {
+                user.sendMessage("此前你并未同意《小明使用须知》");
+            }
+        } else {
+            user.sendMessage("不需要专门取消小明哦，小明为人民服务 {}", getXiaomingBot().getWordManager().get("happy"));
         }
     }
 

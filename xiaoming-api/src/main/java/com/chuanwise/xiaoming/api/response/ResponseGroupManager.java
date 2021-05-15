@@ -22,6 +22,15 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
         return null;
     }
 
+    default boolean hasTag(long group, String tag) {
+        final ResponseGroup responseGroup = fromCode(group);
+        if (Objects.nonNull(responseGroup)) {
+            return responseGroup.hasTag(tag);
+        } else {
+            return Objects.equals(group + "", tag);
+        }
+    }
+
     /**
      * 获得所有具有若干个标记的群
      * @param tag 若干个标记

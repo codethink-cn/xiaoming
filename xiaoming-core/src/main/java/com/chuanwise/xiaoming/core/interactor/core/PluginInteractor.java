@@ -25,6 +25,7 @@ public class PluginInteractor extends CommandInteractorImpl {
     static final String DISABLE = "(关闭|disable)";
     static final String RELOAD = "(重载|reload)";
     static final String REENABLE = "(重启|reenable)";
+    static final String FLUSH = "(刷新|flush)";
 
     public PluginInteractor(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
@@ -82,6 +83,13 @@ public class PluginInteractor extends CommandInteractorImpl {
             }
         }
         user.sendMessage(builder.toString());
+    }
+
+    @Filter(FLUSH + CommandWords.PLUGIN_REGEX)
+    @RequirePermission("plugin.flush")
+    public void onFlushPlugins(XiaomingUser user) {
+        pluginManager.flushPluginMap(user);
+        user.sendMessage("插件列表刷新完成");
     }
 
     @Filter(CommandWords.PLUGIN_REGEX + " {name}")

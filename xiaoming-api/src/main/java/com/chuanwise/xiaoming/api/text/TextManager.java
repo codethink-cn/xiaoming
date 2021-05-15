@@ -4,6 +4,8 @@ import com.chuanwise.xiaoming.api.object.HostObject;
 import com.chuanwise.xiaoming.api.util.StringUtil;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface TextManager extends HostObject {
     default File textFile(String textName) {
@@ -69,6 +71,18 @@ public interface TextManager extends HostObject {
         } catch (IOException exception) {
             return false;
         }
+    }
+
+    default File[] list() {
+        final File[] files = getDirectory().listFiles();
+        final List<File> result = new ArrayList<>(files.length);
+
+        for (File file : files) {
+            if (file.getName().endsWith(".txt")) {
+                result.add(file);
+            }
+        }
+        return result.toArray(new File[0]);
     }
 
     File getDirectory();

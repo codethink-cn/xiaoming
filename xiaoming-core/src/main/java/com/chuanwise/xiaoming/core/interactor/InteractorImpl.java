@@ -21,6 +21,8 @@ public abstract class InteractorImpl extends PluginObjectImpl implements Interac
 
     Set<InteractorMethodDetail> methodDetails = new HashSet<>();
 
+    boolean externalUse = false;
+
     @Override
     public boolean equals(Object obj) {
         return Objects.equals(getClass(), obj.getClass());

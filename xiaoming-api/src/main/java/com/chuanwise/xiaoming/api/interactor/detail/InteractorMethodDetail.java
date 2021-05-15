@@ -36,9 +36,11 @@ public class InteractorMethodDetail {
      * @return 使用的过滤器
      */
     public boolean willInteract(XiaomingUser user) {
-        if (!user.hasPermission(requiredPermissions)) {
-            return false;
+        // 无条件服务控制台使用者
+        if (user == user.getXiaomingBot().getConsoleXiaomingUser()) {
+            return true;
         }
+
         final GroupInteractor[] groupInteractors = method.getAnnotationsByType(GroupInteractor.class);
         final TempInteractor[] tempInteractors = method.getAnnotationsByType(TempInteractor.class);
         final PrivateInteractor[] privateInteractors = method.getAnnotationsByType(PrivateInteractor.class);

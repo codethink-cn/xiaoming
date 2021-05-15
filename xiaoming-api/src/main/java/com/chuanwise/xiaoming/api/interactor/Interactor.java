@@ -12,6 +12,7 @@ import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.ArrayUtils;
 import com.chuanwise.xiaoming.api.util.AtUtil;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -28,6 +29,10 @@ public interface Interactor extends PluginObject {
      */
     void initialize();
 
+    boolean isExternalUse();
+
+    void setExternalUse(boolean externalUse);
+
     default boolean isLegalUser(XiaomingUser user) {
         return true;
     }
@@ -40,6 +45,10 @@ public interface Interactor extends PluginObject {
      * @return 其是否具有交互资格
      */
     default boolean willInteract(XiaomingUser user) {
+        // 无条件服务控制台使用者
+        if (user == getXiaomingBot().getConsoleXiaomingUser()) {
+            return true;
+        }
         final XiaomingPlugin plugin = getPlugin();
 
         // 检查是否屏蔽插件
@@ -112,7 +121,7 @@ public interface Interactor extends PluginObject {
      */
     default boolean interact(XiaomingUser user) throws Exception {
         boolean interacted = false;
-        boolean isAgreed = !getXiaomingBot().getConfig().isEnableLicense() || getXiaomingBot().getLicenseManager().isAgreed(user.getQQ());
+        boolean isAgreed = isExternalUse() || (!getXiaomingBot().getConfig().isEnableLicense() || getXiaomingBot().getLicenseManager().isAgreed(user.getQQ()));
         boolean isLegalUser = isLegalUser(user);
 
         for (InteractorMethodDetail detail : getMethodDetails()) {
@@ -120,15 +129,20 @@ public interface Interactor extends PluginObject {
             if (!detail.willInteract(user)) {
                 continue;
             }
+
             // 得到匹配当前输入的一个过滤器
             final FilterMatcher filter = detail.getMatchableFilter(user);
             if (Objects.isNull(filter)) {
                 continue;
             }
+
             // 判断是否为合法用户
             if (!isAgreed) {
                 user.sendError("你还没有同意《小明使用须知》，告诉小明「使用小明」以开始使用小明吧");
                 return false;
+            }
+            if (!user.requirePermission(detail.getRequiredPermissions())) {
+                continue;
             }
             if (!isLegalUser) {
                 onIllegalUser(user);
@@ -177,14 +191,7 @@ public interface Interactor extends PluginObject {
                         if (Objects.nonNull(argument)) {
                             arguments.add(argument);
                         } else {
-                            throw new XiaomingRuntimeException("unsetable parameter: " +
-                                    "name: \"" + parameterName + "\", " +
-                                    "value: \"" + parameterValue + "\", " +
-                                    "type: " + type.getName() + ", " +
-                                    "defaultValue: \"" + defaultValue + "\", " +
-                                    "at method: " + method.getName() + ", " +
-                                    "in interactor: " + getClass().getName() + ", " +
-                                    "registered by: " + (Objects.isNull(getPlugin()) ? "core" : getPlugin().getCompleteName()));
+                            break;
                         }
                     }
                 } else {
@@ -192,24 +199,31 @@ public interface Interactor extends PluginObject {
                     if (Objects.nonNull(argument)) {
                         arguments.add(argument);
                     } else {
-                        throw new XiaomingRuntimeException("unfillable parameter: " +
-                                "type: " + type.getName() + ", " +
-                                "at method: " + method.getName() + ", " +
-                                "in interactor: " + getClass().getName() + ", " +
-                                "registered by: " + (Objects.isNull(getPlugin()) ? "core" : getPlugin().getCompleteName()));
+                        break;
                     }
                 }
             }
 
-            method.invoke(this, arguments.toArray(new Object[0]));
-            getXiaomingBot().getEventListenerManager().callLater(new InteractorResponseEvent(this, detail, user));
-            interacted = true;
-            if (detail.isBlocking()) {
-                return true;
-            }
+            if (arguments.size() == parameters.length) {
+                // 增加调用统计次数
+                getXiaomingBot().getStatistician().increaseCallCounter();
+                interacted = true;
 
-            // 增加调用统计次数
-            getXiaomingBot().getStatistician().increaseCallCounter();
+                try {
+                    method.invoke(this, arguments.toArray(new Object[0]));
+                    getXiaomingBot().getEventListenerManager().callLater(new InteractorResponseEvent(this, detail, user));
+                } catch (InvocationTargetException exception) {
+                    final Throwable cause = exception.getCause();
+                    if (Objects.nonNull(cause) && cause instanceof Exception) {
+                        throw (Exception) cause;
+                    } else {
+                        exception.printStackTrace();
+                    }
+                }
+                if (detail.isBlocking()) {
+                    return true;
+                }
+            }
         }
         return interacted;
     }
@@ -289,7 +303,7 @@ public interface Interactor extends PluginObject {
     default Set<String> getUsageStrings(XiaomingUser user) {
         Set<String> usages = new HashSet<>();
         for (InteractorMethodDetail detail : getMethodDetails()) {
-            if (detail.willInteract(user)) {
+            if (user.hasPermission(detail.getRequiredPermissions())) {
                 for (String usage : detail.getUsages()) {
                     usages.add(usage);
                 }

@@ -22,8 +22,11 @@ import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 
 public class CoreCommandInteractor extends CommandInteractorImpl {
+    public static final String BAT_REGEX = "(批处理|bat)";
+
     public String getInteractorString() {
         final InteractorManager interactorManager = getXiaomingBot().getInteractorManager();
         StringBuilder builder = new StringBuilder("交互器：\n");
@@ -93,6 +96,47 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
         throw exception;
     }
 
+    /**
+     * 批处理指令
+     * @param user 指令执行者
+     * @param remain 指令
+     */
+    @Filter("##" + BAT_REGEX + "##" + "{remain}")
+    public void onMultipleCommands(XiaomingUser user,
+                                   @FilterParameter("remain") String remain) {
+        final String[] subCommands = remain.split(Pattern.quote("\\n"), 0);
+
+        user.enableBuffer();
+        int commandNumber = 0;
+        try {
+            for (int i = 0; i < subCommands.length; i++) {
+                String command = subCommands[i];
+                if (command.isEmpty()) {
+                    continue;
+                }
+                user.setMessage(command);
+                if (getXiaomingBot().getInteractorManager().onInput(user)) {
+                    commandNumber++;
+                } else {
+                    user.sendError("无效的命令：{}，批处理任务被中断", command);
+                    break;
+                }
+            }
+        } catch (Exception exception) {
+            user.sendError("执行{}个指令时出现异常，批处理任务被中断");
+            exception.printStackTrace();
+        }
+
+        final String bufferString = user.getBufferAndClear();
+        user.sendPrivateMessage(bufferString);
+
+        if (commandNumber == 0) {
+            user.sendError("小明没能成功执行任何一个指令");
+        } else {
+            user.sendMessage("成功执行了 {} 个指令", commandNumber);
+        }
+    }
+
     @Filter(CommandWords.SAVE_REGEX)
     @RequirePermission("save")
     public void onSave(XiaomingUser user) {
@@ -101,32 +145,6 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
             user.sendMessage("当前没有任何文件等待保存哦");
         } else {
             manager.save(user);
-        }
-    }
-
-
-    @Filter(CommandWords.USE_REGEX + CommandWords.XIAOMING_REGEX)
-    public void onUseXiaoming(XiaomingUser user) {
-        final Configuration config = getXiaomingBot().getConfig();
-        if (config.isEnableLicense()) {
-            final LicenseManager licenceManager = getXiaomingBot().getLicenseManager();
-            final long qq = user.getQQ();
-            if (licenceManager.isAgreed(qq)) {
-                user.sendMessage("你此前已经同意了小明使用协议");
-            } else {
-                user.sendPrivateMessage(getXiaomingBot().getTextManager().loadOrFail(config.getLicenseName()));
-                user.sendPrivateMessage("如果你同意上述协议，请在一分钟之内告诉我「同意」");
-
-                if (Objects.equals(user.nextInput(TimeUnit.MINUTES.toMillis(1)), "同意")) {
-                    user.sendPrivateMessage("你已经可以使用小明了，未来记得遵守我们的约定");
-                    licenceManager.agree(qq);
-                } else {
-                    user.sendPrivateMessage("如果未来希望使用小明，仍然可以告诉我「使用小明」");
-                }
-                getXiaomingBot().getRegularPreserveManager().readySave(licenceManager);
-            }
-        } else {
-            user.sendMessage("不需要专门启动小明哦，小明为人民服务 {}", getXiaomingBot().getWordManager().get("happy"));
         }
     }
 
@@ -219,7 +237,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     @Filter(CommandWords.DISABLE_REGEX + CommandWords.XIAOMING_REGEX)
     @RequirePermission("stop")
     public void onCloseXiaoming(XiaomingUser user) {
-        user.sendMessage("你确定要关闭小明吗？如果是，请在一分钟之内发送「#确定关闭小明」");
+        user.sendMessage("你确定要关闭小明吗？如果是，请在一分钟之内发送「确定关闭小明」");
         lastCloseConfirmTime = System.currentTimeMillis() + TimeUtil.MINUTE_MINS;
     }
 
@@ -246,7 +264,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
             user.sendMessage("当前共有 {} 个招待器：", receiptionists.size());
             for (Receiptionist receiptionist : receiptionists) {
                 final XiaomingUser receiptionistUser = receiptionist.getUser();
-                user.sendMessage(receiptionistUser.getQQ());
+                user.sendMessage(String.valueOf(receiptionistUser.getQQ()));
             }
             final String string = user.getBufferAndClear();
             user.sendMessage(string);
@@ -262,7 +280,21 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
         if (Objects.isNull(receiptionist)) {
             user.sendMessage("该用户并没有招待器");
         } else {
-            user.sendMessage("招待器{}", receiptionist.isReceipting() ? "忙碌" : "空闲");
+            user.sendMessage("该招待器{}", receiptionist.isReceipting() ? "忙碌" : "空闲");
+        }
+    }
+
+    @Filter(CommandWords.DISABLE_REGEX + CommandWords.RECEIPTION_REGEX + " {qq}")
+    @RequirePermission("receiptionist.disable")
+    public void onDisableReceiptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final ReceiptionistManager receiptionistManager = getXiaomingBot().getReceiptionistManager();
+        final Receiptionist receiptionist = receiptionistManager.getReceiptionist(qq);
+
+        if (Objects.isNull(receiptionist)) {
+            user.sendMessage("该用户并没有招待器");
+        } else {
+            receiptionist.stop();
+            user.sendMessage("已尝试销毁该接待员");
         }
     }
 }

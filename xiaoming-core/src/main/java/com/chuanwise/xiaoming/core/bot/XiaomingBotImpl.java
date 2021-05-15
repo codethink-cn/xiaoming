@@ -62,6 +62,7 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Queue;
@@ -189,6 +190,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         // 注册内核指令处理器
         // 全局交互器
         interactorManager.register(new GlobalCommandInteractor(this), null);
+        interactorManager.register(new TextCommandInteractor(this), null);
 
         interactorManager.register(new PluginInteractor(this), null);
         interactorManager.register(new AccountCommandInteractor(this), null);
@@ -370,9 +372,7 @@ public class XiaomingBotImpl implements XiaomingBot {
                 permissionManager = filePreservableFactory
                         .loadOrProduce(PermissionManagerImpl.class, new File(configDirectory, "permissions.json"), () -> {
                             PermissionManagerImpl manager = new PermissionManagerImpl();
-                            final PermissionGroupImpl group = new PermissionGroupImpl();
-                            group.setAlias("默认组");
-                            manager.addGroup(PermissionManager.DEFAULT_PERMISSION_GROUP_NAME, group);
+                            manager.setGroups(new HashMap<>());
                             return manager;
                         });
                 permissionManager.setXiaomingBot(this);

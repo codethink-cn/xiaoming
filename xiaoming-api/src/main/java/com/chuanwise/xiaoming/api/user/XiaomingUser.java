@@ -32,7 +32,7 @@ public interface XiaomingUser extends XiaomingObject {
      * @param arguments 实参
      * @return
      */
-    default boolean sendMessage(Object message, Object... arguments) {
+    default boolean sendMessage(String message, Object... arguments) {
         Objects.requireNonNull(message);
         if (inGroup()) {
             return sendGroupAtMessage(message, arguments);
@@ -47,9 +47,9 @@ public interface XiaomingUser extends XiaomingObject {
      * @param arguments 消息参数
      * @return 是否发送成功
      */
-    default boolean sendPrivateMessage(Object message, Object... arguments) {
+    default boolean sendPrivateMessage(String message, Object... arguments) {
         Objects.requireNonNull(message);
-        final String translatedMessage = ArgumentUtil.replaceArguments(message.toString(), arguments);
+        final String translatedMessage = ArgumentUtil.replaceArguments(message, arguments);
         try {
             if (isUsingBuffer()) {
                 appendBuffer(translatedMessage);
@@ -66,30 +66,30 @@ public interface XiaomingUser extends XiaomingObject {
         }
     }
 
-    default boolean sendPrivateMessage(long who, Object message, Object... arguments) {
+    default boolean sendPrivateMessage(long who, String message, Object... arguments) {
         Objects.requireNonNull(message);
         final Friend friend = getXiaomingBot().getMiraiBot().getFriend(who);
+        final String translatedMessage = ArgumentUtil.replaceArguments(message, arguments);
         try {
-            final String translatedMessage = ArgumentUtil.replaceArguments(message.toString(), arguments);
-            if (isUsingBuffer()) {
-                appendBuffer(translatedMessage);
-            } else {
+            if (Objects.nonNull(friend)) {
                 friend.sendMessage(MiraiCode.deserializeMiraiCode(translatedMessage));
+                return true;
+            } else {
+                return false;
             }
-            return true;
         } catch (Exception exception) {
             exception.printStackTrace();
             return false;
         }
     }
 
-    default boolean sendPrivateMessage(long group, long who, Object message, Object... arguments) {
+    default boolean sendPrivateMessage(long group, long who, String message, Object... arguments) {
         Objects.requireNonNull(message);
         final Group miraiGroup = getXiaomingBot().getMiraiBot().getGroup(group);
         if (Objects.nonNull(miraiGroup)) {
             final NormalMember member = miraiGroup.get(who);
             if (Objects.nonNull(member)) {
-                member.sendMessage(ArgumentUtil.replaceArguments(message.toString(), arguments));
+                member.sendMessage(ArgumentUtil.replaceArguments(message, arguments));
                 return true;
             }
         }
@@ -103,17 +103,13 @@ public interface XiaomingUser extends XiaomingObject {
      * @param arguments 消息参数
      * @return 是否发送成功
      */
-    default boolean sendGroupMessage(long group, Object message, Object... arguments) {
+    default boolean sendGroupMessage(long group, String message, Object... arguments) {
         Objects.requireNonNull(message);
         try {
             final Group groupContact = getXiaomingBot().getMiraiBot().getGroup(group);
             if (Objects.nonNull(groupContact)) {
-                final String translatedMessage = ArgumentUtil.replaceArguments(message.toString(), arguments);
-                if (isUsingBuffer()) {
-                    appendBuffer(translatedMessage);
-                } else {
-                    groupContact.sendMessage(MiraiCode.deserializeMiraiCode(translatedMessage));
-                }
+                final String translatedMessage = ArgumentUtil.replaceArguments(message, arguments);
+                groupContact.sendMessage(MiraiCode.deserializeMiraiCode(translatedMessage));
                 return true;
             } else {
                 return false;
@@ -124,13 +120,13 @@ public interface XiaomingUser extends XiaomingObject {
         }
     }
 
-    default boolean sendGroupMessage(Object message, Object... arguments) {
-        final String translatedMessage = ArgumentUtil.replaceArguments(message.toString(), arguments);
-        if (isUsingBuffer()) {
-            appendBuffer(translatedMessage);
-            return true;
-        } else {
-            try {
+    default boolean sendGroupMessage(String message, Object... arguments) {
+        try {
+            final String translatedMessage = ArgumentUtil.replaceArguments(message, arguments);
+            if (isUsingBuffer()) {
+                appendBuffer(translatedMessage);
+                return true;
+            } else {
                 final Group group = getGroup();
                 if (Objects.nonNull(group)) {
                     group.sendMessage(MiraiCode.deserializeMiraiCode(translatedMessage));
@@ -138,10 +134,10 @@ public interface XiaomingUser extends XiaomingObject {
                 } else {
                     return false;
                 }
-            } catch (Exception exception) {
-                exception.printStackTrace();
-                return false;
             }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return false;
         }
     }
 
@@ -153,9 +149,9 @@ public interface XiaomingUser extends XiaomingObject {
      * @param arguments 消息参数
      * @return 是否发送成功
      */
-    default boolean sendGroupAtMessage(long group, long who, Object message, Object... arguments) {
+    default boolean sendGroupAtMessage(long group, long who, String message, Object... arguments) {
         Objects.requireNonNull(message);
-        return sendGroupMessage(group, new At(who).serializeToMiraiCode() + " " + message.toString(), arguments);
+        return sendGroupMessage(group, new At(who).serializeToMiraiCode() + " " + message, arguments);
     }
 
     /**
@@ -164,9 +160,14 @@ public interface XiaomingUser extends XiaomingObject {
      * @param arguments 消息参数
      * @return 是否发送成功
      */
-    default boolean sendGroupAtMessage(Object message, Object... arguments) {
+    default boolean sendGroupAtMessage(String message, Object... arguments) {
         Objects.requireNonNull(message);
-        return sendGroupMessage(new At(getQQ()).serializeToMiraiCode() + " " + message.toString(), arguments);
+        if (isUsingBuffer()) {
+            appendBuffer(ArgumentUtil.replaceArguments(message, arguments));
+            return true;
+        } else {
+            return sendGroupMessage(new At(getQQ()).serializeToMiraiCode() + " " + message, arguments);
+        }
     }
 
     /**
@@ -175,8 +176,8 @@ public interface XiaomingUser extends XiaomingObject {
      * @param arguments 实参
      * @return
      */
-    default boolean sendError(Object message, Object... arguments) {
-        return sendMessage(getXiaomingBot().getWordManager().get("error") + " " + message.toString(), arguments);
+    default boolean sendError(String message, Object... arguments) {
+        return sendMessage(getXiaomingBot().getWordManager().get("error") + " " + message, arguments);
     }
 
     /**
@@ -185,8 +186,8 @@ public interface XiaomingUser extends XiaomingObject {
      * @param arguments 消息参数
      * @return 是否发送成功
      */
-    default boolean sendPrivateError(Object message, Object... arguments) {
-        return sendPrivateMessage(getXiaomingBot().getWordManager().get("error") + " " + message.toString(), arguments);
+    default boolean sendPrivateError(String message, Object... arguments) {
+        return sendPrivateMessage(getXiaomingBot().getWordManager().get("error") + " " + message, arguments);
     }
 
     /**
@@ -195,8 +196,8 @@ public interface XiaomingUser extends XiaomingObject {
      * @param arguments 实参
      * @return
      */
-    default boolean sendWarn(Object message, Object... arguments) {
-        return sendMessage(getXiaomingBot().getWordManager().get("warning") + " " + message.toString(), arguments);
+    default boolean sendWarn(String message, Object... arguments) {
+        return sendMessage(getXiaomingBot().getWordManager().get("warning") + " " + message, arguments);
     }
 
     /**
@@ -205,8 +206,8 @@ public interface XiaomingUser extends XiaomingObject {
      * @param arguments 消息参数
      * @return 是否发送成功
      */
-    default boolean sendPrivateWarn(Object message, Object... arguments) {
-        return sendPrivateMessage(getXiaomingBot().getWordManager().get("warning") + " " + message.toString(), arguments);
+    default boolean sendPrivateWarn(String message, Object... arguments) {
+        return sendPrivateMessage(getXiaomingBot().getWordManager().get("warning") + " " + message, arguments);
     }
 
     /**
@@ -433,12 +434,21 @@ public interface XiaomingUser extends XiaomingObject {
     }
 
     default boolean requirePermission(String node) {
-        if (!hasPermission(node)) {
+        if (hasPermission(node)) {
+            return true;
+        } else {
             sendError("小明不能帮你做这件事哦，因为你缺少权限：{}", node);
             return false;
-        } else {
-            return true;
         }
+    }
+
+    default boolean requirePermission(String[] nodes) {
+        for (String node : nodes) {
+            if (!requirePermission(node)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     default ResponseGroup getResponseGroup() {

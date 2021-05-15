@@ -8,11 +8,11 @@ public interface Receiptionist extends HostObject, Runnable {
     /**
      * 招待周期
      */
-    long RECEIPT_PERIOD = TimeUnit.MINUTES.toMillis(1);
+    long RECEIPT_PERIOD = TimeUnit.MINUTES.toMillis(5);
     /**
      * 多长时间不招待就退出
      */
-    int NO_RECEIPT_TIME = 2;
+    int NO_RECEIPT_TIME = 3;
 
     void receipt();
 

@@ -3,6 +3,7 @@ package com.chuanwise.xiaoming.host;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.preserve.PreservableFactory;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
+import com.chuanwise.xiaoming.api.util.MD5Utils;
 import com.chuanwise.xiaoming.api.util.PathUtil;
 import com.chuanwise.xiaoming.core.bot.XiaomingBotImpl;
 import com.chuanwise.xiaoming.host.config.BotAccount;
@@ -61,7 +62,16 @@ public class XiaomingHost {
         }
 
         try {
-            xiaomingBot.setMiraiBot(BotFactory.INSTANCE.newBot(account.getQq(), account.getMd5()));
+            final String password = account.getPassword();
+            final byte[] md5 = account.getMd5();
+            if (Objects.isNull(password) && Objects.isNull(md5)) {
+                log.error("请检查位于 bots.json 中的账号信息是否正确。password 和 md5 属性至少要有一个");
+                return false;
+            } else if (Objects.nonNull(md5)) {
+                xiaomingBot.setMiraiBot(BotFactory.INSTANCE.newBot(account.getQq(), md5));
+            } else {
+                xiaomingBot.setMiraiBot(BotFactory.INSTANCE.newBot(account.getQq(), password));
+            }
             return true;
         } catch (Exception exception) {
             log.error("请检查位于 bots.json 中的账号信息是否正确");

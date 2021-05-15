@@ -8,50 +8,49 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Data
 public class ConsoleXiaomingUser extends XiaomingUserImpl {
     public ConsoleXiaomingUser(XiaomingBot xiaomingBot) {
         super(xiaomingBot);
     }
 
     @Override
-    public boolean sendPrivateMessage(Object message, Object... arguments) {
+    public boolean sendPrivateMessage(String message, Object... arguments) {
         getLog().info(ArgumentUtil.replaceArguments("私聊：" + message, arguments));
         return true;
     }
 
     @Override
-    public boolean sendGroupMessage(long group, Object message, Object... arguments) {
+    public boolean sendGroupMessage(long group, String message, Object... arguments) {
         getLog().info(ArgumentUtil.replaceArguments("群聊(" + group + ")：" + message, arguments));
         return true;
     }
 
     @Override
-    public boolean sendWarn(Object message, Object... arguments) {
-        getLog().warn(ArgumentUtil.replaceArguments(message.toString(), arguments));
+    public boolean sendWarn(String message, Object... arguments) {
+        getLog().warn(ArgumentUtil.replaceArguments(message, arguments));
         return true;
     }
 
     @Override
-    public boolean sendError(Object message, Object... arguments) {
-        getLog().error(ArgumentUtil.replaceArguments(message.toString(), arguments));
+    public boolean sendError(String message, Object... arguments) {
+        getLog().error(ArgumentUtil.replaceArguments(message, arguments));
         return true;
     }
 
     @Override
-    public boolean sendPrivateError(Object message, Object... arguments) {
-        getLog().error("私聊错误：" + ArgumentUtil.replaceArguments(message.toString(), arguments));
+    public boolean sendPrivateError(String message, Object... arguments) {
+        getLog().error("私聊错误：" + ArgumentUtil.replaceArguments(message, arguments));
         return true;
     }
 
     @Override
-    public boolean sendPrivateWarn(Object message, Object... arguments) {
-        getLog().warn("私聊警告：" + ArgumentUtil.replaceArguments(message.toString(), arguments));
+    public boolean sendPrivateWarn(String message, Object... arguments) {
+        getLog().warn("私聊警告：" + ArgumentUtil.replaceArguments(message, arguments));
         return true;
     }
 
     @Override
-    public boolean hasPermission(String... nodes) {
+    public boolean hasPermission(String nodes) {
         return true;
     }
 

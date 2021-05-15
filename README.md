@@ -1,7 +1,7 @@
 # 小明机器人框架：xiaoming-bot 
-小明机器人是一款插件化、便于上手、简单小巧的 QQ 机器人框架。
+小明机器人是一款基于 Mirai 的插件化、便于上手、简单小巧的通用 QQ 机器人框架。
 
-* QQ群：`1028582500`
+* QQ群：`1028959718`
 * 作者：`椽子`
 
 **请遵循 `Apache-2.0` 开源协议使用小明机器人框架**。
@@ -394,9 +394,11 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
 在使用 `PARAMETER` 作为过滤方式的过滤器的交互方法中，可以使用 `@FilterParameter("...")` 注解提取参数。例如：
 
 ```java
-@Filter("禁止{what}")
-public void filterTest1(XiaomingUser user, @FilterParameter("what") String what) {
-    user.sendMessage("禁止禁止{}", what);
+public class FilterTestInteractor extends CommandInteractorImpl {
+    @Filter("禁止{what}")
+    public void filterTest1(XiaomingUser user, @FilterParameter("what") String what) {
+        user.sendMessage("禁止禁止{}", what);
+    }
 }
 ```
 上述函数的第二个参数使用 `@FilterParameter("what")` 注解，小明将会把过滤器 `{what}` 处的值填自动填充到这里。例如当输入的消息是 `禁止复读` 时，`what` 的值会被设置成 `复读`。
@@ -405,12 +407,14 @@ public void filterTest1(XiaomingUser user, @FilterParameter("what") String what)
 
 值得一提的时，使用 `@FilterParameter` 的注解不一定必须是 `String` 类型。例如：
 ```java
-@Filter("{qq}可爱吗")
-public void filterTest3(XiaomingUser user, @FilterParameter("qq") long who) {
-    if (who == 1437100907) {
-        user.sendMessage("当然可爱呀，毕竟是我爸嗷 _(:з」∠)_");
-    } else {
-        user.sendMessage("也可爱，但没我爸可爱");
+public class FilterTestInteractor extends CommandInteractorImpl {
+    @Filter("{qq}可爱吗")
+    public void filterTest3(XiaomingUser user, @FilterParameter("qq") long who) {
+        if (who == 1437100907) {
+            user.sendMessage("当然可爱呀，毕竟是我爸嗷 _(:з」∠)_");
+        } else {
+            user.sendMessage("也可爱，但没我爸可爱");
+        }
     }
 }
 ```
@@ -456,4 +460,5 @@ XiaomingUser user|当前调用者
 Parameter parameter|当前参数
 
 ## 示例插件
-* `xiaoming-example`：(插件示例)[https://github.com/Chuanwise/xiaoming-example]
+* `xiaoming-example`： (插件示例)[https://github.com/Chuanwise/xiaoming-example]
+* `xiaoming-lexicons`： (插件示例)[https://github.com/Chuanwise/xiaoming-lexicons]

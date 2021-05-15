@@ -75,9 +75,9 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
         if (Objects.isNull(group)) {
             user.sendMessage("找不到权限组 {}（；´д｀）ゞ", group);
         } else {
-            final Account account = getXiaomingBot().getAccountManager().getOrPutAccount(qq);
-            permissionManager.getOrPutUserNode(qq).setGroup(group   );
+            permissionManager.getOrPutUserNode(qq).setGroup(group);
             user.sendMessage("成功设置用户的权限组为：{}", getPermissionGroupName(group));
+            getXiaomingBot().getRegularPreserveManager().readySave(permissionManager);
         }
     }
 
@@ -171,6 +171,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
         final PermissionUserNode userNode = permissionManager.getOrPutUserNode(qq);
         userNode.addPermission(node);
         user.sendMessage("已授予 {} 权限节点：{}", qq, node);
+        getXiaomingBot().getRegularPreserveManager().readySave(permissionManager);
     }
 
     /**

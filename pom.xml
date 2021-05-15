@@ -7,12 +7,9 @@
     <groupId>com.chuanwise</groupId>
     <artifactId>xiaoming-bot</artifactId>
     <packaging>pom</packaging>
-    <version>${xiaoming.version}</version>
-    <url>https://github.com/Chuanwise/xiaoming-bot</url>
 
-    <properties>
-        <xiaoming.version>1.0</xiaoming.version>
-    </properties>
+    <version>1.0</version>
+    <url>https://github.com/Chuanwise/xiaoming-bot</url>
 
     <modules>
         <module>xiaoming-host</module>

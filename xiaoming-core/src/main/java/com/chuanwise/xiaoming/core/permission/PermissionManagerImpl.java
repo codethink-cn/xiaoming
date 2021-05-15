@@ -56,8 +56,7 @@ public class PermissionManagerImpl extends JsonFilePreservable implements Permis
     }
 
     @Override
-    public boolean userHasPermission(long qq,
-                                     String node) {
+    public boolean userHasPermission(long qq, String node) {
         final PermissionUserNode userNode = getUserNode(qq);
         if (Objects.isNull(userNode)) {
             return groupHasPermission(defaultGroup, node);
@@ -81,17 +80,6 @@ public class PermissionManagerImpl extends JsonFilePreservable implements Permis
                 return false;
             }
         }
-    }
-
-    @Override
-    public boolean userHasPermissions(long qq,
-                                      @NotNull final String[] nodes) {
-        for (String node : nodes) {
-            if (!userHasPermission(qq, node)) {
-                return false;
-            }
-        }
-        return true;
     }
 
     @Override

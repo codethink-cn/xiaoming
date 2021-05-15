@@ -30,6 +30,10 @@ public class ResponseGroupImpl implements ResponseGroup {
         this.alias = alias;
     }
 
+    public ResponseGroupImpl(long code) {
+        this.code = code;
+    }
+
     @Override
     public boolean isBlockPlugin(String pluginName) {
         return blockedPlugins.contains(pluginName);

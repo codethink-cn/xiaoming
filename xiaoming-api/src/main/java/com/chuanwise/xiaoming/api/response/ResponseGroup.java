@@ -1,6 +1,7 @@
 package com.chuanwise.xiaoming.api.response;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Set;
 
 public interface ResponseGroup {
@@ -17,7 +18,7 @@ public interface ResponseGroup {
      * @return
      */
     default boolean hasTag(String tag) {
-        return getTags().containsAll(Arrays.asList(tag));
+        return getTags().contains(tag) || Objects.equals(getCode() + "", tag);
     }
 
     long getCode();

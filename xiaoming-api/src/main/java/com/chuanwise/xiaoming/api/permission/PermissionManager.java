@@ -10,11 +10,7 @@ import java.io.File;
 public interface PermissionManager extends XiaomingObject, Preservable<File> {
     String DEFAULT_PERMISSION_GROUP_NAME = "default";
 
-    boolean userHasPermission(long qq,
-                              String node);
-
-    boolean userHasPermissions(long qq,
-                               @NotNull String[] nodes);
+    boolean userHasPermission(long qq, String node);
 
     boolean groupHasPermission(String groupName, String node);
 
