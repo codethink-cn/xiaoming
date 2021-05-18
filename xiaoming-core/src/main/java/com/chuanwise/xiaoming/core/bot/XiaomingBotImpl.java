@@ -5,7 +5,7 @@ import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.classloader.XiaomingClassLoader;
 import com.chuanwise.xiaoming.api.configuration.Configuration;
 import com.chuanwise.xiaoming.api.configuration.Statistician;
-import com.chuanwise.xiaoming.api.error.ErrorMessageManager;
+import com.chuanwise.xiaoming.api.error.ReportMessageManager;
 import com.chuanwise.xiaoming.api.exception.NoSuchBotException;
 import com.chuanwise.xiaoming.api.exception.XiaomingInitializeException;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
@@ -14,8 +14,8 @@ import com.chuanwise.xiaoming.api.object.XiaomingThread;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.text.TextManager;
 import com.chuanwise.xiaoming.api.url.PictureUrlManager;
-import com.chuanwise.xiaoming.api.user.Receptionist;
-import com.chuanwise.xiaoming.api.user.ReceptionistManager;
+import com.chuanwise.xiaoming.api.recept.Receptionist;
+import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.TimeUtil;
 import com.chuanwise.xiaoming.api.word.WordManager;
@@ -26,7 +26,7 @@ import com.chuanwise.xiaoming.api.plugin.PluginManager;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
 import com.chuanwise.xiaoming.api.thread.RegularPreserveManager;
 import com.chuanwise.xiaoming.core.account.AccountManagerImpl;
-import com.chuanwise.xiaoming.core.error.ErrorMessageManagerImpl;
+import com.chuanwise.xiaoming.core.error.ReportMessageManagerImpl;
 import com.chuanwise.xiaoming.core.interactor.core.ReportInteractor;
 import com.chuanwise.xiaoming.core.interactor.InteractorManagerImpl;
 import com.chuanwise.xiaoming.core.interactor.core.*;
@@ -40,7 +40,6 @@ import com.chuanwise.xiaoming.core.config.StatisticianImpl;
 import com.chuanwise.xiaoming.core.url.PictureUrlManagerImpl;
 import com.chuanwise.xiaoming.core.recept.ReceptionistManagerImpl;
 import com.chuanwise.xiaoming.core.user.ConsoleXiaomingUserImpl;
-import com.chuanwise.xiaoming.core.user.XiaomingUserImpl;
 import com.chuanwise.xiaoming.core.word.WordManagerImpl;
 import com.chuanwise.xiaoming.core.event.EventListenerManagerImpl;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
@@ -81,9 +80,11 @@ import java.util.concurrent.TimeUnit;
 @Getter
 @Slf4j
 public class XiaomingBotImpl implements XiaomingBot {
-    public static final String VERSION = "1.0 TEST";
+    public static final String VERSION = "1.1";
     public static final String AUTHOR = "Chuanwise";
     public static final String GITHUB = "https://github.com/Chuanwise/xiaoming-bot";
+
+    long lastStartTime = 0;
 
     @Override
     public Logger getLog() {
@@ -96,7 +97,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     Bot miraiBot;
 
     public XiaomingBotImpl(Bot miraiBot) {
-        this.miraiBot = miraiBot;
+        setMiraiBot(miraiBot);
     }
 
     public XiaomingBotImpl(long qq, String password) {
@@ -117,10 +118,21 @@ public class XiaomingBotImpl implements XiaomingBot {
             miraiBot.close();
         }
         this.miraiBot = miraiBot;
+
+        // 将 mirai 的事件转发到小明的中央消息处理器
+        final EventChannel<BotEvent> eventChannel = miraiBot.getEventChannel();
+        eventChannel.registerListenerHost(new ListenerHost() {
+            @EventHandler
+            public void onEvent(Event event) {
+                eventListenerManager.callLater(event);
+            }
+        });
     }
 
     @Override
     public void load() {
+        load("configuration");
+        load("mainThreadPool");
         load("statistician");
         load("responseGroupManager");
         load("accountManager");
@@ -133,8 +145,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         load("eventListenerManager");
         load("userCallLimitManager");
         load("userInteractManager");
-        load("config");
-        load("errorMessageManager");
+        load("reportMessageManager");
         load("urlInMiraiCodeManager");
         load("textManager");
         load("receptionistManager");
@@ -198,7 +209,7 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         interactorManager.register(new PluginInteractor(this), null);
         interactorManager.register(new AccountCommandInteractor(this), null);
-        interactorManager.register(new ErrorCommandInteractor(this), null);
+        interactorManager.register(new ReportCommandInteractor(this), null);
         interactorManager.register(new CallLimitCommandInteractor(this), null);
         interactorManager.register(new CoreCommandInteractor(this), null);
         interactorManager.register(new PermissionCommandInteractor(this), null);
@@ -230,15 +241,6 @@ public class XiaomingBotImpl implements XiaomingBot {
         } catch (Throwable throwable) {
             getLog().error("加载所有插件时出现异常：", throwable);
         }
-
-        // 将 mirai 的事件转发到小明的中央消息处理器
-        final EventChannel<BotEvent> eventChannel = miraiBot.getEventChannel();
-        eventChannel.registerListenerHost(new ListenerHost() {
-            @EventHandler
-            public void onEvent(Event event) {
-                eventListenerManager.callLater(event);
-            }
-        });
     }
 
     @Override
@@ -270,7 +272,12 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         execute(eventListenerManager);
 
-        post();
+        try {
+            post();
+        } catch (Exception exception) {
+            getLog().error(exception.getMessage(), exception);
+        }
+        lastStartTime = System.currentTimeMillis();
         getLog().info("小明机器人启动完成");
     }
 
@@ -289,16 +296,16 @@ public class XiaomingBotImpl implements XiaomingBot {
     /**
      * 线程池
      */
-    ExecutorService service = Executors.newFixedThreadPool(100);
+    ExecutorService mainThreadPool;
 
     @Override
     public void execute(Runnable runnable) {
-        service.execute(runnable);
+        mainThreadPool.execute(runnable);
     }
 
     @Override
     public void execute(Thread thread) {
-        service.execute(thread);
+        mainThreadPool.execute(thread);
     }
 
     /**
@@ -348,7 +355,10 @@ public class XiaomingBotImpl implements XiaomingBot {
     @Override
     public boolean load(String name) {
         switch (name) {
-            case "config":
+            case "mainThreadPool":
+                mainThreadPool = Executors.newFixedThreadPool(configuration.getMaxMainThreadNumber());
+                return true;
+            case "configuration":
                 configuration = filePreservableFactory
                         .loadOrProduce(ConfigurationImpl.class, new File(configDirectory, "configurations.json"), ConfigurationImpl::new);
                 configuration.setXiaomingBot(this);
@@ -400,10 +410,10 @@ public class XiaomingBotImpl implements XiaomingBot {
             case "receptionistManager":
                 receptionistManager = new ReceptionistManagerImpl(this);
                 return true;
-            case "errorMessageManager":
-                errorMessageManager = filePreservableFactory
-                        .loadOrProduce(ErrorMessageManagerImpl.class, new File(configDirectory, "errors.json"), ErrorMessageManagerImpl::new);
-                errorMessageManager.setXiaomingBot(this);
+            case "reportMessageManager":
+                reportMessageManager = filePreservableFactory
+                        .loadOrProduce(ReportMessageManagerImpl.class, new File(configDirectory, "errors.json"), ReportMessageManagerImpl::new);
+                reportMessageManager.setXiaomingBot(this);
                 return true;
             case "urlInMiraiCodeManager":
                 pictureUrlManager = filePreservableFactory
@@ -423,7 +433,7 @@ public class XiaomingBotImpl implements XiaomingBot {
                     consoleInputThread.stop();
                 }
                 consoleInputThread = new ConsoleInputThread(this);
-                service.execute(consoleInputThread);
+                mainThreadPool.execute(consoleInputThread);
                 return true;
             default:
                 return false;
@@ -471,7 +481,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     /**
      * 错误记录器
      */
-    ErrorMessageManager errorMessageManager;
+    ReportMessageManager reportMessageManager;
 
     /**
      * url 资源定期请求器
@@ -517,17 +527,17 @@ public class XiaomingBotImpl implements XiaomingBot {
         }
 
         // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
-        service.shutdown();
+        mainThreadPool.shutdown();
 
         // 如果还没关闭就尝试关闭一下
-        if (!service.isShutdown()) {
+        if (!mainThreadPool.isShutdown()) {
             try {
                 TimeUnit.SECONDS.sleep(10);
             } catch (InterruptedException ignored) {
             }
             try {
                 int remainTryTimes = 5;
-                while (!service.awaitTermination(5, TimeUnit.SECONDS) && remainTryTimes > 0) {
+                while (!mainThreadPool.awaitTermination(5, TimeUnit.SECONDS) && remainTryTimes > 0) {
                     getLog().warn("线程仍然没有全部结束，请稍等，小明还会尝试 " + remainTryTimes + " 次……");
                     remainTryTimes--;
                 }
@@ -553,11 +563,11 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         shutdownService(user);
 
-        if (service.isShutdown()) {
+        if (mainThreadPool.isShutdown()) {
             getLog().info("线程池成功关闭");
         } else {
             getLog().error("这些线程无法立即关闭：");
-            for (Runnable runnable : service.shutdownNow()) {
+            for (Runnable runnable : mainThreadPool.shutdownNow()) {
                 getLog().error(runnable.getClass().getName());
             }
             getLog().error("已放弃关闭这些线程");

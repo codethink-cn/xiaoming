@@ -1,16 +1,24 @@
 package com.chuanwise.xiaoming.core.recept;
 
+import com.chuanwise.xiaoming.api.account.Account;
+import com.chuanwise.xiaoming.api.account.AccountEvent;
 import com.chuanwise.xiaoming.api.exception.InteractorTimeoutException;
 import com.chuanwise.xiaoming.api.exception.ReceptCancelledException;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
+import com.chuanwise.xiaoming.api.limit.CallLimitConfig;
+import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
+import com.chuanwise.xiaoming.api.limit.UserCallLimiter;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
-import com.chuanwise.xiaoming.api.user.Receptionist;
+import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
+import com.chuanwise.xiaoming.api.util.TimeUtil;
+import com.chuanwise.xiaoming.core.account.AccountEventImpl;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import lombok.Getter;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Member;
 
+import javax.security.auth.login.AccountException;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,6 +31,7 @@ public class ReceptionTaskImpl extends HostObjectImpl implements ReceptionTask {
     final Receptionist receptionist;
     final List<String> recentMessage;
     final XiaomingUser user;
+
     Thread thread;
 
     int recentFreeTime = 0;
@@ -92,18 +101,39 @@ public class ReceptionTaskImpl extends HostObjectImpl implements ReceptionTask {
     @Override
     public void recept() {
         busy = true;
+
         try {
-            if (!getXiaomingBot().getInteractorManager().onInput(user)) {
+            if (getXiaomingBot().getInteractorManager().onInput(user)) {
+                final AccountEventImpl event;
+                if (Objects.nonNull(member)) {
+                    event = new AccountEventImpl(member.getGroup().getId(), user.getMessage());
+                } else {
+                    event = new AccountEventImpl(user.getMessage());
+                }
+                if (inTemp()) {
+                    event.setTemp(true);
+                }
+                final Account account = user.getOrPutAccount();
+                account.addCommand(event);
+                getXiaomingBot().getRegularPreserveManager().readySave(account);
+
+                if (inGroup()) {
+                    getXiaomingBot().getUserCallLimitManager().getGroupCallLimiter().addCallRecord(user.getQQ());
+                } else {
+                    getXiaomingBot().getUserCallLimitManager().getPrivateCallLimiter().addCallRecord(user.getQQ());
+                }
+            } else {
                 user.clearBuffer();
             }
         } catch (ReceptCancelledException | InteractorTimeoutException exception) {
         } catch (Exception exception) {
             getLog().error("和用户" + user.getCompleteName() + "交互时出现异常", exception);
-            // user.sendPrivateError("小明遇到了一个问题，这个问题已经上报了，期待更好的小明吧 {}", getXiaomingBot().getWordManager().get("happy"));
-            getXiaomingBot().getErrorMessageManager().addThrowableMessage(user, exception);
+            user.sendPrivateError("小明遇到了一个问题，这个问题已经上报了，期待更好的小明吧 {}", getXiaomingBot().getWordManager().get("happy"));
+            getXiaomingBot().getReportMessageManager().addThrowableMessage(user, exception);
             forceStop();
+        } finally {
+            busy = false;
         }
-        busy = false;
     }
 
     @Override
@@ -117,7 +147,6 @@ public class ReceptionTaskImpl extends HostObjectImpl implements ReceptionTask {
     @Override
     public void forceStop() {
         running = false;
-        // getXiaomingBot().getReceptionistManager().removeReceptionist(user.getQQ());
         synchronized (recentMessage) {
             recentMessage.notifyAll();
         }
@@ -131,7 +160,6 @@ public class ReceptionTaskImpl extends HostObjectImpl implements ReceptionTask {
         } else {
             getReceptionist().removeExternalTask();
         }
-        user.getReceptionTasks().remove(thread.getName());
     }
 
     @Override
@@ -151,7 +179,7 @@ public class ReceptionTaskImpl extends HostObjectImpl implements ReceptionTask {
             final String threadName = "reception-task[" + (Objects.nonNull(member) ? (temp ? "temp" : "group") + ":" + member.getGroup().getId() : "private") + "]" +
                     "(" + (Objects.nonNull(member) ? member.getId() : friend.getId()) + ")";
             thread.setName(threadName);
-            user.getReceptionTasks().put(threadName, this);
+            receptionist.getReceptionTasks().put(threadName, this);
         }
 
         while (!getXiaomingBot().isStop() && recentFreeTime < NO_RECEIPT_TIME && running) {

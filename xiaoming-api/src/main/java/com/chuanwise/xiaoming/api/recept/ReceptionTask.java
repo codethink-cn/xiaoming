@@ -4,7 +4,6 @@ import com.chuanwise.xiaoming.api.exception.InteractorTimeoutException;
 import com.chuanwise.xiaoming.api.exception.ReceptCancelledException;
 import com.chuanwise.xiaoming.api.object.HostObject;
 import com.chuanwise.xiaoming.api.object.XiaomingThread;
-import com.chuanwise.xiaoming.api.user.Receptionist;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.TimeUtil;
 import net.mamoe.mirai.contact.Friend;
@@ -28,17 +27,11 @@ public interface ReceptionTask extends HostObject, XiaomingThread {
 
     void recept();
 
-    @Override
-    void stop();
-
     default void optimize() {
         if (!isBusy()) {
             stop();
         }
     }
-
-    @Override
-    void forceStop();
 
     Receptionist getReceptionist();
 

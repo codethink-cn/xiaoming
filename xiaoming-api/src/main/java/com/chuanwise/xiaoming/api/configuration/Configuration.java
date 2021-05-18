@@ -22,13 +22,13 @@ public interface Configuration extends Preservable<File>, XiaomingObject {
 
     void setAutoSaveDeltaTime(long autoSaveDeltaTime);
 
-    int getMaxThreadNumber();
+    int getMaxMainThreadNumber();
 
     boolean isEnableLicense();
 
-    void enableLisence();
+    void enableLicence();
 
-    void disableLisence();
+    void disableLicence();
 
     String getLicenseName();
 

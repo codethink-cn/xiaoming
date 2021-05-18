@@ -1,8 +1,9 @@
-package com.chuanwise.xiaoming.api.user;
+package com.chuanwise.xiaoming.api.recept;
 
 import com.chuanwise.xiaoming.api.object.HostObject;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
+import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Member;
 
@@ -20,8 +21,8 @@ public interface Receptionist extends HostObject {
 
     default void optimize() {
         // 用上述方法删除那些空闲的线程
-        getGroupTasks().values().forEach(task -> task.optimize());
-        getTempTasks().values().forEach(task -> task.optimize());
+        getGroupTasks().values().forEach(ReceptionTask::optimize);
+        getTempTasks().values().forEach(ReceptionTask::optimize);
 
         if (Objects.nonNull(getPrivateTask())) {
             getPrivateTask().optimize();
@@ -33,7 +34,7 @@ public interface Receptionist extends HostObject {
 
         // 如果大家都是空，就销毁接待员
         if (getGroupTasks().isEmpty() && getTempTasks().isEmpty() && Objects.isNull(getPrivateTask())) {
-            getXiaomingBot().getReceptionistManager().removeReceptionist(getUser().getQQ());
+            stop();
         }
     }
 
@@ -57,7 +58,11 @@ public interface Receptionist extends HostObject {
         if (Objects.nonNull(getPrivateTask())) {
             getPrivateTask().stop();
         }
+        if (Objects.nonNull(getExternalTask())) {
+            getExternalTask().stop();
+        }
         getThreadPool().shutdown();
+        getXiaomingBot().getReceptionistManager().removeReceptionist(getUser().getQQ());
     }
 
     default void forceStop() {
@@ -66,7 +71,11 @@ public interface Receptionist extends HostObject {
         if (Objects.nonNull(getPrivateTask())) {
             getPrivateTask().forceStop();
         }
+        if (Objects.nonNull(getExternalTask())) {
+            getExternalTask().forceStop();
+        }
         getThreadPool().shutdown();
+        getXiaomingBot().getReceptionistManager().removeReceptionist(getUser().getQQ());
     }
 
     default ReceptionTask getGroupTask(long group) {
@@ -130,14 +139,24 @@ public interface Receptionist extends HostObject {
     void setExternalTask(ReceptionTask task);
 
     default void removeGroupTask(long group) {
-        getGroupTasks().remove(group);
+        final ReceptionTask task = getGroupTask(group);
+        if (Objects.nonNull(task)) {
+            getReceptionTasks().remove(task.getThread().getName());
+            getGroupTasks().remove(group);
+        }
     }
 
     default void removeTempTask(long group) {
-        getTempTasks().remove(group);
+        final ReceptionTask task = getTempTask(group);
+        if (Objects.nonNull(task)) {
+            getTempTasks().remove(group);
+            getReceptionTasks().remove(task.getThread().getName());
+        }
     }
 
     void removePrivateTask();
 
     void removeExternalTask();
+
+    Map<String, ReceptionTask> getReceptionTasks();
 }

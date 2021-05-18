@@ -7,7 +7,7 @@ import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.JsonSerializerUtil;
 import com.chuanwise.xiaoming.api.util.PluginLoaderUtil;
-import com.chuanwise.xiaoming.core.error.ErrorMessageImpl;
+import com.chuanwise.xiaoming.core.error.ReportMessageImpl;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import lombok.Getter;
 import org.apache.commons.collections4.BidiMap;
@@ -86,7 +86,7 @@ public class PluginManagerImpl extends HostObjectImpl implements PluginManager {
             pluginClass = classLoader.loadClass(pluginMainClassName);
         } catch (ClassNotFoundException exception) {
             user.sendError("找不到插件主类：{}", pluginMainClassName);
-            getXiaomingBot().getErrorMessageManager().addErrorMessage(new ErrorMessageImpl("找不到插件主类：" + pluginMainClassName));
+            getXiaomingBot().getReportMessageManager().addMessage(new ReportMessageImpl("找不到插件主类：" + pluginMainClassName));
             exception.printStackTrace();
             return false;
         }

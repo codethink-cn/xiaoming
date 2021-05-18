@@ -19,19 +19,19 @@ public class ConfigurationImpl extends JsonFilePreservable implements Configurat
     CallLimitConfigImpl privateCallConfig = new CallLimitConfigImpl();
 
     long autoSaveDeltaTime = TimeUtil.MINUTE_MINS * 10;
-    int maxThreadNumber = 100;
+    int maxMainThreadNumber = 50;
 
     boolean enableLicense = false;
     String licenseName = "license";
     int maxReceptThreadNumber = 10;
 
     @Override
-    public void enableLisence() {
+    public void enableLicence() {
         enableLicense = true;
     }
 
     @Override
-    public void disableLisence() {
+    public void disableLicence() {
         enableLicense = false;
     }
 }

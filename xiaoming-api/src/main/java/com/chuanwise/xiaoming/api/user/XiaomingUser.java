@@ -4,8 +4,8 @@ import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.exception.InteractorTimeoutException;
 import com.chuanwise.xiaoming.api.object.HostObject;
 import com.chuanwise.xiaoming.api.object.PropertyHolder;
-import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
+import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.util.ArgumentUtil;
 
@@ -397,14 +397,7 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
      * 获取用户的 QQ
      * @return 用户 QQ
      */
-    default long getQQ() {
-        final ReceptionTask task = getReceptionTask();
-        if (Objects.nonNull(task.getMember())) {
-            return task.getMember().getId();
-        } else {
-            return task.getFriend().getId();
-        }
-    }
+    long getQQ();
 
     /**
      * 获取用户的 QQ 账号名或备注
@@ -608,10 +601,8 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
         }
     }
 
-    Map<String, ReceptionTask> getReceptionTasks();
-
     default ReceptionTask getReceptionTask() {
-        final ReceptionTask task = getReceptionTasks().getOrDefault(Thread.currentThread().getName(), getExternalTask());
+        final ReceptionTask task = getReceptionist().getReceptionTasks().getOrDefault(Thread.currentThread().getName(), getExternalTask());
         if (Objects.isNull(task)) {
             final Thread thread = Thread.currentThread();
             getLog().error("未知的线程获得一个调度任务：" + thread);

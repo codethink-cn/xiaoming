@@ -25,9 +25,13 @@ public class LicenceManagerImpl extends JsonFilePreservable implements LicenseMa
 
     Map<Long, Long> agreements = new HashMap<>();
 
+    public void setAgreements(Map<Long, Long> agreements) {
+        this.agreements = agreements;
+    }
+
     @Override
     public boolean isAgreed(long qq) {
-        return agreements.containsKey(qq);
+        return agreements.containsKey(qq) || getXiaomingBot().getMiraiBot().getId() == qq;
     }
 
     @Override

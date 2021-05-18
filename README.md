@@ -1,5 +1,5 @@
 # 小明机器人框架：xiaoming-bot 
-小明机器人是一款基于 Mirai 的插件化、便于上手、简单小巧的通用 QQ 机器人框架。
+小明机器人是一款基于 `Mirai` 的插件化、便于上手、简单小巧的通用 QQ 机器人框架。
 
 * QQ群：`1028959718`
 * 作者：`椽子`
@@ -232,7 +232,7 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 `String`|`nextGroupInput(long, Function)`
 `String`|`nextGroupInput(long, long, Function)`
 
-获得用户在私聊中的下一次输入。第一个参数为群号。
+获得用户在私聊中的下一次输入。
 
 返回类型|方法原型
 ---|---
@@ -240,8 +240,6 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 `String`|`nextPrivateInput()`
 `String`|`nextPrivateInput(long)`
 `String`|`nextPrivateInput(Function)`
-
-默认超时后会退出当前交互器。你可以通过捕捉 `InteractorTimeoutException` 异常以阻止超时退出。
 
 #### 其他
 在发送较长的消息时，使用 `StringBuffer` 构造字符串存在换行的麻烦。小明内也集成了一个 `StringBuffer`，用来收集若干次 `sendMessage` 类消息的输出。与之相关的方法有：

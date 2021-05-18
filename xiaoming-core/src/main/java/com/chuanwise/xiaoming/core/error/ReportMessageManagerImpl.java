@@ -1,15 +1,14 @@
 package com.chuanwise.xiaoming.core.error;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.error.ErrorMessage;
-import com.chuanwise.xiaoming.api.error.ErrorMessageManager;
+import com.chuanwise.xiaoming.api.error.ReportMessage;
+import com.chuanwise.xiaoming.api.error.ReportMessageManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,14 +18,14 @@ import java.util.Objects;
 @Data
 @NoArgsConstructor
 @Slf4j
-public class ErrorMessageManagerImpl extends JsonFilePreservable implements ErrorMessageManager {
+public class ReportMessageManagerImpl extends JsonFilePreservable implements ReportMessageManager {
     transient XiaomingBot xiaomingBot;
 
-    List<ErrorMessageImpl> errorMessages = new ArrayList<>();
+    List<ReportMessageImpl> reportMessages = new ArrayList<>();
 
     @Override
-    public List<ErrorMessage> getErrorMessages() {
-        return ((List) errorMessages);
+    public List<ReportMessage> getReportMessages() {
+        return ((List) reportMessages);
     }
 
     @Override
@@ -35,8 +34,8 @@ public class ErrorMessageManagerImpl extends JsonFilePreservable implements Erro
     }
 
     @Override
-    public void addErrorMessage(ErrorMessage errorMessage) {
-        errorMessages.add((ErrorMessageImpl) errorMessage);
+    public void addMessage(ReportMessage reportMessage) {
+        reportMessages.add((ReportMessageImpl) reportMessage);
     }
 
     @Override
@@ -44,7 +43,7 @@ public class ErrorMessageManagerImpl extends JsonFilePreservable implements Erro
         if (Objects.nonNull(throwable.getCause())) {
             throwable = throwable.getCause();
         }
-        addErrorMessage(new ErrorMessageImpl(throwable.toString()));
+        addMessage(new ReportMessageImpl(throwable.toString()));
     }
 
     @Override
@@ -52,18 +51,18 @@ public class ErrorMessageManagerImpl extends JsonFilePreservable implements Erro
         if (Objects.nonNull(throwable.getCause())) {
             throwable = throwable.getCause();
         }
-        final ErrorMessage errorMessage;
+        final ReportMessage reportMessage;
 
         final List<String> recentMessages = user.getRecentMessages();
         final List<String> messages = new ArrayList<>(recentMessages.size());
         Collections.copy(messages, recentMessages);
 
         if (user.inGroup()) {
-            errorMessage = new ErrorMessageImpl(user.getGroup().getId(), user.getQQ(), messages, throwable.toString());
+            reportMessage = new ReportMessageImpl(user.getGroup().getId(), user.getQQ(), messages, throwable.toString());
         } else {
-            errorMessage = new ErrorMessageImpl(user.getQQ(), messages, throwable.toString());
+            reportMessage = new ReportMessageImpl(user.getQQ(), messages, throwable.toString());
         }
-        addErrorMessage(errorMessage);
+        addMessage(reportMessage);
         getXiaomingBot().getResponseGroupManager().sendMessageToTaggedGroup("log", "发现一个新的异常报告");
     }
 }

@@ -14,6 +14,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class RegularPreserveManagerImpl extends HostObjectImpl implements RegularPreserveManager {
     Set<Preservable> preservables = new CopyOnWriteArraySet<>();
 
+    long lastSaveTime = 0;
+
     public RegularPreserveManagerImpl(XiaomingBot xiaomingBot) {
         super(xiaomingBot);
     }
@@ -26,6 +28,7 @@ public class RegularPreserveManagerImpl extends HostObjectImpl implements Regula
                 user.sendMessage("没有需要保存的文件");
                 return;
             }
+            lastSaveTime = System.currentTimeMillis();
             preservables.removeIf(Preservable::save);
             if (preservables.isEmpty()) {
                 user.sendMessage("成功保存了 {} 个文件 {}", needsToSaveFileNumber, getXiaomingBot().getWordManager().get("happy"));

@@ -1,6 +1,6 @@
 package com.chuanwise.xiaoming.api.error;
 
-public interface ErrorMessage {
+public interface ReportMessage {
     long getTime();
 
     long getQq();

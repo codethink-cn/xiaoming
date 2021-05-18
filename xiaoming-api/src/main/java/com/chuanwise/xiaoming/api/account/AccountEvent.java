@@ -4,4 +4,8 @@ public interface AccountEvent {
     long getTime();
 
     void setTime(long time);
+
+    boolean isTemp();
+
+    void setTemp(boolean temp);
 }

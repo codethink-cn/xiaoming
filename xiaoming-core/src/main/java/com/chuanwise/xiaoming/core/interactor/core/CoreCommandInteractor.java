@@ -13,8 +13,8 @@ import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.thread.RegularPreserveManager;
 import com.chuanwise.xiaoming.api.text.TextManager;
-import com.chuanwise.xiaoming.api.user.Receptionist;
-import com.chuanwise.xiaoming.api.user.ReceptionistManager;
+import com.chuanwise.xiaoming.api.recept.Receptionist;
+import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.api.util.StringUtil;
@@ -164,7 +164,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
                 license = user.nextInput();
                 textManager.save(licenseName, license);
             }
-            config.enableLisence();
+            config.enableLicence();
             user.sendMessage("已启动强制小明使用验证");
             getXiaomingBot().getRegularPreserveManager().readySave(config);
         }
@@ -175,7 +175,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     public void onDisableUseVerify(XiaomingUser user) {
         final Configuration config = getXiaomingBot().getConfiguration();
         if (config.isEnableLicense()) {
-            config.disableLisence();
+            config.disableLicence();
             getXiaomingBot().getRegularPreserveManager().readySave(config);
             user.sendMessage("已关闭强制小明使用验证");
         } else {
@@ -359,59 +359,21 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
         if (Objects.isNull(receptionist)) {
             user.sendMessage("该用户并没有接待员");
         } else {
-            receptionist.stop();
+            receptionist.forceStop();
             user.sendMessage("已尝试销毁该接待员");
         }
     }
 
-    @Filter("(性能|performance)")
-    @RequirePermission("performance")
-    public void onPerformance(XiaomingUser user) {
-        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
-        final Map<Long, Receptionist> receptionists = receptionistManager.getReceptionists();
-
+    @Filter(CommandWords.XIAOMING_REGEX + CommandWords.STATUS_REGEX)
+    public void onRuntime(XiaomingUser user) {
+        final long lastSaveTime = getXiaomingBot().getRegularPreserveManager().getLastSaveTime();
         StringBuilder builder = new StringBuilder();
-        builder.append("接待员：");
-        if (receptionists.isEmpty()) {
-            builder.append("（无）");
-        } else {
-            int useRatio = (int) receptionists.values().stream().filter(Receptionist::isBusy).count();
-            builder.append("共").append(receptionists.size()).append("个，")
-                    .append(useRatio).append("个忙碌")
-                    .append("，空置率：").append(1.0 - ((double) receptionists.size() - useRatio) / receptionists.size());
-        }
+
+        builder.append("小明启动于：").append(TimeUtil.FORMAT.format(getXiaomingBot().getLastStartTime())).append("\n")
+                .append("已运行：").append(TimeUtil.toTimeString(System.currentTimeMillis() - getXiaomingBot().getLastStartTime())).append("\n")
+                .append("上次文件保存时间：").append(TimeUtil.FORMAT.format(lastSaveTime)).append("\n")
+                .append("距今：").append(TimeUtil.toTimeString(System.currentTimeMillis() - lastSaveTime));
+
         user.sendMessage(builder.toString());
-    }
-
-    @Filter("(属性) {key} {remain}")
-    @RequirePermission("debug")
-    public void onSetProperty(XiaomingUser user, @FilterParameter("key") String key, @FilterParameter("remain") String value) {
-        user.setProperty(key, value);
-        user.sendMessage("属性 {} 已被设置为：{}", key, value);
-    }
-
-    @Filter("(属性)")
-    @RequirePermission("debug")
-    public void onProperty(XiaomingUser user) {
-        final Set<Map.Entry<String, Object>> entries = user.getProperties().entrySet();
-        if (entries.isEmpty()) {
-            user.sendMessage("你当前无属性");
-        } else {
-            user.sendMessage(entries.toString());
-        }
-    }
-
-    @Filter("(等待属性) {key}")
-    @RequirePermission("debug")
-    public void onWaitProperty(XiaomingUser user, @FilterParameter("key") String key) {
-        user.sendMessage("{} => {}", key, user.waitProperty(key));
-    }
-
-    @Filter("(测试|test)")
-    @RequirePermission("debug")
-    public void onTest(XiaomingUser user) {
-        final int group = 1028959718;
-        user.sendMessage("请在群{}内发一句消息", group);
-        user.sendMessage("你发的消息是：{}", user.nextGroupInput(group));
     }
 }

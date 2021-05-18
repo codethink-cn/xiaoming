@@ -1,4 +1,4 @@
-package com.chuanwise.xiaoming.api.user;
+package com.chuanwise.xiaoming.api.recept;
 
 import com.chuanwise.xiaoming.api.annotation.EventHandler;
 import com.chuanwise.xiaoming.api.event.EventListener;

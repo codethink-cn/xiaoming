@@ -18,4 +18,6 @@ public interface RegularPreserveManager extends HostObject, Runnable {
     void readySave(Preservable preservable);
 
     Set<Preservable> getPreservables();
+
+    long getLastSaveTime();
 }

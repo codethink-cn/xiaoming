@@ -7,12 +7,12 @@ import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import java.io.File;
 import java.util.List;
 
-public interface ErrorMessageManager extends HostObject, Preservable<File> {
-    void addErrorMessage(ErrorMessage errorMessage);
+public interface ReportMessageManager extends HostObject, Preservable<File> {
+    void addMessage(ReportMessage reportMessage);
 
     void addThrowableMessage(XiaomingUser user, Throwable throwable);
 
     void addThrowableMessage(Throwable throwable);
 
-    List<ErrorMessage> getErrorMessages();
+    List<ReportMessage> getReportMessages();
 }

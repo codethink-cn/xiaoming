@@ -2,7 +2,7 @@ package com.chuanwise.xiaoming.core.user;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
-import com.chuanwise.xiaoming.api.user.Receptionist;
+import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import io.ktor.util.collections.ConcurrentList;
@@ -21,8 +21,17 @@ public class XiaomingUserImpl extends HostObjectImpl implements XiaomingUser {
     @Setter
     Receptionist receptionist;
 
-    public XiaomingUserImpl(XiaomingBot xiaomingBot) {
+    public XiaomingUserImpl(XiaomingBot xiaomingBot, long qq) {
         super(xiaomingBot);
+        this.qq = qq;
+        getLog().warn("constructor user: {}", qq);
+    }
+
+    long qq;
+
+    @Override
+    public long getQQ() {
+        return qq;
     }
 
     /**
@@ -42,6 +51,4 @@ public class XiaomingUserImpl extends HostObjectImpl implements XiaomingUser {
     Map<Long, List<String>> recentTempMessages = new ConcurrentHashMap<>();
 
     List<String> recentPrivateMessage = new ConcurrentList<>();
-
-    Map<String, ReceptionTask> receptionTasks = new ConcurrentHashMap<>();
 }

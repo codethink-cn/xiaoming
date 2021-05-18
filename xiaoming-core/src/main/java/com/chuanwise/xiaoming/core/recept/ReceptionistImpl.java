@@ -2,7 +2,7 @@ package com.chuanwise.xiaoming.core.recept;
 
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
-import com.chuanwise.xiaoming.api.user.Receptionist;
+import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import lombok.Getter;
@@ -48,14 +48,22 @@ public class ReceptionistImpl extends HostObjectImpl implements Receptionist {
     @Setter
     ReceptionTask privateTask, externalTask;
 
+    Map<String, ReceptionTask> receptionTasks = new ConcurrentHashMap<>();
+
     @Override
     public void removePrivateTask() {
-        privateTask = null;
+        if (Objects.nonNull(privateTask)) {
+            receptionTasks.remove(privateTask.getThread().getName());
+            privateTask = null;
+        }
     }
 
     @Override
     public void removeExternalTask() {
-        externalTask = null;
+        if (Objects.nonNull(externalTask)) {
+            receptionTasks.remove(externalTask.getThread().getName());
+            externalTask = null;
+        }
     }
 
     @Override

@@ -14,6 +14,7 @@ public class AccountEventImpl implements AccountEvent {
     long time = System.currentTimeMillis();
     String message;
     long group;
+    boolean temp = false;
 
     public AccountEventImpl(String message) {
         setMessage(message);

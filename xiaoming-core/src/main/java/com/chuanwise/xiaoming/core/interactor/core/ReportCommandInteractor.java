@@ -4,8 +4,8 @@ import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.annotation.FilterParameter;
 import com.chuanwise.xiaoming.api.annotation.RequirePermission;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.error.ErrorMessage;
-import com.chuanwise.xiaoming.api.error.ErrorMessageManager;
+import com.chuanwise.xiaoming.api.error.ReportMessage;
+import com.chuanwise.xiaoming.api.error.ReportMessageManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.api.util.TimeUtil;
@@ -14,18 +14,18 @@ import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 import java.util.List;
 import java.util.Objects;
 
-public class ErrorCommandInteractor extends CommandInteractorImpl {
-    final ErrorMessageManager errorMessageManager;
-    final List<ErrorMessage> errorMessages;
+public class ReportCommandInteractor extends CommandInteractorImpl {
+    final ReportMessageManager reportMessageManager;
+    final List<ReportMessage> reportMessages;
 
-    public ErrorCommandInteractor(XiaomingBot xiaomingBot) {
+    public ReportCommandInteractor(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
-        errorMessageManager = getXiaomingBot().getErrorMessageManager();
-        errorMessages = errorMessageManager.getErrorMessages();
+        reportMessageManager = getXiaomingBot().getReportMessageManager();
+        reportMessages = reportMessageManager.getReportMessages();
     }
 
     public void onShowErrorMessage(XiaomingUser user,
-                                   ErrorMessage message) {
+                                   ReportMessage message) {
         StringBuilder builder = new StringBuilder("【消息详情】").append("\n");
         builder.append(message.getMessage()).append("\n")
                 .append("QQ：" + message.getQq());
@@ -46,19 +46,19 @@ public class ErrorCommandInteractor extends CommandInteractorImpl {
     @Filter(CommandWords.RECENT_REGEX + CommandWords.MESSAGE_REGEX)
     @RequirePermission("message.look")
     public void onLookLastMessage(XiaomingUser user) {
-        if (errorMessages.isEmpty()) {
+        if (reportMessages.isEmpty()) {
             user.sendMessage("没有未经查看的消息哦");
-        } else if (errorMessages.size() == 1) {
-            onShowErrorMessage(user, errorMessages.get(0));
-            errorMessages.clear();
-            getXiaomingBot().getRegularPreserveManager().readySave(errorMessageManager);
+        } else if (reportMessages.size() == 1) {
+            onShowErrorMessage(user, reportMessages.get(0));
+            reportMessages.clear();
+            getXiaomingBot().getRegularPreserveManager().readySave(reportMessageManager);
         } else {
             StringBuilder builder = new StringBuilder()
-                    .append("一共有 ").append(errorMessages.size()).append(" 个未经查看的消息");
+                    .append("一共有 ").append(reportMessages.size()).append(" 个未经查看的消息");
 
             int index = 1;
-            for (ErrorMessage errorMessage : errorMessages) {
-                String shortMessage = errorMessage.getMessage();
+            for (ReportMessage reportMessage : reportMessages) {
+                String shortMessage = reportMessage.getMessage();
                 if (shortMessage.length() > 30) {
                     shortMessage = shortMessage.substring(0, 29) + "...";
                 }
@@ -72,9 +72,9 @@ public class ErrorCommandInteractor extends CommandInteractorImpl {
     @RequirePermission("message.look")
     public void onLookMessage(XiaomingUser user,
                                 @FilterParameter("index") final String indexString) {
-        if (errorMessages.isEmpty()) {
+        if (reportMessages.isEmpty()) {
             user.sendMessage("没有未经查看的消息哦");
-        } else if (errorMessages.size() == 1) {
+        } else if (reportMessages.size() == 1) {
             user.sendMessage("只有一个未经处理的消息，直接使用 #近期消息 就可以啦");
             return;
         }
@@ -87,24 +87,24 @@ public class ErrorCommandInteractor extends CommandInteractorImpl {
             return;
         }
 
-        if (index <= 0 || index > errorMessages.size()) {
-            user.sendError("{}不对哦，它应该是介于 1 到 {} 之间的数字", indexString, errorMessages.size());
+        if (index <= 0 || index > reportMessages.size()) {
+            user.sendError("{}不对哦，它应该是介于 1 到 {} 之间的数字", indexString, reportMessages.size());
         } else {
-            final ErrorMessage errorMessage = errorMessages.get(index - 1);
-            onShowErrorMessage(user, errorMessage);
-            errorMessages.remove(errorMessage);
-            getXiaomingBot().getRegularPreserveManager().readySave(errorMessageManager);
+            final ReportMessage reportMessage = reportMessages.get(index - 1);
+            onShowErrorMessage(user, reportMessage);
+            reportMessages.remove(reportMessage);
+            getXiaomingBot().getRegularPreserveManager().readySave(reportMessageManager);
         }
     }
 
     @Filter(CommandWords.CLEAR_REGEX + CommandWords.RECENT_REGEX + CommandWords.MESSAGE_REGEX)
     @RequirePermission("message.clear")
     public void onClearMessage(XiaomingUser user) {
-        if (errorMessages.isEmpty()) {
+        if (reportMessages.isEmpty()) {
             user.sendMessage("并没有需要清除的未经查看的消息哦");
         } else {
-            errorMessages.clear();
-            getXiaomingBot().getRegularPreserveManager().readySave(errorMessageManager);
+            reportMessages.clear();
+            getXiaomingBot().getRegularPreserveManager().readySave(reportMessageManager);
             user.sendMessage("成功清除未经查看的消息");
         }
     }
