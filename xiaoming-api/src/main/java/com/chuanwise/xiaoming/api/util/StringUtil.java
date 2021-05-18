@@ -1,8 +1,9 @@
 package com.chuanwise.xiaoming.api.util;
 
-import lombok.Getter;
-
+import java.util.Collection;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 public class StringUtil {
     public static boolean isEmpty(String string) {
@@ -30,5 +31,26 @@ public class StringUtil {
             builder.append(ch);
         }
         return builder.toString();
+    }
+
+    public static <T> String getCollectionSummary(Collection<T> collection, Function<T, String> consumer) {
+        if (collection.isEmpty()) {
+            return "（无）";
+        } else if (collection.size() == 1) {
+            return consumer.apply(collection.iterator().next());
+        } else {
+            StringBuilder builder = new StringBuilder();
+            for (T t : collection) {
+                if (builder.length() != 0) {
+                    builder.append("\n");
+                }
+                builder.append(consumer.apply(t));
+            }
+            return builder.toString();
+        }
+    }
+
+    public static <T> String getCollectionSummary(Collection<T> collection) {
+        return getCollectionSummary(collection, Objects::toString);
     }
 }

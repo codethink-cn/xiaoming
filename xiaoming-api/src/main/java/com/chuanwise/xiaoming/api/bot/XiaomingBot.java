@@ -1,13 +1,14 @@
 package com.chuanwise.xiaoming.api.bot;
 
 import com.chuanwise.xiaoming.api.account.AccountManager;
-import com.chuanwise.xiaoming.api.config.Configuration;
-import com.chuanwise.xiaoming.api.config.Statistician;
+import com.chuanwise.xiaoming.api.configuration.Configuration;
+import com.chuanwise.xiaoming.api.configuration.Statistician;
 import com.chuanwise.xiaoming.api.error.ErrorMessageManager;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.license.LicenseManager;
+import com.chuanwise.xiaoming.api.object.XiaomingThread;
 import com.chuanwise.xiaoming.api.text.TextManager;
-import com.chuanwise.xiaoming.api.user.ReceiptionistManager;
+import com.chuanwise.xiaoming.api.user.ReceptionistManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.word.WordManager;
 import com.chuanwise.xiaoming.api.event.EventListenerManager;
@@ -16,7 +17,7 @@ import com.chuanwise.xiaoming.api.permission.PermissionManager;
 import com.chuanwise.xiaoming.api.plugin.PluginManager;
 import com.chuanwise.xiaoming.api.preserve.PreservableFactory;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
-import com.chuanwise.xiaoming.api.runnable.RegularPreserveManager;
+import com.chuanwise.xiaoming.api.thread.RegularPreserveManager;
 import net.mamoe.mirai.Bot;
 import org.slf4j.Logger;
 
@@ -54,6 +55,8 @@ public interface XiaomingBot {
 
     void start();
 
+    XiaomingThread getConsoleInputThread();
+
     default void stop() {
         stop(getConsoleXiaomingUser());
     }
@@ -66,7 +69,7 @@ public interface XiaomingBot {
 
     boolean isStop();
 
-    Configuration getConfig();
+    Configuration getConfiguration();
 
     Statistician getStatistician();
 
@@ -82,11 +85,9 @@ public interface XiaomingBot {
 
     TextManager getTextManager();
 
-    void setConsoleXiaomingUser(XiaomingUser xiaomingUser);
-
     // XiaomingClassLoader getXiaomingClassLoader();
 
-    ReceiptionistManager getReceiptionistManager();
+    ReceptionistManager getReceptionistManager();
 
     Logger getLog();
 

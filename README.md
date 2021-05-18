@@ -7,8 +7,7 @@
 **请遵循 `Apache-2.0` 开源协议使用小明机器人框架**。
 
 ## 组件介绍
-本项目有三个组件，api、core 和 host。
-`api` 是一组小明调用标准，`core` 是对 api 的一种规范实现，`host` 是小明本体的启动器。
+本项目有三个组件，`api`、`core` 和 `host`。`api` 是一组小明调用标准，`core` 是对 api 的一种规范实现，`host` 是小明本体的启动器。
 
 ## 前置知识
 * `Java` 基础知识：必须
@@ -16,7 +15,7 @@
 * `Git`：锦上添花
 
 ## 快速开始
-你可以下载最新的 `RELEASE`，将之添加在项目的库中，或使用 `mvn` 安装 `core` 后，在 `pom.xml` 中添加依赖：
+你可以下载最新的 `core` `RELEASE`，将之添加在项目的库中，或使用 `mvn` 安装 `core` 后，在 `pom.xml` 中添加依赖：
 ```xml
 <dependency>
     <groupId>com.chuanwise</groupId>
@@ -24,8 +23,7 @@
     <version>1.0</version>
 </dependency>
 ```
-
-随后创建插件主类。插件主类必须实现 `com.chuanwise.xiaoming.api.plugin.XiaomingPlugin` 接口。你可以选择继承自内核的实现 `com.chuanwise.xiaoming.core.plugin.XiaomingPluginImpl`，例如：
+小明通过插件主类加载插件，所以我们需要先创建一个插件主类。插件主类继承自`com.chuanwise.xiaoming.core.plugin.XiaomingPluginImpl`，例如：
 
 ```java
 package com.chuanwise.xiaoming.example;
@@ -53,21 +51,18 @@ public class ExamplePlugin extends XiaomingPluginImpl {
   "fronts": [ "lexicons" ]
 }
 ```
-### `name`：插件名
-选填，默认值为 `jar` 文件名。建议自行设计一个名字。
+这个文件中这些属性会有特殊的作用：
 
-### `main`：插件主类名
-必填，值为插件主类名。
-
-### `version`：版本
-选填，默认值为 `(unknown)`
-
-### `fronts`：前置插件名列表
-选填，默认值为空。小明只会在加载完全部 `fronts` 里的插件后加载本插件。
+类型|属性名|是否必填|说明
+---|---|---|---
+字符串|`name`|否|建议填上，否则小明会将 `jar` 文件名作为插件名
+字符串|`main`|是|插件主类名
+字符串|`version`|否|建议填上，否则默认为`unknown`
+字符串列表|`fronts`|否|前置插件名列表
 
 除上述内容外你还可以增加其他的键，可以在插件主类中获得他们的值。
 
-将此插件打包为 `jar` 文件后放在 `小明根目录/plugins`，重新启动小明或执行小明指令 `#加载 <你的插件名>`（此热加载功能尚在实现中）即可加载本插件。
+将此插件打包为 `jar` 文件后放在 `小明根目录/plugins`，重新启动小明或执行小明指令 `刷新插件` 和 `加载 <你的插件名>` 即可加载本插件。
 
 ## 聊天消息处理
 小明的聊天消息可分三类：群聊、私聊和群临时会话。它们都可以通过下述方式处理：
@@ -75,15 +70,6 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 ### 单句聊天消息
 通过重写 `XiaomingPlugin` 类中的 `onMessage` 方法，可以实现对所有类型聊天消息的监听。例如：
 ```java
-package com.chuanwise.xiaoming.example;
-
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.core.plugin.XiaomingPluginImpl;
-
-/**
- * 插件主类示例
- * @author Chuanwise
- */
 public class ExamplePlugin extends XiaomingPluginImpl {
     @Override
     public boolean onMessage(XiaomingUser user) {
@@ -96,25 +82,15 @@ public class ExamplePlugin extends XiaomingPluginImpl {
     }
 }
 ```
-上述例子展示了给用户发消息的方法 `user.sendMessage(...)`、判断用户当前位置的方法 `user.inGroup()` 和获得当前用户输入的方法：`user.getMessage()`。其功能是复读所有小明所在的群消息。
+其功能是复读所有小明所在的群消息。
+
+`onMessage` 方法的参数是当前的小明使用者，返回值含义为插件是否与用户交互。如果为 `true`，将会记录一次交互并触发一次 `PluginResponseEvent`。
 
 ### 功能更强大的监听方式
 小明支持上下文相关的消息交互。例如：用户输入`小明在吗`，小明回答`在，啥事`，用户继续输入`没事`或其他内容，小明视具体回答回复。
 
 要实现这个功能，需要一个继承自 `com.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl` 的类作为交互器。在其中使用`com.chuanwise.xiaoming.api.annotation.Filter`注解该方法的触发信息。例如：
 ```java
-package com.chuanwise.xiaoming.example.interactor;
-
-import com.chuanwise.xiaoming.api.annotation.Filter;
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl;
-
-import java.util.Objects;
-
-/**
- * 消息交互器示例
- * @author Chuanwise 
- */
 public class MessageInteractorTest extends MessageInteractorImpl {
     // 收到 "小明在吗" 的消息时，该方法响应
     @Filter("小明在吗")
@@ -132,16 +108,6 @@ public class MessageInteractorTest extends MessageInteractorImpl {
 ```
 这类响应聊天消息的方法，统称`交互方法`。存在交互方法的类，都是`交互器`。在插件启动时，你需要注册该交互器的实例。例如：
 ```java
-package com.chuanwise.xiaoming.example;
-
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.core.plugin.XiaomingPluginImpl;
-import com.chuanwise.xiaoming.example.interactor.MessageInteractorTest;
-
-/**
- * 插件主类示例
- * @author Chuanwise
- */
 public class ExamplePlugin extends XiaomingPluginImpl {
     @Override
     public void onEnable() {
@@ -151,10 +117,12 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 }
 ```
 交互方法起码要有一个 `Filter`（过滤器）注解。它有两种形式：
-`@Filter("文本信息")`
+`@Filter("文本信息")`<br>
 `@Filter(value = "文本信息", pattern = FilterPattern.EQUALS)`
 
 小明不喜欢那种无条件触发的交互方法，这可能会让小明所在的群非常吵，所以交互方法至少要有一个 `Filter`。但如果你仍然希望该交互方法被无条件触发，只需要使用`@Filter(value = "", pattern = FilterPattern.STARTS_WITH)`。或直接监听聊天消息。
+
+`pattern` 取值等详细信息见 [交互器：`Interactor`](#交互器：`Interactor`)。
 
 ## 核心
 小明由本体和各个组件组成。
@@ -172,7 +140,7 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 `getEventListenerManager()`|监听器管理器
 `getResponseGroupManager()`|响应群管理器
 `getFilePreservableFactory()`|文件加载器
-`getReceiptionistManager()`|接待线程管理器
+`getReceptionistManager()`|接待线程管理器
 `getLicenseManager()`|强制验证管理器
 `getPluginManager()`|插件管理器
 `getInteractorManager()`|交互器管理器
@@ -201,6 +169,8 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 `execute(Runnable runnable)`|执行一个线程
 `stop()`|关闭小明
 
+你的线程应该实现 `XiaomingThread` 接口。该接口只有两个方法：`void stop()` 和 `void forceStop()`。在关闭小明时，小明会尝试先后调用两个方法。如果仍然不能关闭线程，会尝试强制关闭。这可能对你的数据有所损伤。
+
 请不要直接使用类似 `new Thread(runnable).start();` 的方式执行线程。请采用 `getXiaomingBot().execute(runnable)` 的方式。只有通过这种方式启动的线程才会收到小明的关闭通知。
 
 ### 小明使用者：`XiaomingUser`
@@ -209,36 +179,67 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 `XiaomingUser` 类有非常多实用方法，主要有三类：发送消息类、接收消息类和其他类。
 
 #### 发送消息类
-发送消息类方法有很多的重载形式，返回值皆为 `boolean` ，表示消息是否被发送成功。倒数两个参数一般是 `Object` 和 `Object...`。前者是消息。小明执行它的 `toString()` 方法得到消息内容。在消息内容中可以存在 `{}`，将会被按顺序替换为 `Object...` 中的参数。例如：`user.sendPrivateMessage("小明不能帮你做这件事哦，因为你缺少权限：{}", permissionNode)`，等同于 `user.sendPrivateMessage("小明不能帮你做这件事哦，因为你缺少权限：" + permissionNode)`。
+发送消息类方法有很多的重载形式，返回值皆为 `boolean` ，表示消息是否被发送成功。倒数两个参数一般是 `String` 和 `Object...`。前者是消息内容，其中可以存在 `{}`，将会被按顺序替换为 `Object...` 中的参数。例如：`user.sendPrivateMessage("小明不能帮你做这件事哦，因为你缺少权限：{}", permissionNode)`，等同于 `user.sendPrivateMessage("小明不能帮你做这件事哦，因为你缺少权限：" + permissionNode)`。
 
 方法原型|说明
 ---|---
-`sendError(Object, Object...)`|给当前用户发送错误消息
-`sendWarn(Object, Object...)`|给当前用户发送警告消息
-`sendMessage(Object, Object...)`|给当前用户发送普通消息
-`sendPrivateError(Object, Object...)`|给当前用户私发错误消息
-`sendPrivateWarn(Object, Object...)`|给当前用户私发警告消息
-`sendPrivateMessage(Object, Object...)`|给当前用户私发普通消息
+`sendError(String, Object...)`|给当前用户发送错误消息
+`sendWarn(String, Object...)`|给当前用户发送警告消息
+`sendMessage(String, Object...)`|给当前用户发送普通消息
+`sendPrivateError(String, Object...)`|给当前用户私发错误消息
+`sendPrivateWarn(String, Object...)`|给当前用户私发警告消息
+`sendPrivateMessage(String, Object...)`|给当前用户私发普通消息
 
 上述方法是通常使用的发送消息的方法。此外你还可以使用下列方法：
 
 方法原型|说明
 ---|---
-`sendGroupMessage(Object, Object...)`|如果小明为群聊或群临时会话用户，则向其对应的群中发送消息
-`sendGroupMessage(long, Object, Object...)`|在指定的群中发消息
-`sendGroupAtMessage(Object, Object...)`|先 @ 用户，再给用户发消息
-`sendGroupAtMessage(long, long, Object, Object...)`|在指定的群中先 @ 特定用户，再给其发消息
-`sendPrivateMessage(Object, Object...)`|给当前小明用户发送私聊消息
-`sendPrivateMessage(long, Object, Object...)`|给指定的用户发送私聊消息
-`sendPrivateMessage(long, long, Object, Object...)`|给指定的群中的用户发送私聊消息。第一个 `long` 为群号，第二个为 `QQ` 号。
+`sendGroupMessage(String, Object...)`|如果小明为群聊或群临时会话用户，则向其对应的群中发送消息
+`sendGroupMessage(long, String, Object...)`|在指定的群中发消息
+`sendGroupAtMessage(String, Object...)`|先 @ 用户，再给用户发消息
+`sendGroupAtMessage(long, long, String, Object...)`|在指定的群中先 @ 特定用户，再给其发消息
+`sendPrivateMessage(String, Object...)`|给当前小明用户发送私聊消息
+`sendPrivateMessage(long, String, Object...)`|给指定的用户发送私聊消息
+`sendPrivateMessage(long, long, String, Object...)`|给指定的群中的用户发送私聊消息。第一个 `long` 为群号，第二个为 `QQ` 号。
 
 #### 接收消息类
+接收消息类的方法都以 `next` 开头。它们最后几个参数 `long`, `Function` 的含义是最长等待时间和超时后执行的方法。其余参数随具体情况而定：
+
+前四个方法是最常用的方法，它会自动判断当前的位置（在群里、私聊还是临时会话？）自动选择需要调用的方法。
+
 返回类型|方法原型|说明
 ---|---|---
-`String`|`nextInput()`|获得用户在十分钟之内的下一次输入
-`String`|`nextInput(long)`|获得用户在指定时长之内的下一次输入
-`String`|`nextInput(long, Function)`|获得用户在指定时长之内的下一次输入。超时时执行指定的方法。
-`String`|`nextInput(Function)`|获得用户在十分钟之内的下一次输入。超时时执行指定的方法。
+`String`|`nextInput(long)`|获得用户的下一次输入。最久等待指定时间（单位：毫秒）
+`String`|`nextInput(Function)`|获得用户的下一次输入。等待十分钟后执行方法
+`String`|`nextInput()`|获得用户的下一次输入，等待十分钟后退出当前交互方法
+`String`|`nextInput(long, Function)`|获得用户的下一次输入。最久等待指定时间（单位：毫秒）后执行特定的超时方法
+
+获得用户在来自指定群的临时会话中的下一次输入。第一个参数为群号。
+
+返回类型|方法原型
+---|---
+`String`|`nextTempInput(long, long)`
+`String`|`nextTempInput(long)`
+`String`|`nextTempInput(long, long, Function)`
+`String`|`nextTempInput(long, Function)`
+
+获得用户在群的临时会话中的下一次输入。第一个参数为群号。
+
+返回类型|方法原型
+---|---
+`String`|`nextGroupInput(long, long)`
+`String`|`nextGroupInput(long)`
+`String`|`nextGroupInput(long, Function)`
+`String`|`nextGroupInput(long, long, Function)`
+
+获得用户在私聊中的下一次输入。第一个参数为群号。
+
+返回类型|方法原型
+---|---
+`String`|`nextPrivateInput(long, Function)`
+`String`|`nextPrivateInput()`
+`String`|`nextPrivateInput(long)`
+`String`|`nextPrivateInput(Function)`
 
 默认超时后会退出当前交互器。你可以通过捕捉 `InteractorTimeoutException` 异常以阻止超时退出。
 
@@ -452,13 +453,52 @@ String defaultValue|参数默认值
 ---|---
 `Object`|此处应该填入的参数，如果为 `null` 则匹配不成功
 
-如果为 `null`，小明会抛出异常并退出该交互器。
+如果为 `null`，则用户不会与当前方法交互。
 
 参数|含义
 ---|---
-XiaomingUser user|当前调用者
-Parameter parameter|当前参数
+`XiaomingUser user`|当前调用者
+`Parameter parameter`|当前参数
+
+例如在下面的例子里，通过重写 `onParameter` 实现自动填充禁言时长：
+```java
+public class AdminInteractor extends CommandInteractorImpl {
+    /**
+    * 通过重写 onParameter 实现自定义参数类型填充
+    */
+    @Override
+    public <T> Object onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
+        // 需要先执行父类的 onParameter，再执行本类的逻辑
+        Object result = super.onParameter(user, clazz, parameterName, currentValue, defaultValue);
+
+        // 如果当前参数是 long 类型且 @FilterParameter 注解中的名字是 time
+        if (long.class.isAssignableFrom(clazz) && Objects.equals(parameterName, "time")) {
+            // long TimeUtil.parseTime(String string) 将文字描述的时间转换为对应的毫秒数
+            // 例如「5天」、「10时」等。转换失败返回 -1
+            final long timeMillis = TimeUtil.parseTime(currentValue);
+            if (timeMillis == -1) {
+                user.sendError("{}并不是一个合理的时间哦", currentValue);
+                result = null;
+            } else {
+                result = timeMillis;
+            }
+        }
+        return result;
+    }
+
+    /**
+    * 本方法有一个参数是 long，但参数名不是 qq，默认解析失败
+    * 但因为重写了 onParameter，所以这里的参数会被正确填充
+    */
+    @GroupInteractor
+    @Filter("(禁言|mute)(我|me) {time}")
+    @RequirePermission("admin.mute.me")
+    public void onMuteMe(XiaomingUser user, @FilterParameter("time") long time) {
+        // 相关代码
+    }
+}
+```
 
 ## 示例插件
-* `xiaoming-example`： (插件示例)[https://github.com/Chuanwise/xiaoming-example]
-* `xiaoming-lexicons`： (插件示例)[https://github.com/Chuanwise/xiaoming-lexicons]
+* `xiaoming-example`： [插件示例](https://github.com/Chuanwise/xiaoming-example)
+* `xiaoming-lexicons`： [词库插件](https://github.com/Chuanwise/xiaoming-lexicons)

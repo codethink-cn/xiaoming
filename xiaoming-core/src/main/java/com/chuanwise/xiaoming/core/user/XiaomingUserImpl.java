@@ -1,19 +1,16 @@
 package com.chuanwise.xiaoming.core.user;
 
-import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.user.Receiptionist;
+import com.chuanwise.xiaoming.api.recept.ReceptionTask;
+import com.chuanwise.xiaoming.api.user.Receptionist;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
+import io.ktor.util.collections.ConcurrentList;
 import lombok.Getter;
 import lombok.Setter;
-import net.mamoe.mirai.contact.Friend;
-import net.mamoe.mirai.contact.Group;
-import net.mamoe.mirai.contact.Member;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 小明的使用者对象
@@ -21,22 +18,11 @@ import java.util.Objects;
  */
 @Getter
 public class XiaomingUserImpl extends HostObjectImpl implements XiaomingUser {
+    @Setter
+    Receptionist receptionist;
+
     public XiaomingUserImpl(XiaomingBot xiaomingBot) {
         super(xiaomingBot);
-    }
-
-    /**
-     * 当前消息
-     */
-    String message;
-
-    @Override
-    public void setMessage(String message) {
-        if (Objects.nonNull(message)) {
-            message = message.trim();
-            recentInputs.add(message);
-        }
-        this.message = message;
     }
 
     /**
@@ -47,86 +33,15 @@ public class XiaomingUserImpl extends HostObjectImpl implements XiaomingUser {
     @Setter
     boolean usingBuffer;
 
-    /**
-     * 当前输入
-     */
-    List<String> recentInputs = new ArrayList<>();
+    Map<String, Object> properties = new ConcurrentHashMap<>();
 
-    @Override
-    public void clearRecentInputs() {
-        if (!recentInputs.isEmpty()) {
-            recentInputs = new ArrayList<>();
-        }
-    }
+    Map<String, Set<Thread>> propertyWaiters = new ConcurrentHashMap<>();
 
-    /**
-     * 招待员
-     */
-    Receiptionist receptionist = new ReceptionistImpl(this);
+    Map<Long, List<String>> recentGroupMessages = new ConcurrentHashMap<>();
 
-    /**
-     * 该用户的多重身份
-     */
-    Member asGroupMember, asTempMember;
+    Map<Long, List<String>> recentTempMessages = new ConcurrentHashMap<>();
 
-    @Override
-    public void setAsTempMember(Member asTempMember) {
-        this.asTempMember = asTempMember;
-        asPrivate = null;
-        asGroupMember = null;
-    }
+    List<String> recentPrivateMessage = new ConcurrentList<>();
 
-    @Override
-    public void setAsGroupMember(Member asGroupMember) {
-        this.asGroupMember = asGroupMember;
-        asTempMember = null;
-        asPrivate = null;
-    }
-
-    Friend asPrivate;
-
-    @Override
-    public void setAsPrivate(Friend asPrivate) {
-        this.asPrivate = asPrivate;
-        asTempMember = null;
-        asGroupMember = null;
-    }
-
-    @Override
-    public long getQQ() {
-        if (inGroup()) {
-            return asGroupMember.getId();
-        } else if (inTemp()) {
-            return asTempMember.getId();
-        } else {
-            return asPrivate.getId();
-        }
-    }
-
-    @Override
-    public String getName() {
-        final Account account = getAccount();
-        if (Objects.nonNull(account) && Objects.nonNull(account.getAlias())) {
-            return account.getAlias();
-        } else if (inGroup()) {
-            return asGroupMember.getNick();
-        } else if (inTemp()) {
-            return asTempMember.getNick();
-        } else {
-            return asPrivate.getNick();
-        }
-    }
-
-    @Override
-    public String getCompleteName() {
-        if (inGroup()) {
-            final Group group = asGroupMember.getGroup();
-            return "[" + group.getName() + "(" + group.getId() + ")] " + getName() + "(" + getQQ() +")";
-        } else if (inTemp()) {
-            final Group group = asTempMember.getGroup();
-            return getName() + "(" + getQQ() +")" + " 来自 [" + group.getName() + "(" + group.getId() + ")]";
-        } else {
-            return getName() + "(" + getQQ() +")";
-        }
-    }
+    Map<String, ReceptionTask> receptionTasks = new ConcurrentHashMap<>();
 }

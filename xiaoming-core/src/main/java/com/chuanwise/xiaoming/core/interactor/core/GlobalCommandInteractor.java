@@ -1,11 +1,10 @@
 package com.chuanwise.xiaoming.core.interactor.core;
 
 import com.chuanwise.xiaoming.api.annotation.Filter;
-import com.chuanwise.xiaoming.api.annotation.FilterParameter;
 import com.chuanwise.xiaoming.api.annotation.GroupInteractor;
 import com.chuanwise.xiaoming.api.annotation.RequirePermission;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.config.Configuration;
+import com.chuanwise.xiaoming.api.configuration.Configuration;
 import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
@@ -16,8 +15,6 @@ import com.chuanwise.xiaoming.core.response.ResponseGroupImpl;
 import net.mamoe.mirai.contact.Group;
 
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
 
 /**
  * 全局指令处理器
@@ -34,7 +31,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
     @Filter(CommandWords.USE_REGEX + CommandWords.XIAOMING_REGEX)
     @RequirePermission("enable")
     public void onUseXiaoming(XiaomingUser user) {
-        final Configuration config = getXiaomingBot().getConfig();
+        final Configuration config = getXiaomingBot().getConfiguration();
         if (config.isEnableLicense()) {
             final LicenseManager licenceManager = getXiaomingBot().getLicenseManager();
             final long qq = user.getQQ();
@@ -61,7 +58,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
     @Filter(CommandWords.CANCEL_REGEX + CommandWords.USE_REGEX + CommandWords.XIAOMING_REGEX)
     @RequirePermission("disable")
     public void onCancelUseXiaoming(XiaomingUser user) {
-        final Configuration config = getXiaomingBot().getConfig();
+        final Configuration config = getXiaomingBot().getConfiguration();
         if (config.isEnableLicense()) {
             final LicenseManager licenceManager = getXiaomingBot().getLicenseManager();
             final long qq = user.getQQ();
@@ -84,7 +81,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
         final Group group = user.getGroup();
         final ResponseGroupManager responseGroupManager = getXiaomingBot().getResponseGroupManager();
 
-        ResponseGroup responseGroup = responseGroupManager.fromCode(group.getId());
+        ResponseGroup responseGroup = responseGroupManager.forCode(group.getId());
         if (Objects.isNull(responseGroup)) {
             responseGroup = new ResponseGroupImpl(group.getId(), group.getName());
             responseGroupManager.addGroup(responseGroup);
@@ -107,7 +104,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
         final Group group = user.getAsGroupMember().getGroup();
         final ResponseGroupManager responseGroupManager = getXiaomingBot().getResponseGroupManager();
 
-        ResponseGroup responseGroup = responseGroupManager.fromCode(group.getId());
+        ResponseGroup responseGroup = responseGroupManager.forCode(group.getId());
         if (Objects.isNull(responseGroup)) {
             user.sendMessage("本群还不是小明的响应群哦");
         }

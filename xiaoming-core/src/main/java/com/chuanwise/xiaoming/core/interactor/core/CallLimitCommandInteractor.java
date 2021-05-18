@@ -24,7 +24,7 @@ public class CallLimitCommandInteractor extends CommandInteractorImpl {
     public CallLimitCommandInteractor(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
         callLimitManager = getXiaomingBot().getUserCallLimitManager();
-        config = getXiaomingBot().getConfig().getGroupCallConfig();
+        config = getXiaomingBot().getConfiguration().getGroupCallConfig();
     }
 
     @Filter(CommandWords.GROUP_REGEX + CALL_REGEX + CommandWords.LIMIT_REGEX)
@@ -73,7 +73,7 @@ public class CallLimitCommandInteractor extends CommandInteractorImpl {
         } else {
             final CallLimitConfig groupCallLimitConfig = callLimitManager.getGroupCallLimiter().getConfig();
             groupCallLimitConfig.setPeriod(time);
-            getXiaomingBot().getRegularPreserveManager().readySave(getXiaomingBot().getConfig());
+            getXiaomingBot().getRegularPreserveManager().readySave(getXiaomingBot().getConfiguration());
             user.sendMessage("成功设置群内召唤周期为{}，在这段时间内最多召唤{}次小明",
                     TimeUtil.toTimeString(time),
                     groupCallLimitConfig.getTop());
@@ -90,7 +90,7 @@ public class CallLimitCommandInteractor extends CommandInteractorImpl {
         final CallLimitConfig groupCallLimitConfig = callLimitManager.getGroupCallLimiter().getConfig();
         int time = Integer.parseInt(timeString);
         groupCallLimitConfig.setTop(time);
-        getXiaomingBot().getRegularPreserveManager().readySave(getXiaomingBot().getConfig());
+        getXiaomingBot().getRegularPreserveManager().readySave(getXiaomingBot().getConfiguration());
         callLimitManager.getGroupCallLimiter().getRecords().clear();
         user.sendMessage("成功设置群内召唤上限为{}次，已清空所有纪录。未来每{}内最多召唤这么多次小明",
                 time,
@@ -110,7 +110,7 @@ public class CallLimitCommandInteractor extends CommandInteractorImpl {
         }
         final CallLimitConfig config = callLimitManager.getGroupCallLimiter().getConfig();
         config.setCoolDown(time);
-        getXiaomingBot().getRegularPreserveManager().readySave(getXiaomingBot().getConfig());
+        getXiaomingBot().getRegularPreserveManager().readySave(getXiaomingBot().getConfiguration());
         user.sendMessage("成功设置小明的召唤冷却时间为{}", TimeUtil.toTimeString(config.getPeriod()));
     }
 
@@ -160,7 +160,7 @@ public class CallLimitCommandInteractor extends CommandInteractorImpl {
         } else {
             final CallLimitConfig config = callLimitManager.getPrivateCallLimiter().getConfig();
             config.setPeriod(time);
-            getXiaomingBot().getRegularPreserveManager().readySave(getXiaomingBot().getConfig());
+            getXiaomingBot().getRegularPreserveManager().readySave(getXiaomingBot().getConfiguration());
             user.sendMessage("成功设置私聊召唤周期为{}，在这段时间内最多召唤{}次小明",
                     TimeUtil.toTimeString(time),
                     config.getTop());
@@ -177,7 +177,7 @@ public class CallLimitCommandInteractor extends CommandInteractorImpl {
         final CallLimitConfig config = callLimitManager.getPrivateCallLimiter().getConfig();
         int time = Integer.parseInt(timeString);
         config.setTop(time);
-        getXiaomingBot().getRegularPreserveManager().readySave(getXiaomingBot().getConfig());
+        getXiaomingBot().getRegularPreserveManager().readySave(getXiaomingBot().getConfiguration());
         callLimitManager.getPrivateCallLimiter().getRecords().clear();
         user.sendMessage("成功设置私聊召唤上限为{}次，已清空所有纪录。未来每{}内最多召唤这么多次小明",
                 time,
@@ -197,7 +197,7 @@ public class CallLimitCommandInteractor extends CommandInteractorImpl {
         }
         final CallLimitConfig config = callLimitManager.getPrivateCallLimiter().getConfig();
         config.setCoolDown(time);
-        getXiaomingBot().getRegularPreserveManager().readySave(getXiaomingBot().getConfig());
+        getXiaomingBot().getRegularPreserveManager().readySave(getXiaomingBot().getConfiguration());
         user.sendMessage("成功设置小明的私聊召唤冷却时间为{}", TimeUtil.toTimeString(config.getPeriod()));
     }
 }

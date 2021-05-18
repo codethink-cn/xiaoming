@@ -1,4 +1,4 @@
-package com.chuanwise.xiaoming.api.runnable;
+package com.chuanwise.xiaoming.api.thread;
 
 import com.chuanwise.xiaoming.api.object.HostObject;
 import com.chuanwise.xiaoming.api.preserve.Preservable;

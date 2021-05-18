@@ -1,7 +1,6 @@
 package com.chuanwise.xiaoming.core.interactor;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.event.InteractorResponseEvent;
 import com.chuanwise.xiaoming.api.event.PluginResponseEvent;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.interactor.command.CommandInteractor;
@@ -12,7 +11,6 @@ import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import lombok.Getter;
-import net.mamoe.mirai.contact.Group;
 
 import java.util.*;
 
@@ -52,7 +50,7 @@ public class InteractorManagerImpl extends HostObjectImpl implements InteractorM
         }
         // 如果在群里，但是本群没有启动小明，就退出
         if (user.inGroup()) {
-            final ResponseGroup responseGroup = getXiaomingBot().getResponseGroupManager().fromCode(user.getGroup().getId());
+            final ResponseGroup responseGroup = getXiaomingBot().getResponseGroupManager().forCode(user.getGroup().getId());
             if (Objects.isNull(responseGroup) || !responseGroup.hasTag("enable")) {
                 return interacted;
             }
@@ -64,7 +62,7 @@ public class InteractorManagerImpl extends HostObjectImpl implements InteractorM
 
             // 用户没屏蔽，不在群里或者本群也没屏蔽
             boolean usePlugin = !user.isBlockPlugin(plugin.getName()) &&
-                    (!user.inGroup() || !getXiaomingBot().getResponseGroupManager().fromCode(user.getGroup().getId()).isBlockPlugin(plugin.getName()));
+                    (!user.inGroup() || !getXiaomingBot().getResponseGroupManager().forCode(user.getGroup().getId()).isBlockPlugin(plugin.getName()));
 
             if (usePlugin) {
                 if (plugin.onMessage(user)) {

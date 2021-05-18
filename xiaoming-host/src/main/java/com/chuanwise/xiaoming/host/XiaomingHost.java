@@ -2,22 +2,17 @@ package com.chuanwise.xiaoming.host;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.preserve.PreservableFactory;
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.util.MD5Utils;
 import com.chuanwise.xiaoming.api.util.PathUtil;
 import com.chuanwise.xiaoming.core.bot.XiaomingBotImpl;
 import com.chuanwise.xiaoming.host.config.BotAccount;
 import com.chuanwise.xiaoming.host.config.LauncherConfig;
 import com.chuanwise.xiaoming.core.preserve.JsonFilePreservableFactory;
-import com.chuanwise.xiaoming.host.runnable.ConsoleListenerRunnable;
-import com.chuanwise.xiaoming.host.user.ConsoleXiaomingUser;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.mamoe.mirai.BotFactory;
 
 import java.io.*;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
 
 /**
  * 小明机器人启动器
@@ -37,13 +32,6 @@ public class XiaomingHost {
      */
     final LauncherConfig launcherConfig = filePreservableFactory.
             loadOrProduce(LauncherConfig.class, new File(PathUtil.LAUNCHER_DIR, "launcher.json"), LauncherConfig::new);
-
-    final XiaomingUser consoleXiaomingUser = new ConsoleXiaomingUser(xiaomingBot);
-
-    /**
-     * 控制台指令接收线程
-     */
-    final ConsoleListenerRunnable consoleListenerRunnable = new ConsoleListenerRunnable(xiaomingBot);
 
     /**
      * 读取机器人账号密码并准备登录
@@ -91,8 +79,6 @@ public class XiaomingHost {
                 return false;
             }
 
-            // 设置控制台小明使用者
-            xiaomingBot.setConsoleXiaomingUser(consoleXiaomingUser);
             return start();
         } catch (Exception exception) {
             exception.printStackTrace();
@@ -112,10 +98,6 @@ public class XiaomingHost {
             exception.printStackTrace();
             return false;
         }
-
-        // 启动控制台指令接收
-        final ExecutorService service = xiaomingBot.getService();
-        service.execute(consoleListenerRunnable);
         return true;
     }
 

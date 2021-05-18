@@ -1,9 +1,8 @@
 package com.chuanwise.xiaoming.core.event;
 
-import com.chuanwise.xiaoming.api.annotation.HandlerMethod;
+import com.chuanwise.xiaoming.api.annotation.EventHandler;
 import com.chuanwise.xiaoming.api.event.EventListener;
 import com.chuanwise.xiaoming.core.object.PluginObjectImpl;
-import com.chuanwise.xiaoming.core.object.XiaomingObjectImpl;
 import lombok.Getter;
 import net.mamoe.mirai.event.Event;
 import org.slf4j.Logger;
@@ -29,7 +28,7 @@ public class EventListenerImpl extends PluginObjectImpl implements EventListener
         logger.info("正在载入 {} 类中的消息处理方法", getClass().getName());
         final Class<? extends EventListener> clazz = getClass();
         for (Method method : clazz.getMethods()) {
-            if (method.isAnnotationPresent(HandlerMethod.class)) {
+            if (method.isAnnotationPresent(EventHandler.class)) {
                 handlerMethods.add(method);
             }
         }

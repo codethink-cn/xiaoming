@@ -26,6 +26,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <mainClass>com.chuanwise.xiaoming.host.XiaomingLauncher</mainClass>
+
                 </configuration>
                 <executions>
                     <execution>

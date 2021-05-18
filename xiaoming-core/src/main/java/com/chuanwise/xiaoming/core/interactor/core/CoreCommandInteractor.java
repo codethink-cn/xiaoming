@@ -6,22 +6,23 @@ import com.chuanwise.xiaoming.api.annotation.RequirePermission;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.interactor.command.CommandInteractor;
-import com.chuanwise.xiaoming.api.config.Configuration;
+import com.chuanwise.xiaoming.api.configuration.Configuration;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
-import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
-import com.chuanwise.xiaoming.api.runnable.RegularPreserveManager;
+import com.chuanwise.xiaoming.api.recept.ReceptionTask;
+import com.chuanwise.xiaoming.api.thread.RegularPreserveManager;
 import com.chuanwise.xiaoming.api.text.TextManager;
-import com.chuanwise.xiaoming.api.user.Receiptionist;
-import com.chuanwise.xiaoming.api.user.ReceiptionistManager;
+import com.chuanwise.xiaoming.api.user.Receptionist;
+import com.chuanwise.xiaoming.api.user.ReceptionistManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CommandWords;
+import com.chuanwise.xiaoming.api.util.StringUtil;
 import com.chuanwise.xiaoming.api.util.TimeUtil;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class CoreCommandInteractor extends CommandInteractorImpl {
@@ -67,7 +68,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     @Filter("(维护|调试|debug)")
     @RequirePermission("debug")
     public void onDebug(XiaomingUser user) {
-        final Configuration config = getXiaomingBot().getConfig();
+        final Configuration config = getXiaomingBot().getConfiguration();
         config.setDebug(!config.isDebug());
         getXiaomingBot().getRegularPreserveManager().readySave(config);
         if (config.isDebug()) {
@@ -151,7 +152,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     @Filter(CommandWords.ENABLE_REGEX + CommandWords.USE_REGEX + "(验证|verify)")
     @RequirePermission("license.enable")
     public void onEnableUseVerify(XiaomingUser user) {
-        final Configuration config = getXiaomingBot().getConfig();
+        final Configuration config = getXiaomingBot().getConfiguration();
         if (config.isEnableLicense()) {
             user.sendMessage("强制小明使用验证本就是启动的");
         } else {
@@ -172,7 +173,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     @Filter(CommandWords.DISABLE_REGEX + CommandWords.USE_REGEX + "(验证|verify)")
     @RequirePermission("license.disable")
     public void onDisableUseVerify(XiaomingUser user) {
-        final Configuration config = getXiaomingBot().getConfig();
+        final Configuration config = getXiaomingBot().getConfiguration();
         if (config.isEnableLicense()) {
             config.disableLisence();
             getXiaomingBot().getRegularPreserveManager().readySave(config);
@@ -251,50 +252,166 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @Filter(CommandWords.RECEIPTION_REGEX)
-    @RequirePermission("receiptionist")
-    public void onReceiptionist(XiaomingUser user) {
-        final ReceiptionistManager receiptionistManager = getXiaomingBot().getReceiptionistManager();
-        final Collection<Receiptionist> receiptionists = receiptionistManager.getReceiptionists().values();
+    @Filter(CommandWords.RECEPTION_REGEX)
+    @RequirePermission("receptionist")
+    public void onReceptionist(XiaomingUser user) {
+        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
+        final Collection<Receptionist> receptionists = receptionistManager.getReceptionists().values();
 
-        if (receiptionists.isEmpty()) {
-            user.sendMessage("当前无任何招待器");
+        if (receptionists.isEmpty()) {
+            user.sendMessage("当前无任何接待员");
         } else {
-            user.enableBuffer();
-            user.sendMessage("当前共有 {} 个招待器：", receiptionists.size());
-            for (Receiptionist receiptionist : receiptionists) {
-                final XiaomingUser receiptionistUser = receiptionist.getUser();
-                user.sendMessage(String.valueOf(receiptionistUser.getQQ()));
+            user.sendMessage("当前共有 {} 个接待员：{}",
+                    receptionists.size(),
+                    StringUtil.getCollectionSummary(receptionists, receptionist -> {
+                        return receptionist.getUser().getQQ() + "：" + (receptionist.isBusy() ? "忙碌" : "空闲");
+                    }));
+        }
+    }
+
+    @Filter(CommandWords.RECEPTION_REGEX + " {qq}")
+    @RequirePermission("receptionist")
+    public void onReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
+        final Receptionist receptionist = receptionistManager.getReceptionist(qq);
+
+        if (Objects.isNull(receptionist)) {
+            user.sendMessage("该用户并没有接待员");
+        } else {
+            final StringBuilder builder = new StringBuilder();
+
+            Function<ReceptionTask, String> singleTaskStatusFormatter = task -> {
+                if (Objects.isNull(task)) {
+                    return "（无）";
+                } else if (task.isBusy()) {
+                    return "忙碌";
+                } else {
+                    return "空闲";
+                }
+            };
+            builder.append("私聊接待任务：")
+                    .append(singleTaskStatusFormatter.apply(receptionist.getPrivateTask()))
+                    .append("\n")
+                    .append("外部接待任务：")
+                    .append(singleTaskStatusFormatter.apply(receptionist.getExternalTask()))
+                    .append("\n");
+
+            Function<Map.Entry<Long, ReceptionTask>, String> groupOrTempTaskStatusFormatter = entry -> {
+                return entry.getKey() + "：" + (entry.getValue().isBusy() ? "忙碌" : "空闲");
+            };
+            builder.append("群接待任务：")
+                    .append(StringUtil.getCollectionSummary(receptionist.getGroupTasks().entrySet(), groupOrTempTaskStatusFormatter))
+                    .append("\n")
+                    .append("临时会话接待任务：")
+                    .append(StringUtil.getCollectionSummary(receptionist.getTempTasks().entrySet(), groupOrTempTaskStatusFormatter));
+            user.sendMessage(builder.toString());
+        }
+    }
+
+    @Filter(CommandWords.DISABLE_REGEX + CommandWords.RECEPTION_REGEX + " {qq}")
+    @RequirePermission("receptionist.disable")
+    public void onDisableReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
+        final Receptionist receptionist = receptionistManager.getReceptionist(qq);
+
+        if (Objects.isNull(receptionist)) {
+            user.sendMessage("该用户并没有接待员");
+        } else {
+            if (receptionist.isBusy()) {
+                receptionist.optimize();
+                user.sendMessage("接待员忙碌。已终止所有空闲接待线程以释放资源。如仍要强制关闭，请使用「强制关闭接待员 {}」", qq);
+            } else {
+                receptionist.stop();
+                user.sendMessage("已尝试销毁该接待员");
             }
-            final String string = user.getBufferAndClear();
-            user.sendMessage(string);
         }
     }
 
-    @Filter(CommandWords.RECEIPTION_REGEX + " {qq}")
-    @RequirePermission("receiptionist")
-    public void onReceiptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
-        final ReceiptionistManager receiptionistManager = getXiaomingBot().getReceiptionistManager();
-        final Receiptionist receiptionist = receiptionistManager.getReceiptionist(qq);
+    @Filter(CommandWords.OPTIMIZE_REGEX + CommandWords.RECEPTION_REGEX + " {qq}")
+    @RequirePermission("receptionist.optimize")
+    public void onOptimizeReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
+        final Receptionist receptionist = receptionistManager.getReceptionist(qq);
 
-        if (Objects.isNull(receiptionist)) {
-            user.sendMessage("该用户并没有招待器");
+        if (Objects.isNull(receptionist)) {
+            user.sendMessage("该用户并没有接待员");
         } else {
-            user.sendMessage("该招待器{}", receiptionist.isReceipting() ? "忙碌" : "空闲");
+            receptionist.optimize();
+            user.sendMessage("已优化该用户的接待员", qq);
         }
     }
 
-    @Filter(CommandWords.DISABLE_REGEX + CommandWords.RECEIPTION_REGEX + " {qq}")
-    @RequirePermission("receiptionist.disable")
-    public void onDisableReceiptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
-        final ReceiptionistManager receiptionistManager = getXiaomingBot().getReceiptionistManager();
-        final Receiptionist receiptionist = receiptionistManager.getReceiptionist(qq);
+    @Filter(CommandWords.OPTIMIZE_REGEX + CommandWords.RECEPTION_REGEX)
+    @RequirePermission("receptionist.optimize")
+    public void onOptimizeReceptionist(XiaomingUser user) {
+        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
 
-        if (Objects.isNull(receiptionist)) {
-            user.sendMessage("该用户并没有招待器");
+        receptionistManager.optimize();
+        user.sendMessage("已优化可能优化的所有接待员");
+    }
+
+    @Filter("(强制|force)" + CommandWords.DISABLE_REGEX + CommandWords.RECEPTION_REGEX + " {qq}")
+    @RequirePermission("receptionist.disable")
+    public void onForceDisableReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
+        final Receptionist receptionist = receptionistManager.getReceptionist(qq);
+
+        if (Objects.isNull(receptionist)) {
+            user.sendMessage("该用户并没有接待员");
         } else {
-            receiptionist.stop();
+            receptionist.stop();
             user.sendMessage("已尝试销毁该接待员");
         }
+    }
+
+    @Filter("(性能|performance)")
+    @RequirePermission("performance")
+    public void onPerformance(XiaomingUser user) {
+        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
+        final Map<Long, Receptionist> receptionists = receptionistManager.getReceptionists();
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("接待员：");
+        if (receptionists.isEmpty()) {
+            builder.append("（无）");
+        } else {
+            int useRatio = (int) receptionists.values().stream().filter(Receptionist::isBusy).count();
+            builder.append("共").append(receptionists.size()).append("个，")
+                    .append(useRatio).append("个忙碌")
+                    .append("，空置率：").append(1.0 - ((double) receptionists.size() - useRatio) / receptionists.size());
+        }
+        user.sendMessage(builder.toString());
+    }
+
+    @Filter("(属性) {key} {remain}")
+    @RequirePermission("debug")
+    public void onSetProperty(XiaomingUser user, @FilterParameter("key") String key, @FilterParameter("remain") String value) {
+        user.setProperty(key, value);
+        user.sendMessage("属性 {} 已被设置为：{}", key, value);
+    }
+
+    @Filter("(属性)")
+    @RequirePermission("debug")
+    public void onProperty(XiaomingUser user) {
+        final Set<Map.Entry<String, Object>> entries = user.getProperties().entrySet();
+        if (entries.isEmpty()) {
+            user.sendMessage("你当前无属性");
+        } else {
+            user.sendMessage(entries.toString());
+        }
+    }
+
+    @Filter("(等待属性) {key}")
+    @RequirePermission("debug")
+    public void onWaitProperty(XiaomingUser user, @FilterParameter("key") String key) {
+        user.sendMessage("{} => {}", key, user.waitProperty(key));
+    }
+
+    @Filter("(测试|test)")
+    @RequirePermission("debug")
+    public void onTest(XiaomingUser user) {
+        final int group = 1028959718;
+        user.sendMessage("请在群{}内发一句消息", group);
+        user.sendMessage("你发的消息是：{}", user.nextGroupInput(group));
     }
 }

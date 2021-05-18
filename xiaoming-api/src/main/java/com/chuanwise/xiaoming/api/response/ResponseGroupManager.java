@@ -13,7 +13,7 @@ import java.util.Set;
  * 响应群管理器
  */
 public interface ResponseGroupManager extends XiaomingObject, Preservable<File> {
-    default ResponseGroup fromCode(long group) {
+    default ResponseGroup forCode(long group) {
         for (ResponseGroup responseGroup : getGroups()) {
             if (responseGroup.getCode() == group) {
                 return responseGroup;
@@ -23,7 +23,7 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
     }
 
     default boolean hasTag(long group, String tag) {
-        final ResponseGroup responseGroup = fromCode(group);
+        final ResponseGroup responseGroup = forCode(group);
         if (Objects.nonNull(responseGroup)) {
             return responseGroup.hasTag(tag);
         } else {

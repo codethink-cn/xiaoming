@@ -1,4 +1,4 @@
-package com.chuanwise.xiaoming.api.config;
+package com.chuanwise.xiaoming.api.configuration;
 
 import com.chuanwise.xiaoming.api.limit.CallLimitConfig;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
@@ -31,4 +31,8 @@ public interface Configuration extends Preservable<File>, XiaomingObject {
     void disableLisence();
 
     String getLicenseName();
+
+    void setMaxReceptThreadNumber(int maxReceptThreadNumber);
+
+    int getMaxReceptThreadNumber();
 }

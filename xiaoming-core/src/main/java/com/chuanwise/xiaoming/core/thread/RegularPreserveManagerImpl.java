@@ -2,7 +2,7 @@ package com.chuanwise.xiaoming.core.thread;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
-import com.chuanwise.xiaoming.api.runnable.RegularPreserveManager;
+import com.chuanwise.xiaoming.api.thread.RegularPreserveManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import lombok.Getter;
@@ -50,7 +50,7 @@ public class RegularPreserveManagerImpl extends HostObjectImpl implements Regula
         final XiaomingUser user = getXiaomingBot().getConsoleXiaomingUser();
         while (!getXiaomingBot().isStop()) {
             try {
-                Thread.sleep(getXiaomingBot().getConfig().getAutoSaveDeltaTime());
+                Thread.sleep(getXiaomingBot().getConfiguration().getAutoSaveDeltaTime());
             } catch (InterruptedException ignored) {
             }
             if (getXiaomingBot().isStop()) {

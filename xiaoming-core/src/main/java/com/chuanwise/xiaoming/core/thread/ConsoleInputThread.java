@@ -1,8 +1,14 @@
-package com.chuanwise.xiaoming.host.runnable;
+package com.chuanwise.xiaoming.core.thread;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
+import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
+import com.chuanwise.xiaoming.api.object.XiaomingThread;
+import com.chuanwise.xiaoming.api.recept.ReceptionTask;
+import com.chuanwise.xiaoming.api.user.Receptionist;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
-import com.chuanwise.xiaoming.host.user.ConsoleXiaomingUser;
+import com.chuanwise.xiaoming.core.recept.ReceptionTaskImpl;
+import com.chuanwise.xiaoming.core.recept.ReceptionistImpl;
+import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Group;
@@ -13,20 +19,41 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ConsoleListenerRunnable extends HostObjectImpl implements Runnable {
+public class ConsoleInputThread extends HostObjectImpl implements XiaomingThread {
     static final Pattern PRIVATE_PATTERN = Pattern.compile("p(rivate)?\\s+(?<qq>\\d+)\\s+(?<content>[\\s\\S]+)");
     static final Pattern GROUP_PATTERN = Pattern.compile("g(roup)?\\s+(?<group>\\d+)\\s+(?<qq>\\d+)\\s+(?<content>[\\s\\S]+)");
     static final Pattern TEMP_PATTERN = Pattern.compile("t(emp)?\\s+(?<group>\\d+)\\s+(?<qq>\\d+)\\s+(?<content>[\\s\\S]+)");
 
     boolean warned = false;
 
-    public ConsoleListenerRunnable(XiaomingBot xiaomingBot) {
+    final ConsoleXiaomingUser consoleUser;
+    final Receptionist consoleReceptionist;
+
+    volatile Thread inputThread;
+
+    public ConsoleInputThread(XiaomingBot xiaomingBot) {
         super(xiaomingBot);
+        consoleUser = (ConsoleXiaomingUser) getXiaomingBot().getConsoleXiaomingUser();
+        consoleReceptionist = new ReceptionistImpl(consoleUser);
+    }
+
+    @Override
+    public void stop() {
+        consoleReceptionist.stop();
+        if (Objects.nonNull(inputThread)) {
+            // 强制关闭 IO
+            inputThread.stop();
+        }
     }
 
     @Override
     public void run() {
-        final ConsoleXiaomingUser user = (ConsoleXiaomingUser) getXiaomingBot().getConsoleXiaomingUser();
+        if (Objects.isNull(inputThread)) {
+            inputThread = Thread.currentThread();
+        } else {
+            throw new XiaomingRuntimeException("multiple console input thread");
+        }
+
         final Bot miraiBot = getXiaomingBot().getMiraiBot();
         boolean camouflaged;
 
@@ -43,11 +70,10 @@ public class ConsoleListenerRunnable extends HostObjectImpl implements Runnable 
                         final long qq = Long.parseLong(privateMatcher.group("qq"));
                         final Friend friend = miraiBot.getFriend(qq);
                         if (Objects.nonNull(friend)) {
-                            user.setAsPrivate(friend);
+                            consoleReceptionist.getOrPutPrivateTask(friend).onMessage(privateMatcher.group("content"));
                             camouflaged = true;
-                            user.setMessage(privateMatcher.group("content"));
                         } else {
-                            user.sendError("小明没有找到好友 {} 哦", qq);
+                            consoleUser.sendError("小明没有找到好友 {} 哦", qq);
                         }
                     }
 
@@ -61,14 +87,13 @@ public class ConsoleListenerRunnable extends HostObjectImpl implements Runnable 
                             if (Objects.nonNull(miraiBotGroup)) {
                                 final NormalMember miraiBotMember = miraiBotGroup.getOrFail(qq);
                                 if (Objects.nonNull(miraiBotMember)) {
-                                    user.setAsGroupMember(miraiBotMember);
+                                    consoleReceptionist.getOrPutGroupTask(group, miraiBotMember).onMessage(privateMatcher.group("content"));
                                     camouflaged = true;
-                                    user.setMessage(matcher.group("content"));
                                 } else {
-                                    user.sendError("小明没有在 QQ 群 {} 中找到用户 {} 哦", miraiBotGroup.getName(), qq);
+                                    consoleUser.sendError("小明没有在 QQ 群 {} 中找到用户 {} 哦", miraiBotGroup.getName(), qq);
                                 }
                             } else {
-                                user.sendError("小明没有找到好友 {} 哦", qq);
+                                consoleUser.sendError("小明没有找到好友 {} 哦", qq);
                             }
                         }
                     }
@@ -83,14 +108,13 @@ public class ConsoleListenerRunnable extends HostObjectImpl implements Runnable 
                             if (Objects.nonNull(miraiBotGroup)) {
                                 final NormalMember miraiBotMember = miraiBotGroup.getOrFail(qq);
                                 if (Objects.nonNull(miraiBotMember)) {
-                                    user.setAsGroupMember(miraiBotMember);
+                                    consoleReceptionist.getOrPutTempTask(group, miraiBotMember).onMessage(privateMatcher.group("content"));
                                     camouflaged = true;
-                                    user.setMessage(matcher.group("content"));
                                 } else {
-                                    user.sendError("小明没有在 QQ 群 {} 中找到用户 {} 哦", miraiBotGroup.getName(), qq);
+                                    consoleUser.sendError("小明没有在 QQ 群 {} 中找到用户 {} 哦", miraiBotGroup.getName(), qq);
                                 }
                             } else {
-                                user.sendError("小明没有找到好友 {} 哦", qq);
+                                consoleUser.sendError("小明没有找到好友 {} 哦", qq);
                             }
                         }
                     }
@@ -100,23 +124,10 @@ public class ConsoleListenerRunnable extends HostObjectImpl implements Runnable 
 
                 if (!camouflaged) {
                     if (!warned) {
-                        user.sendWarn("不伪装时，身份默认为小明本人和自己的私聊");
+                        consoleUser.sendWarn("不伪装时，身份默认为小明本人和自己的私聊");
                         warned = true;
                     }
-                    user.setAsPrivate(miraiBot.getAsFriend());
-                    user.setMessage(message);
-                }
-
-                try {
-                    if (!getXiaomingBot().getInteractorManager().onCommand(user)) {
-                        user.sendError("小明不知道你的意思 {}", getXiaomingBot().getWordManager().get("error"));
-                    }
-                } catch (Exception exception) {
-                    if (exception instanceof InterruptedException) {
-                        return;
-                    } else {
-                        exception.printStackTrace();
-                    }
+                    consoleReceptionist.getOrPutPrivateTask(miraiBot.getAsFriend()).onMessage(message);
                 }
             }
         }

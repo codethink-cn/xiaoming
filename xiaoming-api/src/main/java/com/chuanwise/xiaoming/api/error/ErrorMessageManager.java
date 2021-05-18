@@ -12,5 +12,7 @@ public interface ErrorMessageManager extends HostObject, Preservable<File> {
 
     void addThrowableMessage(XiaomingUser user, Throwable throwable);
 
+    void addThrowableMessage(Throwable throwable);
+
     List<ErrorMessage> getErrorMessages();
 }

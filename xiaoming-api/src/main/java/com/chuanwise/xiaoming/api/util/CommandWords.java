@@ -21,6 +21,7 @@ public class CommandWords {
     public static final String INTERACTOR_REGEX = "(交互器|interactor)";
     public static final String ILLEGAL_REGEX = "(非法|违规|禁用|禁止|illegal)";
     public static final String DISABLE_REGEX = "(关闭|禁用|禁止|disable)";
+    public static final String OPTIMIZE_REGEX = "(优化|optimize)";
     public static final String ENABLE_REGEX = "(启用|启动|打开|enable)";
     public static final String ACCOUNT_REGEX = "(账户|account)";
     public static final String THIS_REGEX = "(当前|本|this)";
@@ -39,5 +40,5 @@ public class CommandWords {
     public static final String MESSAGE_REGEX = "(消息|信息|message|报告|report)";
     public static final String EDIT_REGEX = "(修改|编辑|edit|modify)";
     public static final String USE_REGEX = "(使用|use)";
-    public static final String RECEIPTION_REGEX = "(接待员|招待员|接待者|招待者|receiptionist)";
+    public static final String RECEPTION_REGEX = "(接待员|招待员|接待者|招待者|receptionist)";
 }

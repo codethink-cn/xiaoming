@@ -1,6 +1,5 @@
-package com.chuanwise.xiaoming.api.config;
+package com.chuanwise.xiaoming.api.configuration;
 
-import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
 

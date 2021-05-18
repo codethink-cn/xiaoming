@@ -2,7 +2,6 @@ package com.chuanwise.xiaoming.api.interactor;
 
 import com.chuanwise.xiaoming.api.annotation.*;
 import com.chuanwise.xiaoming.api.event.InteractorResponseEvent;
-import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.interactor.detail.InteractorMethodDetail;
 import com.chuanwise.xiaoming.api.interactor.filter.FilterMatcher;
 import com.chuanwise.xiaoming.api.interactor.filter.ParameterFilterMatcher;
@@ -121,7 +120,7 @@ public interface Interactor extends PluginObject {
      */
     default boolean interact(XiaomingUser user) throws Exception {
         boolean interacted = false;
-        boolean isAgreed = isExternalUse() || (!getXiaomingBot().getConfig().isEnableLicense() || getXiaomingBot().getLicenseManager().isAgreed(user.getQQ()));
+        boolean isAgreed = isExternalUse() || (!getXiaomingBot().getConfiguration().isEnableLicense() || getXiaomingBot().getLicenseManager().isAgreed(user.getQQ()));
         boolean isLegalUser = isLegalUser(user);
 
         for (InteractorMethodDetail detail : getMethodDetails()) {

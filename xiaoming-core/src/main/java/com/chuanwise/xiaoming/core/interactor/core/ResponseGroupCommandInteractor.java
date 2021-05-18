@@ -63,7 +63,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     public void onLookGroup(XiaomingUser user, @FilterParameter("group") String groupString) {
         ResponseGroup group;
         if (groupString.matches("\\d+")) {
-            group = groupManager.fromCode(Long.parseLong(groupString));
+            group = groupManager.forCode(Long.parseLong(groupString));
         } else {
             user.sendError("只允许通过群号查看小明的响应群消息哦");
             return;
@@ -88,7 +88,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     public void onRemoveGroup(XiaomingUser user, @FilterParameter("group") String groupString) {
         ResponseGroup group;
         if (groupString.matches("\\d+")) {
-            group = groupManager.fromCode(Long.parseLong(groupString));
+            group = groupManager.forCode(Long.parseLong(groupString));
         } else {
             user.sendError("只允许通过群号操控小明的响应群哦");
             return;
@@ -107,7 +107,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     @Filter(CommandWords.THIS_REGEX + CommandWords.GROUP_REGEX)
     @RequirePermission("group.look")
     public void onLookThisGroup(XiaomingUser user) {
-        ResponseGroup group = groupManager.fromCode(user.getGroup().getId());
+        ResponseGroup group = groupManager.forCode(user.getGroup().getId());
 
         user.sendMessage("本群备注：{}\n" +
                         "群号：{}\n" +
@@ -126,7 +126,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         user.sendMessage("本群群号：{}", groupNumber);
 
         if (user.hasPermission("group.tag.list")) {
-            final ResponseGroup group = groupManager.fromCode(groupNumber);
+            final ResponseGroup group = groupManager.forCode(groupNumber);
             user.sendMessage("{}的标记有：{}", getGroupName(group), group.getTags());
         }
     }
@@ -141,7 +141,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
             user.sendError("找不到响应群：{}", groupString);
             return;
         }
-        ResponseGroup responseGroup = groupManager.fromCode(group);
+        ResponseGroup responseGroup = groupManager.forCode(group);
         if (Objects.nonNull(responseGroup) && responseGroup.hasTag("enable")) {
             user.sendError("该群已经是小明的响应群了哦");
             return;
@@ -179,7 +179,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
                               @FilterParameter("tag") String tag) {
         final ResponseGroup group;
         if (groupString.matches("\\d+")) {
-            group = groupManager.fromCode(Long.parseLong(groupString));
+            group = groupManager.forCode(Long.parseLong(groupString));
         } else {
             user.sendError("找不到响应群：{}", groupString);
             return;
@@ -201,7 +201,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
                               @FilterParameter("tag") String tag) {
         final ResponseGroup group;
         if (groupString.matches("\\d+")) {
-            group = groupManager.fromCode(Long.parseLong(groupString));
+            group = groupManager.forCode(Long.parseLong(groupString));
         } else {
             user.sendError("找不到响应群：{}", groupString);
             return;
@@ -253,7 +253,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     @RequirePermission("group.plugin.block")
     public void onBlockPlugin(XiaomingUser user,
                               @FilterParameter("plugin") String plugin) {
-        ResponseGroup group = groupManager.fromCode(user.getGroup().getId());
+        ResponseGroup group = groupManager.forCode(user.getGroup().getId());
         if (group.isBlockPlugin(plugin)) {
             user.sendError("本群已经屏蔽了插件{}", plugin);
         } else {
@@ -272,7 +272,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     @RequirePermission("group.plugin.unblock")
     public void onUnblockPlugin(XiaomingUser user,
                                 @FilterParameter("plugin") String plugin) {
-        ResponseGroup group = groupManager.fromCode(user.getGroup().getId());
+        ResponseGroup group = groupManager.forCode(user.getGroup().getId());
         if (group.isBlockPlugin(plugin)) {
             group.getBlockedPlugins().remove(plugin);
             getXiaomingBot().getRegularPreserveManager().readySave(groupManager);

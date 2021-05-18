@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,15 +40,28 @@ public class ErrorMessageManagerImpl extends JsonFilePreservable implements Erro
     }
 
     @Override
+    public void addThrowableMessage(Throwable throwable) {
+        if (Objects.nonNull(throwable.getCause())) {
+            throwable = throwable.getCause();
+        }
+        addErrorMessage(new ErrorMessageImpl(throwable.toString()));
+    }
+
+    @Override
     public void addThrowableMessage(XiaomingUser user, Throwable throwable) {
         if (Objects.nonNull(throwable.getCause())) {
             throwable = throwable.getCause();
         }
         final ErrorMessage errorMessage;
+
+        final List<String> recentMessages = user.getRecentMessages();
+        final List<String> messages = new ArrayList<>(recentMessages.size());
+        Collections.copy(messages, recentMessages);
+
         if (user.inGroup()) {
-            errorMessage = new ErrorMessageImpl(user.getGroup().getId(), user.getQQ(), user.getRecentInputs(), throwable.toString());
+            errorMessage = new ErrorMessageImpl(user.getGroup().getId(), user.getQQ(), messages, throwable.toString());
         } else {
-            errorMessage = new ErrorMessageImpl(user.getQQ(), user.getRecentInputs(), throwable.toString());
+            errorMessage = new ErrorMessageImpl(user.getQQ(), messages, throwable.toString());
         }
         addErrorMessage(errorMessage);
         getXiaomingBot().getResponseGroupManager().sendMessageToTaggedGroup("log", "发现一个新的异常报告");

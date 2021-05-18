@@ -1,7 +1,7 @@
 package com.chuanwise.xiaoming.core.config;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.config.Configuration;
+import com.chuanwise.xiaoming.api.configuration.Configuration;
 import com.chuanwise.xiaoming.api.util.TimeUtil;
 import com.chuanwise.xiaoming.core.limit.CallLimitConfigImpl;
 import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
@@ -23,6 +23,7 @@ public class ConfigurationImpl extends JsonFilePreservable implements Configurat
 
     boolean enableLicense = false;
     String licenseName = "license";
+    int maxReceptThreadNumber = 10;
 
     @Override
     public void enableLisence() {
