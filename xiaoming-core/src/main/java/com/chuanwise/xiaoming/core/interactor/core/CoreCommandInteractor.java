@@ -291,9 +291,6 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
             };
             builder.append("私聊接待任务：")
                     .append(singleTaskStatusFormatter.apply(receptionist.getPrivateTask()))
-                    .append("\n")
-                    .append("外部接待任务：")
-                    .append(singleTaskStatusFormatter.apply(receptionist.getExternalTask()))
                     .append("\n");
 
             Function<Map.Entry<Long, ReceptionTask>, String> groupOrTempTaskStatusFormatter = entry -> {
@@ -364,6 +361,19 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
         }
     }
 
+    public static final String TELL = "(传话|tell|say)";
+    @Filter(CommandWords.GROUP_REGEX + TELL + " {group} {remain}")
+    @RequirePermission("tell.group")
+    public void onGroupTell(XiaomingUser user, @FilterParameter("group") long group, @FilterParameter("remain") String content) {
+        user.sendGroupMessage(group, content);
+    }
+
+    @Filter(CommandWords.PRIVATE_REGEX + TELL + " {group} {remain}")
+    @RequirePermission("tell.personal")
+    public void onPersonalTell(XiaomingUser user, @FilterParameter("group") long qq, @FilterParameter("remain") String content) {
+        user.sendPrivateMessage(qq, content);
+    }
+
     @Filter(CommandWords.XIAOMING_REGEX + CommandWords.STATUS_REGEX)
     public void onRuntime(XiaomingUser user) {
         final long lastSaveTime = getXiaomingBot().getRegularPreserveManager().getLastSaveTime();
@@ -375,5 +385,18 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
                 .append("距今：").append(TimeUtil.toTimeString(System.currentTimeMillis() - lastSaveTime));
 
         user.sendMessage(builder.toString());
+    }
+
+    @Override
+    public <T> Object onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
+        Object parameter = super.onParameter(user, clazz, parameterName, currentValue, defaultValue);
+        if (long.class.isAssignableFrom(clazz) && Objects.equals(parameterName, "group")) {
+            if (currentValue.matches("\\d+")) {
+                return Long.parseLong(currentValue);
+            } else {
+                user.sendError("{}并不是一个合理的群号哦", currentValue);
+            }
+        }
+        return parameter;
     }
 }

@@ -19,7 +19,7 @@ import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.TimeUtil;
 import com.chuanwise.xiaoming.api.word.WordManager;
-import com.chuanwise.xiaoming.api.event.EventListenerManager;
+import com.chuanwise.xiaoming.api.event.EventManager;
 import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
 import com.chuanwise.xiaoming.api.plugin.PluginManager;
@@ -41,7 +41,7 @@ import com.chuanwise.xiaoming.core.url.PictureUrlManagerImpl;
 import com.chuanwise.xiaoming.core.recept.ReceptionistManagerImpl;
 import com.chuanwise.xiaoming.core.user.ConsoleXiaomingUserImpl;
 import com.chuanwise.xiaoming.core.word.WordManagerImpl;
-import com.chuanwise.xiaoming.core.event.EventListenerManagerImpl;
+import com.chuanwise.xiaoming.core.event.EventManagerImpl;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.core.limit.UserCallLimitManagerImpl;
 import com.chuanwise.xiaoming.core.permission.PermissionManagerImpl;
@@ -124,7 +124,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         eventChannel.registerListenerHost(new ListenerHost() {
             @EventHandler
             public void onEvent(Event event) {
-                eventListenerManager.callLater(event);
+                eventManager.callLater(event);
             }
         });
     }
@@ -142,7 +142,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         load("wordManager");
         load("pluginManager");
         load("interactorManager");
-        load("eventListenerManager");
+        load("eventManager");
         load("userCallLimitManager");
         load("userInteractManager");
         load("reportMessageManager");
@@ -220,8 +220,8 @@ public class XiaomingBotImpl implements XiaomingBot {
         interactorManager.denyCoreRegister();
 
         // 注册内核监听器
-        eventListenerManager.register(receptionistManager, null);
-        eventListenerManager.denyCoreRegister();
+        eventManager.register(receptionistManager, null);
+        eventManager.denyCoreRegister();
 
         // 设置调用限制
         userCallLimitManager.getGroupCallLimiter().setConfig(configuration.getGroupCallConfig());
@@ -269,8 +269,6 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         // 登录机器人
         miraiBot.login();
-
-        execute(eventListenerManager);
 
         try {
             post();
@@ -335,7 +333,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     /**
      * 监听器管理器
      */
-    EventListenerManager eventListenerManager;
+    EventManager eventManager;
 
     /**
      * 用户调用限制管理器
@@ -356,7 +354,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     public boolean load(String name) {
         switch (name) {
             case "mainThreadPool":
-                mainThreadPool = Executors.newFixedThreadPool(configuration.getMaxMainThreadNumber());
+                mainThreadPool = Executors.newCachedThreadPool();
                 return true;
             case "configuration":
                 configuration = filePreservableFactory
@@ -364,12 +362,11 @@ public class XiaomingBotImpl implements XiaomingBot {
                 configuration.setXiaomingBot(this);
                 return true;
             case "userCallLimitManager":
-                userCallLimitManager = filePreservableFactory
-                    .loadOrProduce(UserCallLimitManagerImpl.class, new File(configDirectory, "limits.json"), UserCallLimitManagerImpl::new);
+                userCallLimitManager = new UserCallLimitManagerImpl();
                 userCallLimitManager.setXiaomingBot(this);
                 return true;
-            case "eventListenerManager":
-                eventListenerManager = new EventListenerManagerImpl(this);
+            case "eventManager":
+                eventManager = new EventManagerImpl(this);
                 return true;
             case "interactorManager":
                 interactorManager = new InteractorManagerImpl(this);
@@ -506,11 +503,8 @@ public class XiaomingBotImpl implements XiaomingBot {
 
     void shutdownService(XiaomingUser user) {
         // 唤醒正在等待事件的进程，令其退出
-        final Queue<Event> events = eventListenerManager.getEvents();
-        synchronized (events) {
-            events.notifyAll();
-        }
 
+        /*
         for (Map.Entry<Long, Receptionist> entry : receptionistManager.getReceptionists().entrySet()) {
             final Receptionist receptionist = entry.getValue();
             final XiaomingUser currentUser = receptionist.getUser();
@@ -525,6 +519,7 @@ public class XiaomingBotImpl implements XiaomingBot {
                 }
             }
         }
+         */
 
         // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
         mainThreadPool.shutdown();

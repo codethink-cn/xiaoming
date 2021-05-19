@@ -4,6 +4,7 @@ import com.chuanwise.xiaoming.api.account.AccountManager;
 import com.chuanwise.xiaoming.api.configuration.Configuration;
 import com.chuanwise.xiaoming.api.configuration.Statistician;
 import com.chuanwise.xiaoming.api.error.ReportMessageManager;
+import com.chuanwise.xiaoming.api.event.EventManager;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.object.XiaomingThread;
@@ -11,7 +12,6 @@ import com.chuanwise.xiaoming.api.text.TextManager;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.word.WordManager;
-import com.chuanwise.xiaoming.api.event.EventListenerManager;
 import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
 import com.chuanwise.xiaoming.api.plugin.PluginManager;
@@ -51,7 +51,7 @@ public interface XiaomingBot {
 
     PluginManager getPluginManager();
 
-    EventListenerManager getEventListenerManager();
+    EventManager getEventManager();
 
     UserCallLimitManager getUserCallLimitManager();
 

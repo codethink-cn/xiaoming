@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @NoArgsConstructor
-public class UserCallLimitManagerImpl extends JsonFilePreservable implements UserCallLimitManager {
+public class UserCallLimitManagerImpl implements UserCallLimitManager {
     UserCallLimiterImpl groupCallLimiter = new UserCallLimiterImpl();
     UserCallLimiterImpl privateCallLimiter = new UserCallLimiterImpl();
 

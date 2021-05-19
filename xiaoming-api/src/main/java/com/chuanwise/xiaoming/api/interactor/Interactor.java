@@ -210,7 +210,7 @@ public interface Interactor extends PluginObject {
 
                 try {
                     method.invoke(this, arguments.toArray(new Object[0]));
-                    getXiaomingBot().getEventListenerManager().callLater(new InteractorResponseEvent(this, detail, user));
+                    getXiaomingBot().getEventManager().callLater(new InteractorResponseEvent(this, detail, user));
                 } catch (InvocationTargetException exception) {
                     final Throwable cause = exception.getCause();
                     if (Objects.nonNull(cause) && cause instanceof Exception) {

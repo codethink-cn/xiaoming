@@ -25,23 +25,13 @@ public interface ReceptionTask extends HostObject, XiaomingThread {
      */
     XiaomingUser getUser();
 
-    void recept();
+    String getIdentify();
 
-    default void optimize() {
-        if (!isBusy()) {
-            stop();
-        }
-    }
+    void recept() throws Exception;
 
     Receptionist getReceptionist();
 
-    List<String> getRecentMessage();
-
-    int getRecentFreeTime();
-
-    boolean isBusy();
-
-    boolean isRunning();
+    List<String> getRecentMessages();
 
     Friend getFriend();
 
@@ -52,10 +42,6 @@ public interface ReceptionTask extends HostObject, XiaomingThread {
     Thread getThread();
 
     void onMessage(String message);
-
-    default boolean isStop() {
-        return !isRunning();
-    }
 
     default boolean inGroup() {
         return Objects.nonNull(getMember()) && !isTemp();
@@ -70,7 +56,7 @@ public interface ReceptionTask extends HostObject, XiaomingThread {
     }
 
     default String getMessage() {
-        final List<String> list = getRecentMessage();
+        final List<String> list = getRecentMessages();
         if (list.isEmpty()) {
             return null;
         } else {
@@ -79,7 +65,7 @@ public interface ReceptionTask extends HostObject, XiaomingThread {
     }
 
     default String nextInput(long timeout, Function<Void, Void> onTimeout) {
-        final List<String> list = getRecentMessage();
+        final List<String> list = getRecentMessages();
         final int sizeBeforeWait = list.size();
         final long latestTime = System.currentTimeMillis() + timeout;
 
@@ -117,4 +103,8 @@ public interface ReceptionTask extends HostObject, XiaomingThread {
     default String nextInput() {
         return nextInput(NEXT_INPUT_MAX_WAIT_TIME);
     }
+
+    boolean isBusy();
+
+    boolean isRunning();
 }

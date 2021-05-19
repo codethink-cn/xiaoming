@@ -5,7 +5,7 @@ import com.chuanwise.xiaoming.api.preserve.Preservable;
 
 import java.io.File;
 
-public interface UserCallLimitManager extends Preservable<File>, XiaomingObject {
+public interface UserCallLimitManager extends XiaomingObject {
     UserCallLimiter getGroupCallLimiter();
 
     UserCallLimiter getPrivateCallLimiter();

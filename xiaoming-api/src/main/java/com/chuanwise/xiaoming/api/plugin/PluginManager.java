@@ -255,7 +255,7 @@ public interface PluginManager extends XiaomingObject, HostObject {
             // 卸载交互器
             getXiaomingBot().getInteractorManager().getPluginInteractors().remove(plugin);
             // 卸载监听器
-            getXiaomingBot().getEventListenerManager().remove(plugin);
+            getXiaomingBot().getEventManager().remove(plugin);
             user.sendMessage("插件{}卸载成功", plugin.getCompleteName());
             return true;
         } catch (Exception exception) {

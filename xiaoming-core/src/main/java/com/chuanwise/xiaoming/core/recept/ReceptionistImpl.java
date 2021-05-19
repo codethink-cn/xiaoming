@@ -8,10 +8,13 @@ import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import lombok.Getter;
 import lombok.Setter;
 import net.mamoe.mirai.contact.Friend;
+import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.Member;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,13 +26,12 @@ import java.util.concurrent.Executors;
 @Getter
 public class ReceptionistImpl extends HostObjectImpl implements Receptionist {
     final XiaomingUser user;
-    final ExecutorService threadPool;
+    final ExecutorService threadPool = Executors.newCachedThreadPool();
 
     public ReceptionistImpl(XiaomingUser user) {
         super(user.getXiaomingBot());
         this.user = user;
         user.setReceptionist(this);
-        threadPool = Executors.newFixedThreadPool(getXiaomingBot().getConfiguration().getMaxReceptThreadNumber());
     }
 
     /**
@@ -46,67 +48,46 @@ public class ReceptionistImpl extends HostObjectImpl implements Receptionist {
      * 私聊接待线程
      */
     @Setter
-    ReceptionTask privateTask, externalTask;
+    ReceptionTask privateTask;
 
     Map<String, ReceptionTask> receptionTasks = new ConcurrentHashMap<>();
 
     @Override
-    public void removePrivateTask() {
+    public void onGroupMessage(Member member, String message) {
+        final Group group = member.getGroup();
+
+        final ReceptionTask groupTask = getGroupTask(group.getId());
+        if (Objects.nonNull(groupTask)) {
+            groupTask.onMessage(message);
+        } else {
+            final List<String> messages = getUser().getOrPutRecentGroupMessages(group.getId());
+            messages.add(message);
+            threadPool.execute(ReceptionTaskImpl.groupTask(this, member));
+        }
+    }
+
+    @Override
+    public void onTempMessage(Member member, String message) {
+        final Group group = member.getGroup();
+
+        final ReceptionTask tempTask = getTempTask(group.getId());
+        if (Objects.nonNull(tempTask)) {
+            tempTask.onMessage(message);
+        } else {
+            final List<String> messages = getUser().getOrPutRecentTempMessages(group.getId());
+            messages.add(message);
+            threadPool.execute(ReceptionTaskImpl.tempTask(this, member));
+        }
+    }
+
+    @Override
+    public void onPrivateMessage(Friend friend, String message) {
         if (Objects.nonNull(privateTask)) {
-            receptionTasks.remove(privateTask.getThread().getName());
-            privateTask = null;
+            privateTask.onMessage(message);
+        } else {
+            final List<String> messages = getUser().getRecentPrivateMessage();
+            messages.add(message);
+            threadPool.execute(ReceptionTaskImpl.privateTask(this, friend));
         }
-    }
-
-    @Override
-    public void removeExternalTask() {
-        if (Objects.nonNull(externalTask)) {
-            receptionTasks.remove(externalTask.getThread().getName());
-            externalTask = null;
-        }
-    }
-
-    @Override
-    public ReceptionTask getOrPutExternalTask(Member member) {
-        ReceptionTask externalTask = getExternalTask();
-        if (Objects.isNull(externalTask)) {
-            externalTask = ReceptionTaskImpl.externalTask(this, member);
-            this.externalTask = externalTask;
-            getThreadPool().execute(externalTask);
-        }
-        return externalTask;
-    }
-
-    @Override
-    public ReceptionTask getOrPutGroupTask(ResponseGroup responseGroup, Member member) {
-        final long group = responseGroup.getCode();
-        ReceptionTask groupTask = getGroupTask(group);
-        if (Objects.isNull(groupTask)) {
-            groupTask = ReceptionTaskImpl.groupTask(this, member);
-            groupTasks.put(group, groupTask);
-            getThreadPool().execute(groupTask);
-        }
-        return groupTask;
-    }
-
-    @Override
-    public ReceptionTask getOrPutTempTask(ResponseGroup responseGroup, Member member) {
-        final long group = responseGroup.getCode();
-        ReceptionTask tempTask = getTempTask(group);
-        if (Objects.isNull(tempTask)) {
-            tempTask = ReceptionTaskImpl.tempTask(this, member);
-            tempTasks.put(group, tempTask);
-            getThreadPool().execute(tempTask);
-        }
-        return tempTask;
-    }
-
-    @Override
-    public ReceptionTask getOrPutPrivateTask(Friend friend) {
-        if (Objects.isNull(getPrivateTask())) {
-            privateTask = ReceptionTaskImpl.privateTask(this, friend);
-            getThreadPool().execute(privateTask);
-        }
-        return privateTask;
     }
 }

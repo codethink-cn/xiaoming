@@ -14,7 +14,7 @@ import java.util.Objects;
  * @author Chuanwise
  */
 public abstract class CallLimiterImpl<Key, Value extends CallRecord> implements CallLimiter<Key, Value> {
-    private transient CallLimitConfig config = null;
+    private transient CallLimitConfigImpl config = null;
 
     private final Map<Key, Value> records = new HashMap<>();
 
@@ -37,7 +37,7 @@ public abstract class CallLimiterImpl<Key, Value extends CallRecord> implements 
 
     @Override
     public void setConfig(CallLimitConfig config) {
-        this.config = config;
+        this.config = (CallLimitConfigImpl) config;
     }
 
     @Override

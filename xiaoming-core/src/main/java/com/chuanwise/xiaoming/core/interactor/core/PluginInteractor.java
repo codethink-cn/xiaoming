@@ -112,7 +112,7 @@ public class PluginInteractor extends CommandInteractorImpl {
             }
             builder.append("\n");
 
-            final Set<EventListener> pluginListeners = getXiaomingBot().getEventListenerManager().getPluginListeners(plugin);
+            final Set<EventListener> pluginListeners = getXiaomingBot().getEventManager().getPluginListeners(plugin);
             builder.append("监听器：");
             if (Objects.isNull(pluginListeners) || pluginListeners.isEmpty()) {
                 builder.append("（无）");

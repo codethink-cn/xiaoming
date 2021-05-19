@@ -437,7 +437,7 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
     }
 
     default List<String> getRecentMessages() {
-        return getReceptionTask().getRecentMessage();
+        return getReceptionTask().getRecentMessages();
     }
 
     /**
@@ -542,7 +542,7 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
         }
     }
 
-    default void setGroupMessage(long group, String message) {
+    default void onGroupMessage(long group, String message) {
         final List<String> list = getOrPutRecentGroupMessages(group);
         list.add(message);
         synchronized (list) {
@@ -593,7 +593,7 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
         }
     }
 
-    default void setPrivateMessage(String message) {
+    default void onPrivateMessage(String message) {
         final List<String> list = getRecentPrivateMessage();
         list.add(message);
         synchronized (list) {
@@ -602,7 +602,7 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
     }
 
     default ReceptionTask getReceptionTask() {
-        final ReceptionTask task = getReceptionist().getReceptionTasks().getOrDefault(Thread.currentThread().getName(), getExternalTask());
+        final ReceptionTask task = getReceptionist().getReceptionTasks().get(Thread.currentThread().getName());
         if (Objects.isNull(task)) {
             final Thread thread = Thread.currentThread();
             getLog().error("未知的线程获得一个调度任务：" + thread);
@@ -620,9 +620,5 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
 
     default ReceptionTask getTempTask(long group) {
         return getReceptionist().getTempTask(group);
-    }
-
-    default ReceptionTask getExternalTask() {
-        return getReceptionist().getExternalTask();
     }
 }

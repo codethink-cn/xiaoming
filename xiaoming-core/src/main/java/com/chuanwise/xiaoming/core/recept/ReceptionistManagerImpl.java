@@ -81,7 +81,6 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
                 );
 
                 limiter.setNoticed(qq);
-                getXiaomingBot().getRegularPreserveManager().readySave(getXiaomingBot().getUserCallLimitManager());
                 final Receptionist receptionist = getReceptionist(qq);
                 if (Objects.nonNull(receptionist)) {
                     receptionist.forceStop();
@@ -96,7 +95,6 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
     @Override
     @EventHandler
     public void onGroupMessageEvent(GroupMessageEvent event) {
-        final Group group = event.getGroup();
         final Member member = event.getSender();
 
         // 检查调用频率
@@ -104,25 +102,9 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
             return;
         }
 
-        final ResponseGroup responseGroup = getXiaomingBot().getResponseGroupManager().forCode(group.getId());
-
         final long qq = member.getId();
         final Receptionist receptionist = getOrPutReceptionist(qq);
-        final ReceptionTask groupTask = receptionist.getGroupTask(group.getId());
-        final ReceptionTask externalTask = receptionist.getExternalTask();
-
-        // 不是响应群就算了
-        if (Objects.isNull(responseGroup)) {
-            if (Objects.nonNull(groupTask)) {
-                groupTask.optimize();
-            }
-            receptionist.getOrPutExternalTask(member).onMessage(event.getMessage().serializeToMiraiCode());
-        } else {
-            if (Objects.nonNull(externalTask) && externalTask.getMember().getGroup().getId() == group.getId()) {
-                externalTask.optimize();
-            }
-            receptionist.getOrPutGroupTask(responseGroup, member).onMessage(event.getMessage().serializeToMiraiCode());
-        }
+        receptionist.onGroupMessage(member, event.getMessage().serializeToMiraiCode());
     }
 
     @Override
@@ -137,10 +119,8 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
 
         // 查找该用户的接待员
         final long qq = friend.getId();
-
         final Receptionist receptionist = getOrPutReceptionist(qq);
-
-        receptionist.getOrPutPrivateTask(friend).onMessage(event.getMessage().serializeToMiraiCode());
+        receptionist.onPrivateMessage(friend, event.getMessage().serializeToMiraiCode());
     }
 
     @Override
@@ -154,17 +134,10 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
             return;
         }
 
-        final ResponseGroup responseGroup = getXiaomingBot().getResponseGroupManager().forCode(group.getId());
-
-        // 不是响应群就算了
-        if (Objects.isNull(responseGroup)) {
-            return;
-        }
-
         // 查找该用户的接待员
         final long qq = member.getId();
         final Receptionist receptionist = getOrPutReceptionist(qq);
 
-        receptionist.getOrPutTempTask(responseGroup, member).onMessage(event.getMessage().serializeToMiraiCode());
+        receptionist.onTempMessage(member, event.getMessage().serializeToMiraiCode());
     }
 }

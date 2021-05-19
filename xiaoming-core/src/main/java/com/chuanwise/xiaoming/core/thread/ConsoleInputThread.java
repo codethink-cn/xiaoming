@@ -68,7 +68,7 @@ public class ConsoleInputThread extends HostObjectImpl implements XiaomingThread
                         final long qq = Long.parseLong(privateMatcher.group("qq"));
                         final Friend friend = miraiBot.getFriend(qq);
                         if (Objects.nonNull(friend)) {
-                            consoleReceptionist.getOrPutPrivateTask(friend).onMessage(privateMatcher.group("content"));
+                            consoleReceptionist.onPrivateMessage(friend, privateMatcher.group("content"));
                             camouflaged = true;
                         } else {
                             consoleUser.sendError("小明没有找到好友 {} 哦", qq);
@@ -85,7 +85,7 @@ public class ConsoleInputThread extends HostObjectImpl implements XiaomingThread
                             if (Objects.nonNull(miraiBotGroup)) {
                                 final NormalMember miraiBotMember = miraiBotGroup.getOrFail(qq);
                                 if (Objects.nonNull(miraiBotMember)) {
-                                    consoleReceptionist.getOrPutGroupTask(group, miraiBotMember).onMessage(privateMatcher.group("content"));
+                                    consoleReceptionist.onGroupMessage(miraiBotMember, matcher.group("content"));
                                     camouflaged = true;
                                 } else {
                                     consoleUser.sendError("小明没有在 QQ 群 {} 中找到用户 {} 哦", miraiBotGroup.getName(), qq);
@@ -106,7 +106,7 @@ public class ConsoleInputThread extends HostObjectImpl implements XiaomingThread
                             if (Objects.nonNull(miraiBotGroup)) {
                                 final NormalMember miraiBotMember = miraiBotGroup.getOrFail(qq);
                                 if (Objects.nonNull(miraiBotMember)) {
-                                    consoleReceptionist.getOrPutTempTask(group, miraiBotMember).onMessage(privateMatcher.group("content"));
+                                    consoleReceptionist.onTempMessage(miraiBotMember, matcher.group("content"));
                                     camouflaged = true;
                                 } else {
                                     consoleUser.sendError("小明没有在 QQ 群 {} 中找到用户 {} 哦", miraiBotGroup.getName(), qq);
@@ -125,7 +125,7 @@ public class ConsoleInputThread extends HostObjectImpl implements XiaomingThread
                         consoleUser.sendWarn("不伪装时，身份默认为小明本人和自己的私聊");
                         warned = true;
                     }
-                    consoleReceptionist.getOrPutPrivateTask(miraiBot.getAsFriend()).onMessage(message);
+                    consoleReceptionist.onPrivateMessage(miraiBot.getAsFriend(), message);
                 }
             }
         }

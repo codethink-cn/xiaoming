@@ -29,12 +29,7 @@ public class JsonSerializerUtil {
         // 直接填充 field
         objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
         // 序列化不明确的类时，写上类名
-        /*
-        objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance ,
-                ObjectMapper.DefaultTyping.OBJECT_AND_NON_CONCRETE, JsonTypeInfo.As.PROPERTY);
-
-         */
-
+        // objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance , ObjectMapper.DefaultTyping.NON_CONCRETE_AND_ARRAYS, JsonTypeInfo.As.EXISTING_PROPERTY);
     }
 
     public <T> T readValue(final InputStream inputStream,
