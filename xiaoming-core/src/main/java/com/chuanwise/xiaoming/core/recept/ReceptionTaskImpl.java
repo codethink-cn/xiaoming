@@ -175,10 +175,10 @@ public class ReceptionTaskImpl extends HostObjectImpl implements ReceptionTask {
             busy = true;
             recept();
         } catch (ReceptCancelledException | InteractorTimeoutException exception) {
-        } catch (Exception exception) {
-            getLog().error("和用户" + user.getCompleteName() + "交互时出现异常", exception);
+        } catch (Throwable throwable) {
+            getLog().error("和用户" + user.getCompleteName() + "交互时出现异常", throwable);
             user.sendPrivateError("小明遇到了一个问题，这个问题已经上报了，期待更好的小明吧 {}", getXiaomingBot().getWordManager().get("happy"));
-            getXiaomingBot().getReportMessageManager().addThrowableMessage(user, exception);
+            getXiaomingBot().getReportMessageManager().addThrowableMessage(user, throwable);
         } finally {
             busy = false;
         }

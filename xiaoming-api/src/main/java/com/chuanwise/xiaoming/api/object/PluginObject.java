@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.api.object;
 
+import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,5 +23,10 @@ public interface PluginObject extends XiaomingObject {
         } else {
             return LoggerFactory.getLogger(getClass());
         }
+    }
+
+    @Override
+    default XiaomingBot getXiaomingBot() {
+        return getPlugin().getXiaomingBot();
     }
 }
