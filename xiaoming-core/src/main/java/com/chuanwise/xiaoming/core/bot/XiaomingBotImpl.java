@@ -39,6 +39,8 @@ import com.chuanwise.xiaoming.core.thread.FinalizerImpl;
 import com.chuanwise.xiaoming.core.config.ConfigurationImpl;
 import com.chuanwise.xiaoming.core.config.StatisticianImpl;
 import com.chuanwise.xiaoming.core.time.TimeTaskManagerImpl;
+import com.chuanwise.xiaoming.core.time.task.RegularFileSaveTask;
+import com.chuanwise.xiaoming.core.time.task.TimeTaskImpl;
 import com.chuanwise.xiaoming.core.url.PictureUrlManagerImpl;
 import com.chuanwise.xiaoming.core.recept.ReceptionistManagerImpl;
 import com.chuanwise.xiaoming.core.user.ConsoleXiaomingUserImpl;
@@ -365,6 +367,9 @@ public class XiaomingBotImpl implements XiaomingBot {
                         .loadOrProduce(TimeTaskManagerImpl.class, new File(configDirectory, "timer-tasks.json"), TimeTaskManagerImpl::new);
                 timeTaskManager.setXiaomingBot(this);
                 mainThreadPool.execute(timeTaskManager);
+                final RegularFileSaveTask fileSaveTask = new RegularFileSaveTask();
+                fileSaveTask.setTime(System.currentTimeMillis() + fileSaveTask.getPeriod());
+                timeTaskManager.addTask(fileSaveTask);
                 return true;
             case "configuration":
                 configuration = filePreservableFactory

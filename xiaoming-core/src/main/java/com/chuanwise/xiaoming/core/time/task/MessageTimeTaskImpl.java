@@ -32,7 +32,7 @@ public class MessageTimeTaskImpl extends TimeTaskImpl implements MessageTimeTask
                 final Receptionist receptionist = getXiaomingBot().getReceptionistManager().getOrPutReceptionist(qq);
                 receptionist.onGroupMessage(member, message);
             }
-            access = true;
+            success = true;
         } catch (Exception exception) {
             exception.printStackTrace();
         }

@@ -2,20 +2,23 @@ package com.chuanwise.xiaoming.api.time.task;
 
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 
-public interface TimeTask extends XiaomingObject, Runnable {
+
+public interface TimeTask extends XiaomingObject, Runnable, Cloneable {
     long getTime();
 
     long getPeriod();
 
-    boolean isAccess();
+    boolean isSuccess();
 
     void setTime(long time);
 
     void setPeriod(long period);
 
-    void setAccess(boolean access);
+    void setSuccess(boolean success);
 
     String getDescription();
 
     boolean isPeriodic();
+
+    public Object clone() throws CloneNotSupportedException;
 }

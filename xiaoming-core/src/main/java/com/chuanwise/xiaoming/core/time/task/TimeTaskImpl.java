@@ -8,11 +8,16 @@ import lombok.Data;
 public abstract class TimeTaskImpl extends XiaomingObjectImpl implements TimeTask {
     long time;
     long period = -1;
-    boolean access = false;
+    boolean success = false;
     String description = "（无描述）";
 
     @Override
     public boolean isPeriodic() {
         return period > 0;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

@@ -38,14 +38,6 @@ public class TimeTaskManagerImpl extends JsonFilePreservable implements TimeTask
     }
 
     @Override
-    public void addTask(TimeTask task) {
-        tasks.add(task);
-        synchronized (tasks) {
-            tasks.notifyAll();
-        }
-    }
-
-    @Override
     public void run() {
         running = true;
         while (!getXiaomingBot().isStop() && running) {
@@ -70,6 +62,16 @@ public class TimeTaskManagerImpl extends JsonFilePreservable implements TimeTask
                 if (System.currentTimeMillis() >= nearestTask.getPeriod()) {
                     tasks.remove(nearestTask);
                     getXiaomingBot().execute(nearestTask::run);
+                    histories.add(nearestTask);
+                    if (nearestTask.isPeriodic()) {
+                        try {
+                            final TimeTask nextTimeTask = (TimeTask) nearestTask.clone();
+                            nextTimeTask.setTime(System.currentTimeMillis() + nearestTask.getPeriod());
+                            addTask(nextTimeTask);
+                        } catch (CloneNotSupportedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             } else {
                 synchronized (tasks) {

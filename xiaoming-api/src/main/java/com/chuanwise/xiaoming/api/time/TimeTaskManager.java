@@ -9,7 +9,14 @@ import java.io.File;
 import java.util.List;
 
 public interface TimeTaskManager extends XiaomingThread, HostObject, Preservable<File> {
-    void addTask(TimeTask task);
+    default void addTask(TimeTask task) {
+        final List<TimeTask> tasks = getTasks();
+        task.setXiaomingBot(getXiaomingBot());
+        tasks.add(task);
+        synchronized (tasks) {
+            tasks.notifyAll();
+        }
+    }
 
     List<TimeTask> getTasks();
 }
