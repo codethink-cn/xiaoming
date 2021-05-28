@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.api.util;
 
+import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -11,6 +12,9 @@ import lombok.Getter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * @author Chuanwise
@@ -29,26 +33,23 @@ public class JsonSerializerUtil {
         // 直接填充 field
         objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
         // 序列化不明确的类时，写上类名
-        // objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance , ObjectMapper.DefaultTyping.NON_CONCRETE_AND_ARRAYS, JsonTypeInfo.As.EXISTING_PROPERTY);
+        objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance , ObjectMapper.DefaultTyping.NON_CONCRETE_AND_ARRAYS, JsonTypeInfo.As.PROPERTY);
     }
 
     public <T> T readValue(final InputStream inputStream,
                            final Class<T> clazz)
             throws IOException {
         return objectMapper.readValue(inputStream, clazz);
-        // return JSON.parseObject(inputStream, clazz);
     }
 
     public void writeValue(final OutputStream outputStream,
                            final Object object)
             throws IOException {
-        // JSON.writeJSONString(outputStream, object, FEATURES);
         objectMapper.writeValue(outputStream, object);
     }
 
     public <T> T convert(final Object o, Class<T> clazz) {
         return objectMapper.convertValue(o, clazz);
-        // return JSON.parseArray(JSON.toJSONString(o, FEATURES), clazz).get(0);
     }
 
     public String toJsonString(final Object o) {

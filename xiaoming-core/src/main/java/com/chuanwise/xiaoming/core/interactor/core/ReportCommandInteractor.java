@@ -43,7 +43,7 @@ public class ReportCommandInteractor extends CommandInteractorImpl {
         user.sendPrivateMessage(builder.toString());
     }
 
-    @Filter(CommandWords.RECENT_REGEX + CommandWords.MESSAGE_REGEX)
+    @Filter(CommandWords.RECENT + CommandWords.MESSAGE)
     @RequirePermission("message.look")
     public void onLookLastMessage(XiaomingUser user) {
         if (reportMessages.isEmpty()) {
@@ -51,7 +51,7 @@ public class ReportCommandInteractor extends CommandInteractorImpl {
         } else if (reportMessages.size() == 1) {
             onShowErrorMessage(user, reportMessages.get(0));
             reportMessages.clear();
-            getXiaomingBot().getRegularPreserveManager().readySave(reportMessageManager);
+            getXiaomingBot().getFinalizer().readySave(reportMessageManager);
         } else {
             StringBuilder builder = new StringBuilder()
                     .append("一共有 ").append(reportMessages.size()).append(" 个未经查看的消息");
@@ -68,7 +68,7 @@ public class ReportCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @Filter(CommandWords.RECENT_REGEX + CommandWords.MESSAGE_REGEX + " {index}")
+    @Filter(CommandWords.RECENT + CommandWords.MESSAGE + " {index}")
     @RequirePermission("message.look")
     public void onLookMessage(XiaomingUser user,
                                 @FilterParameter("index") final String indexString) {
@@ -93,18 +93,18 @@ public class ReportCommandInteractor extends CommandInteractorImpl {
             final ReportMessage reportMessage = reportMessages.get(index - 1);
             onShowErrorMessage(user, reportMessage);
             reportMessages.remove(reportMessage);
-            getXiaomingBot().getRegularPreserveManager().readySave(reportMessageManager);
+            getXiaomingBot().getFinalizer().readySave(reportMessageManager);
         }
     }
 
-    @Filter(CommandWords.CLEAR_REGEX + CommandWords.RECENT_REGEX + CommandWords.MESSAGE_REGEX)
+    @Filter(CommandWords.CLEAR + CommandWords.RECENT + CommandWords.MESSAGE)
     @RequirePermission("message.clear")
     public void onClearMessage(XiaomingUser user) {
         if (reportMessages.isEmpty()) {
             user.sendMessage("并没有需要清除的未经查看的消息哦");
         } else {
             reportMessages.clear();
-            getXiaomingBot().getRegularPreserveManager().readySave(reportMessageManager);
+            getXiaomingBot().getFinalizer().readySave(reportMessageManager);
             user.sendMessage("成功清除未经查看的消息");
         }
     }

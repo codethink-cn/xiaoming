@@ -28,7 +28,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
         setExternalUse(true);
     }
 
-    @Filter(CommandWords.USE_REGEX + CommandWords.XIAOMING_REGEX)
+    @Filter(CommandWords.USE + CommandWords.XIAOMING)
     @RequirePermission("enable")
     public void onUseXiaoming(XiaomingUser user) {
         final Configuration config = getXiaomingBot().getConfiguration();
@@ -41,21 +41,21 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
                 user.sendPrivateMessage(getXiaomingBot().getTextManager().loadOrFail(config.getLicenseName()));
                 user.sendPrivateMessage("如果你同意上述协议，请告诉我「同意」");
 
-                final String nextInput = user.nextInput();
+                final String nextInput = user.nextGlobalInput();
                 if (Objects.equals(nextInput, "同意")) {
                     user.sendMessage("你已经可以使用小明了，未来记得遵守我们的约定");
                     licenceManager.agree(qq);
                 } else {
                     user.sendMessage("如果未来希望使用小明，仍然可以告诉我「使用小明」");
                 }
-                getXiaomingBot().getRegularPreserveManager().readySave(licenceManager);
+                getXiaomingBot().getFinalizer().readySave(licenceManager);
             }
         } else {
             user.sendMessage("不需要专门启动小明哦，小明为人民服务 {}", getXiaomingBot().getWordManager().get("happy"));
         }
     }
 
-    @Filter(CommandWords.CANCEL_REGEX + CommandWords.USE_REGEX + CommandWords.XIAOMING_REGEX)
+    @Filter(CommandWords.CANCEL + CommandWords.USE + CommandWords.XIAOMING)
     @RequirePermission("disable")
     public void onCancelUseXiaoming(XiaomingUser user) {
         final Configuration config = getXiaomingBot().getConfiguration();
@@ -65,7 +65,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
             if (licenceManager.isAgreed(qq)) {
                 licenceManager.remove(qq);
                 user.sendMessage("已取消使用小明。如果未来希望使用小明，仍然可以告诉我「使用小明」");
-                getXiaomingBot().getRegularPreserveManager().readySave(licenceManager);
+                getXiaomingBot().getFinalizer().readySave(licenceManager);
             } else {
                 user.sendMessage("此前你并未同意《小明使用须知》");
             }
@@ -75,7 +75,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
     }
 
     @GroupInteractor
-    @Filter(CommandWords.THIS_REGEX + CommandWords.GROUP_REGEX + CommandWords.ENABLE_REGEX + CommandWords.XIAOMING_REGEX)
+    @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.ENABLE + CommandWords.XIAOMING)
     @RequirePermission("group.enable")
     public void onEnableXiaoming(XiaomingUser user) {
         final Group group = user.getGroup();
@@ -85,7 +85,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
         if (Objects.isNull(responseGroup)) {
             responseGroup = new ResponseGroupImpl(group.getId(), group.getName());
             responseGroupManager.addGroup(responseGroup);
-            getXiaomingBot().getRegularPreserveManager().readySave(responseGroupManager);
+            getXiaomingBot().getFinalizer().readySave(responseGroupManager);
         }
 
         if (responseGroup.hasTag(ENABLE_TAG)) {
@@ -93,12 +93,12 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
         } else {
             responseGroup.addTag(ENABLE_TAG);
             user.sendMessage("成功在本群启用小明 (๑•̀ㅂ•́)و✧");
-            getXiaomingBot().getRegularPreserveManager().readySave(responseGroupManager);
+            getXiaomingBot().getFinalizer().readySave(responseGroupManager);
         }
     }
 
     @GroupInteractor
-    @Filter(CommandWords.THIS_REGEX + CommandWords.GROUP_REGEX + CommandWords.DISABLE_REGEX + CommandWords.XIAOMING_REGEX)
+    @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.DISABLE + CommandWords.XIAOMING)
     @RequirePermission("group.disable")
     public void onDisableXiaoming(XiaomingUser user) {
         final Group group = user.getAsGroupMember().getGroup();
@@ -114,7 +114,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
             user.sendMessage("本群不再是小明的响应群啦。未来希望启动小明输入 #启动小明 就可以啦。");
         } else {
             user.sendWarn("本群曾是小明的响应群，但是现在还不是哦");
-            getXiaomingBot().getRegularPreserveManager().readySave(responseGroupManager);
+            getXiaomingBot().getFinalizer().readySave(responseGroupManager);
         }
     }
 }

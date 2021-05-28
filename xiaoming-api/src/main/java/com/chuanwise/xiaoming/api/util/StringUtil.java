@@ -1,6 +1,7 @@
 package com.chuanwise.xiaoming.api.util;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
@@ -33,16 +34,15 @@ public class StringUtil {
         return builder.toString();
     }
 
-    public static <T> String getCollectionSummary(Collection<T> collection, Function<T, String> consumer) {
-        if (collection.isEmpty()) {
-            return "（无）";
-        } else if (collection.size() == 1) {
-            return consumer.apply(collection.iterator().next());
+    public static <T> String getCollectionSummary(Iterable<T> iterable, Function<T, String> consumer, String prefix, String empty, String spliter) {
+        final Iterator<T> iterator = iterable.iterator();
+        if (!iterator.hasNext()) {
+            return empty;
         } else {
-            StringBuilder builder = new StringBuilder();
-            for (T t : collection) {
-                if (builder.length() != 0) {
-                    builder.append("\n");
+            StringBuilder builder = new StringBuilder(prefix);
+            for (T t : iterable) {
+                if (builder.length() != prefix.length()) {
+                    builder.append(spliter);
                 }
                 builder.append(consumer.apply(t));
             }
@@ -50,7 +50,11 @@ public class StringUtil {
         }
     }
 
-    public static <T> String getCollectionSummary(Collection<T> collection) {
-        return getCollectionSummary(collection, Objects::toString);
+    public static <T> String getCollectionSummary(Iterable<T> iterable, Function<T, String> consumer) {
+        return getCollectionSummary(iterable, consumer, "", "（无）", "\n");
+    }
+
+    public static <T> String getCollectionSummary(Iterable<T> iterable) {
+        return getCollectionSummary(iterable, Objects::toString);
     }
 }

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -22,6 +23,19 @@ public interface XiaomingPlugin extends XiaomingObject {
      */
     default String getName() {
         return getProperty().getName();
+    }
+
+    default String getAlias() {
+        final Object alias = getProperty().get("alias");
+        if (alias instanceof String) {
+            return ((String) alias);
+        } else if (alias instanceof List && !((List<?>) alias).isEmpty()) {
+            final Object firstObject = ((List<?>) alias).get(0);
+            if (firstObject instanceof String) {
+                return ((String) firstObject);
+            }
+        }
+        return getName();
     }
 
     /**

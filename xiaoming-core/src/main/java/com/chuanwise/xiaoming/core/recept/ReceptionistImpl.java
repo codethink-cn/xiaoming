@@ -1,7 +1,6 @@
 package com.chuanwise.xiaoming.core.recept;
 
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
-import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
@@ -61,8 +60,13 @@ public class ReceptionistImpl extends HostObjectImpl implements Receptionist {
             groupTask.onMessage(message);
         } else {
             final List<String> messages = getUser().getOrPutRecentGroupMessages(group.getId());
-            messages.add(message);
+            messages.add(message.trim());
+            getUser().setGlobalNextMessage(messages);
             threadPool.execute(ReceptionTaskImpl.groupTask(this, member));
+        }
+        final Set<Thread> globalMessageWaiter = getUser().getGlobalMessageWaiter();
+        synchronized (globalMessageWaiter) {
+            globalMessageWaiter.notifyAll();
         }
     }
 
@@ -75,8 +79,13 @@ public class ReceptionistImpl extends HostObjectImpl implements Receptionist {
             tempTask.onMessage(message);
         } else {
             final List<String> messages = getUser().getOrPutRecentTempMessages(group.getId());
-            messages.add(message);
+            messages.add(message.trim());
+            getUser().setGlobalNextMessage(messages);
             threadPool.execute(ReceptionTaskImpl.tempTask(this, member));
+        }
+        final Set<Thread> globalMessageWaiter = getUser().getGlobalMessageWaiter();
+        synchronized (globalMessageWaiter) {
+            globalMessageWaiter.notifyAll();
         }
     }
 
@@ -86,8 +95,13 @@ public class ReceptionistImpl extends HostObjectImpl implements Receptionist {
             privateTask.onMessage(message);
         } else {
             final List<String> messages = getUser().getRecentPrivateMessage();
-            messages.add(message);
+            messages.add(message.trim());
+            getUser().setGlobalNextMessage(messages);
             threadPool.execute(ReceptionTaskImpl.privateTask(this, friend));
+        }
+        final Set<Thread> globalMessageWaiter = getUser().getGlobalMessageWaiter();
+        synchronized (globalMessageWaiter) {
+            globalMessageWaiter.notifyAll();
         }
     }
 }

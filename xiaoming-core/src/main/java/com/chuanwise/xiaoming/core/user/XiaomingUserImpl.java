@@ -11,6 +11,7 @@ import lombok.Setter;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * 小明的使用者对象
@@ -45,6 +46,11 @@ public class XiaomingUserImpl extends HostObjectImpl implements XiaomingUser {
     Map<String, Object> properties = new ConcurrentHashMap<>();
 
     Map<String, Set<Thread>> propertyWaiters = new ConcurrentHashMap<>();
+
+    Set<Thread> globalMessageWaiter = new CopyOnWriteArraySet<>();
+
+    @Setter
+    List<String> globalNextMessage;
 
     Map<Long, List<String>> recentGroupMessages = new ConcurrentHashMap<>();
 

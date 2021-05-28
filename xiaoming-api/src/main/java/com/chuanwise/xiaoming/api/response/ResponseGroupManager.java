@@ -27,7 +27,7 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
         if (Objects.nonNull(responseGroup)) {
             return responseGroup.hasTag(tag);
         } else {
-            return Objects.equals(group + "", tag);
+            return Objects.equals(group + "", tag) || Objects.equals(tag, "unrecorded");
         }
     }
 

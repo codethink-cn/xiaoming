@@ -57,7 +57,7 @@ public class WordCommandInteractor extends CommandInteractorImpl {
         user.sendMessage(builder.toString());
     }
 
-    @Filter(WORD + " {key} " + CommandWords.NEW_REGEX + " {remain}")
+    @Filter(WORD + " {key} " + CommandWords.NEW + " {remain}")
     @RequirePermission("emoji.add")
     public void onAddEmoji(XiaomingUser user,
                            @FilterParameter("key") final String key,
@@ -74,6 +74,6 @@ public class WordCommandInteractor extends CommandInteractorImpl {
         }
         emojiSet.add(emoji);
         user.sendMessage("成功添加了{}类型单词：{}", key, emoji);
-        getXiaomingBot().getRegularPreserveManager().readySave(wordManager);
+        getXiaomingBot().getFinalizer().readySave(wordManager);
     }
 }

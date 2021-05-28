@@ -1,20 +1,30 @@
 package com.chuanwise.xiaoming.core.time;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.object.XiaomingThread;
+import com.chuanwise.xiaoming.api.time.TimeTaskManager;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
-import com.chuanwise.xiaoming.core.time.task.TimeTask;
+import com.chuanwise.xiaoming.api.time.task.TimeTask;
+import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-public class TimeTaskManager extends HostObjectImpl implements XiaomingThread {
-    Set<TimeTask> tasks = new CopyOnWriteArraySet<>();
+@Slf4j
+@Data
+public class TimeTaskManagerImpl extends JsonFilePreservable implements TimeTaskManager {
+    List<TimeTask> tasks = new CopyOnWriteArrayList<>();
 
     Set<TimeTask> histories = new HashSet<>();
 
-    public TimeTaskManager(XiaomingBot xiaomingBot) {
-        super(xiaomingBot);
+    XiaomingBot xiaomingBot;
+
+    @Override
+    public Logger getLog() {
+        return log;
     }
 
     volatile boolean running = false;
@@ -22,6 +32,14 @@ public class TimeTaskManager extends HostObjectImpl implements XiaomingThread {
     @Override
     public void stop() {
         running = false;
+        synchronized (tasks) {
+            tasks.notifyAll();
+        }
+    }
+
+    @Override
+    public void addTask(TimeTask task) {
+        tasks.add(task);
         synchronized (tasks) {
             tasks.notifyAll();
         }
@@ -61,6 +79,13 @@ public class TimeTaskManager extends HostObjectImpl implements XiaomingThread {
                     }
                 }
             }
+        }
+    }
+
+    public void setTasks(List<TimeTask> tasks) {
+        this.tasks = tasks;
+        for (TimeTask task : tasks) {
+            task.setXiaomingBot(getXiaomingBot());
         }
     }
 }

@@ -81,8 +81,7 @@ public class XiaomingHost {
 
             return start();
         } catch (Exception exception) {
-            exception.printStackTrace();
-            log.error("小明启动失败");
+            log.error(exception.getMessage(), exception);
             return false;
         }
     }

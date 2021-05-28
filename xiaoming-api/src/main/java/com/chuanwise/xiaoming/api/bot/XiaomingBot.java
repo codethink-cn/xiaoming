@@ -10,6 +10,7 @@ import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.object.XiaomingThread;
 import com.chuanwise.xiaoming.api.text.TextManager;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
+import com.chuanwise.xiaoming.api.time.TimeTaskManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.word.WordManager;
 import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
@@ -17,7 +18,7 @@ import com.chuanwise.xiaoming.api.permission.PermissionManager;
 import com.chuanwise.xiaoming.api.plugin.PluginManager;
 import com.chuanwise.xiaoming.api.preserve.PreservableFactory;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
-import com.chuanwise.xiaoming.api.thread.RegularPreserveManager;
+import com.chuanwise.xiaoming.api.thread.Finalizer;
 import net.mamoe.mirai.Bot;
 import org.slf4j.Logger;
 
@@ -75,7 +76,7 @@ public interface XiaomingBot {
 
     Statistician getStatistician();
 
-    RegularPreserveManager getRegularPreserveManager();
+    Finalizer getFinalizer();
 
     XiaomingUser getConsoleXiaomingUser();
 
@@ -94,4 +95,6 @@ public interface XiaomingBot {
     Logger getLog();
 
     LicenseManager getLicenseManager();
+
+    TimeTaskManager getTimeTaskManager();
 }

@@ -32,7 +32,7 @@ public class PluginInteractor extends CommandInteractorImpl {
         pluginManager = xiaomingBot.getPluginManager();
     }
 
-    @Filter(CommandWords.PLUGIN_REGEX)
+    @Filter(CommandWords.PLUGIN)
     @RequirePermission("plugin.list")
     public void onListPlugins(XiaomingUser user) {
         final Set<XiaomingPlugin> enabledPlugins = pluginManager.getEnabledPlugins();
@@ -85,14 +85,14 @@ public class PluginInteractor extends CommandInteractorImpl {
         user.sendMessage(builder.toString());
     }
 
-    @Filter(FLUSH + CommandWords.PLUGIN_REGEX)
+    @Filter(FLUSH + CommandWords.PLUGIN)
     @RequirePermission("plugin.flush")
     public void onFlushPlugins(XiaomingUser user) {
         pluginManager.flushPluginMap(user);
         user.sendMessage("插件列表刷新完成");
     }
 
-    @Filter(CommandWords.PLUGIN_REGEX + " {name}")
+    @Filter(CommandWords.PLUGIN + " {name}")
     @RequirePermission("plugin.look")
     public void onLookPlugins(XiaomingUser user, @FilterParameter("name") String pluginName) {
         final XiaomingPlugin plugin = pluginManager.getLoadedPlugin(pluginName);
@@ -131,37 +131,37 @@ public class PluginInteractor extends CommandInteractorImpl {
         }
     }
 
-    @Filter(UNLOAD + CommandWords.PLUGIN_REGEX + " {name}")
+    @Filter(UNLOAD + CommandWords.PLUGIN + " {name}")
     @RequirePermission("plugin.unload")
     public void onUnloadPlugin(XiaomingUser user, @FilterParameter("name") String pluginName) {
         pluginManager.unloadPlugin(user, pluginName);
     }
 
-    @Filter(LOAD + CommandWords.PLUGIN_REGEX + " {name}")
+    @Filter(LOAD + CommandWords.PLUGIN + " {name}")
     @RequirePermission("plugin.load")
     public void onLoadPlugin(XiaomingUser user, @FilterParameter("name") String pluginName) {
         pluginManager.loadPlugin(user, pluginName);
     }
 
-    @Filter(ENABLE + CommandWords.PLUGIN_REGEX + " {name}")
+    @Filter(ENABLE + CommandWords.PLUGIN + " {name}")
     @RequirePermission("plugin.enable")
     public void onEnablePlugin(XiaomingUser user, @FilterParameter("name") String pluginName) {
         pluginManager.enablePlugin(user, pluginName);
     }
 
-    @Filter(DISABLE + CommandWords.PLUGIN_REGEX + " {name}")
+    @Filter(DISABLE + CommandWords.PLUGIN + " {name}")
     @RequirePermission("plugin.disable")
     public void onDisablePlugin(XiaomingUser user, @FilterParameter("name") String pluginName) {
         pluginManager.disablePlugin(user, pluginName);
     }
 
-    @Filter(RELOAD + CommandWords.PLUGIN_REGEX + " {name}")
+    @Filter(RELOAD + CommandWords.PLUGIN + " {name}")
     @RequirePermission("plugin.reload")
     public void onReloadPlugin(XiaomingUser user, @FilterParameter("name") String pluginName) {
         pluginManager.reloadPlugin(user, pluginName);
     }
 
-    @Filter(REENABLE + CommandWords.PLUGIN_REGEX + " {name}")
+    @Filter(REENABLE + CommandWords.PLUGIN + " {name}")
     @RequirePermission("plugin.reenable")
     public void onReenablePlugin(XiaomingUser user, @FilterParameter("name") String pluginName) {
         pluginManager.reenablePlugin(user, pluginName);

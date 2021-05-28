@@ -12,9 +12,10 @@ import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.object.XiaomingThread;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
-import com.chuanwise.xiaoming.api.text.TextManager;
-import com.chuanwise.xiaoming.api.url.PictureUrlManager;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
+import com.chuanwise.xiaoming.api.text.TextManager;
+import com.chuanwise.xiaoming.api.time.TimeTaskManager;
+import com.chuanwise.xiaoming.api.url.PictureUrlManager;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.TimeUtil;
@@ -24,7 +25,7 @@ import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
 import com.chuanwise.xiaoming.api.plugin.PluginManager;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
-import com.chuanwise.xiaoming.api.thread.RegularPreserveManager;
+import com.chuanwise.xiaoming.api.thread.Finalizer;
 import com.chuanwise.xiaoming.core.account.AccountManagerImpl;
 import com.chuanwise.xiaoming.core.error.ReportMessageManagerImpl;
 import com.chuanwise.xiaoming.core.interactor.core.ReportInteractor;
@@ -34,9 +35,10 @@ import com.chuanwise.xiaoming.core.license.LicenceManagerImpl;
 import com.chuanwise.xiaoming.core.response.ResponseGroupManagerImpl;
 import com.chuanwise.xiaoming.core.text.TextManagerImpl;
 import com.chuanwise.xiaoming.core.thread.ConsoleInputThread;
-import com.chuanwise.xiaoming.core.thread.RegularPreserveManagerImpl;
+import com.chuanwise.xiaoming.core.thread.FinalizerImpl;
 import com.chuanwise.xiaoming.core.config.ConfigurationImpl;
 import com.chuanwise.xiaoming.core.config.StatisticianImpl;
+import com.chuanwise.xiaoming.core.time.TimeTaskManagerImpl;
 import com.chuanwise.xiaoming.core.url.PictureUrlManagerImpl;
 import com.chuanwise.xiaoming.core.recept.ReceptionistManagerImpl;
 import com.chuanwise.xiaoming.core.user.ConsoleXiaomingUserImpl;
@@ -64,10 +66,7 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -136,7 +135,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         load("statistician");
         load("responseGroupManager");
         load("accountManager");
-        load("regularPreserveManager");
+        load("finalizer");
         load("statistician");
         load("permissionManager");
         load("wordManager");
@@ -151,6 +150,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         load("receptionistManager");
         load("licenseManager");
         load("consoleInputThread");
+        load("timeTaskManager");
     }
 
     /**
@@ -208,6 +208,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         interactorManager.register(new TextCommandInteractor(this), null);
 
         interactorManager.register(new PluginInteractor(this), null);
+        interactorManager.register(new TimeTaskInteractor(), null);
         interactorManager.register(new AccountCommandInteractor(this), null);
         interactorManager.register(new ReportCommandInteractor(this), null);
         interactorManager.register(new CallLimitCommandInteractor(this), null);
@@ -215,6 +216,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         interactorManager.register(new PermissionCommandInteractor(this), null);
         interactorManager.register(new ResponseGroupCommandInteractor(this), null);
         interactorManager.register(new WordCommandInteractor(this), null);
+
         // 注册内核交互器
         interactorManager.register(new ReportInteractor(), null);
         interactorManager.denyCoreRegister();
@@ -226,6 +228,8 @@ public class XiaomingBotImpl implements XiaomingBot {
         // 设置调用限制
         userCallLimitManager.getGroupCallLimiter().setConfig(configuration.getGroupCallConfig());
         userCallLimitManager.getPrivateCallLimiter().setConfig(configuration.getPrivateCallConfig());
+
+        execute(timeTaskManager);
     }
 
     void initialize() {
@@ -283,7 +287,7 @@ public class XiaomingBotImpl implements XiaomingBot {
      * 小明启动后的一些操作
      */
     void post() {
-        responseGroupManager.sendMessageToTaggedGroup("tag", "小明启动成功 " + wordManager.get("happy"));
+        responseGroupManager.sendMessageToTaggedGroup("log", "小明启动成功 " + wordManager.get("happy"));
     }
 
     /**
@@ -356,6 +360,12 @@ public class XiaomingBotImpl implements XiaomingBot {
             case "mainThreadPool":
                 mainThreadPool = Executors.newCachedThreadPool();
                 return true;
+            case "timeTaskManager":
+                timeTaskManager = filePreservableFactory
+                        .loadOrProduce(TimeTaskManagerImpl.class, new File(configDirectory, "timer-tasks.json"), TimeTaskManagerImpl::new);
+                timeTaskManager.setXiaomingBot(this);
+                mainThreadPool.execute(timeTaskManager);
+                return true;
             case "configuration":
                 configuration = filePreservableFactory
                         .loadOrProduce(ConfigurationImpl.class, new File(configDirectory, "configurations.json"), ConfigurationImpl::new);
@@ -393,8 +403,8 @@ public class XiaomingBotImpl implements XiaomingBot {
                         .loadOrProduce(StatisticianImpl.class, new File(configDirectory, "counters.json"), StatisticianImpl::new);
                 statistician.setXiaomingBot(this);
                 return true;
-            case "regularPreserveManager":
-                regularPreserveManager = new RegularPreserveManagerImpl(this);
+            case "finalizer":
+                finalizer = new FinalizerImpl(this);
                 return true;
             case "accountManager":
                 accountManager = new AccountManagerImpl(this, accountDirectory);
@@ -427,7 +437,7 @@ public class XiaomingBotImpl implements XiaomingBot {
                 return true;
             case "consoleInputThread":
                 if (Objects.nonNull(consoleInputThread)) {
-                    consoleInputThread.stop();
+                    consoleInputThread.forceStop();
                 }
                 consoleInputThread = new ConsoleInputThread(this);
                 mainThreadPool.execute(consoleInputThread);
@@ -445,7 +455,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     /**
      * 定时数据保存器
      */
-    RegularPreserveManager regularPreserveManager;
+    Finalizer finalizer;
 
     /**
      * 机器人正在执行的标记，默认是 {@code true}，需要使用 start 启动
@@ -492,6 +502,11 @@ public class XiaomingBotImpl implements XiaomingBot {
     LicenseManager licenseManager;
 
     /**
+     * 定时任务
+     */
+    TimeTaskManager timeTaskManager;
+
+    /**
      * 提示文字管理器
      */
     File textDirectory = PathUtil.TEXT_DIR;
@@ -504,22 +519,21 @@ public class XiaomingBotImpl implements XiaomingBot {
     void shutdownService(XiaomingUser user) {
         // 唤醒正在等待事件的进程，令其退出
 
-        /*
+        Set<Long> sendedGroup = new HashSet<>();
         for (Map.Entry<Long, Receptionist> entry : receptionistManager.getReceptionists().entrySet()) {
             final Receptionist receptionist = entry.getValue();
             final XiaomingUser currentUser = receptionist.getUser();
 
-            try {
-                receptionist.stop();
-            } catch (XiaomingRuntimeException exception) {
-                receptionist.forceStop();
-                if (currentUser != user) {
-                    getLog().warn("正等待用户" + currentUser.getName() + "的下一次输入，已终止此次交互");
-                    currentUser.sendError(user.getName() + "正在关闭小明，我们下次见哦");
+            if (receptionist.isBusy() && currentUser != user) {
+                if (currentUser.inGroup() && sendedGroup.contains(currentUser.getGroup().getId())) {
+                    currentUser.sendError(user.getName() + "正在关闭小明，不等待你的下一次输入啦，我们下次见哦");
+                    sendedGroup.add(currentUser.getGroup().getId());
+                } else {
+                    currentUser.sendError(user.getName() + "正在关闭小明，不等待你的下一次输入啦，我们下次见哦");
                 }
             }
+            receptionist.forceStop();
         }
-         */
 
         // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
         mainThreadPool.shutdown();
@@ -548,14 +562,14 @@ public class XiaomingBotImpl implements XiaomingBot {
             throw new XiaomingRuntimeException("can not stop a stopped xiaoming bot");
         }
 
-        user.sendMessage("正在尝试关闭小明");
+        user.sendMessage("正在关闭小明");
         stop = true;
 
-        // 保存所有的文件
-        regularPreserveManager.save();
+        getLog().info("正在关闭 mirai 机器人");
+        miraiBot.close();
 
+        getLog().info("正在关闭线程池");
         getConsoleInputThread().stop();
-
         shutdownService(user);
 
         if (mainThreadPool.isShutdown()) {
@@ -587,9 +601,7 @@ public class XiaomingBotImpl implements XiaomingBot {
             }
         }
 
-        getLog().info("正在关闭 mirai 机器人");
-        user.sendMessage("已尝试关闭小明");
-
-        miraiBot.close();
+        getLog().info("正在执行最后的操作");
+        finalizer.onFinal();
     }
 }

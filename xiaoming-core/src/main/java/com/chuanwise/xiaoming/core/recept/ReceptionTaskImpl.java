@@ -3,7 +3,6 @@ package com.chuanwise.xiaoming.core.recept;
 import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.exception.InteractorTimeoutException;
 import com.chuanwise.xiaoming.api.exception.ReceptCancelledException;
-import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
@@ -99,7 +98,7 @@ public class ReceptionTaskImpl extends HostObjectImpl implements ReceptionTask {
             }
             final Account account = user.getOrPutAccount();
             account.addCommand(event);
-            getXiaomingBot().getRegularPreserveManager().readySave(account);
+            getXiaomingBot().getFinalizer().readySave(account);
 
             if (inGroup()) {
                 getXiaomingBot().getUserCallLimitManager().getGroupCallLimiter().addCallRecord(user.getQQ());

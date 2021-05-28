@@ -3,10 +3,8 @@ package com.chuanwise.xiaoming.core.recept;
 import com.chuanwise.xiaoming.api.annotation.EventHandler;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.limit.CallLimitConfig;
-import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.limit.UserCallLimiter;
-import com.chuanwise.xiaoming.api.recept.ReceptionTask;
-import com.chuanwise.xiaoming.api.response.ResponseGroup;
+import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.util.ArgumentUtil;
@@ -63,27 +61,30 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
             limiter = getXiaomingBot().getUserCallLimitManager().getPrivateCallLimiter();
         }
         if (limiter.uncallable(qq)) {
-            if (limiter.isTooManySoUncallable(qq)
-                    && limiter.shouldNotice(qq)
-                    && !getXiaomingBot().getPermissionManager().userHasPermission(qq, "limit.bypass")) {
-                final CallLimitConfig config = limiter.getConfig();
-                final String sceneName = inGroup ? "群聊" : "私聊";
-                contact.sendMessage(
-                        ArgumentUtil.replaceArguments("你在{}{}内召唤了{}次小明啦，好好休息一下，等{}咱们再一起在{}玩吧 {}",
-                                new Object[]{
-                                        sceneName,
-                                        TimeUtil.toTimeString(config.getPeriod()),
-                                        config.getTop(),
-                                        TimeUtil.after(config.getPeriod()),
-                                        sceneName,
-                                        getXiaomingBot().getWordManager().get("happy")
-                                })
-                );
+            if (limiter.isTooManySoUncallable(qq) && limiter.shouldNotice(qq)) {
+                if (getXiaomingBot().getPermissionManager().userAccessible(qq, "limit.bypass") != PermissionAccessible.ACCESSABLE) {
+                    final CallLimitConfig config = limiter.getConfig();
+                    final String sceneName = inGroup ? "群聊" : "私聊";
+                    contact.sendMessage(
+                            ArgumentUtil.replaceArguments("你在{}{}内召唤了{}次小明啦，好好休息一下，等{}咱们再一起在{}玩吧 {}",
+                                    new Object[]{
+                                            sceneName,
+                                            TimeUtil.toTimeString(config.getPeriod()),
+                                            config.getTop(),
+                                            TimeUtil.after(config.getPeriod()),
+                                            sceneName,
+                                            getXiaomingBot().getWordManager().get("happy")
+                                    })
+                    );
 
-                limiter.setNoticed(qq);
-                final Receptionist receptionist = getReceptionist(qq);
-                if (Objects.nonNull(receptionist)) {
-                    receptionist.forceStop();
+                    limiter.setNoticed(qq);
+                    final Receptionist receptionist = getReceptionist(qq);
+                    if (Objects.nonNull(receptionist)) {
+                        receptionist.forceStop();
+                    }
+                    return false;
+                } else {
+                    return true;
                 }
             }
             return false;

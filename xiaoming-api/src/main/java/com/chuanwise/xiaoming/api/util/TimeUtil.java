@@ -3,7 +3,10 @@ package com.chuanwise.xiaoming.api.util;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class TimeUtil {
     private TimeUtil() {}
@@ -89,6 +92,20 @@ public class TimeUtil {
             return -1;
         }
         return totalTime;
+    }
+
+    static final DateFormat FULL_FORMAT = new SimpleDateFormat("YYYY-mm-dd hh:mm:ss");
+    static final DateFormat YEAR_FORMAT = new SimpleDateFormat("mm-dd hh:mm:ss");
+    static final DateFormat MONTH_FORMAT = new SimpleDateFormat("dd hh:mm:ss");
+    static final DateFormat DAYS_FORMAT = new SimpleDateFormat("dd:mm:ss");
+
+    public static long parseMillis(String timeString) {
+        try {
+            final Date parse = FULL_FORMAT.parse(timeString);
+            return parse.getTime();
+        } catch (ParseException e) {
+        }
+        return -1;
     }
 
     @NotNull

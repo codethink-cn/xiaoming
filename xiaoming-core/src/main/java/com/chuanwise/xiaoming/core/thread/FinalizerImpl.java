@@ -2,22 +2,30 @@ package com.chuanwise.xiaoming.core.thread;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
-import com.chuanwise.xiaoming.api.thread.RegularPreserveManager;
+import com.chuanwise.xiaoming.api.thread.Finalizer;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
+import com.chuanwise.xiaoming.core.time.task.TimeTaskImpl;
 import lombok.Getter;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @Getter
-public class RegularPreserveManagerImpl extends HostObjectImpl implements RegularPreserveManager {
+public class FinalizerImpl extends HostObjectImpl implements Finalizer {
+    // 最后时刻需要做的事情
+    List<Runnable> onFinal = new ArrayList<>();
+
+    // 等待保存的文件
     Set<Preservable> preservables = new CopyOnWriteArraySet<>();
 
-    long lastSaveTime = 0;
+    long lastSaveTime = System.currentTimeMillis();
 
-    public RegularPreserveManagerImpl(XiaomingBot xiaomingBot) {
+    public FinalizerImpl(XiaomingBot xiaomingBot) {
         super(xiaomingBot);
+        onFinal.add(this::save);
     }
 
     @Override

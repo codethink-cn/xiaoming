@@ -23,6 +23,10 @@ import java.util.regex.Matcher;
  * @author Chuanwise
  */
 public interface Interactor extends PluginObject {
+    String getName();
+
+    void setName(String name);
+
     /**
      * 初始化方法，主要是加载子交互函数之类
      */
@@ -315,7 +319,7 @@ public interface Interactor extends PluginObject {
      * 向用户显示指令格式
      * @param user 获取用户
      */
-    default void showUsageStrings(XiaomingUser user) {
+    default void onUsage(XiaomingUser user) {
         StringBuilder builder = new StringBuilder();
 
         Set<String> usageStrings = getUsageStrings(user);

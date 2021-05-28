@@ -21,11 +21,11 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
     public AccountCommandInteractor(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
         accountManager = getXiaomingBot().getAccountManager();
-        enableUsageCommand(CommandWords.ACCOUNT_REGEX);
+        enableUsageCommand(CommandWords.ACCOUNT);
     }
 
     @GroupInteractor
-    @Filter(CommandWords.ACCOUNT_REGEX + " " + CommandWords.UNBLOCK_REGEX + " {plugin}")
+    @Filter(CommandWords.ACCOUNT + " " + CommandWords.UNBLOCK + " {plugin}")
     @RequirePermission("account.plugin.unblock")
     public void onUnblockPlugin(XiaomingUser user,
                                 @FilterParameter("plugin") String plugin) {
@@ -45,7 +45,7 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @Filter(CommandWords.ACCOUNT_REGEX + " " + CommandWords.BLOCK_REGEX + " {plugin}")
+    @Filter(CommandWords.ACCOUNT + " " + CommandWords.BLOCK + " {plugin}")
     @RequirePermission("account.plugin.block")
     public void onBlockPlugin(XiaomingUser user,
                               @FilterParameter("plugin") String plugin) {
@@ -61,7 +61,7 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @Filter(CommandWords.ALIAS_REGEX + " {qq} {alias}")
+    @Filter(CommandWords.ALIAS + " {qq} {alias}")
     @RequirePermission("account.user.alias")
     public void onSetUserAlias(XiaomingUser user,
                                @FilterParameter("qq") long qq,
@@ -69,6 +69,6 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
         final Account account = accountManager.getOrPutAccount(qq);
         account.setAlias(alias);
         user.sendMessage("成功将该用户的备注设置为{}", alias);
-        getXiaomingBot().getRegularPreserveManager().readySave(account);
+        getXiaomingBot().getFinalizer().readySave(account);
     }
 }

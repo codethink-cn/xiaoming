@@ -51,7 +51,7 @@ public class TextCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @Filter(CommandWords.EDIT_REGEX + TEXT_REGEX + " {name}")
+    @Filter(CommandWords.EDIT + TEXT_REGEX + " {name}")
     @RequirePermission("text.edit")
     public void onEditText(XiaomingUser user, @FilterParameter("name") String name) {
         final String text = textManager.load(name);

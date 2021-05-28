@@ -3,6 +3,7 @@ package com.chuanwise.xiaoming.api.permission;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 小明核心权限组对象
@@ -20,6 +21,12 @@ public interface PermissionGroup {
      * @param node
      */
     void removePermission(String node);
+
+    Map<String, List<String>> getGroupPermissions();
+
+    List<String> getGroupPermission(String tag);
+
+    List<String> getOrPutGroupPermission(String tag);
 
     List<String> getSuperGroups();
 

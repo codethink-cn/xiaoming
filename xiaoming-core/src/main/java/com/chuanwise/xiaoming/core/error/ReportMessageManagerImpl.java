@@ -55,7 +55,7 @@ public class ReportMessageManagerImpl extends JsonFilePreservable implements Rep
 
         final List<String> recentMessages = user.getRecentMessages();
         final List<String> messages = new ArrayList<>(recentMessages.size());
-        Collections.copy(messages, recentMessages);
+        messages.addAll(recentMessages);
 
         if (user.inGroup()) {
             reportMessage = new ReportMessageImpl(user.getGroup().getId(), user.getQQ(), messages, throwable.toString());

@@ -27,7 +27,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     public ResponseGroupCommandInteractor(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
         groupManager = getXiaomingBot().getResponseGroupManager();
-        enableUsageCommand(CommandWords.GROUP_REGEX);
+        enableUsageCommand(CommandWords.GROUP);
     }
 
     static final String TAG_REGEX = "(标记|标注|tag)";
@@ -40,7 +40,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @Filter(CommandWords.GROUP_REGEX)
+    @Filter(CommandWords.GROUP)
     @RequirePermission("group.list")
     public void onListGroups(XiaomingUser user) {
         final Set<ResponseGroup> groups = groupManager.getGroups();
@@ -58,7 +58,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
 
     }
 
-    @Filter(CommandWords.GROUP_REGEX + " {group}")
+    @Filter(CommandWords.GROUP + " {group}")
     @RequirePermission("group.look")
     public void onLookGroup(XiaomingUser user, @FilterParameter("group") String groupString) {
         ResponseGroup group;
@@ -83,7 +83,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @Filter(CommandWords.REMOVE_REGEX + CommandWords.GROUP_REGEX + " {group}")
+    @Filter(CommandWords.REMOVE + CommandWords.GROUP + " {group}")
     @RequirePermission("group.remove")
     public void onRemoveGroup(XiaomingUser user, @FilterParameter("group") String groupString) {
         ResponseGroup group;
@@ -99,12 +99,12 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         } else {
             user.sendMessage("成功移除小明响应群：", getGroupName(group));
             groupManager.getGroups().remove(group);
-            getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
+            getXiaomingBot().getFinalizer().readySave(groupManager);
         }
     }
 
     @GroupInteractor
-    @Filter(CommandWords.THIS_REGEX + CommandWords.GROUP_REGEX)
+    @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.INFO)
     @RequirePermission("group.look")
     public void onLookThisGroup(XiaomingUser user) {
         ResponseGroup group = groupManager.forCode(user.getGroup().getId());
@@ -120,18 +120,19 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     }
 
     @GroupInteractor
-    @Filter(CommandWords.THIS_REGEX + CommandWords.GROUP_REGEX)
+    @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.TAG)
+    @RequirePermission("group.tag.list")
     public void onListGroupTags(XiaomingUser user) {
-        final long groupNumber = user.getGroup().getId();
-        user.sendMessage("本群群号：{}", groupNumber);
-
-        if (user.hasPermission("group.tag.list")) {
-            final ResponseGroup group = groupManager.forCode(groupNumber);
-            user.sendMessage("{}的标记有：{}", getGroupName(group), group.getTags());
+        final ResponseGroup group = user.getResponseGroup();
+        final Set<String> tags = group.getTags();
+        if (tags.isEmpty()) {
+            user.sendMessage("{}仅具有{}和 recorded 两个原生标记", getGroupName(group), group.getCode());
+        } else {
+            user.sendMessage("{}除了具有{}和 recorded 两个原生标记，还有：{}", getGroupName(group), group.getCode(), tags);
         }
     }
 
-    @Filter(CommandWords.NEW_REGEX + CommandWords.GROUP_REGEX + " {group}")
+    @Filter(CommandWords.NEW + CommandWords.GROUP + " {group}")
     @RequirePermission("group.add")
     public void onAddGroup(XiaomingUser user, @FilterParameter("group") String groupString) {
         final long group;
@@ -169,10 +170,10 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
             responseGroup.addTag("enable");
             user.sendMessage("成功将该群设置为小明的响应群。");
         }
-        getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
+        getXiaomingBot().getFinalizer().readySave(groupManager);
     }
 
-    @Filter(TAG_REGEX + CommandWords.GROUP_REGEX + " {group} {tag}")
+    @Filter(TAG_REGEX + CommandWords.GROUP + " {group} {tag}")
     @RequirePermission("group.tag.add")
     public void onAddGroupTag(XiaomingUser user,
                               @FilterParameter("group") String groupString,
@@ -189,12 +190,12 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
             user.sendError("{}已经有这个标记了哦", getGroupName(group));
         } else {
             tags.add(tag);
-            getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
+            getXiaomingBot().getFinalizer().readySave(groupManager);
             user.sendMessage("成功为{}添加了新的标记：{}", getGroupName(group), tag);
         }
     }
 
-    @Filter(CommandWords.REMOVE_REGEX + CommandWords.GROUP_REGEX + TAG_REGEX + " {group} {tag}")
+    @Filter(CommandWords.REMOVE + CommandWords.GROUP + TAG_REGEX + " {group} {tag}")
     @RequirePermission("group.tag.remove")
     public void onRemoveGroupTag(XiaomingUser user,
                               @FilterParameter("group") String groupString,
@@ -210,14 +211,14 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         if (tags.contains(tag)) {
             tags.remove(tag);
             user.sendMessage("成功移除了在该群上的标记：{}", tag);
-            getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
+            getXiaomingBot().getFinalizer().readySave(groupManager);
         } else {
             user.sendMessage("该群并没有标记：{}", tag);
         }
     }
 
     @GroupInteractor
-    @Filter(CommandWords.REMOVE_REGEX + CommandWords.THIS_REGEX +  CommandWords.GROUP_REGEX + TAG_REGEX + " {tag}")
+    @Filter(CommandWords.REMOVE + CommandWords.THIS +  CommandWords.GROUP + TAG_REGEX + " {tag}")
     @RequirePermission("group.tag.remove")
     public void onRemoveGroupTag(XiaomingUser user,
                               @FilterParameter("tag") String tag) {
@@ -226,14 +227,14 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         if (tags.contains(tag)) {
             tags.remove(tag);
             user.sendMessage("成功移除本群的标记：{}", tag);
-            getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
+            getXiaomingBot().getFinalizer().readySave(groupManager);
         } else {
             user.sendMessage("本群并没有标记：{}", tag);
         }
     }
 
     @GroupInteractor
-    @Filter(TAG_REGEX + CommandWords.THIS_REGEX + CommandWords.GROUP_REGEX + " {tag}")
+    @Filter(TAG_REGEX + CommandWords.THIS + CommandWords.GROUP + " {tag}")
     @RequirePermission("group.tag.add")
     public void onAddGroupTag(XiaomingUser user,
                               @FilterParameter("tag") String tag) {
@@ -243,13 +244,13 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
             user.sendError("本群已经有这个标记了哦");
         } else {
             tags.add(tag);
-            getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
+            getXiaomingBot().getFinalizer().readySave(groupManager);
             user.sendMessage("成功为本群添加了新的标记：{}", tag);
         }
     }
 
     @GroupInteractor
-    @Filter(CommandWords.THIS_REGEX + CommandWords.GROUP_REGEX + CommandWords.BLOCK_REGEX + " {plugin}")
+    @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.BLOCK + " {plugin}")
     @RequirePermission("group.plugin.block")
     public void onBlockPlugin(XiaomingUser user,
                               @FilterParameter("plugin") String plugin) {
@@ -258,7 +259,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
             user.sendError("本群已经屏蔽了插件{}", plugin);
         } else {
             group.blockPlugin(plugin);
-            getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
+            getXiaomingBot().getFinalizer().readySave(groupManager);
             if (getXiaomingBot().getPluginManager().isLoaded(plugin)) {
                 user.sendMessage("成功在本群屏蔽了插件{}", plugin);
             } else {
@@ -268,14 +269,14 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     }
 
     @GroupInteractor
-    @Filter(CommandWords.THIS_REGEX + CommandWords.GROUP_REGEX + CommandWords.UNBLOCK_REGEX + " {plugin}")
+    @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.UNBLOCK + " {plugin}")
     @RequirePermission("group.plugin.unblock")
     public void onUnblockPlugin(XiaomingUser user,
                                 @FilterParameter("plugin") String plugin) {
         ResponseGroup group = groupManager.forCode(user.getGroup().getId());
         if (group.isBlockPlugin(plugin)) {
             group.getBlockedPlugins().remove(plugin);
-            getXiaomingBot().getRegularPreserveManager().readySave(groupManager);
+            getXiaomingBot().getFinalizer().readySave(groupManager);
             if (getXiaomingBot().getPluginManager().isLoaded(plugin)) {
                 user.sendMessage("成功在本群取消屏蔽插件{}", plugin);
             } else {

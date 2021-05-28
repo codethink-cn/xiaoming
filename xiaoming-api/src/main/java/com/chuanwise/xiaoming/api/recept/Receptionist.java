@@ -43,6 +43,7 @@ public interface Receptionist extends HostObject {
     }
 
     default void stop() {
+        getUser().setGlobalNextMessage(null);
         getGroupTasks().values().forEach(ReceptionTask::stop);
         getTempTasks().values().forEach(ReceptionTask::stop);
         if (Objects.nonNull(getPrivateTask())) {
@@ -53,6 +54,7 @@ public interface Receptionist extends HostObject {
     }
 
     default void forceStop() {
+        getUser().setGlobalNextMessage(null);
         getGroupTasks().values().forEach(ReceptionTask::forceStop);
         getTempTasks().values().forEach(ReceptionTask::forceStop);
         if (Objects.nonNull(getPrivateTask())) {
@@ -70,10 +72,6 @@ public interface Receptionist extends HostObject {
         return getTempTasks().get(group);
     }
 
-    /**
-     * 获得或新建一个私聊接待任务
-     * @return 私聊接待任务
-     */
     Map<Long, ReceptionTask> getGroupTasks();
 
     Map<Long, ReceptionTask> getTempTasks();

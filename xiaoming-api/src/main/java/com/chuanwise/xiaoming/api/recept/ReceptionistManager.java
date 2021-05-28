@@ -22,6 +22,8 @@ public interface ReceptionistManager extends HostObject, EventListener {
         return getReceptionists().get(qq);
     }
 
+    Receptionist getOrPutReceptionist(long qq);
+
     /**
      * 取消某个用户的接待员
      * @param qq 该用户

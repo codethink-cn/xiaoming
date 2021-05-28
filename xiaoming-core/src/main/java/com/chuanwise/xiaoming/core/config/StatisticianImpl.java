@@ -22,6 +22,6 @@ public class StatisticianImpl extends JsonFilePreservable implements Statisticia
     @Override
     public void increaseCallCounter() {
         callNumber++;
-        getXiaomingBot().getRegularPreserveManager().readySave(this);
+        getXiaomingBot().getFinalizer().readySave(this);
     }
 }

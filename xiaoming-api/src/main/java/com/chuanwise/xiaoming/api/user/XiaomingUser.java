@@ -2,8 +2,10 @@ package com.chuanwise.xiaoming.api.user;
 
 import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.exception.InteractorTimeoutException;
+import com.chuanwise.xiaoming.api.exception.ReceptCancelledException;
 import com.chuanwise.xiaoming.api.object.HostObject;
 import com.chuanwise.xiaoming.api.object.PropertyHolder;
+import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
@@ -26,6 +28,12 @@ import java.util.function.Function;
  */
 public interface XiaomingUser extends HostObject, PropertyHolder {
     long MAX_WAIT_TIME = TimeUnit.MINUTES.toMillis(1);
+
+    Set<Thread> getGlobalMessageWaiter();
+
+    void setGlobalNextMessage(List<String> globalNextMessage);
+
+    List<String> getGlobalNextMessage();
 
     void setReceptionist(Receptionist receptionist);
 
@@ -187,7 +195,7 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
      * @return 查询结果
      */
     default boolean hasPermission(String node) {
-        return getXiaomingBot().getPermissionManager().userHasPermission(getQQ(), node);
+        return getXiaomingBot().getPermissionManager().userAccessible(this, node) == PermissionAccessible.ACCESSABLE;
     }
 
     default boolean hasPermission(String[] nodes) {
@@ -324,6 +332,51 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
 
     default String nextTempInput(long group, long maxWaitTime) {
         return nextTempInput(group, maxWaitTime, para -> {
+            sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
+            throw new InteractorTimeoutException();
+        });
+    }
+
+    default String nextGlobalInput(long waitTime, Function<Void, Void> onTimeout) {
+        // 在用户上等待下一次输入
+        final Set<Thread> globalMessageWaiter = getGlobalMessageWaiter();
+        globalMessageWaiter.add(Thread.currentThread());
+        final long latestTime = System.currentTimeMillis() + waitTime;
+
+        try {
+            synchronized (globalMessageWaiter) {
+                globalMessageWaiter.wait(waitTime);
+            }
+        } catch (InterruptedException ignored) {
+        }
+        if (System.currentTimeMillis() < latestTime) {
+            // 增加了一条消息
+            final List<String> globalNextMessage = getGlobalNextMessage();
+            if (Objects.nonNull(globalNextMessage)) {
+                return globalNextMessage.get(globalNextMessage.size() - 1);
+            } else {
+                // 是被人打断的
+                throw new ReceptCancelledException();
+            }
+        } else {
+            onTimeout.apply(null);
+            return null;
+        }
+    }
+
+    default String nextGlobalInput(Function<Void, Void> onTimeout) {
+        return nextGlobalInput(MAX_WAIT_TIME, onTimeout);
+    }
+
+    default String nextGlobalInput() {
+        return nextGlobalInput(MAX_WAIT_TIME, para -> {
+            sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
+            throw new InteractorTimeoutException();
+        });
+    }
+
+    default String nextGlobalInput(long maxWaitTime) {
+        return nextGlobalInput(maxWaitTime, para -> {
             sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
             throw new InteractorTimeoutException();
         });
