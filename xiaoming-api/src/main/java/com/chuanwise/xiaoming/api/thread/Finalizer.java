@@ -1,6 +1,6 @@
 package com.chuanwise.xiaoming.api.thread;
 
-import com.chuanwise.xiaoming.api.object.HostObject;
+import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 
@@ -11,7 +11,7 @@ import java.util.Set;
  * 小明的隔三差五保存器
  * @author Chuanwise
  */
-public interface Finalizer extends HostObject, Runnable {
+public interface Finalizer extends ModuleObject, Runnable {
     List<Runnable> getOnFinal();
 
     default void addOnFinal(Runnable runnable) {

@@ -1,13 +1,12 @@
 package com.chuanwise.xiaoming.api.util;
 
 import java.lang.reflect.Array;
-import java.util.Arrays;
 import java.util.function.Function;
 
 /**
  * @author Chuanwise
  */
-public class ArrayUtils extends Utils {
+public class ArrayUtils extends StaticUtils {
     /**
      * 将一个数组内的所有元素经过一个方法处理后复制进新的数组
      * @param froms 来源数组

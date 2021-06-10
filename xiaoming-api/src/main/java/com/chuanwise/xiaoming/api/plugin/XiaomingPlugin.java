@@ -2,8 +2,7 @@ package com.chuanwise.xiaoming.api.plugin;
 
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.util.FileUtil;
+import com.chuanwise.xiaoming.api.util.FileUtils;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -79,7 +78,7 @@ public interface XiaomingPlugin extends XiaomingObject {
     }
 
     default boolean copyResourceTo(String path, File to) throws IOException {
-        return FileUtil.copyResource(getClassLoader(), path, to);
+        return FileUtils.copyResource(getClassLoader(), path, to);
     }
 
     default boolean copyDefaultConfiguration() throws IOException {

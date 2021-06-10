@@ -10,7 +10,7 @@ import java.util.Objects;
  * 使用 MD5 加密数据的工具类
  * @author Chuanwise
  */
-public class MD5Utils {
+public class MD5Utils extends UnstaticUtils {
     final MessageDigest MD5;
 
     {

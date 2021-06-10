@@ -1,10 +1,9 @@
 package com.chuanwise.xiaoming.api.util;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.function.Function;
 
-public class CollectionUtils extends Utils {
+public class CollectionUtils extends StaticUtils {
     /**
      * 将集合中的元素根据默认顺序，逐次使用 translator 函数处理后放入新的集合中
      * @param fromCollection 来源集合

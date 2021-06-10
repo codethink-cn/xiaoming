@@ -4,7 +4,7 @@ import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
 import com.chuanwise.xiaoming.api.thread.Finalizer;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.core.object.HostObjectImpl;
+import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @Getter
-public class FinalizerImpl extends HostObjectImpl implements Finalizer {
+public class FinalizerImpl extends ModuleObjectImpl implements Finalizer {
     // 最后时刻需要做的事情
     List<Runnable> onFinal = new ArrayList<>();
 

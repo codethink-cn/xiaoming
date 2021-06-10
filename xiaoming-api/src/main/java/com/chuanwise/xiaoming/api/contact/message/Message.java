@@ -1,11 +1,10 @@
 package com.chuanwise.xiaoming.api.contact.message;
 
+import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.SingleMessage;
 
 import java.io.IOException;
 
@@ -36,5 +35,12 @@ public interface Message extends XiaomingObject {
 
     default void saveResources() throws IOException {
         getXiaomingBot().getResourceManager().saveResources(this);
+    }
+
+    default AsyncResult<Boolean> asyncSaveResources() {
+        return getXiaomingBot().getScheduler().run(() -> {
+            saveResources();
+            return true;
+        });
     }
 }

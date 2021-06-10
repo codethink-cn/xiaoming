@@ -3,7 +3,7 @@ package com.chuanwise.xiaoming.core.interactor.core;
 import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.error.ReportMessageManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.core.error.ReportMessageImpl;
+import com.chuanwise.xiaoming.core.report.ReportMessageImpl;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 
 import java.util.Objects;

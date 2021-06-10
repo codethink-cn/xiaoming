@@ -3,8 +3,7 @@ package com.chuanwise.xiaoming.core.thread;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
-import com.chuanwise.xiaoming.core.contact.message.TempMessageImpl;
-import com.chuanwise.xiaoming.core.object.HostObjectImpl;
+import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import com.chuanwise.xiaoming.core.recept.ReceptionistImpl;
 import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
 import lombok.Data;
@@ -19,7 +18,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Data
-public class ConsoleInputThread extends HostObjectImpl implements Runnable {
+public class ConsoleInputThread extends ModuleObjectImpl implements Runnable {
     static final Pattern PRIVATE_PATTERN = Pattern.compile("p(rivate)?\\s+(?<qq>\\d+)\\s+(?<content>[\\s\\S]+)");
     static final Pattern GROUP_PATTERN = Pattern.compile("g(roup)?\\s+(?<group>\\d+)\\s+(?<qq>\\d+)\\s+(?<content>[\\s\\S]+)");
     static final Pattern TEMP_PATTERN = Pattern.compile("t(emp)?\\s+(?<group>\\d+)\\s+(?<qq>\\d+)\\s+(?<content>[\\s\\S]+)");

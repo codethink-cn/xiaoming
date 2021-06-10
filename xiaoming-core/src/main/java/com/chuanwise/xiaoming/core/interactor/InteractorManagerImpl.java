@@ -2,7 +2,6 @@ package com.chuanwise.xiaoming.core.interactor;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.contact.message.Message;
-import com.chuanwise.xiaoming.api.event.PluginResponseEvent;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.interactor.command.CommandInteractor;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
@@ -11,10 +10,9 @@ import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl;
-import com.chuanwise.xiaoming.core.object.HostObjectImpl;
+import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import lombok.Getter;
 
-import java.security.acl.Group;
 import java.util.*;
 
 /**
@@ -22,7 +20,7 @@ import java.util.*;
  * @author Chuanwise
  */
 @Getter
-public class InteractorManagerImpl extends HostObjectImpl implements InteractorManager {
+public class InteractorManagerImpl extends ModuleObjectImpl implements InteractorManager {
     Set<Interactor> coreInteractors = new HashSet<>();
 
     Map<XiaomingPlugin, Set<Interactor>> pluginInteractors = new HashMap<>();

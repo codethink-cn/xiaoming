@@ -1,25 +1,22 @@
 package com.chuanwise.xiaoming.core.recept;
 
-import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.exception.InteractorTimeoutException;
 import com.chuanwise.xiaoming.api.exception.ReceptCancelledException;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.core.account.AccountEventImpl;
-import com.chuanwise.xiaoming.core.object.HostObjectImpl;
+import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import lombok.Getter;
 
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 交互器的响应任务
  * @author Chuanwise
  */
 @Getter
-public abstract class ReceptionTaskImpl extends HostObjectImpl implements ReceptionTask {
+public abstract class ReceptionTaskImpl extends ModuleObjectImpl implements ReceptionTask {
     final Receptionist receptionist;
     final String identify;
 

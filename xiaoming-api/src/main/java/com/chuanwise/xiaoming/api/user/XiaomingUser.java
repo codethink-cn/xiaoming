@@ -8,7 +8,7 @@ import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
 import com.chuanwise.xiaoming.api.exception.InteractorTimeoutException;
 import com.chuanwise.xiaoming.api.exception.ReceptCancelledException;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
-import com.chuanwise.xiaoming.api.object.HostObject;
+import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.object.PropertyHolder;
 import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
@@ -27,7 +27,7 @@ import java.util.*;
 /**
  * @author Chuanwise
  */
-public interface XiaomingUser extends HostObject, PropertyHolder {
+public interface XiaomingUser extends ModuleObject, PropertyHolder {
     void setReceptionist(Receptionist receptionist);
 
     /**

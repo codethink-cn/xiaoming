@@ -4,7 +4,7 @@ import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
 
 import java.util.List;
 
-public class PermissionUtils {
+public class PermissionUtils extends StaticUtils {
     /**
      * 判断一个权限是否具有给定权限节点的权限
      * @return 1 表示有权限，0 表示未知，-1 表示无权限

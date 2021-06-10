@@ -1,14 +1,13 @@
 package com.chuanwise.xiaoming.api.interactor;
 
 import com.chuanwise.xiaoming.api.contact.message.Message;
-import com.chuanwise.xiaoming.api.interactor.Interactor;
-import com.chuanwise.xiaoming.api.object.HostObject;
+import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 
 import java.util.Set;
 
-public interface InteractorManager extends HostObject {
+public interface InteractorManager extends ModuleObject {
     /**
      * 和所有的指令交互器交互
      * @param user 用户

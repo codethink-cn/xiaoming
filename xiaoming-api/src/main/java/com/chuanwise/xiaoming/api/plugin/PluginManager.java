@@ -1,6 +1,6 @@
 package com.chuanwise.xiaoming.api.plugin;
 
-import com.chuanwise.xiaoming.api.object.HostObject;
+import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import org.apache.commons.collections4.BidiMap;
@@ -16,7 +16,7 @@ import java.util.jar.JarFile;
  * 插件管理器是小明所有插件的管理者、加载者和卸载者。
  * @author Chuanwise
  */
-public interface PluginManager extends XiaomingObject, HostObject {
+public interface PluginManager extends XiaomingObject, ModuleObject {
     /**
      * 判断插件是否存在
      * @param name 插件名

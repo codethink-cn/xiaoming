@@ -9,7 +9,7 @@ import com.chuanwise.xiaoming.api.interactor.filter.ParameterFilterMatcher;
 import com.chuanwise.xiaoming.api.object.PluginObject;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.util.AtUtil;
+import com.chuanwise.xiaoming.api.util.AtUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -233,7 +233,7 @@ public interface Interactor extends PluginObject {
      */
     default <T> Object onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
         if ("qq".equalsIgnoreCase(parameterName)) {
-            long qq = AtUtil.parseQQ(currentValue);
+            long qq = AtUtils.parseQQ(currentValue);
             if (qq == -1) {
                 user.sendError("{}不是一个合理的QQ哦", currentValue);
                 return null;

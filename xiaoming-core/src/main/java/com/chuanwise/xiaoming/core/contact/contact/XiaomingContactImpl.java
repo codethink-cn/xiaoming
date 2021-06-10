@@ -23,6 +23,6 @@ public abstract class XiaomingContactImpl extends XiaomingObjectImpl implements 
 
     @Override
     public void send(MessageChain messages) {
-        getMiraiContact().sendMessage(messages);
+        getMiraiContact().sendMessage(getXiaomingBot().getResourceManager().useResources(messages, getMiraiContact()));
     }
 }

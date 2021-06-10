@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ArgumentUtils extends Utils {
+public class ArgumentUtils extends StaticUtils {
     public static List<String> splitArgs(String line) {
         line = line.trim();
 

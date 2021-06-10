@@ -4,7 +4,6 @@ import com.chuanwise.xiaoming.api.contact.ContactManager;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
-import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.At;
@@ -30,17 +29,17 @@ public interface GroupContact extends XiaomingContact {
         atSend(qq, messages.getMessageChain());
     }
 
-    default void atSendLater(long timeout, long qq, String message) {
-        sendLater(timeout, new At(qq).serializeToMiraiCode() + " " + message);
+    default void atSendLater(long delay, long qq, String message) {
+        sendLater(delay, new At(qq).serializeToMiraiCode() + " " + message);
     }
 
-    default void atSendLater(long timeout, long qq, MessageChain messages) {
+    default void atSendLater(long delay, long qq, MessageChain messages) {
         messages.add(0, new At(qq));
-        sendLater(timeout, messages);
+        sendLater(delay, messages);
     }
 
-    default void atSendLater(long timeout, long qq, Message messages) {
-        atSendLater(timeout, qq, messages.getMessageChain());
+    default void atSendLater(long delay, long qq, Message messages) {
+        atSendLater(delay, qq, messages.getMessageChain());
     }
 
     default ResponseGroup getResponseGroup() {

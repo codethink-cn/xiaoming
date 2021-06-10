@@ -2,13 +2,14 @@ package com.chuanwise.xiaoming.core.interactor.core;
 
 import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.annotation.Require;
-import com.chuanwise.xiaoming.api.time.task.TimeTask;
+import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.StringUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 
 import java.util.List;
+import java.util.Set;
 
 public class TimeTaskInteractor extends CommandInteractorImpl {
     static final String TIME = "(时间|time)";
@@ -17,7 +18,7 @@ public class TimeTaskInteractor extends CommandInteractorImpl {
     @Filter(TIME + TASK)
     @Require("time.list")
     public void onListTimeTasks(XiaomingUser user) {
-        final List<TimeTask> tasks = getXiaomingBot().getTimeTaskManager().getTasks();
+        final Set<ScheduableTask> tasks = getXiaomingBot().getScheduler().getTasks();
         user.sendMessage("任务队列：" + StringUtils.getCollectionSummary(tasks, task -> {
             final boolean timeout = task.getTime() >= System.currentTimeMillis();
             final boolean periodic = task.isPeriodic();
@@ -85,7 +86,7 @@ public class TimeTaskInteractor extends CommandInteractorImpl {
         }
 
         user.sendMessage("到时候要给小明发送什么消息呢？");
-        new MessageTimeTaskImpl(user.getQQ(), group, )
+        new MessageScheduableTaskImpl(user.getQQ(), group, )
     }
      */
 }

@@ -7,7 +7,7 @@ import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
 import com.chuanwise.xiaoming.api.contact.message.TempMessage;
-import com.chuanwise.xiaoming.api.object.HostObject;
+import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.PrivateXiaomingUser;
 import com.chuanwise.xiaoming.api.user.TempXiaomingUser;
@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 /**
  * 小明接待员
  */
-public interface Receptionist extends HostObject {
+public interface Receptionist extends ModuleObject {
     ExecutorService getThreadPool();
 
     long getCode();

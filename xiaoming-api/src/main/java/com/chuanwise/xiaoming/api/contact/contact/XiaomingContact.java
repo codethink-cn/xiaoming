@@ -2,6 +2,7 @@ package com.chuanwise.xiaoming.api.contact.contact;
 
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.contact.message.Message;
+import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.message.code.MiraiCode;
@@ -38,8 +39,8 @@ public interface XiaomingContact extends XiaomingObject {
         getMiraiContact().sendMessage(messages.getMessageChain());
     }
 
-    default void sendLater(long timeout, String message) {
-        getXiaomingBot().execute(() -> {
+    default AsyncResult<Boolean> sendLater(long timeout, String message) {
+        return getXiaomingBot().getScheduler().run(() -> {
             try {
                 Thread.sleep(timeout);
                 send(message);
@@ -48,8 +49,8 @@ public interface XiaomingContact extends XiaomingObject {
         });
     }
 
-    default void sendLater(long timeout, MessageChain message) {
-        getXiaomingBot().execute(() -> {
+    default AsyncResult<Boolean> sendLater(long timeout, MessageChain message) {
+        return getXiaomingBot().getScheduler().run(() -> {
             try {
                 Thread.sleep(timeout);
                 send(message);
@@ -58,8 +59,8 @@ public interface XiaomingContact extends XiaomingObject {
         });
     }
 
-    default void sendLater(long timeout, Message message) {
-        getXiaomingBot().execute(() -> {
+    default AsyncResult<Boolean> sendLater(long timeout, Message message) {
+        return getXiaomingBot().getScheduler().run(() -> {
             try {
                 Thread.sleep(timeout);
                 send(message);

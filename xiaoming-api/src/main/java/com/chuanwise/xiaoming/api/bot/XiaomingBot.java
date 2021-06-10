@@ -9,11 +9,10 @@ import com.chuanwise.xiaoming.api.event.EventManager;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.resource.ResourceManager;
-import com.chuanwise.xiaoming.api.text.TextManager;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
-import com.chuanwise.xiaoming.api.time.TimeTaskManager;
+import com.chuanwise.xiaoming.api.schedule.Scheduler;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.word.LanguageManager;
+import com.chuanwise.xiaoming.api.language.LanguageManager;
 import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
 import com.chuanwise.xiaoming.api.plugin.PluginManager;
@@ -33,17 +32,11 @@ import java.util.concurrent.ExecutorService;
 public interface XiaomingBot {
     long getLastStartTime();
 
-    void execute(Runnable runnable);
-
-    void execute(Thread thread);
-
     Bot getMiraiBot();
 
     void setMiraiBot(Bot bot);
 
     PreservableFactory<File> getFilePreservableFactory();
-
-    ExecutorService getMainThreadPool();
 
     PermissionManager getPermissionManager();
 
@@ -95,7 +88,9 @@ public interface XiaomingBot {
 
     LicenseManager getLicenseManager();
 
-    TimeTaskManager getTimeTaskManager();
+    Scheduler getScheduler();
 
     ResourceManager getResourceManager();
+
+    void optimize();
 }

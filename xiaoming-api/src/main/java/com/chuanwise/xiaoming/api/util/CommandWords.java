@@ -1,6 +1,6 @@
 package com.chuanwise.xiaoming.api.util;
 
-public class CommandWords {
+public class CommandWords extends StaticUtils {
     public static final String GLOBAL = "(全局|公共|global)";
     public static final String RELOAD = "(重载|重加载|reload)";
     public static final String LOOK = "(查看|罗列|list|look)";

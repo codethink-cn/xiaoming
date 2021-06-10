@@ -16,7 +16,7 @@ import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.contact.message.GroupMessageImpl;
 import com.chuanwise.xiaoming.core.contact.message.PrivateMessageImpl;
 import com.chuanwise.xiaoming.core.contact.message.TempMessageImpl;
-import com.chuanwise.xiaoming.core.object.HostObjectImpl;
+import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import com.chuanwise.xiaoming.core.user.GroupXiaomingUserImpl;
 import com.chuanwise.xiaoming.core.user.PrivateXiaomingUserImpl;
 import com.chuanwise.xiaoming.core.user.TempXiaomingUserImpl;
@@ -34,7 +34,7 @@ import java.util.concurrent.Executors;
  * @author Chuanwise
  */
 @Getter
-public class ReceptionistImpl extends HostObjectImpl implements Receptionist {
+public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
     final ExecutorService threadPool = Executors.newCachedThreadPool();
     final long code;
 

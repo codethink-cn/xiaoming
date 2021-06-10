@@ -5,10 +5,9 @@ import org.jetbrains.annotations.NotNull;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
-public class TimeUtils {
+public class TimeUtils extends StaticUtils {
     private TimeUtils() {}
 
     public static final DateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm");

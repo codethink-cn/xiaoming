@@ -4,13 +4,10 @@ import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.annotation.FilterParameter;
 import com.chuanwise.xiaoming.api.annotation.Require;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
-import com.chuanwise.xiaoming.core.time.task.OptimizeTimeTask;
 
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class DebugCommandInterator extends CommandInteractorImpl {
@@ -44,7 +41,7 @@ public class DebugCommandInterator extends CommandInteractorImpl {
     @Filter("optimize")
     @Require("debug")
     public void onOptimize(XiaomingUser user) {
-        getXiaomingBot().getTimeTaskManager().addTask(new OptimizeTimeTask(), TimeUnit.SECONDS.toMicros(10));
+        getXiaomingBot().getScheduler().runLater(getXiaomingBot()::optimize, TimeUnit.SECONDS.toMicros(10));
         user.sendMessage("optimized");
     }
 

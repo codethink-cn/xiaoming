@@ -10,7 +10,7 @@ import java.io.File;
  * @author Chuanwise
  * @see com.chuanwise.xiaoming.api.bot.XiaomingBot
  */
-public class PathUtils extends Utils {
+public class PathUtils extends StaticUtils {
     public static final File CONFIG = new File("configurations");
 
     public static final File PLUGIN = new File("plugins");

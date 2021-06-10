@@ -1,20 +1,15 @@
 package com.chuanwise.xiaoming.api.contact;
 
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
-import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
-import com.chuanwise.xiaoming.api.contact.message.TempMessage;
-import com.chuanwise.xiaoming.api.object.HostObject;
-import com.chuanwise.xiaoming.api.response.ResponseGroup;
-import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
+import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
 import com.chuanwise.xiaoming.api.contact.contact.TempContact;
-import com.chuanwise.xiaoming.api.util.CollectionUtils;
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
 
 import java.util.*;
 
-public interface ContactManager extends HostObject {
+public interface ContactManager extends ModuleObject {
     void clear();
 
     PrivateContact getPrivateContact(long qq);

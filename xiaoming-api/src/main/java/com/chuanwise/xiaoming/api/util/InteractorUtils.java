@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 /**
  * @author Chuanwise
  */
-public class InteractorUtils {
+public class InteractorUtils extends StaticUtils {
     static final Pattern PAGE = Pattern.compile("(第|p|P)?\\s*?(?<page>\\d+)\\s*?页?");
     static final Pattern INDEX = Pattern.compile("(第|no|No)\\s*?(?<index>\\d+)\\s*?(个?)");
 

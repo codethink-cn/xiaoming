@@ -5,10 +5,10 @@ import com.chuanwise.xiaoming.api.plugin.PluginManager;
 import com.chuanwise.xiaoming.api.plugin.PluginProperty;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.util.JsonSerializerUtil;
-import com.chuanwise.xiaoming.api.util.PluginLoaderUtil;
-import com.chuanwise.xiaoming.core.error.ReportMessageImpl;
-import com.chuanwise.xiaoming.core.object.HostObjectImpl;
+import com.chuanwise.xiaoming.api.util.JsonSerializerUtils;
+import com.chuanwise.xiaoming.api.util.PluginLoaderUtils;
+import com.chuanwise.xiaoming.core.report.ReportMessageImpl;
+import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import lombok.Getter;
 import org.apache.commons.collections4.BidiMap;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
@@ -28,7 +28,7 @@ import java.util.zip.ZipEntry;
  * @author Chuanwise
  */
 @Getter
-public class PluginManagerImpl extends HostObjectImpl implements PluginManager {
+public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager {
     final File directory;
 
     public PluginManagerImpl(XiaomingBot xiaomingBot, File directory) {
@@ -74,7 +74,7 @@ public class PluginManagerImpl extends HostObjectImpl implements PluginManager {
 
         // 扩展类加载器
         try {
-            classLoader = PluginLoaderUtil.extendURLClassLoader(property.getFile(), (URLClassLoader) XiaomingBot.class.getClassLoader());
+            classLoader = PluginLoaderUtils.extendURLClassLoader(property.getFile(), (URLClassLoader) XiaomingBot.class.getClassLoader());
         } catch (Exception exception) {
             user.sendError("严重错误：无法扩展类加载器");
             getLog().error("无法扩展类加载器", exception);
@@ -210,7 +210,7 @@ public class PluginManagerImpl extends HostObjectImpl implements PluginManager {
 
         final PluginProperty pluginProperty;
         try (InputStream inputStream = jarFile.getInputStream(entry);) {
-            pluginProperty = JsonSerializerUtil.getINSTANCE().readValue(inputStream, PluginPropertyImpl.class);
+            pluginProperty = JsonSerializerUtils.getINSTANCE().readValue(inputStream, PluginPropertyImpl.class);
         }
         return pluginProperty;
     }

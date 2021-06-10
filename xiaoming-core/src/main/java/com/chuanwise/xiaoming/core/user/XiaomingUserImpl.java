@@ -4,8 +4,7 @@ import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.core.object.HostObjectImpl;
-import io.ktor.util.collections.ConcurrentList;
+import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import lombok.Getter;
 import lombok.Setter;
 import net.mamoe.mirai.message.data.At;
@@ -21,7 +20,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @author Chuanwise
  */
 @Getter
-public abstract class XiaomingUserImpl extends HostObjectImpl implements XiaomingUser {
+public abstract class XiaomingUserImpl extends ModuleObjectImpl implements XiaomingUser {
     @Setter
     Receptionist receptionist;
 

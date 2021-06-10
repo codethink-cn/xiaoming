@@ -1,17 +1,15 @@
 package com.chuanwise.xiaoming.api.user;
 
 import com.chuanwise.xiaoming.api.contact.contact.ConsoleContact;
-import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
 import com.chuanwise.xiaoming.api.contact.message.ConsoleMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
-import com.chuanwise.xiaoming.api.object.HostObject;
+import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.recept.ConsoleReceptionTask;
-import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 
 import java.util.List;
 
-public interface ConsoleXiaomingUser extends HostObject, XiaomingUser {
+public interface ConsoleXiaomingUser extends ModuleObject, XiaomingUser {
     @Override
     List<ConsoleMessage> getRecentMessages();
 

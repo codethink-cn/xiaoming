@@ -6,22 +6,23 @@ import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.*;
 
 @Data
 @NoArgsConstructor
 public class AccountImpl extends JsonFilePreservable implements Account {
-    long qq;
+    long code;
     String alias;
-    Set<String> blockPlugins = new CopyOnWriteArraySet<>();
 
     List<AccountEventImpl> events = new ArrayList<>();
     List<AccountEventImpl> histories = new ArrayList<>();
     List<AccountEventImpl> commands = new ArrayList<>();
+
+    Set<String> tags = new HashSet<>();
+
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
+    }
 
     @Override
     public List<AccountEvent> getHistories() {
@@ -38,18 +39,8 @@ public class AccountImpl extends JsonFilePreservable implements Account {
         return (List) commands;
     }
 
-    public AccountImpl(long qq, String alias) {
-        setQq(qq);
+    public AccountImpl(long code, String alias) {
+        this.setCode(code);
         setAlias(alias);
-    }
-
-    @Override
-    public boolean isBlockPlugin(String pluginName) {
-        return blockPlugins.contains(pluginName);
-    }
-
-    @Override
-    public void blockPlugin(String pluginName) {
-        blockPlugins.add(pluginName);
     }
 }

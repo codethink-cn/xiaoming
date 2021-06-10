@@ -19,7 +19,7 @@ public interface Account extends Preservable<File> {
         getCommands().add(command);
     }
 
-    long getQq();
+    long getCode();
 
     String getAlias();
 
@@ -29,13 +29,33 @@ public interface Account extends Preservable<File> {
 
     List<AccountEvent> getHistories();
 
-    void setQq(long qq);
+    void setCode(long code);
 
     void setAlias(String alias);
 
-    boolean isBlockPlugin(String pluginName);
+    default boolean isBlockPlugin(String pluginName) {
+        return hasTag("plugin.block." + pluginName);
+    }
 
-    void blockPlugin(String pluginName);
+    default void blockPlugin(String pluginName) {
+        addTag("plugin.block." + pluginName);
+    }
 
-    Set<String> getBlockPlugins();
+    default void unblockPlugin(String pluginName) {
+        removeTag("plugin.block." + pluginName);
+    }
+
+    Set<String> getTags();
+
+    default void addTag(String tag) {
+        getTags().add(tag);
+    }
+
+    default void removeTag(String tag) {
+        getTags().remove(tag);
+    }
+
+    default boolean hasTag(String tag) {
+        return getTags().contains(tag) || tag == getCode() + "" || tag == "recorded";
+    }
 }

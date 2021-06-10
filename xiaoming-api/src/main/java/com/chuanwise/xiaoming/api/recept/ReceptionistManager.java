@@ -2,7 +2,7 @@ package com.chuanwise.xiaoming.api.recept;
 
 import com.chuanwise.xiaoming.api.annotation.EventHandler;
 import com.chuanwise.xiaoming.api.event.EventListener;
-import com.chuanwise.xiaoming.api.object.HostObject;
+import com.chuanwise.xiaoming.api.object.ModuleObject;
 import net.mamoe.mirai.event.events.FriendMessageEvent;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.GroupTempMessageEvent;
@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 
 import java.util.Map;
 
-public interface ReceptionistManager extends HostObject, EventListener {
+public interface ReceptionistManager extends ModuleObject, EventListener {
     /**
      * 获得某用户的接待员
      * @param qq 用户 QQ

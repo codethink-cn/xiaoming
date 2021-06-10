@@ -13,13 +13,13 @@ import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.text.TextManager;
-import com.chuanwise.xiaoming.api.time.TimeTaskManager;
+import com.chuanwise.xiaoming.api.schedule.Scheduler;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.PathUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
-import com.chuanwise.xiaoming.api.word.LanguageManager;
+import com.chuanwise.xiaoming.api.language.LanguageManager;
 import com.chuanwise.xiaoming.api.event.EventManager;
 import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
@@ -29,25 +29,22 @@ import com.chuanwise.xiaoming.api.thread.Finalizer;
 import com.chuanwise.xiaoming.core.account.AccountManagerImpl;
 import com.chuanwise.xiaoming.core.contact.ContactManagerImpl;
 import com.chuanwise.xiaoming.core.contact.contact.ConsoleContactImpl;
-import com.chuanwise.xiaoming.core.error.ReportMessageManagerImpl;
+import com.chuanwise.xiaoming.core.report.ReportMessageManagerImpl;
 import com.chuanwise.xiaoming.core.interactor.core.ReportInteractor;
 import com.chuanwise.xiaoming.core.interactor.InteractorManagerImpl;
 import com.chuanwise.xiaoming.core.interactor.core.*;
 import com.chuanwise.xiaoming.core.license.LicenceManagerImpl;
 import com.chuanwise.xiaoming.core.response.ResponseGroupManagerImpl;
-import com.chuanwise.xiaoming.core.text.TextManagerImpl;
 import com.chuanwise.xiaoming.core.thread.ConsoleInputThread;
 import com.chuanwise.xiaoming.core.thread.FinalizerImpl;
 import com.chuanwise.xiaoming.core.config.ConfigurationImpl;
 import com.chuanwise.xiaoming.core.config.StatisticianImpl;
-import com.chuanwise.xiaoming.core.time.TimeTaskManagerImpl;
-import com.chuanwise.xiaoming.core.time.task.FileSaveTimeTask;
-import com.chuanwise.xiaoming.core.time.task.OptimizeTimeTask;
+import com.chuanwise.xiaoming.core.schedule.SchedulerImpl;
 import com.chuanwise.xiaoming.core.recept.ReceptionistManagerImpl;
 import com.chuanwise.xiaoming.api.resource.ResourceManager;
-import com.chuanwise.xiaoming.core.url.ResourceManagerImpl;
+import com.chuanwise.xiaoming.core.resource.ResourceManagerImpl;
 import com.chuanwise.xiaoming.core.user.ConsoleXiaomingUserImpl;
-import com.chuanwise.xiaoming.core.word.LanguageManagerImpl;
+import com.chuanwise.xiaoming.core.language.LanguageManagerImpl;
 import com.chuanwise.xiaoming.core.event.EventManagerImpl;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.core.limit.UserCallLimitManagerImpl;
@@ -72,7 +69,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -149,25 +145,24 @@ public class XiaomingBotImpl implements XiaomingBot {
     protected void fillInitializer() {
         initializer.clear();
 
-        initializer.put("mainThreadPool", () -> {
-            mainThreadPool = Executors.newCachedThreadPool();
-        });
+        // 优先加载配置文件
+        configuration = filePreservableFactory
+                .loadOrProduce(ConfigurationImpl.class, new File(configDirectory, "configurations.json"), ConfigurationImpl::new);
+        configuration.setXiaomingBot(this);
 
-        initializer.put("timeTaskManager", () -> {
-            timeTaskManager = filePreservableFactory
-                    .loadOrProduce(TimeTaskManagerImpl.class, new File(configDirectory, "timer-tasks.json"), TimeTaskManagerImpl::new);
-            timeTaskManager.setXiaomingBot(this);
-            mainThreadPool.execute(timeTaskManager);
+        // 加载调度器
+        scheduler = filePreservableFactory
+                .loadOrProduce(SchedulerImpl.class, new File(configDirectory, "scheduler.json"), SchedulerImpl::new);
+        scheduler.setXiaomingBot(this);
+        scheduler.start();
 
-            timeTaskManager.addPeriodicTask(new FileSaveTimeTask(), configuration.getSavePeriod(), configuration.getSavePeriod());
-            timeTaskManager.addPeriodicTask(new OptimizeTimeTask(), configuration.getOptimizePeriod(), configuration.getOptimizePeriod());
-        });
-
-        initializer.put("configuration", () -> {
-            configuration = filePreservableFactory
-                    .loadOrProduce(ConfigurationImpl.class, new File(configDirectory, "configurations.json"), ConfigurationImpl::new);
-            configuration.setXiaomingBot(this);
-        });
+        // 添加自动任务
+        // 自动保存文件任务
+        scheduler.periodicRunLater(() -> {
+            finalizer.save();
+        }, configuration.getSavePeriod(), configuration.getSavePeriod());
+        // 自动优化性能任务
+        scheduler.periodicRunLater(this::optimize, configuration.getOptimizePeriod(), configuration.getOptimizePeriod());
 
         initializer.put("userCallLimitManager", () -> {
             userCallLimitManager = new UserCallLimitManagerImpl();
@@ -236,6 +231,7 @@ public class XiaomingBotImpl implements XiaomingBot {
             resourceManager = filePreservableFactory
                     .loadOrProduce(ResourceManagerImpl.class, new File(resourceDirectory, "resources.json"), ResourceManagerImpl::new);
             resourceManager.setXiaomingBot(this);
+            resourceManager.setResourceDirectory(resourceDirectory);
         });
 
         initializer.put("licenseManager", () -> {
@@ -329,8 +325,6 @@ public class XiaomingBotImpl implements XiaomingBot {
         // 设置调用限制
         userCallLimitManager.getGroupCallLimiter().setConfig(configuration.getGroupCallConfig());
         userCallLimitManager.getPrivateCallLimiter().setConfig(configuration.getPrivateCallConfig());
-
-        execute(timeTaskManager);
     }
 
     void initialize() {
@@ -405,21 +399,6 @@ public class XiaomingBotImpl implements XiaomingBot {
      * 文件存储信息载入和读取器
      */
     PreservableFactory<File> filePreservableFactory = new JsonFilePreservableFactory();
-
-    /**
-     * 线程池
-     */
-    ExecutorService mainThreadPool;
-
-    @Override
-    public void execute(Runnable runnable) {
-        mainThreadPool.execute(runnable);
-    }
-
-    @Override
-    public void execute(Thread thread) {
-        mainThreadPool.execute(thread);
-    }
 
     /**
      * 统一权限管理器
@@ -522,7 +501,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     /**
      * 定时任务
      */
-    TimeTaskManager timeTaskManager;
+    Scheduler scheduler;
 
     /**
      * 提示文字管理器
@@ -533,32 +512,6 @@ public class XiaomingBotImpl implements XiaomingBot {
     File logDirectory = PathUtils.LOG;
 
     XiaomingClassLoader xiaomingClassLoader = new XiaomingClassLoader(getClass().getClassLoader());
-
-    void shutdownService(XiaomingUser user) {
-        // 唤醒正在等待事件的进程，令其退出
-
-        receptionistManager.close();
-
-        // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
-        mainThreadPool.shutdown();
-
-        // 如果还没关闭就尝试关闭一下
-        if (!mainThreadPool.isShutdown()) {
-            try {
-                TimeUnit.SECONDS.sleep(10);
-            } catch (InterruptedException ignored) {
-            }
-            try {
-                int remainTryTimes = 5;
-                while (!mainThreadPool.awaitTermination(5, TimeUnit.SECONDS) && remainTryTimes > 0) {
-                    getLog().warn("线程仍然没有全部结束，请稍等，小明还会尝试 " + remainTryTimes + " 次……");
-                    remainTryTimes--;
-                }
-            } catch (InterruptedException exception) {
-                getLog().warn("等待线程池关闭被强行中止");
-            }
-        }
-    }
 
     @Override
     public synchronized void stop(XiaomingUser user) {
@@ -577,22 +530,26 @@ public class XiaomingBotImpl implements XiaomingBot {
         }
 
         getLog().info("正在关闭线程池");
-        try {
-            getConsoleInputThread().getInputThread().interrupt();
-            getTimeTaskManager().stop();
-            shutdownService(user);
-
-            if (mainThreadPool.isShutdown()) {
-                getLog().info("线程池成功关闭");
-            } else {
-                getLog().error("这些线程无法立即关闭：");
-                for (Runnable runnable : mainThreadPool.shutdownNow()) {
-                    getLog().error(runnable.getClass().getName());
-                }
-                getLog().error("已放弃关闭这些线程");
+        // 唤醒并关闭所有用户线程
+        receptionistManager.close();
+        // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
+        scheduler.stop();
+        final ExecutorService threadPool = scheduler.getThreadPool();
+        // 如果还没关闭就尝试关闭一下
+        if (!threadPool.isShutdown()) {
+            try {
+                TimeUnit.SECONDS.sleep(10);
+            } catch (InterruptedException ignored) {
             }
-        } catch (Exception exception) {
-            getLog().error(exception.getMessage(), exception);
+            try {
+                int remainTryTimes = 5;
+                while (!threadPool.awaitTermination(5, TimeUnit.SECONDS) && remainTryTimes > 0) {
+                    getLog().warn("线程仍然没有全部结束，请稍等，小明还会尝试 " + remainTryTimes + " 次……");
+                    remainTryTimes--;
+                }
+            } catch (InterruptedException exception) {
+                getLog().warn("等待线程池关闭被强行中止");
+            }
         }
 
         // 关闭所有的插件
@@ -630,5 +587,21 @@ public class XiaomingBotImpl implements XiaomingBot {
         } catch (Exception exception) {
             getLog().error(exception.getMessage(), exception);
         }
+    }
+
+    @Override
+    public void optimize() {
+        // 最多连续尝试一分钟
+        // 不断尝试直到当前没有任何人正在交互
+        long latestTime = System.currentTimeMillis() + TimeUnit.MINUTES.toMillis(1);
+        while (!receptionistManager.getReceptionists().isEmpty() && System.currentTimeMillis() < latestTime) {
+            receptionistManager.optimize();
+        }
+
+        // 清空缓存的所有聊天记录
+        if (latestTime < System.currentTimeMillis()) {
+            contactManager.clear();
+        }
+        System.gc();
     }
 }

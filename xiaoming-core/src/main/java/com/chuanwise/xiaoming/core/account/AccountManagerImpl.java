@@ -3,7 +3,7 @@ package com.chuanwise.xiaoming.core.account;
 import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.account.AccountManager;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.core.object.HostObjectImpl;
+import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import lombok.Getter;
 import net.mamoe.mirai.contact.Friend;
 
@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
-public class AccountManagerImpl extends HostObjectImpl implements AccountManager {
+public class AccountManagerImpl extends ModuleObjectImpl implements AccountManager {
     File directory;
 
     Map<Long, Account> loadedAccounts = new ConcurrentHashMap<>();
@@ -47,7 +47,7 @@ public class AccountManagerImpl extends HostObjectImpl implements AccountManager
         if (Objects.isNull(account)) {
             account = new AccountImpl();
             account.setMedium(accountFile(qq));
-            account.setQq(qq);
+            account.setCode(qq);
             final Friend friend = getXiaomingBot().getMiraiBot().getFriend(qq);
             if (Objects.nonNull(friend)) {
                 account.setAlias(friend.getNick());

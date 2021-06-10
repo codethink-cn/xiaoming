@@ -37,8 +37,6 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
             user.sendWarning(emptyHistory);
             return;
         }
-
-        // InteractorUtils.showList(user, account.getHistories(), Object::toString, "（无）", 5);
         InteractorUtils.showList(user, account.getCommands(), AccountEvent::getMessage, emptyHistory, 5);
     }
 
@@ -52,7 +50,8 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
                 user.sendError("小明没有加载插件：{}", plugin);
             }
             if (user.hasPermission("use." + plugin)) {
-                account.getBlockPlugins().remove(plugin);
+                account.unblockPlugin(plugin);
+                getXiaomingBot().getFinalizer().readySave(account);
                 user.sendMessage("成功取消屏蔽了插件：{}", plugin);
             } else {
                 user.sendError("你不能使用插件：{}", plugin);

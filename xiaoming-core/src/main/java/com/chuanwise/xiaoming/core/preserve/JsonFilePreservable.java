@@ -1,7 +1,7 @@
 package com.chuanwise.xiaoming.core.preserve;
 
 import com.chuanwise.xiaoming.api.preserve.Preservable;
-import com.chuanwise.xiaoming.api.util.JsonSerializerUtil;
+import com.chuanwise.xiaoming.api.util.JsonSerializerUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,7 +34,7 @@ public class JsonFilePreservable implements Preservable<File> {
         }
         // 写入本对象的 json 数据
         try (OutputStream outputStream = new FileOutputStream(file)) {
-            JsonSerializerUtil.getINSTANCE().writeValue(outputStream, this);
+            JsonSerializerUtils.getINSTANCE().writeValue(outputStream, this);
         }
         return true;
     }

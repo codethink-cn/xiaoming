@@ -1,9 +1,8 @@
 package com.chuanwise.xiaoming.core.preserve;
 
-import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
 import com.chuanwise.xiaoming.api.preserve.PreservableFactory;
-import com.chuanwise.xiaoming.api.util.JsonSerializerUtil;
+import com.chuanwise.xiaoming.api.util.JsonSerializerUtils;
 
 import java.io.*;
 
@@ -19,7 +18,7 @@ public class JsonFilePreservableFactory implements PreservableFactory<File> {
             return result;
         }
         try (InputStream inputStream = new FileInputStream(medium)) {
-            result = JsonSerializerUtil.getINSTANCE().readValue(inputStream, clazz);
+            result = JsonSerializerUtils.getINSTANCE().readValue(inputStream, clazz);
         }
         return result;
     }

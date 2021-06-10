@@ -1,12 +1,11 @@
 package com.chuanwise.xiaoming.api.event;
 
-import com.chuanwise.xiaoming.api.object.HostObject;
+import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import net.mamoe.mirai.event.Event;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.function.Consumer;
@@ -14,7 +13,7 @@ import java.util.function.Consumer;
 /**
  * 监听器管理器
  */
-public interface EventManager extends HostObject {
+public interface EventManager extends ModuleObject {
     /**
      * 由调用线程立即响应一个事件
      * @param event 目标事件
@@ -39,7 +38,7 @@ public interface EventManager extends HostObject {
      * @param event 目标事件
      */
     default void callLater(Event event) {
-        getXiaomingBot().execute(() -> {
+        getXiaomingBot().getScheduler().run(() -> {
             call(event);
         });
     }

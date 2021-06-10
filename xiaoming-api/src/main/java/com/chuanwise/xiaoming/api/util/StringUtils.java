@@ -1,12 +1,10 @@
 package com.chuanwise.xiaoming.api.util;
 
-import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Function;
 
-public class StringUtils {
+public class StringUtils extends StaticUtils {
     public static boolean isEmpty(String string) {
         return Objects.isNull(string) || string.isEmpty();
     }

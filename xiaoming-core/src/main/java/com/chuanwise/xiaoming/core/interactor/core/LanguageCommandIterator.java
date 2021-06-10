@@ -1,18 +1,8 @@
 package com.chuanwise.xiaoming.core.interactor.core;
 
-import com.chuanwise.xiaoming.api.annotation.Filter;
-import com.chuanwise.xiaoming.api.annotation.FilterParameter;
-import com.chuanwise.xiaoming.api.annotation.Require;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.word.LanguageManager;
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.util.CommandWords;
+import com.chuanwise.xiaoming.api.language.LanguageManager;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
 /**
  * 单词指令处理器

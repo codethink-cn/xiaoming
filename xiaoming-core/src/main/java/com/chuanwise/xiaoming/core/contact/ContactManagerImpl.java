@@ -6,10 +6,8 @@ import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
 import com.chuanwise.xiaoming.api.contact.contact.TempContact;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
-import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
-import com.chuanwise.xiaoming.api.contact.message.TempMessage;
 import com.chuanwise.xiaoming.core.contact.contact.*;
-import com.chuanwise.xiaoming.core.object.HostObjectImpl;
+import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import lombok.Getter;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Group;
@@ -21,7 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Getter
-public class ContactManagerImpl extends HostObjectImpl implements ContactManager {
+public class ContactManagerImpl extends ModuleObjectImpl implements ContactManager {
     final Map<Long, PrivateContact> privateContacts = new HashMap<>();
 
     final Map<Long, Map<Long, TempContact>> tempContacts = new HashMap<>();

@@ -1,13 +1,13 @@
 package com.chuanwise.xiaoming.api.text;
 
-import com.chuanwise.xiaoming.api.object.HostObject;
+import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.util.StringUtils;
 
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public interface TextManager extends HostObject {
+public interface TextManager extends ModuleObject {
     default File textFile(String textName) {
         return new File(getDirectory(), textName + ".txt");
     }
