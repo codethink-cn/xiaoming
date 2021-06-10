@@ -12,6 +12,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.jar.JarFile;
 
+/**
+ * 插件管理器是小明所有插件的管理者、加载者和卸载者。
+ * @author Chuanwise
+ */
 public interface PluginManager extends XiaomingObject, HostObject {
     /**
      * 判断插件是否存在
@@ -164,7 +168,7 @@ public interface PluginManager extends XiaomingObject, HostObject {
             if (Objects.isNull(loadedPlugin)) {
                 if (loadPlugin(user, pluginName)) {
                     loadedPlugin = getLoadedPlugin(pluginName);
-                    user.sendWarn("插件{}还没有载入，现在已经载入成功了", pluginName);
+                    user.sendWarning("插件{}还没有载入，现在已经载入成功了", pluginName);
                 } else {
                     user.sendError("找不到插件：{}", pluginName);
                     return false;

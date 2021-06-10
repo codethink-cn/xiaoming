@@ -2,6 +2,7 @@ package com.chuanwise.xiaoming.api.interactor.filter;
 
 import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.annotation.FilterPattern;
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 
@@ -51,7 +52,7 @@ public abstract class FilterMatcher {
      * @param user 当前用户
      * @return 输入是否合法
      */
-    public abstract boolean apply(XiaomingUser user);
+    public abstract boolean apply(XiaomingUser user, Message message);
 
     /**
      * 生成一个过滤器

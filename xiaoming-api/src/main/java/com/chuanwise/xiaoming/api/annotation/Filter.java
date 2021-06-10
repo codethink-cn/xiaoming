@@ -7,5 +7,8 @@ import java.lang.annotation.*;
 @Repeatable(Filters.class)
 public @interface Filter {
     String value();
+
     FilterPattern pattern() default FilterPattern.PARAMETER;
+
+    String usage() default "";
 }

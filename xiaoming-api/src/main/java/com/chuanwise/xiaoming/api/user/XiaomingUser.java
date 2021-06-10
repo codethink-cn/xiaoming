@@ -1,41 +1,55 @@
 package com.chuanwise.xiaoming.api.user;
 
 import com.chuanwise.xiaoming.api.account.Account;
+import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
+import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
+import com.chuanwise.xiaoming.api.contact.message.Message;
+import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
 import com.chuanwise.xiaoming.api.exception.InteractorTimeoutException;
 import com.chuanwise.xiaoming.api.exception.ReceptCancelledException;
+import com.chuanwise.xiaoming.api.interactor.Interactor;
 import com.chuanwise.xiaoming.api.object.HostObject;
 import com.chuanwise.xiaoming.api.object.PropertyHolder;
 import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
-import com.chuanwise.xiaoming.api.response.ResponseGroup;
-import com.chuanwise.xiaoming.api.util.ArgumentUtil;
+import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 
-import com.chuanwise.xiaoming.api.util.TimeUtil;
-import net.mamoe.mirai.contact.Friend;
-import net.mamoe.mirai.contact.Group;
-import net.mamoe.mirai.contact.Member;
-import net.mamoe.mirai.contact.NormalMember;
+import com.chuanwise.xiaoming.api.util.InteractorUtils;
+import com.chuanwise.xiaoming.api.util.TimeUtils;
 import net.mamoe.mirai.message.code.MiraiCode;
-import net.mamoe.mirai.message.data.At;
+import net.mamoe.mirai.message.data.MessageChain;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 
 /**
  * @author Chuanwise
  */
 public interface XiaomingUser extends HostObject, PropertyHolder {
-    long MAX_WAIT_TIME = TimeUnit.MINUTES.toMillis(1);
-
-    Set<Thread> getGlobalMessageWaiter();
-
-    void setGlobalNextMessage(List<String> globalNextMessage);
-
-    List<String> getGlobalNextMessage();
-
     void setReceptionist(Receptionist receptionist);
+
+    /**
+     * 以当前用户的身份替换变量
+     * @param format 格式字符串，其中使用 {} 引用下文的变量
+     * @param arguments 实参。将按顺序用于替换 format 中的 {}
+     * @return 替换后的字符串
+     */
+    default String replaceArguments(String format, Object... arguments) {
+        // 消息中所有的变量都会被替换。
+        // 最先替换当前变量
+        format = ArgumentUtils.replaceArguments(format, arguments);
+
+        // 再替换用户属性中的值：
+        format = ArgumentUtils.replaceArguments(format, arguments);
+
+        // 最后替换 Language 中的字句
+        format = ArgumentUtils.replaceArguments(format, getXiaomingBot().getLanguageManager().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime());
+        return format;
+    }
+
+    XiaomingContact getContact();
 
     /**
      * 给当前使用者发普通消息
@@ -43,163 +57,33 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
      * @param arguments 实参
      * @return
      */
-    default boolean sendMessage(String message, Object... arguments) {
-        Objects.requireNonNull(message);
-        if (inGroup()) {
-            return sendGroupAtMessage(message, arguments);
-        } else {
-            return sendPrivateMessage(message, arguments);
-        }
+    void sendMessage(String message, Object... arguments);
+
+    void sendPrivateMessage(String message, Object... arguments);
+
+    default void sendError(String message, Object... arguments) {
+        sendMessage("{error} " + message, arguments);
     }
 
-    /**
-     * 发送私聊消息。如果是临时会话，就发到临时会话里
-     * @param message 消息格式，使用 {} 表示参数
-     * @param arguments 消息参数
-     * @return 是否发送成功
-     */
-    default boolean sendPrivateMessage(String message, Object... arguments) {
-        Objects.requireNonNull(message);
-        final String translatedMessage = ArgumentUtil.replaceArguments(message, arguments);
-        try {
-            if (isUsingBuffer()) {
-                appendBuffer(translatedMessage);
-            } else if (inPrivate()) {
-                getAsPrivate().sendMessage(MiraiCode.deserializeMiraiCode(translatedMessage));
-            } else if (inTemp()) {
-                getAsTempMember().sendMessage(MiraiCode.deserializeMiraiCode(translatedMessage));
-            } else {
-                getAsGroupMember().sendMessage(MiraiCode.deserializeMiraiCode(translatedMessage));
-            }
-            return true;
-        } catch (Exception exception) {
-            return false;
-        }
+    default void sendWarning(String message, Object... arguments) {
+        sendMessage("{warning} " + message, arguments);
     }
 
-    default boolean sendPrivateMessage(long who, String message, Object... arguments) {
-        Objects.requireNonNull(message);
-        final Friend friend = getXiaomingBot().getMiraiBot().getFriend(who);
-        final String translatedMessage = ArgumentUtil.replaceArguments(message, arguments);
-        try {
-            if (Objects.nonNull(friend)) {
-                friend.sendMessage(MiraiCode.deserializeMiraiCode(translatedMessage));
-                return true;
-            } else {
-                return false;
-            }
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            return false;
-        }
+    default void sendPrivateError(String message, Object... arguments) {
+        sendPrivateMessage("{error} " + message, arguments);
     }
 
-    default boolean sendPrivateMessage(long group, long who, String message, Object... arguments) {
-        Objects.requireNonNull(message);
-        final Group miraiGroup = getXiaomingBot().getMiraiBot().getGroup(group);
-        if (Objects.nonNull(miraiGroup)) {
-            final NormalMember member = miraiGroup.get(who);
-            if (Objects.nonNull(member)) {
-                member.sendMessage(ArgumentUtil.replaceArguments(message, arguments));
-                return true;
-            }
-        }
-        return false;
+    default void sendPrivateWarning(String message, Object... arguments) {
+        sendPrivateMessage("{warning} " + message, arguments);
     }
 
-    /**
-     * 在群聊发送消息
-     * @param group 发送的群
-     * @param message 消息格式
-     * @param arguments 消息参数
-     * @return 是否发送成功
-     */
-    default boolean sendGroupMessage(long group, String message, Object... arguments) {
-        Objects.requireNonNull(message);
-        try {
-            final Group groupContact = getXiaomingBot().getMiraiBot().getGroup(group);
-            if (Objects.nonNull(groupContact)) {
-                final String translatedMessage = ArgumentUtil.replaceArguments(message, arguments);
-                groupContact.sendMessage(MiraiCode.deserializeMiraiCode(translatedMessage));
-                return true;
-            } else {
-                return false;
-            }
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            return false;
-        }
+    default boolean hasPermission(String require) {
+        setProperty("permission", require);
+        return getXiaomingBot().getPermissionManager().userAccessible(this, require) == PermissionAccessible.ACCESSABLE;
     }
 
-    default boolean sendGroupMessage(String message, Object... arguments) {
-        try {
-            final String translatedMessage = ArgumentUtil.replaceArguments(message, arguments);
-            if (isUsingBuffer()) {
-                appendBuffer(translatedMessage);
-                return true;
-            } else {
-                final Group group = getGroup();
-                if (Objects.nonNull(group)) {
-                    group.sendMessage(MiraiCode.deserializeMiraiCode(translatedMessage));
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            return false;
-        }
-    }
-
-    default boolean sendGroupAtMessage(long group, long who, String message, Object... arguments) {
-        Objects.requireNonNull(message);
-        return sendGroupMessage(group, new At(who).serializeToMiraiCode() + " " + message, arguments);
-    }
-
-    default boolean sendGroupAtMessage(String message, Object... arguments) {
-        Objects.requireNonNull(message);
-        if (isUsingBuffer()) {
-            appendBuffer(ArgumentUtil.replaceArguments(message, arguments));
-            return true;
-        } else {
-            return sendGroupMessage(new At(getQQ()).serializeToMiraiCode() + " " + message, arguments);
-        }
-    }
-
-    /**
-     * 给当前使用者发错误消息
-     * @param message 消息。其中可用 {} 引用参数
-     * @param arguments 实参
-     * @return
-     */
-    default boolean sendError(String message, Object... arguments) {
-        return sendMessage(getXiaomingBot().getWordManager().get("error") + " " + message, arguments);
-    }
-
-    default boolean sendPrivateError(String message, Object... arguments) {
-        return sendPrivateMessage(getXiaomingBot().getWordManager().get("error") + " " + message, arguments);
-    }
-
-    default boolean sendWarn(String message, Object... arguments) {
-        return sendMessage(getXiaomingBot().getWordManager().get("warning") + " " + message, arguments);
-    }
-
-    default boolean sendPrivateWarn(String message, Object... arguments) {
-        return sendPrivateMessage(getXiaomingBot().getWordManager().get("warning") + " " + message, arguments);
-    }
-
-    /**
-     * 检查用户是否具有某个权限
-     * @param node 一些权限节点
-     * @return 查询结果
-     */
-    default boolean hasPermission(String node) {
-        return getXiaomingBot().getPermissionManager().userAccessible(this, node) == PermissionAccessible.ACCESSABLE;
-    }
-
-    default boolean hasPermission(String[] nodes) {
-        for (String node : nodes) {
+    default boolean hasPermission(String[] require) {
+        for (String node : require) {
             if (!hasPermission(node)) {
                 return false;
             }
@@ -207,11 +91,11 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
         return true;
     }
 
-    default boolean requirePermission(String node) {
-        if (hasPermission(node)) {
+    default boolean requirePermission(String require) {
+        if (hasPermission(require)) {
             return true;
         } else {
-            sendError("小明不能帮你做这件事哦，因为你缺少权限：{}", node);
+            sendError("{lack-permission}");
             return false;
         }
     }
@@ -226,279 +110,152 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
     }
 
     /**
-     * 设置用户在当前语境下的下一条消息
-     * @param message 消息
-     */
-    default void setMessage(String message) {
-        getReceptionTask().onMessage(message);
-    }
-
-    /**
      * 获得该用户的接待员
      * @return 用户接待员
      */
     Receptionist getReceptionist();
 
-    /**
-     * 获得用户的下一次输入
-     * @param waitTime 最长等待时间。如果为 0 则为无限制等待，不推荐这么使用。
-     * @param onTimeout 超时后的操作
-     * @return 用户的下一次输入。如果超时返回 {@code null}
-     */
-    default String nextInput(long waitTime, Function<Void, Void> onTimeout) {
+    Interactor getInteractor();
+
+    void onNextInput(Message message);
+
+    default void onNextInput(String message) {
+        onNextInput(MiraiCode.deserializeMiraiCode(message));
+    }
+
+    void onNextInput(MessageChain messages);
+
+    default Message nextInput(long timeout, Runnable onTimeout) {
+        return InteractorUtils.waitLastElement(getRecentMessages(), timeout, onTimeout);
+    }
+
+    default Message nextInput(Runnable onTimeout) {
+        return nextInput(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime(), onTimeout);
+    }
+
+    default Message nextInput(long waitTime) {
+        return nextInput(waitTime, () -> {
+            setProperty("time", TimeUtils.toTimeString(waitTime));
+            sendError("{userNextInputTimeOut}");
+            throw new InteractorTimeoutException(getInteractor(), this);
+        });
+    }
+
+    default Message nextInput() {
+        return nextInput(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime());
+    }
+
+    default PrivateMessage nextPrivateInput(long timeout, Runnable onTimeout) {
+        return InteractorUtils.waitLastElement(getReceptionist().getPrivateRecentMessages(), timeout, onTimeout);
+    }
+
+    default PrivateMessage nextPrivateInput(Runnable onTimeout) {
+        return nextPrivateInput(getXiaomingBot().getConfiguration().getMaxUserPrivateInputWaitTime(), onTimeout);
+    }
+
+    default PrivateMessage nextPrivateInput(long waitTime) {
+        return nextPrivateInput(waitTime, () -> {
+            setProperty("time", TimeUtils.toTimeString(waitTime));
+            sendError("{userNextPrivateInputTimeOut}");
+            throw new InteractorTimeoutException(getInteractor(), this);
+        });
+    }
+
+    default PrivateMessage nextPrivateInput() {
+        return nextPrivateInput(getXiaomingBot().getConfiguration().getMaxUserPrivateInputWaitTime());
+    }
+
+    default GroupMessage nextGroupInput(long timeout, String tag, Runnable onTimeout) {
+        return InteractorUtils.waitLastElement(getReceptionist().getOrPutGroupRecentMessage(tag), timeout, onTimeout);
+    }
+
+    default GroupMessage nextGroupInput(String tag, Runnable onTimeout) {
+        return nextGroupInput(getXiaomingBot().getConfiguration().getMaxUserGroupInputWaitTime(), tag, onTimeout);
+    }
+
+    default GroupMessage nextGroupInput(long waitTime, String tag) {
+        return nextGroupInput(waitTime, tag, () -> {
+            setProperty("time", TimeUtils.toTimeString(waitTime));
+            setProperty("tag", tag);
+            sendError("{userNextGroupInputTimeOut}");
+            throw new InteractorTimeoutException(getInteractor(), this);
+        });
+    }
+
+    default GroupMessage nextGroupInput(String tag) {
+        return nextGroupInput(getXiaomingBot().getConfiguration().getMaxUserGroupInputWaitTime(), tag);
+    }
+
+    default Message nextGlobalInput(long timeout, Runnable onTimeout) {
         // 在用户上等待下一次输入
-        return getReceptionTask().nextInput(waitTime, onTimeout);
-    }
-
-    default String nextInput(Function<Void, Void> onTimeout) {
-        return nextInput(MAX_WAIT_TIME, onTimeout);
-    }
-
-    default String nextInput() {
-        return nextInput(MAX_WAIT_TIME, para -> {
-            sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
-            throw new InteractorTimeoutException();
-        });
-    }
-
-    default String nextInput(long maxWaitTime) {
-        return nextInput(maxWaitTime, para -> {
-            sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
-            throw new InteractorTimeoutException();
-        });
-    }
-
-    default String nextPrivateInput(long waitTime, Function<Void, Void> onTimeout) {
-        // 在用户上等待下一次输入
-        return getPrivateTask().nextInput(waitTime, onTimeout);
-    }
-
-    default String nextPrivateInput(Function<Void, Void> onTimeout) {
-        return nextPrivateInput(MAX_WAIT_TIME, onTimeout);
-    }
-
-    default String nextPrivateInput() {
-        return nextPrivateInput(MAX_WAIT_TIME, para -> {
-            sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
-            throw new InteractorTimeoutException();
-        });
-    }
-
-    default String nextPrivateInput(long maxWaitTime) {
-        return nextPrivateInput(maxWaitTime, para -> {
-            sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
-            throw new InteractorTimeoutException();
-        });
-    }
-
-    default String nextGroupInput(long group, long waitTime, Function<Void, Void> onTimeout) {
-        // 在用户上等待下一次输入
-        return getGroupTask(group).nextInput(waitTime, onTimeout);
-    }
-
-    default String nextGroupInput(long group, Function<Void, Void> onTimeout) {
-        return nextGroupInput(group, MAX_WAIT_TIME, onTimeout);
-    }
-
-    default String nextGroupInput(long group) {
-        return nextGroupInput(group, MAX_WAIT_TIME, para -> {
-            sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
-            throw new InteractorTimeoutException();
-        });
-    }
-
-    default String nextGroupInput(long group, long maxWaitTime) {
-        return nextGroupInput(group, maxWaitTime, para -> {
-            sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
-            throw new InteractorTimeoutException();
-        });
-    }
-
-    default String nextTempInput(long group, long waitTime, Function<Void, Void> onTimeout) {
-        // 在用户上等待下一次输入
-        return getTempTask(group).nextInput(waitTime, onTimeout);
-    }
-
-    default String nextTempInput(long group, Function<Void, Void> onTimeout) {
-        return nextTempInput(group, MAX_WAIT_TIME, onTimeout);
-    }
-
-    default String nextTempInput(long group) {
-        return nextTempInput(group, MAX_WAIT_TIME, para -> {
-            sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
-            throw new InteractorTimeoutException();
-        });
-    }
-
-    default String nextTempInput(long group, long maxWaitTime) {
-        return nextTempInput(group, maxWaitTime, para -> {
-            sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
-            throw new InteractorTimeoutException();
-        });
-    }
-
-    default String nextGlobalInput(long waitTime, Function<Void, Void> onTimeout) {
-        // 在用户上等待下一次输入
-        final Set<Thread> globalMessageWaiter = getGlobalMessageWaiter();
-        globalMessageWaiter.add(Thread.currentThread());
-        final long latestTime = System.currentTimeMillis() + waitTime;
+        final long latestTime = System.currentTimeMillis() + timeout;
+        final Receptionist receptionist = getReceptionist();
 
         try {
-            synchronized (globalMessageWaiter) {
-                globalMessageWaiter.wait(waitTime);
+            synchronized (receptionist) {
+                receptionist.wait(timeout);
             }
         } catch (InterruptedException ignored) {
         }
         if (System.currentTimeMillis() < latestTime) {
-            // 增加了一条消息
-            final List<String> globalNextMessage = getGlobalNextMessage();
-            if (Objects.nonNull(globalNextMessage)) {
-                return globalNextMessage.get(globalNextMessage.size() - 1);
+            final List<? extends Message> list = receptionist.getGlobalRecentMessages();
+            if (Objects.nonNull(list)) {
+                return list.get(list.size() - 1);
             } else {
-                // 是被人打断的
                 throw new ReceptCancelledException();
             }
         } else {
-            onTimeout.apply(null);
+            onTimeout.run();
             return null;
         }
     }
 
-    default String nextGlobalInput(Function<Void, Void> onTimeout) {
-        return nextGlobalInput(MAX_WAIT_TIME, onTimeout);
+    default Message nextGlobalInput(Runnable onTimeout) {
+        return nextGlobalInput(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime(), onTimeout);
     }
 
-    default String nextGlobalInput() {
-        return nextGlobalInput(MAX_WAIT_TIME, para -> {
-            sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
-            throw new InteractorTimeoutException();
+    default Message nextGlobalInput(long waitTime) {
+        return nextGlobalInput(waitTime, () -> {
+            setProperty("time", TimeUtils.toTimeString(waitTime));
+            sendError("{userGlobalNextInputTimeOut}");
+            throw new InteractorTimeoutException(getInteractor(), this);
         });
     }
 
-    default String nextGlobalInput(long maxWaitTime) {
-        return nextGlobalInput(maxWaitTime, para -> {
-            sendMessage("你已经{}没有理小明啦，小明就不等待你的下一条消息啦", TimeUtil.toTimeString(MAX_WAIT_TIME));
-            throw new InteractorTimeoutException();
-        });
-    }
-
-    /**
-     * 获得当前用户的群聊身份
-     * @return 返回群聊用户的引用。失败时返回 {@code null}
-     */
-    default Member getAsGroupMember() {
-        final ReceptionTask task = getReceptionTask();
-        if (task.inGroup()) {
-            return task.getMember();
-        } else {
-            return null;
-        }
-    }
-
-    default boolean inGroup() {
-        return getReceptionTask().inGroup();
-    }
-
-    /**
-     * 获得当前用户的临时通话身份
-     * @return 返回通话身份的引用。失败时返回 {@code null}
-     */
-    default Member getAsTempMember() {
-        final ReceptionTask task = getReceptionTask();
-        if (task.inTemp()) {
-            return task.getMember();
-        } else {
-            return null;
-        }
-    }
-
-    default boolean inTemp() {
-        return getReceptionTask().inTemp();
-    }
-
-    /**
-     * 获得当前用户的私聊身份
-     * @return 返回私聊会话的引用。失败时返回 {@code null}
-     */
-    default Friend getAsPrivate() {
-        final ReceptionTask task = getReceptionTask();
-        if (task.inPrivate()) {
-            return task.getFriend();
-        } else {
-            return null;
-        }
-    }
-
-    default boolean inPrivate() {
-        return getReceptionTask().inPrivate();
-    }
-
-    /**
-     * 获取用户所在的群
-     * @return 如果是群聊用户或临时会话，返回其所在群，否则返回 {@code null}
-     */
-    default Group getGroup() {
-        final Member member = getReceptionTask().getMember();
-        if (Objects.nonNull(member)) {
-            return member.getGroup();
-        } else {
-            return null;
-        }
+    default Message nextGlobalInput() {
+        return nextGlobalInput(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime());
     }
 
     /**
      * 获取用户的 QQ
      * @return 用户 QQ
      */
-    long getQQ();
+    long getCode();
+
+    default String getCodeString() {
+        return String.valueOf(getCode());
+    }
 
     /**
      * 获取用户的 QQ 账号名或备注
      * @return QQ 账号名或备注
      */
-    default String getName() {
-        final Account account = getAccount();
-        if (Objects.nonNull(account) && Objects.nonNull(account.getAlias())) {
-            return account.getAlias();
-        } else {
-            final ReceptionTask task = getReceptionTask();
-            if (Objects.nonNull(task.getMember())) {
-                return task.getMember().getNameCard();
-            } else {
-                return task.getFriend().getNick();
-            }
-        }
-    }
+    String getName();
 
     /**
      * 获取用户全名。包含所在的群的名称。
      * @return 用户全名
      */
-    default String getCompleteName() {
-        final Group group = getGroup();
-        if (inGroup()) {
-            return "[" + group.getName() + "(" + group.getId() + ")] " + getName() + "(" + getQQ() + ")";
-        } else if (inTemp()) {
-            return getName() + "(" + getQQ() + ")" + " 来自 [" + group.getName() + "(" + group.getId() + ")]";
-        } else {
-            return getName() + "(" + getQQ() + ")";
-        }
-    }
+    String getCompleteName();
 
-    default String getMessage() {
-        return getReceptionTask().getMessage();
-    }
-
-    default List<String> getRecentMessages() {
-        return getReceptionTask().getRecentMessages();
-    }
+    List<? extends Message> getRecentMessages();
 
     /**
      * 获取用户的账户
      * @return 如果尚未存储相关信息，返回 {@code null}
      */
     default Account getAccount() {
-        return getXiaomingBot().getAccountManager().getAccount(getQQ());
+        return getXiaomingBot().getAccountManager().getAccount(getCode());
     }
 
     /**
@@ -506,7 +263,7 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
      * @return 用户账户，不一定存在于外存
      */
     default Account getOrPutAccount() {
-        return getXiaomingBot().getAccountManager().getOrPutAccount(getQQ());
+        return getXiaomingBot().getAccountManager().getOrPutAccount(getCode());
     }
 
     /**
@@ -515,23 +272,41 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
      */
     boolean isUsingBuffer();
 
-    void setUsingBuffer(boolean usingBuffer);
-
-    StringBuilder getBuffer();
-
-    default void clearBuffer() {
-        getBuffer().setLength(0);
+    /**
+     * 获取当前的缓冲区
+     * @return
+     */
+    default PrintWriter getPrintWriter() {
+        return getPrintWriters().peek();
     }
 
-    default void enableBuffer() {
-        setUsingBuffer(true);
-        clearBuffer();
+    /**
+     * 获取缓冲区栈
+     * @return
+     */
+    Stack<PrintWriter> getPrintWriters();
+
+    /**
+     * 获取当前的缓冲区
+     * @return
+     */
+    default StringWriter getStringWriter() {
+        return getStringWriters().peek();
     }
 
-    default String getBufferAndClear() {
-        final String string = getBuffer().toString();
-        clearBuffer();
-        setUsingBuffer(false);
+    /**
+     * 获取缓冲区栈
+     * @return
+     */
+    Stack<StringWriter> getStringWriters();
+
+    void enableBuffer();
+
+    void disableBuffer();
+
+    default String getBufferAndClose() {
+        final String string = getStringWriter().toString();
+        disableBuffer();
         return string;
     }
 
@@ -550,128 +325,12 @@ public interface XiaomingUser extends HostObject, PropertyHolder {
     }
 
     default void appendBuffer(String string) {
-        final StringBuilder buffer = getBuffer();
-        if (buffer.length() == 0) {
-            buffer.append(string);
-        } else {
-            buffer.append("\n").append(string);
+        final PrintWriter printWriter = getPrintWriter();
+        if (getStringWriter().getBuffer().length() != 0) {
+            printWriter.println();
         }
+        printWriter.print(string);
     }
 
-    default ResponseGroup getResponseGroup() {
-        final Group group = getGroup();
-        if (Objects.nonNull(group)) {
-            return getXiaomingBot().getResponseGroupManager().forCode(group.getId());
-        } else {
-            return null;
-        }
-    }
-
-    Map<Long, List<String>> getRecentGroupMessages();
-
-    default List<String> getRecentGroupMessages(long group) {
-        return getRecentGroupMessages().get(group);
-    }
-
-    default List<String> getOrPutRecentGroupMessages(long group) {
-        List<String> list = getRecentGroupMessages(group);
-        if (Objects.isNull(list)) {
-            list = new ArrayList<>();
-            getRecentGroupMessages().put(group, list);
-        }
-        return list;
-    }
-
-    default String getGroupMessage() {
-        return getReceptionTask().getMessage();
-    }
-
-    default String getGroupMessage(long group) {
-        final List<String> list = getRecentGroupMessages(group);
-        if (Objects.nonNull(list) && !list.isEmpty()) {
-            return list.get(list.size() - 1);
-        } else {
-            return null;
-        }
-    }
-
-    default void onGroupMessage(long group, String message) {
-        final List<String> list = getOrPutRecentGroupMessages(group);
-        list.add(message);
-        synchronized (list) {
-            list.notifyAll();
-        }
-    }
-
-    Map<Long, List<String>> getRecentTempMessages();
-
-    default List<String> getRecentTempMessages(long group) {
-        return getRecentTempMessages().get(group);
-    }
-
-    default List<String> getOrPutRecentTempMessages(long group) {
-        List<String> list = getRecentTempMessages(group);
-        if (Objects.isNull(list)) {
-            list = new ArrayList<>();
-            getRecentTempMessages().put(group, list);
-        }
-        return list;
-    }
-
-    default String getTempMessages(long group) {
-        final List<String> list = getRecentTempMessages(group);
-        if (Objects.nonNull(list) && !list.isEmpty()) {
-            return list.get(list.size() - 1);
-        } else {
-            return null;
-        }
-    }
-
-    default void setTempMessage(long group, String message) {
-        final List<String> list = getOrPutRecentTempMessages(group);
-        list.add(message);
-        synchronized (list) {
-            list.notifyAll();
-        }
-    }
-
-    List<String> getRecentPrivateMessage();
-
-    default String getPrivateMessage() {
-        final List<String> list = getRecentPrivateMessage();
-        if (list.isEmpty()) {
-            return null;
-        } else {
-            return list.get(list.size() - 1);
-        }
-    }
-
-    default void onPrivateMessage(String message) {
-        final List<String> list = getRecentPrivateMessage();
-        list.add(message);
-        synchronized (list) {
-            list.notifyAll();
-        }
-    }
-
-    default ReceptionTask getReceptionTask() {
-        final ReceptionTask task = getReceptionist().getReceptionTasks().get(Thread.currentThread().getName());
-        if (Objects.isNull(task)) {
-            final Thread thread = Thread.currentThread();
-            getLog().error("未知的线程获得一个调度任务：" + thread);
-        }
-        return task;
-    }
-
-    default ReceptionTask getGroupTask(long group) {
-        return getReceptionist().getGroupTask(group);
-    }
-
-    default ReceptionTask getPrivateTask() {
-        return getReceptionist().getPrivateTask();
-    }
-
-    default ReceptionTask getTempTask(long group) {
-        return getReceptionist().getTempTask(group);
-    }
+    ReceptionTask getReceptionTask();
 }

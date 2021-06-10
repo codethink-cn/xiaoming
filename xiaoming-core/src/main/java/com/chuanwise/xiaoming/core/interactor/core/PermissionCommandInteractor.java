@@ -2,15 +2,19 @@ package com.chuanwise.xiaoming.core.interactor.core;
 
 import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.annotation.FilterParameter;
-import com.chuanwise.xiaoming.api.annotation.RequirePermission;
+import com.chuanwise.xiaoming.api.annotation.Require;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
+import com.chuanwise.xiaoming.api.interactor.Interactor;
+import com.chuanwise.xiaoming.api.interactor.InteractorManager;
+import com.chuanwise.xiaoming.api.interactor.detail.InteractorMethodDetail;
 import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
 import com.chuanwise.xiaoming.api.permission.PermissionGroup;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
 import com.chuanwise.xiaoming.api.permission.PermissionUserNode;
+import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CommandWords;
-import com.chuanwise.xiaoming.api.util.StringUtil;
+import com.chuanwise.xiaoming.api.util.StringUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 import com.chuanwise.xiaoming.core.permission.PermissionGroupImpl;
 
@@ -61,7 +65,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      * 新增权限组
      */
     @Filter(CommandWords.NEW + CommandWords.PERMISSION_GROUP + " {permissionGroup}")
-    @RequirePermission("permission.group.new")
+    @Require("permission.group.new")
     public void onNewPermissionGroup(XiaomingUser user,
                                      @FilterParameter("permissionGroup") String name) {
         PermissionGroup group = permissionManager.getPermissionGroup(name);
@@ -78,10 +82,37 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
     }
 
     /**
+     * 权限列表
+     */
+    @Filter(CommandWords.PERMISSION + "(列表|表|list)")
+    @Require("permission.list")
+    public void onListPermissions(XiaomingUser user) {
+        final InteractorManager interactorManager = getXiaomingBot().getInteractorManager();
+        final Set<Interactor> coreInteractors = interactorManager.getCoreInteractors();
+        final Map<XiaomingPlugin, Set<Interactor>> pluginInteractors = interactorManager.getPluginInteractors();
+
+        List<String> permissions = new ArrayList<>();
+        for (Interactor interactor : coreInteractors) {
+            for (InteractorMethodDetail detail : interactor.getMethodDetails()) {
+                permissions.addAll(Arrays.asList(detail.getRequiredPermissions()));
+            }
+        }
+        for (Set<Interactor> value : pluginInteractors.values()) {
+            for (Interactor interactor : value) {
+                for (InteractorMethodDetail detail : interactor.getMethodDetails()) {
+                    permissions.addAll(Arrays.asList(detail.getRequiredPermissions()));
+                }
+            }
+        }
+        Collections.sort(permissions);
+        user.sendMessage("当前有效的所有静态节点：" + StringUtils.getCollectionSummary(permissions, String::toString, "", "（无）", "\n"));
+    }
+
+    /**
      * 设置用户权限组
      */
     @Filter(LET + " {qq} {permissionGroup}")
-    @RequirePermission("permission.user.let")
+    @Require("permission.user.let")
     public void onSetUserGroup(XiaomingUser user,
                                @FilterParameter("qq") long qq,
                                @FilterParameter("permissionGroup") String name,
@@ -95,7 +126,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      * 删除权限组
      */
     @Filter(CommandWords.REMOVE + CommandWords.PERMISSION_GROUP + " {permissionGroup}")
-    @RequirePermission("permission.group.remove")
+    @Require("permission.group.remove")
     public void onRemovePermissionGroup(XiaomingUser user,
                                         @FilterParameter("permissionGroup") String name,
                                         @FilterParameter("permissionGroup") PermissionGroup permissionGroup) {
@@ -108,7 +139,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      * 设置权限组的别名
      */
     @Filter(CommandWords.SET + CommandWords.PERMISSION_GROUP + CommandWords.ALIAS + " {permissionGroup} {alias}")
-    @RequirePermission("permission.group.alias")
+    @Require("permission.group.alias")
     public void onSetGroupAlias(XiaomingUser user,
                                 @FilterParameter("permissionGroup") PermissionGroup permissionGroup,
                                 @FilterParameter("alias") String alias) {
@@ -127,7 +158,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      * 增加权限组群权限
      */
     @Filter(CommandWords.ADD + CommandWords.PERMISSION_GROUP + " {permissionGroup} " + CommandWords.GROUP + CommandWords.PERMISSION + " {tag} {node}")
-    @RequirePermission("permission.group.add")
+    @Require("permission.group.add")
     public void onAddGroupGroupPermission(XiaomingUser user,
                                           @FilterParameter("permissionGroup") PermissionGroup permissionGroup,
                                           @FilterParameter("permissionGroup") String groupName,
@@ -135,7 +166,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
                                           @FilterParameter("node") String node) {
         final PermissionAccessible beforeAccessible = permissionManager.permissionGroupAccessible(permissionGroup, tag, node);
         if (beforeAccessible == PermissionAccessible.ACCESSABLE) {
-            user.sendWarn("{}已经具备带有{}标记的群中的权限{}了", getPermissionGroupName(groupName), tag, node);
+            user.sendWarning("{}已经具备带有{}标记的群中的权限{}了", getPermissionGroupName(groupName), tag, node);
         } else {
             permissionGroup.getOrPutGroupPermission(tag).add(node);
             getXiaomingBot().getFinalizer().readySave(permissionManager);
@@ -147,7 +178,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      * 增加用户群权限
      */
     @Filter(CommandWords.ADD + CommandWords.USER + " {qq} " + CommandWords.GROUP + CommandWords.PERMISSION + " {tag} {node}")
-    @RequirePermission("permission.group.add")
+    @Require("permission.group.add")
     public void onAddUserGroupPermission(XiaomingUser user,
                                           @FilterParameter("qq") long qq,
                                           @FilterParameter("tag") String tag,
@@ -155,7 +186,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
         final PermissionUserNode userNode = permissionManager.getOrPutUserNode(qq);
         final PermissionAccessible beforeAccessible = permissionManager.userAccessible(qq, tag, node);
         if (beforeAccessible == PermissionAccessible.ACCESSABLE) {
-            user.sendWarn("该用户已经具备带有{}标记的群中的权限{}了", tag, node);
+            user.sendWarning("该用户已经具备带有{}标记的群中的权限{}了", tag, node);
         } else {
             userNode.addPermission(node);
             getXiaomingBot().getFinalizer().readySave(permissionManager);
@@ -167,7 +198,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      * 删除权限组群权限
      */
     @Filter(CommandWords.REMOVE + CommandWords.PERMISSION_GROUP + " {permissionGroup} " + CommandWords.GROUP + CommandWords.PERMISSION + " {tag} {node}")
-    @RequirePermission("permission.group.add")
+    @Require("permission.group.add")
     public void onRemoveGroupGroupPermission(XiaomingUser user,
                                              @FilterParameter("permissionGroup") PermissionGroup permissionGroup,
                                              @FilterParameter("permissionGroup") String groupName,
@@ -190,13 +221,13 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
                 afterInserted.addAll(permissions);
                 permissionGroup.setPermissions(afterInserted);
 
-                user.sendWarn("小明尝试删除了{}在带有{}标记的群中的权限{}，但其父权限组仍具备该权限。小明已经帮当前组增加了权限节点 -{} 以强制删除该权限", getPermissionGroupName(groupName), tag, node, node);
+                user.sendWarning("小明尝试删除了{}在带有{}标记的群中的权限{}，但其父权限组仍具备该权限。小明已经帮当前组增加了权限节点 -{} 以强制删除该权限", getPermissionGroupName(groupName), tag, node, node);
             } else {
-                user.sendWarn("成功删除了{}在带有{}标记的群中的权限{}", getPermissionGroupName(groupName), tag, node);
+                user.sendWarning("成功删除了{}在带有{}标记的群中的权限{}", getPermissionGroupName(groupName), tag, node);
             }
             getXiaomingBot().getFinalizer().readySave(permissionManager);
         } else {
-            user.sendWarn("{}还并不具备在带有{}标记的群中的权限{}", getPermissionGroupName(groupName), tag, node);
+            user.sendWarning("{}还并不具备在带有{}标记的群中的权限{}", getPermissionGroupName(groupName), tag, node);
         }
     }
 
@@ -204,7 +235,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      * 删除用户群权限
      */
     @Filter(CommandWords.REMOVE + CommandWords.USER + " {qq} " + CommandWords.GROUP + CommandWords.PERMISSION + " {tag} {node}")
-    @RequirePermission("permission.group.add")
+    @Require("permission.group.add")
     public void onRemoveUserGroupPermission(XiaomingUser user,
                                              @FilterParameter("qq") long qq,
                                              @FilterParameter("tag") String tag,
@@ -225,13 +256,13 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
                 afterInserted.addAll(permissions);
                 userNode.setPermissions(afterInserted);
 
-                user.sendWarn("小明尝试删除了该用户在带有{}标记的群中的权限{}，但其父权限组仍具备该权限。小明已经帮该用户增加了权限节点 -{} 以强制删除该权限", tag, node, node);
+                user.sendWarning("小明尝试删除了该用户在带有{}标记的群中的权限{}，但其父权限组仍具备该权限。小明已经帮该用户增加了权限节点 -{} 以强制删除该权限", tag, node, node);
             } else {
-                user.sendWarn("成功删除了该用户在带有{}标记的群中的权限{}",tag, node);
+                user.sendWarning("成功删除了该用户在带有{}标记的群中的权限{}",tag, node);
             }
             getXiaomingBot().getFinalizer().readySave(permissionManager);
         } else {
-            user.sendWarn("该用户还并不具备在带有{}标记的群中的权限{}", tag, node);
+            user.sendWarning("该用户还并不具备在带有{}标记的群中的权限{}", tag, node);
         }
     }
 
@@ -239,7 +270,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      * 查看某一权限组的信息
      */
     @Filter(CommandWords.PERMISSION_GROUP + " {permissionGroup}")
-    @RequirePermission("permission.group.look")
+    @Require("permission.group.look")
     public void onLookPermissionGroup(XiaomingUser user,
                                       @FilterParameter("permissionGroup") String name,
                                       @FilterParameter("permissionGroup") PermissionGroup permissionGroup) {
@@ -249,11 +280,11 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
         printWriter.println("【权限组信息】");
         printWriter.println("权限组名：" + name);
         printWriter.println("备注：" + (Objects.isNull(permissionGroup.getAlias()) ? "（无）" : permissionGroup.getAlias()));
-        printWriter.println("父权限组：" + StringUtil.getCollectionSummary(permissionGroup.getSuperGroups(), String::toString, "\n", "（无）", "\n"));
-        printWriter.println("特有权限：" + StringUtil.getCollectionSummary(permissionGroup.getPermissions(), String::toString, "\n", "（无）", "\n"));
-        printWriter.print("群组权限：" + StringUtil.getCollectionSummary(permissionGroup.getGroupPermissions().entrySet(), entry -> {
+        printWriter.println("父权限组：" + StringUtils.getCollectionSummary(permissionGroup.getSuperGroups(), String::toString, "\n", "（无）", "\n"));
+        printWriter.println("特有权限：" + StringUtils.getCollectionSummary(permissionGroup.getPermissions(), String::toString, "\n", "（无）", "\n"));
+        printWriter.print("群组权限：" + StringUtils.getCollectionSummary(permissionGroup.getGroupPermissions().entrySet(), entry -> {
             final String tag = entry.getKey();
-            return tag + "：" + StringUtil.getCollectionSummary(entry.getValue(), String::toString, "", "（无）", "，");
+            return tag + "：" + StringUtils.getCollectionSummary(entry.getValue(), String::toString, "", "（无）", "，");
         }, "\n", "（无）", "\n"));
 
         user.sendMessage(stringWriter.toString());
@@ -284,7 +315,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
     @Filter(CommandWords.NEW + CommandWords.PERMISSION_GROUP + CommandWords.PERMISSION + " {permissionGroup} {node}")
     @Filter(GRANT + CommandWords.PERMISSION_GROUP + " {permissionGroup} {node}")
     @Filter(CommandWords.PERMISSION_GROUP + " {permissionGroup} " + GRANT + " {node}")
-    @RequirePermission("permission.group.add")
+    @Require("permission.group.add")
     public void onAddGroupPermission(XiaomingUser user,
                                      @FilterParameter("permissionGroup") String permissionGroupName,
                                      @FilterParameter("permissionGroup") PermissionGroup permissionGroup,
@@ -302,7 +333,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      * 确认组权限
      */
     @Filter(CommandWords.PERMISSION_GROUP + " {permissionGroup} " + PERMISSION_CONFIRM + " {node}")
-    @RequirePermission("permission.group.confirm")
+    @Require("permission.group.confirm")
     public void onConfirmGroupPermission(XiaomingUser user,
                                          @FilterParameter("permissionGroup") String name,
                                          @FilterParameter("permissionGroup") PermissionGroup permissionGroup,
@@ -315,18 +346,18 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      * 查看所有的权限组
      */
     @Filter(CommandWords.PERMISSION_GROUP)
-    @RequirePermission("permission.group.list")
+    @Require("permission.group.list")
     public void onListPermissionGroup(XiaomingUser user) {
         final Map<String, PermissionGroup> groups = permissionManager.getGroups();
         user.sendMessage("当前共有 " + groups.size() + " 个权限组：" +
-                StringUtil.getCollectionSummary(groups.keySet(), this::getPermissionGroupName, "\n", "（无）", "\n"));
+                StringUtils.getCollectionSummary(groups.keySet(), this::getPermissionGroupName, "\n", "（无）", "\n"));
     }
 
     /**
      * 确认玩家权限
      */
     @Filter(CommandWords.USER + " {qq} " + PERMISSION_CONFIRM + " {node}")
-    @RequirePermission("permission.user.confirm")
+    @Require("permission.user.confirm")
     public void onConfirmUserPermission(XiaomingUser user,
                                         @FilterParameter("qq") long qq,
                                         @FilterParameter("node") String node) {
@@ -361,7 +392,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      */
     @Filter(CommandWords.PERMISSION_GROUP + " {permissionGroup} " + CommandWords.REMOVE + " {node}")
     @Filter(CommandWords.PERMISSION_GROUP + " {permissionGroup} " + REVOKE + " {node}")
-    @RequirePermission("permission.group.remove")
+    @Require("permission.group.remove")
     public void onRemoveGroupPermission(XiaomingUser user,
                                         @FilterParameter("permissionGroup") String name,
                                         @FilterParameter("permissionGroup") PermissionGroup permissionGroup,
@@ -394,7 +425,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      * 查看用户权限
      */
     @Filter(CommandWords.USER + CommandWords.PERMISSION + " {qq}")
-    @RequirePermission("permission.user.look")
+    @Require("permission.user.look")
     public void onLookUserPermission(XiaomingUser user,
                                      @FilterParameter("qq") long qq) {
         PermissionUserNode userNode = permissionManager.getUserNode(qq);
@@ -406,10 +437,10 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
 
             printWriter.println("用户权限信息：");
             printWriter.println("所属组：" + getPermissionGroupName(userNode.getGroup()));
-            printWriter.println("特有权限：" + StringUtil.getCollectionSummary(userNode.getPermissions(), String::toString, "\n", "（无）", "\n"));
-            printWriter.print("群组权限：" + StringUtil.getCollectionSummary(userNode.getGroupPermissions().entrySet(), entry -> {
+            printWriter.println("特有权限：" + StringUtils.getCollectionSummary(userNode.getPermissions(), String::toString, "\n", "（无）", "\n"));
+            printWriter.print("群组权限：" + StringUtils.getCollectionSummary(userNode.getGroupPermissions().entrySet(), entry -> {
                 final String tag = entry.getKey();
-                return tag + "：" + StringUtil.getCollectionSummary(entry.getValue(), String::toString, "", "（无）", "，");
+                return tag + "：" + StringUtils.getCollectionSummary(entry.getValue(), String::toString, "", "（无）", "，");
             }, "\n", "（无）", "\n"));
 
             user.sendMessage(stringWriter.toString());
@@ -421,7 +452,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      */
     @Filter(CommandWords.PERMISSION_GROUP + " {super} " + EXTENDS + " {son}")
     @Filter(CommandWords.PERMISSION_GROUP + " {son} " + INHERIT + " {super}")
-    @RequirePermission("permission.group.extends.link")
+    @Require("permission.group.extends.link")
     public void onAddGroupSuper(XiaomingUser user,
                                 @FilterParameter("super") String superGroupName,
                                 @FilterParameter("son") String sonGroupName) {
@@ -454,7 +485,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      */
     @Filter(CommandWords.PERMISSION_GROUP + " {super} " + CommandWords.CANCEL + EXTENDS + " {son}")
     @Filter(CommandWords.PERMISSION_GROUP + " {son} " + CommandWords.CANCEL + INHERIT + " {super}")
-    @RequirePermission("permission.group.extends.cancel")
+    @Require("permission.group.extends.cancel")
     public void onRemoveGroupSuper(XiaomingUser user,
                                    @FilterParameter("super") String superGroupName,
                                    @FilterParameter("son") String sonGroupName) {

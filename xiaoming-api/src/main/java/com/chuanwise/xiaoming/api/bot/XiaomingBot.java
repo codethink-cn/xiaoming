@@ -3,16 +3,17 @@ package com.chuanwise.xiaoming.api.bot;
 import com.chuanwise.xiaoming.api.account.AccountManager;
 import com.chuanwise.xiaoming.api.configuration.Configuration;
 import com.chuanwise.xiaoming.api.configuration.Statistician;
+import com.chuanwise.xiaoming.api.contact.ContactManager;
 import com.chuanwise.xiaoming.api.error.ReportMessageManager;
 import com.chuanwise.xiaoming.api.event.EventManager;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.license.LicenseManager;
-import com.chuanwise.xiaoming.api.object.XiaomingThread;
+import com.chuanwise.xiaoming.api.resource.ResourceManager;
 import com.chuanwise.xiaoming.api.text.TextManager;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.time.TimeTaskManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.word.WordManager;
+import com.chuanwise.xiaoming.api.word.LanguageManager;
 import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
 import com.chuanwise.xiaoming.api.plugin.PluginManager;
@@ -46,7 +47,9 @@ public interface XiaomingBot {
 
     PermissionManager getPermissionManager();
 
-    WordManager getWordManager();
+    LanguageManager getLanguageManager();
+
+    ContactManager getContactManager();
 
     InteractorManager getInteractorManager();
 
@@ -58,7 +61,7 @@ public interface XiaomingBot {
 
     void start();
 
-    XiaomingThread getConsoleInputThread();
+    Runnable getConsoleInputThread();
 
     default void stop() {
         stop(getConsoleXiaomingUser());
@@ -86,10 +89,6 @@ public interface XiaomingBot {
 
     ReportMessageManager getReportMessageManager();
 
-    TextManager getTextManager();
-
-    // XiaomingClassLoader getXiaomingClassLoader();
-
     ReceptionistManager getReceptionistManager();
 
     Logger getLog();
@@ -97,4 +96,6 @@ public interface XiaomingBot {
     LicenseManager getLicenseManager();
 
     TimeTaskManager getTimeTaskManager();
+
+    ResourceManager getResourceManager();
 }

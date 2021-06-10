@@ -1,13 +1,16 @@
 package com.chuanwise.xiaoming.core.interactor.command;
 
+import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.interactor.command.CommandInteractor;
 import com.chuanwise.xiaoming.api.interactor.filter.FilterMatcher;
+import com.chuanwise.xiaoming.api.interactor.filter.ParameterFilterMatcher;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CommandWords;
-import com.chuanwise.xiaoming.api.util.StringUtil;
+import com.chuanwise.xiaoming.api.util.StringUtils;
 import com.chuanwise.xiaoming.core.interactor.InteractorImpl;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.lang.reflect.Method;
@@ -31,7 +34,7 @@ public class CommandInteractorImpl extends InteractorImpl implements CommandInte
 
     @Override
     public boolean isEnableUsageCommand() {
-        return !StringUtil.isEmpty(usageCommandHead);
+        return !StringUtils.isEmpty(usageCommandHead);
     }
 
     @Override
@@ -39,9 +42,13 @@ public class CommandInteractorImpl extends InteractorImpl implements CommandInte
         // 注册指令格式指令
         if (isEnableUsageCommand()) {
             try {
+                final String format = getUsageCommandHead() + CommandWords.HELP;
                 register(getClass().getMethod("onUsage", XiaomingUser.class),
-                        new String[]{ getUsageCommandHead() + CommandWords.HELP},
-                        new FilterMatcher[0]);
+                        new String[0],
+                        new FilterMatcher[]{ new ParameterFilterMatcher(format) },
+                        new String[]{ format },
+                        false,
+                        false);
             } catch (NoSuchMethodException exception) {
                 exception.printStackTrace();
             }

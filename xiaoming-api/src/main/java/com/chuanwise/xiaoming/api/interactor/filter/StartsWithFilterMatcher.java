@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.api.interactor.filter;
 
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 
 public class StartsWithFilterMatcher extends StringFilterMatcher {
@@ -8,7 +9,7 @@ public class StartsWithFilterMatcher extends StringFilterMatcher {
     }
 
     @Override
-    public boolean apply(XiaomingUser user) {
-        return user.getMessage().startsWith(string);
+    public boolean apply(XiaomingUser user, Message message) {
+        return message.serialize().startsWith(string);
     }
 }

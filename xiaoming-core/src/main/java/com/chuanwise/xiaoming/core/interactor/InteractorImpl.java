@@ -23,8 +23,7 @@ public abstract class InteractorImpl extends PluginObjectImpl implements Interac
 
     Set<InteractorMethodDetail> methodDetails = new HashSet<>();
 
-    boolean externalUse = false;
-
+    @Override
     public String getName() {
         final StringBuilder builder = new StringBuilder();
         final XiaomingPlugin plugin = getPlugin();

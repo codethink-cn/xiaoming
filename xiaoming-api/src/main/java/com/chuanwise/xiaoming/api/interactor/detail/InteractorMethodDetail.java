@@ -1,16 +1,17 @@
 package com.chuanwise.xiaoming.api.interactor.detail;
 
 import com.chuanwise.xiaoming.api.annotation.*;
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.interactor.filter.FilterMatcher;
+import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.ArrayUtils;
+import com.chuanwise.xiaoming.api.util.StringUtils;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @AllArgsConstructor
@@ -18,16 +19,31 @@ public class InteractorMethodDetail {
     Method method;
     String[] requiredPermissions;
     FilterMatcher[] filterMatchers;
-    boolean blocking = false;
+    String[] usageStrings;
+    boolean nonNext = false;
+    boolean quietUsable, externalUsable;
 
     public InteractorMethodDetail(Method method) {
         this.method = method;
 
         // 设置所需权限
-        requiredPermissions = ArrayUtils.copyAs(method.getAnnotationsByType(RequirePermission.class), String.class, RequirePermission::value);
+        requiredPermissions = ArrayUtils.copyAs(method.getAnnotationsByType(Require.class), String.class, Require::value);
 
         // 设置判定器
-        filterMatchers = ArrayUtils.copyAs(method.getAnnotationsByType(Filter.class), FilterMatcher.class, FilterMatcher::filterMatcher);
+        final Filter[] filters = method.getAnnotationsByType(Filter.class);
+        final List<String> usageStrings = new ArrayList<>();
+        filterMatchers = ArrayUtils.copyAs(filters, FilterMatcher.class, filter -> {
+            String usage = filter.usage();
+            if (StringUtils.isEmpty(usage)) {
+                usage = filter.toString();
+            }
+            usageStrings.add(usage);
+            return FilterMatcher.filterMatcher(filter);
+        });
+        this.usageStrings = usageStrings.toArray(new String[0]);
+
+        quietUsable = method.getAnnotationsByType(WhenQuiet.class).length != 0;
+        externalUsable = method.getAnnotationsByType(WhenExternal.class).length != 0;
     }
 
     /**
@@ -40,76 +56,31 @@ public class InteractorMethodDetail {
         if (user == user.getXiaomingBot().getConsoleXiaomingUser()) {
             return true;
         }
+        if (user instanceof GroupXiaomingUser) {
+            final long groupCode = ((GroupXiaomingUser) user).getGroupCode();
 
-        final GroupInteractor[] groupInteractors = method.getAnnotationsByType(GroupInteractor.class);
-        final TempInteractor[] tempInteractors = method.getAnnotationsByType(TempInteractor.class);
-        final PrivateInteractor[] privateInteractors = method.getAnnotationsByType(PrivateInteractor.class);
+            // 在群里、开启了安静模式且本方法不是安静方法
+            if (!quietUsable &&
+                    user.getXiaomingBot().getResponseGroupManager().hasTag(groupCode, "quiet") &&
+                    !user.hasPermission("quiet.bypass")) {
+                return false;
+            }
 
-        final boolean hasGroupRestrict = groupInteractors.length > 0;
-        final boolean hasTempRestrict = tempInteractors.length > 0;
-        final boolean hasPrivateRestrict = privateInteractors.length > 0;
-
-        // 三个限制都没有就允许
-        if (!hasGroupRestrict && !hasTempRestrict && !hasPrivateRestrict) {
-            return true;
-        }
-
-        // 群交互验证
-        boolean groupVerify = false;
-        if (hasGroupRestrict) {
-            if (user.inGroup()) {
-                final GroupInteractor annotation = groupInteractors[0];
-                final long group = annotation.value();
-                final long qq = annotation.qq();
-                groupVerify = (group == 0 || user.getGroup().getId() == group) && (qq == 0 || user.getQQ() == qq);
-            } else {
-                groupVerify = false;
+            // 外部方法
+            if (!externalUsable && !user.getXiaomingBot().getResponseGroupManager().hasTag(groupCode, "enable")) {
+                return false;
             }
         }
-
-        // 临时会话验证
-        boolean tempVerify = false;
-        if (hasTempRestrict) {
-            if (user.inTemp()) {
-                final TempInteractor annotation = tempInteractors[0];
-                final long group = annotation.value();
-                final long qq = annotation.qq();
-                tempVerify = (group == 0 || user.getGroup().getId() == group) && (qq == 0 || user.getQQ() == qq);
-            } else {
-                tempVerify = false;
-            }
-        }
-
-        // 私聊会话验证
-        boolean privateVerify = false;
-        if (hasPrivateRestrict) {
-            if (user.inPrivate()) {
-                final PrivateInteractor annotation = privateInteractors[0];
-                final long qq = annotation.value();
-                privateVerify = qq == 0 || user.getQQ() == qq;
-            } else {
-                privateVerify = false;
-            }
-        }
-
-        return groupVerify || privateVerify || tempVerify;
+        return true;
     }
 
-    public FilterMatcher getMatchableFilter(XiaomingUser user) {
+    public FilterMatcher getMatchableFilter(XiaomingUser user, Message message) {
         for (FilterMatcher matcher : filterMatchers) {
-            if (matcher.apply(user)) {
+            if (matcher.apply(user, message)) {
                 return matcher;
             }
         }
         return null;
-    }
-
-    public Set<String> getUsages() {
-        Set<String> result = new HashSet<>();
-        for (FilterMatcher matcher : filterMatchers) {
-            result.add(matcher.toString());
-        }
-        return result;
     }
 
     @Override

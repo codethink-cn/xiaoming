@@ -8,4 +8,6 @@ public interface AccountEvent {
     boolean isTemp();
 
     void setTemp(boolean temp);
+
+    String getMessage();
 }

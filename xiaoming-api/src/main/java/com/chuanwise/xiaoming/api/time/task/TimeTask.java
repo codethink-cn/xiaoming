@@ -20,5 +20,5 @@ public interface TimeTask extends XiaomingObject, Runnable, Cloneable {
 
     boolean isPeriodic();
 
-    public Object clone() throws CloneNotSupportedException;
+    public TimeTask clone() throws CloneNotSupportedException;
 }

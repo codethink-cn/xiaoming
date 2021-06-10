@@ -2,7 +2,7 @@ package com.chuanwise.xiaoming.core.interactor.core;
 
 import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.annotation.FilterParameter;
-import com.chuanwise.xiaoming.api.annotation.RequirePermission;
+import com.chuanwise.xiaoming.api.annotation.Require;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.event.EventListener;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
@@ -33,7 +33,7 @@ public class PluginInteractor extends CommandInteractorImpl {
     }
 
     @Filter(CommandWords.PLUGIN)
-    @RequirePermission("plugin.list")
+    @Require("plugin.list")
     public void onListPlugins(XiaomingUser user) {
         final Set<XiaomingPlugin> enabledPlugins = pluginManager.getEnabledPlugins();
         StringBuilder builder = new StringBuilder();
@@ -86,14 +86,14 @@ public class PluginInteractor extends CommandInteractorImpl {
     }
 
     @Filter(FLUSH + CommandWords.PLUGIN)
-    @RequirePermission("plugin.flush")
+    @Require("plugin.flush")
     public void onFlushPlugins(XiaomingUser user) {
         pluginManager.flushPluginMap(user);
         user.sendMessage("插件列表刷新完成");
     }
 
     @Filter(CommandWords.PLUGIN + " {name}")
-    @RequirePermission("plugin.look")
+    @Require("plugin.look")
     public void onLookPlugins(XiaomingUser user, @FilterParameter("name") String pluginName) {
         final XiaomingPlugin plugin = pluginManager.getLoadedPlugin(pluginName);
         if (Objects.nonNull(plugin)) {
@@ -132,37 +132,37 @@ public class PluginInteractor extends CommandInteractorImpl {
     }
 
     @Filter(UNLOAD + CommandWords.PLUGIN + " {name}")
-    @RequirePermission("plugin.unload")
+    @Require("plugin.unload")
     public void onUnloadPlugin(XiaomingUser user, @FilterParameter("name") String pluginName) {
         pluginManager.unloadPlugin(user, pluginName);
     }
 
     @Filter(LOAD + CommandWords.PLUGIN + " {name}")
-    @RequirePermission("plugin.load")
+    @Require("plugin.load")
     public void onLoadPlugin(XiaomingUser user, @FilterParameter("name") String pluginName) {
         pluginManager.loadPlugin(user, pluginName);
     }
 
     @Filter(ENABLE + CommandWords.PLUGIN + " {name}")
-    @RequirePermission("plugin.enable")
+    @Require("plugin.enable")
     public void onEnablePlugin(XiaomingUser user, @FilterParameter("name") String pluginName) {
         pluginManager.enablePlugin(user, pluginName);
     }
 
     @Filter(DISABLE + CommandWords.PLUGIN + " {name}")
-    @RequirePermission("plugin.disable")
+    @Require("plugin.disable")
     public void onDisablePlugin(XiaomingUser user, @FilterParameter("name") String pluginName) {
         pluginManager.disablePlugin(user, pluginName);
     }
 
     @Filter(RELOAD + CommandWords.PLUGIN + " {name}")
-    @RequirePermission("plugin.reload")
+    @Require("plugin.reload")
     public void onReloadPlugin(XiaomingUser user, @FilterParameter("name") String pluginName) {
         pluginManager.reloadPlugin(user, pluginName);
     }
 
     @Filter(REENABLE + CommandWords.PLUGIN + " {name}")
-    @RequirePermission("plugin.reenable")
+    @Require("plugin.reenable")
     public void onReenablePlugin(XiaomingUser user, @FilterParameter("name") String pluginName) {
         pluginManager.reenablePlugin(user, pluginName);
     }

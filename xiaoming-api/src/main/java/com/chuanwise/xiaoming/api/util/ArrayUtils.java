@@ -7,7 +7,7 @@ import java.util.function.Function;
 /**
  * @author Chuanwise
  */
-public class ArrayUtils {
+public class ArrayUtils extends Utils {
     /**
      * 将一个数组内的所有元素经过一个方法处理后复制进新的数组
      * @param froms 来源数组

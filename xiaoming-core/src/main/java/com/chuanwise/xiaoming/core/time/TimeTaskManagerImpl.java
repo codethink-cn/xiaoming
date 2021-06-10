@@ -5,7 +5,9 @@ import com.chuanwise.xiaoming.api.time.TimeTaskManager;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import com.chuanwise.xiaoming.api.time.task.TimeTask;
 import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 
@@ -15,6 +17,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 @Slf4j
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class TimeTaskManagerImpl extends JsonFilePreservable implements TimeTaskManager {
     List<TimeTask> tasks = new CopyOnWriteArrayList<>();
 
@@ -29,7 +33,6 @@ public class TimeTaskManagerImpl extends JsonFilePreservable implements TimeTask
 
     volatile boolean running = false;
 
-    @Override
     public void stop() {
         running = false;
         synchronized (tasks) {
@@ -40,7 +43,7 @@ public class TimeTaskManagerImpl extends JsonFilePreservable implements TimeTask
     @Override
     public void run() {
         running = true;
-        while (!getXiaomingBot().isStop() && running) {
+        while (running) {
             if (!tasks.isEmpty()) {
                 // 最近任务
                 TimeTask nearestTask = null;
@@ -61,13 +64,19 @@ public class TimeTaskManagerImpl extends JsonFilePreservable implements TimeTask
                 // 专门开一个线程去执行
                 if (System.currentTimeMillis() >= nearestTask.getPeriod()) {
                     tasks.remove(nearestTask);
-                    getXiaomingBot().execute(nearestTask::run);
+                    TimeTask finalNearestTask = nearestTask;
+                    getXiaomingBot().execute(() -> {
+                        try {
+                            finalNearestTask.run();
+                        } catch (Exception exception) {
+                            exception.printStackTrace();
+                            finalNearestTask.setSuccess(false);
+                        }
+                    });
                     histories.add(nearestTask);
                     if (nearestTask.isPeriodic()) {
                         try {
-                            final TimeTask nextTimeTask = (TimeTask) nearestTask.clone();
-                            nextTimeTask.setTime(System.currentTimeMillis() + nearestTask.getPeriod());
-                            addTask(nextTimeTask);
+                            addTask(nearestTask.clone(), nearestTask.getPeriod());
                         } catch (CloneNotSupportedException e) {
                             e.printStackTrace();
                         }
@@ -81,13 +90,6 @@ public class TimeTaskManagerImpl extends JsonFilePreservable implements TimeTask
                     }
                 }
             }
-        }
-    }
-
-    public void setTasks(List<TimeTask> tasks) {
-        this.tasks = tasks;
-        for (TimeTask task : tasks) {
-            task.setXiaomingBot(getXiaomingBot());
         }
     }
 }

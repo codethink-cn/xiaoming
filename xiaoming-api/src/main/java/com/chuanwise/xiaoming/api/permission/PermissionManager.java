@@ -3,8 +3,9 @@ package com.chuanwise.xiaoming.api.permission;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
+import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.util.PermissionUtil;
+import com.chuanwise.xiaoming.api.util.PermissionUtils;
 
 import java.io.File;
 import java.util.List;
@@ -25,10 +26,10 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
     String DEFAULT_PERMISSION_GROUP = "default";
 
     default PermissionAccessible userAccessible(XiaomingUser user, String require) {
-        if (user.inGroup()) {
-            return userAccessible(user.getQQ(), user.getGroup().getId(), require);
+        if (user instanceof GroupXiaomingUser) {
+            return userAccessible(user.getCode(), ((GroupXiaomingUser) user).getGroupCode(), require);
         } else {
-            return userAccessible(user.getQQ(), require);
+            return userAccessible(user.getCode(), require);
         }
     }
 
@@ -39,7 +40,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
         } else {
             // 检查特有权限
             final List<String> specialPermissions = userNode.getPermissions();
-            final PermissionAccessible specialAccessible = PermissionUtil.accessible(specialPermissions, require);
+            final PermissionAccessible specialAccessible = PermissionUtils.accessible(specialPermissions, require);
             if (specialAccessible != PermissionAccessible.UNKNOWN) {
                 return specialAccessible;
             }
@@ -57,7 +58,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
         } else {
             // 检查特有权限
             final List<String> specialPermissions = userNode.getPermissions();
-            final PermissionAccessible specialAccessible = PermissionUtil.accessible(specialPermissions, require);
+            final PermissionAccessible specialAccessible = PermissionUtils.accessible(specialPermissions, require);
             if (specialAccessible != PermissionAccessible.UNKNOWN) {
                 return specialAccessible;
             }
@@ -80,7 +81,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
         } else {
             // 检查特有权限
             final List<String> specialPermissions = userNode.getPermissions();
-            final PermissionAccessible specialAccessible = PermissionUtil.accessible(specialPermissions, require);
+            final PermissionAccessible specialAccessible = PermissionUtils.accessible(specialPermissions, require);
             if (specialAccessible != PermissionAccessible.UNKNOWN) {
                 return specialAccessible;
             }
@@ -103,7 +104,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
     default PermissionAccessible permissionGroupAccessible(PermissionGroup permissionGroup, String require) {
         // 先在当前权限组中查找特有权限
         final List<String> specialPermissions = permissionGroup.getPermissions();
-        final PermissionAccessible specialAccessible = Objects.nonNull(specialPermissions) ? PermissionUtil.accessible(specialPermissions, require) : PermissionAccessible.UNKNOWN;
+        final PermissionAccessible specialAccessible = Objects.nonNull(specialPermissions) ? PermissionUtils.accessible(specialPermissions, require) : PermissionAccessible.UNKNOWN;
         if (specialAccessible != PermissionAccessible.UNKNOWN) {
             return specialAccessible;
         }
@@ -134,7 +135,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
 
         // 先在当前权限组中查找特有权限
         final List<String> specialPermissions = permissionGroup.getGroupPermission(tag);
-        final PermissionAccessible groupAccessible = Objects.nonNull(specialPermissions) ? PermissionUtil.accessible(specialPermissions, require) : PermissionAccessible.UNKNOWN;
+        final PermissionAccessible groupAccessible = Objects.nonNull(specialPermissions) ? PermissionUtils.accessible(specialPermissions, require) : PermissionAccessible.UNKNOWN;
         if (groupAccessible != PermissionAccessible.UNKNOWN) {
             return groupAccessible;
         }

@@ -18,7 +18,7 @@ public interface ResponseGroup {
      * @return
      */
     default boolean hasTag(String tag) {
-        return getTags().contains(tag) || Objects.equals(getCode() + "", tag) || Objects.equals(tag, "recorded");
+        return getTags().contains(tag);
     }
 
     long getCode();

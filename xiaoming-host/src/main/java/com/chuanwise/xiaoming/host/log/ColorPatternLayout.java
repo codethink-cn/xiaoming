@@ -1,6 +1,6 @@
 package com.chuanwise.xiaoming.host.log;
 
-import com.chuanwise.xiaoming.api.util.StringUtil;
+import com.chuanwise.xiaoming.api.util.StringUtils;
 import org.apache.log4j.Level;
 import org.apache.log4j.PatternLayout;
 import org.apache.log4j.spi.LoggingEvent;
@@ -61,7 +61,7 @@ public class ColorPatternLayout extends PatternLayout {
         maxLogHeadLength = Math.max(maxLogHeadLength, currentLength);
 
         // 填充对齐使用的空格
-        builder.append(StringUtil.getSpaceString(maxLogHeadLength - currentLength))
+        builder.append(StringUtils.getSpaceString(maxLogHeadLength - currentLength))
                 .append(shortClassName)
                 .append(color("gray"))
                 .append(" : ");

@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.api.interactor.filter;
 
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 
 import java.util.regex.Matcher;
@@ -11,8 +12,8 @@ public class StartsRegexFilterMatcher extends RegexFilterMatcher {
     }
 
     @Override
-    public boolean apply(XiaomingUser user) {
-        final Matcher matcher = pattern.matcher(user.getMessage());
+    public boolean apply(XiaomingUser user, Message message) {
+        final Matcher matcher = pattern.matcher(message.serialize());
         return matcher.find() && matcher.start() == 0;
     }
 }

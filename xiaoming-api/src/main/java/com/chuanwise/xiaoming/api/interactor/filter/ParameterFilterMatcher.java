@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.api.interactor.filter;
 
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import lombok.Getter;
@@ -110,9 +111,9 @@ public class ParameterFilterMatcher extends RegexFilterMatcher {
     }
 
     @Override
-    public boolean apply(XiaomingUser user) {
-        final Matcher matcher = pattern.matcher(user.getMessage());
-        matchers.put(user.getQQ(), matcher);
+    public boolean apply(XiaomingUser user, Message message) {
+        final Matcher matcher = pattern.matcher(message.serialize());
+        matchers.put(user.getCode(), matcher);
         return matcher.matches();
     }
 

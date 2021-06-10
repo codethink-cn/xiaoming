@@ -1,49 +1,39 @@
 package com.chuanwise.xiaoming.core.interactor.core;
 
 import com.chuanwise.xiaoming.api.annotation.Filter;
-import com.chuanwise.xiaoming.api.annotation.RequirePermission;
+import com.chuanwise.xiaoming.api.annotation.Require;
 import com.chuanwise.xiaoming.api.time.task.TimeTask;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.util.CommandWords;
-import com.chuanwise.xiaoming.api.util.StringUtil;
-import com.chuanwise.xiaoming.api.util.TimeUtil;
+import com.chuanwise.xiaoming.api.util.StringUtils;
+import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
-import com.chuanwise.xiaoming.core.time.task.MessageTimeTaskImpl;
-import net.mamoe.mirai.contact.Group;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Function;
 
 public class TimeTaskInteractor extends CommandInteractorImpl {
     static final String TIME = "(时间|time)";
     static final String TASK = "(任务|task)";
 
     @Filter(TIME + TASK)
-    @RequirePermission("time.list")
+    @Require("time.list")
     public void onListTimeTasks(XiaomingUser user) {
         final List<TimeTask> tasks = getXiaomingBot().getTimeTaskManager().getTasks();
-        user.sendMessage("任务队列：" + StringUtil.getCollectionSummary(tasks, task -> {
+        user.sendMessage("任务队列：" + StringUtils.getCollectionSummary(tasks, task -> {
             final boolean timeout = task.getTime() >= System.currentTimeMillis();
             final boolean periodic = task.isPeriodic();
-            return task.getDescription() + "：" + (timeout ? "已过期" : TimeUtil.toTimeString(System.currentTimeMillis() - task.getTime()) + "后执行");
+            return task.getDescription() + "：" + (timeout ? "已过期" : TimeUtils.toTimeString(System.currentTimeMillis() - task.getTime()) + "后执行");
         }, "", "（无）", "\n"));
     }
 
     /*
     @Filter(CommandWords.ADD + CommandWords.MESSAGE + TASK)
-    @RequirePermission("time.add")
+    @Require("time.add")
     public void onAddMessageTask(XiaomingUser user) {
         user.sendMessage("这个任务将在什么时候执行呢？按照「yyyy-mm-rr hh:mm:ss」的格式告诉我吧");
         long executeTime = -1;
         while (executeTime != -1) {
             final String text = user.nextInput();
-            executeTime = TimeUtil.parseMillis(text);
+            executeTime = TimeUtils.parseMillis(text);
             if (executeTime == -1) {
                 user.sendError("{}并不是一个合理的日期，重新说一下吧");
             }

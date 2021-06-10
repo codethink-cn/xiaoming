@@ -109,8 +109,4 @@ public interface XiaomingPlugin extends XiaomingObject {
     default <T extends Preservable<File>> T loadFileOrProduce(Class<T> clazz, String fileName, Supplier<T> supplier) {
         return loadFileOrProduce(clazz, new File(getDataFolder(), fileName), supplier);
     }
-
-    default boolean onMessage(XiaomingUser user) {
-        return false;
-    }
 }

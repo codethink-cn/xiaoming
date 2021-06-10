@@ -65,4 +65,9 @@ public interface ReceptionistManager extends HostObject, EventListener {
     default void optimize() {
         getReceptionists().values().forEach(Receptionist::optimize);
     }
+
+    default void close() {
+        optimize();
+        getReceptionists().values().forEach(Receptionist::stop);
+    }
 }

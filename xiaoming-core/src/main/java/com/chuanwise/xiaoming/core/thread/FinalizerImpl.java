@@ -5,7 +5,6 @@ import com.chuanwise.xiaoming.api.preserve.Preservable;
 import com.chuanwise.xiaoming.api.thread.Finalizer;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
-import com.chuanwise.xiaoming.core.time.task.TimeTaskImpl;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -39,7 +38,7 @@ public class FinalizerImpl extends HostObjectImpl implements Finalizer {
             lastSaveTime = System.currentTimeMillis();
             preservables.removeIf(Preservable::save);
             if (preservables.isEmpty()) {
-                user.sendMessage("成功保存了 {} 个文件 {}", needsToSaveFileNumber, getXiaomingBot().getWordManager().get("happy"));
+                user.sendMessage("成功保存了 {} 个文件 {happy}", needsToSaveFileNumber);
             } else {
                 user.sendError("共需要保存 {} 个文件，但 {} 个文件保存失败。小明会在下一保存周期再次尝试保存它们。", needsToSaveFileNumber, preservables.size());
             }
@@ -61,7 +60,7 @@ public class FinalizerImpl extends HostObjectImpl implements Finalizer {
         final XiaomingUser user = getXiaomingBot().getConsoleXiaomingUser();
         while (!getXiaomingBot().isStop()) {
             try {
-                Thread.sleep(getXiaomingBot().getConfiguration().getAutoSaveDeltaTime());
+                Thread.sleep(getXiaomingBot().getConfiguration().getSavePeriod());
             } catch (InterruptedException ignored) {
             }
             if (getXiaomingBot().isStop()) {
@@ -84,7 +83,7 @@ public class FinalizerImpl extends HostObjectImpl implements Finalizer {
                     for (Preservable preservable : preservables) {
                         user.sendMessage(preservable.getMedium().toString());
                     }
-                    user.sendMessage(user.getBufferAndClear());
+                    user.sendMessage(user.getBufferAndClose());
                 }
             }
         }

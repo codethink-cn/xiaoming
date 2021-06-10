@@ -4,11 +4,13 @@ import com.chuanwise.xiaoming.api.time.task.TimeTask;
 import com.chuanwise.xiaoming.core.object.XiaomingObjectImpl;
 import lombok.Data;
 
+import java.sql.Time;
+
 @Data
 public abstract class TimeTaskImpl extends XiaomingObjectImpl implements TimeTask {
     long time;
     long period = -1;
-    boolean success = false;
+    boolean success = true;
     String description = "（无描述）";
 
     @Override
@@ -17,7 +19,7 @@ public abstract class TimeTaskImpl extends XiaomingObjectImpl implements TimeTas
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    public TimeTask clone() throws CloneNotSupportedException {
+        return ((TimeTask) super.clone());
     }
 }

@@ -1,58 +1,70 @@
 package com.chuanwise.xiaoming.api.user;
 
+import com.chuanwise.xiaoming.api.contact.contact.ConsoleContact;
+import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
+import com.chuanwise.xiaoming.api.contact.message.ConsoleMessage;
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.object.HostObject;
+import com.chuanwise.xiaoming.api.recept.ConsoleReceptionTask;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.util.ArgumentUtil;
+import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 
-import java.util.Map;
+import java.util.List;
 
 public interface ConsoleXiaomingUser extends HostObject, XiaomingUser {
     @Override
-    default boolean sendPrivateMessage(String message, Object... arguments) {
-        getLog().info("私聊：" + ArgumentUtil.replaceArguments(message, arguments));
+    List<ConsoleMessage> getRecentMessages();
+
+    @Override
+    ConsoleContact getContact();
+
+    void setReceptionTask(ConsoleReceptionTask receptionTask);
+
+    @Override
+    ConsoleReceptionTask getReceptionTask();
+
+    @Override
+    default void onNextInput(Message message) {
+        final List<ConsoleMessage> list = getRecentMessages();
+        list.add(((ConsoleMessage) message));
+        synchronized (list) {
+            list.notifyAll();
+        }
+    }
+
+    @Override
+    default void sendMessage(String message, Object... arguments) {
+        getLog().info("消息：" + ArgumentUtils.replaceArguments(ArgumentUtils.replaceArguments(message, getProperties(), getXiaomingBot().getConfiguration().getMaxIterateTime()), arguments));
+    }
+
+    @Override
+    default void sendWarning(String message, Object... arguments) {
+        getLog().warn(ArgumentUtils.replaceArguments(ArgumentUtils.replaceArguments(message, getProperties(), getXiaomingBot().getConfiguration().getMaxIterateTime()), arguments));
+    }
+
+    @Override
+    default void sendError(String message, Object... arguments) {
+        getLog().error(ArgumentUtils.replaceArguments(ArgumentUtils.replaceArguments(message, getProperties(), getXiaomingBot().getConfiguration().getMaxIterateTime()), arguments));
+    }
+
+    @Override
+    default boolean hasPermission(String require) {
         return true;
     }
 
     @Override
-    default boolean sendMessage(String message, Object... arguments) {
-        getLog().info("消息：" + ArgumentUtil.replaceArguments(message, arguments));
-        return true;
+    default void sendPrivateMessage(String message, Object... arguments) {
+        sendMessage(message, arguments);
     }
 
     @Override
-    default boolean sendGroupMessage(long group, String message, Object... arguments) {
-        getLog().info("群聊(" + group + ")：" + ArgumentUtil.replaceArguments(message, arguments));
-        return true;
+    default void sendPrivateError(String message, Object... arguments) {
+        sendError(message, arguments);
     }
 
     @Override
-    default boolean sendWarn(String message, Object... arguments) {
-        getLog().warn(ArgumentUtil.replaceArguments(message, arguments));
-        return true;
-    }
-
-    @Override
-    default boolean sendError(String message, Object... arguments) {
-        getLog().error(ArgumentUtil.replaceArguments(message, arguments));
-        return true;
-    }
-
-    @Override
-    default boolean sendPrivateError(String message, Object... arguments) {
-        getLog().error("私聊错误：" + ArgumentUtil.replaceArguments(message, arguments));
-        return true;
-    }
-
-    @Override
-    default boolean sendPrivateWarn(String message, Object... arguments) {
-        getLog().warn("私聊警告：" + ArgumentUtil.replaceArguments(message, arguments));
-        return true;
-    }
-
-    @Override
-    default boolean hasPermission(String nodes) {
-        return true;
+    default void sendPrivateWarning(String message, Object... arguments) {
+        sendWarning(message, arguments);
     }
 
     @Override

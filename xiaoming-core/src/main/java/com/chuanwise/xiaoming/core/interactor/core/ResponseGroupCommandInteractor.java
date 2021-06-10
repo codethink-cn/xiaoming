@@ -1,11 +1,9 @@
 package com.chuanwise.xiaoming.core.interactor.core;
 
-import com.chuanwise.xiaoming.api.annotation.Filter;
-import com.chuanwise.xiaoming.api.annotation.FilterParameter;
-import com.chuanwise.xiaoming.api.annotation.GroupInteractor;
-import com.chuanwise.xiaoming.api.annotation.RequirePermission;
+import com.chuanwise.xiaoming.api.annotation.*;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
+import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
@@ -41,7 +39,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     }
 
     @Filter(CommandWords.GROUP)
-    @RequirePermission("group.list")
+    @Require("group.list")
     public void onListGroups(XiaomingUser user) {
         final Set<ResponseGroup> groups = groupManager.getGroups();
         if (groups.isEmpty()) {
@@ -59,7 +57,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     }
 
     @Filter(CommandWords.GROUP + " {group}")
-    @RequirePermission("group.look")
+    @Require("group.look")
     public void onLookGroup(XiaomingUser user, @FilterParameter("group") String groupString) {
         ResponseGroup group;
         if (groupString.matches("\\d+")) {
@@ -84,7 +82,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     }
 
     @Filter(CommandWords.REMOVE + CommandWords.GROUP + " {group}")
-    @RequirePermission("group.remove")
+    @Require("group.remove")
     public void onRemoveGroup(XiaomingUser user, @FilterParameter("group") String groupString) {
         ResponseGroup group;
         if (groupString.matches("\\d+")) {
@@ -103,11 +101,10 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @GroupInteractor
     @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.INFO)
-    @RequirePermission("group.look")
-    public void onLookThisGroup(XiaomingUser user) {
-        ResponseGroup group = groupManager.forCode(user.getGroup().getId());
+    @Require("group.look")
+    public void onLookThisGroup(GroupXiaomingUser user) {
+        ResponseGroup group = user.getResponseGroup();
 
         user.sendMessage("本群备注：{}\n" +
                         "群号：{}\n" +
@@ -119,10 +116,9 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
                 group.getBlockedPlugins());
     }
 
-    @GroupInteractor
     @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.TAG)
-    @RequirePermission("group.tag.list")
-    public void onListGroupTags(XiaomingUser user) {
+    @Require("group.tag.list")
+    public void onListGroupTags(GroupXiaomingUser user) {
         final ResponseGroup group = user.getResponseGroup();
         final Set<String> tags = group.getTags();
         if (tags.isEmpty()) {
@@ -133,7 +129,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     }
 
     @Filter(CommandWords.NEW + CommandWords.GROUP + " {group}")
-    @RequirePermission("group.add")
+    @Require("group.add")
     public void onAddGroup(XiaomingUser user, @FilterParameter("group") String groupString) {
         final long group;
         if (groupString.matches("\\d+")) {
@@ -162,7 +158,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
             groupManager.addGroup(responseGroup);
             if (alreadyIn) {
                 user.sendMessage("成功将该群设置为小明的响应群。");
-                user.sendGroupMessage(group, getXiaomingBot().getTextManager().loadOrFail("new-response-group"));
+                user.getXiaomingBot().getContactManager().sendGroupMessage(group, getXiaomingBot().getLanguageManager().getString("new-response-group"));
             } else {
                 user.sendMessage("成功将该群设置为小明的响应群，但小明还不在这个群中。");
             }
@@ -174,7 +170,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     }
 
     @Filter(TAG_REGEX + CommandWords.GROUP + " {group} {tag}")
-    @RequirePermission("group.tag.add")
+    @Require("group.tag.add")
     public void onAddGroupTag(XiaomingUser user,
                               @FilterParameter("group") String groupString,
                               @FilterParameter("tag") String tag) {
@@ -196,10 +192,10 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     }
 
     @Filter(CommandWords.REMOVE + CommandWords.GROUP + TAG_REGEX + " {group} {tag}")
-    @RequirePermission("group.tag.remove")
+    @Require("group.tag.remove")
     public void onRemoveGroupTag(XiaomingUser user,
-                              @FilterParameter("group") String groupString,
-                              @FilterParameter("tag") String tag) {
+                                 @FilterParameter("group") String groupString,
+                                 @FilterParameter("tag") String tag) {
         final ResponseGroup group;
         if (groupString.matches("\\d+")) {
             group = groupManager.forCode(Long.parseLong(groupString));
@@ -217,11 +213,11 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @GroupInteractor
-    @Filter(CommandWords.REMOVE + CommandWords.THIS +  CommandWords.GROUP + TAG_REGEX + " {tag}")
-    @RequirePermission("group.tag.remove")
-    public void onRemoveGroupTag(XiaomingUser user,
-                              @FilterParameter("tag") String tag) {
+    @WhenQuiet
+    @Filter(CommandWords.REMOVE + CommandWords.THIS + CommandWords.GROUP + TAG_REGEX + " {tag}")
+    @Require("group.tag.remove")
+    public void onRemoveGroupTag(GroupXiaomingUser user,
+                                 @FilterParameter("tag") String tag) {
         final ResponseGroup group = user.getResponseGroup();
         final Set<String> tags = group.getTags();
         if (tags.contains(tag)) {
@@ -233,10 +229,10 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @GroupInteractor
+    @WhenQuiet
     @Filter(TAG_REGEX + CommandWords.THIS + CommandWords.GROUP + " {tag}")
-    @RequirePermission("group.tag.add")
-    public void onAddGroupTag(XiaomingUser user,
+    @Require("group.tag.add")
+    public void onAddGroupTag(GroupXiaomingUser user,
                               @FilterParameter("tag") String tag) {
         final ResponseGroup group = user.getResponseGroup();
         final Set<String> tags = group.getTags();
@@ -249,12 +245,11 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @GroupInteractor
     @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.BLOCK + " {plugin}")
-    @RequirePermission("group.plugin.block")
-    public void onBlockPlugin(XiaomingUser user,
+    @Require("group.plugin.block")
+    public void onBlockPlugin(GroupXiaomingUser user,
                               @FilterParameter("plugin") String plugin) {
-        ResponseGroup group = groupManager.forCode(user.getGroup().getId());
+        ResponseGroup group = user.getResponseGroup();
         if (group.isBlockPlugin(plugin)) {
             user.sendError("本群已经屏蔽了插件{}", plugin);
         } else {
@@ -268,12 +263,11 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @GroupInteractor
     @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.UNBLOCK + " {plugin}")
-    @RequirePermission("group.plugin.unblock")
-    public void onUnblockPlugin(XiaomingUser user,
+    @Require("group.plugin.unblock")
+    public void onUnblockPlugin(GroupXiaomingUser user,
                                 @FilterParameter("plugin") String plugin) {
-        ResponseGroup group = groupManager.forCode(user.getGroup().getId());
+        ResponseGroup group = user.getResponseGroup();
         if (group.isBlockPlugin(plugin)) {
             group.getBlockedPlugins().remove(plugin);
             getXiaomingBot().getFinalizer().readySave(groupManager);

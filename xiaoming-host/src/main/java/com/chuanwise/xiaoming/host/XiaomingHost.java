@@ -2,7 +2,7 @@ package com.chuanwise.xiaoming.host;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.preserve.PreservableFactory;
-import com.chuanwise.xiaoming.api.util.PathUtil;
+import com.chuanwise.xiaoming.api.util.PathUtils;
 import com.chuanwise.xiaoming.core.bot.XiaomingBotImpl;
 import com.chuanwise.xiaoming.host.config.BotAccount;
 import com.chuanwise.xiaoming.host.config.LauncherConfig;
@@ -31,7 +31,7 @@ public class XiaomingHost {
      * 启动器设置
      */
     final LauncherConfig launcherConfig = filePreservableFactory.
-            loadOrProduce(LauncherConfig.class, new File(PathUtil.LAUNCHER_DIR, "launcher.json"), LauncherConfig::new);
+            loadOrProduce(LauncherConfig.class, new File(PathUtils.LAUNCHER, "launcher.json"), LauncherConfig::new);
 
     /**
      * 读取机器人账号密码并准备登录

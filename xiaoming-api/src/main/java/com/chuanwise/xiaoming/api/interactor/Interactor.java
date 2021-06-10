@@ -1,6 +1,7 @@
 package com.chuanwise.xiaoming.api.interactor;
 
 import com.chuanwise.xiaoming.api.annotation.*;
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.event.InteractorResponseEvent;
 import com.chuanwise.xiaoming.api.interactor.detail.InteractorMethodDetail;
 import com.chuanwise.xiaoming.api.interactor.filter.FilterMatcher;
@@ -8,7 +9,6 @@ import com.chuanwise.xiaoming.api.interactor.filter.ParameterFilterMatcher;
 import com.chuanwise.xiaoming.api.object.PluginObject;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.util.ArrayUtils;
 import com.chuanwise.xiaoming.api.util.AtUtil;
 
 import java.lang.reflect.InvocationTargetException;
@@ -32,10 +32,6 @@ public interface Interactor extends PluginObject {
      */
     void initialize();
 
-    boolean isExternalUse();
-
-    void setExternalUse(boolean externalUse);
-
     default boolean isLegalUser(XiaomingUser user) {
         return true;
     }
@@ -57,63 +53,9 @@ public interface Interactor extends PluginObject {
         // 检查是否屏蔽插件
         if (Objects.nonNull(plugin) && user.isBlockPlugin(plugin.getName())) {
             return false;
-        }
-
-        final Class<? extends Interactor> clazz = getClass();
-
-        final GroupInteractor[] groupInteractors = clazz.getAnnotationsByType(GroupInteractor.class);
-        final TempInteractor[] tempInteractors = clazz.getAnnotationsByType(TempInteractor.class);
-        final PrivateInteractor[] privateInteractors = clazz.getAnnotationsByType(PrivateInteractor.class);
-
-        final boolean hasGroupRestrict = groupInteractors.length > 0;
-        final boolean hasTempRestrict = tempInteractors.length > 0;
-        final boolean hasPrivateRestrict = privateInteractors.length > 0;
-
-        // 如果三个注解都没有，就通过
-        if (!hasGroupRestrict && !hasTempRestrict && !hasPrivateRestrict) {
+        } else {
             return true;
         }
-
-        // 群交互验证
-        boolean groupVerify = false;
-        if (hasGroupRestrict) {
-            if (user.inGroup()) {
-                final GroupInteractor annotation = groupInteractors[0];
-                final long group = annotation.value();
-                final long qq = annotation.qq();
-                groupVerify = (group == 0 || user.getGroup().getId() == group) && (qq == 0 || user.getQQ() == qq);
-            } else {
-                groupVerify = false;
-            }
-        }
-
-        // 临时会话验证
-        boolean tempVerify = false;
-        if (hasTempRestrict) {
-            if (user.inTemp()) {
-                final TempInteractor annotation = tempInteractors[0];
-                final long group = annotation.value();
-                final long qq = annotation.qq();
-                tempVerify = (group == 0 || user.getGroup().getId() == group) && (qq == 0 || user.getQQ() == qq);
-            } else {
-                tempVerify = false;
-            }
-        }
-
-        // 私聊会话验证
-        boolean privateVerify = false;
-        if (hasPrivateRestrict) {
-            if (user.inPrivate()) {
-                final PrivateInteractor annotation = privateInteractors[0];
-                final long qq = annotation.value();
-                privateVerify = qq == 0 || user.getQQ() == qq;
-            } else {
-                privateVerify = false;
-            }
-        }
-
-        // 如果什么都没有打，默认全区域的交互器
-        return groupVerify || tempVerify || privateVerify;
     }
 
     /**
@@ -122,9 +64,9 @@ public interface Interactor extends PluginObject {
      * @return 是否交互成功
      * @throws Exception 交互途中抛出的异常
      */
-    default boolean interact(XiaomingUser user) throws Exception {
+    default boolean interact(XiaomingUser user, Message message) throws Exception {
         boolean interacted = false;
-        boolean isAgreed = isExternalUse() || (!getXiaomingBot().getConfiguration().isEnableLicense() || getXiaomingBot().getLicenseManager().isAgreed(user.getQQ()));
+        boolean isAgreed = !getXiaomingBot().getConfiguration().isEnableLicense() || getXiaomingBot().getLicenseManager().isAgreed(user.getCode());
         boolean isLegalUser = isLegalUser(user);
 
         for (InteractorMethodDetail detail : getMethodDetails()) {
@@ -134,14 +76,14 @@ public interface Interactor extends PluginObject {
             }
 
             // 得到匹配当前输入的一个过滤器
-            final FilterMatcher filter = detail.getMatchableFilter(user);
+            final FilterMatcher filter = detail.getMatchableFilter(user, message);
             if (Objects.isNull(filter)) {
                 continue;
             }
 
             // 判断是否为合法用户
-            if (!isAgreed) {
-                user.sendError("你还没有同意《小明使用须知》，告诉小明「使用小明」以开始使用小明吧");
+            if (!isAgreed && !detail.isExternalUsable()) {
+                user.sendError("{pleaseAgreeLicense}");
                 return false;
             }
             if (!user.requirePermission(detail.getRequiredPermissions())) {
@@ -161,7 +103,7 @@ public interface Interactor extends PluginObject {
             Matcher matcher = null;
             Set<String> parameterNames = null;
             if (isParameterFilter) {
-                matcher = ((ParameterFilterMatcher) filter).getMatcher(user.getQQ());
+                matcher = ((ParameterFilterMatcher) filter).getMatcher(user.getCode());
                 parameterNames = ((ParameterFilterMatcher) filter).getParameterNames();
             }
 
@@ -169,6 +111,8 @@ public interface Interactor extends PluginObject {
                 final Class<?> type = parameter.getType();
                 if (type.isAssignableFrom(userClass)) {
                     arguments.add(user);
+                } else if (type.isAssignableFrom(Message.class)) {
+                    arguments.add(message);
                 } else if (isParameterFilter && Matcher.class.isAssignableFrom(type)) {
                     arguments.add(matcher);
                 } else if (FilterMatcher.class.isAssignableFrom(type)) {
@@ -208,13 +152,28 @@ public interface Interactor extends PluginObject {
             }
 
             if (arguments.size() == parameters.length) {
-                // 增加调用统计次数
-                getXiaomingBot().getStatistician().increaseCallCounter();
-                interacted = true;
-
                 try {
-                    method.invoke(this, arguments.toArray(new Object[0]));
-                    getXiaomingBot().getEventManager().callLater(new InteractorResponseEvent(this, detail, user));
+                    final Object result = method.invoke(this, arguments.toArray(new Object[0]));
+
+                    // 判断是否交互了
+                    if (result instanceof Boolean) {
+                        interacted = ((Boolean) result);
+                    } else if (result instanceof Number) {
+                        interacted = ((Number) result).longValue() > 0;
+                    } else {
+                        interacted = true;
+                    }
+
+                    // 增加调用统计次数
+                    if (interacted) {
+                        getXiaomingBot().getStatistician().increaseCallCounter();
+                        getXiaomingBot().getEventManager().callLater(new InteractorResponseEvent(this, detail, user));
+
+                        // 查看是否需要阻塞
+                        if (detail.isNonNext()) {
+                            return true;
+                        }
+                    }
                 } catch (InvocationTargetException exception) {
                     final Throwable cause = exception.getCause();
                     if (Objects.nonNull(cause) && cause instanceof Exception) {
@@ -222,9 +181,6 @@ public interface Interactor extends PluginObject {
                     } else {
                         exception.printStackTrace();
                     }
-                }
-                if (detail.isBlocking()) {
-                    return true;
                 }
             }
         }
@@ -237,15 +193,12 @@ public interface Interactor extends PluginObject {
      * @return 是否注册成功
      */
     default boolean register(Method method) {
-        final Filter[] formats = method.getAnnotationsByType(Filter.class);
-        if (formats.length == 0) {
+        final Filter[] filters = method.getAnnotationsByType(Filter.class);
+        if (filters.length == 0) {
             return false;
         }
 
-        // 复制一份 String[] 类型的指令格式
-        register(method,
-                ArrayUtils.copyAs(method.getAnnotationsByType(RequirePermission.class), String.class, RequirePermission::value),
-                ArrayUtils.copyAs(formats, FilterMatcher.class, FilterMatcher::filterMatcher));
+        getMethodDetails().add(new InteractorMethodDetail(method));
         return true;
     }
 
@@ -255,15 +208,8 @@ public interface Interactor extends PluginObject {
      * @param requirePermissions 所需权限
      * @param matchers 过滤器
      */
-    default void register(Method method, String[] requirePermissions, FilterMatcher[] matchers) {
-        // 阻断式响应
-        final Blocking[] blockings = method.getAnnotationsByType(Blocking.class);
-        boolean isBlocking = false;
-        if (blockings.length > 0) {
-            isBlocking = blockings[0].value();
-        }
-
-        getMethodDetails().add(new InteractorMethodDetail(method, requirePermissions, matchers, isBlocking));
+    default void register(Method method, String[] requirePermissions, FilterMatcher[] matchers, String[] usageStrings, boolean quietUsable, boolean externalUsable) {
+        getMethodDetails().add(new InteractorMethodDetail(method, requirePermissions, matchers, usageStrings, method.getAnnotationsByType(NonNext.class).length > 0, quietUsable, externalUsable));
     }
 
     /**
@@ -307,9 +253,7 @@ public interface Interactor extends PluginObject {
         Set<String> usages = new HashSet<>();
         for (InteractorMethodDetail detail : getMethodDetails()) {
             if (user.hasPermission(detail.getRequiredPermissions())) {
-                for (String usage : detail.getUsages()) {
-                    usages.add(usage);
-                }
+                usages.addAll(Arrays.asList(detail.getUsageStrings()));
             }
         }
         return usages;

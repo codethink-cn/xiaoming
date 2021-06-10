@@ -2,13 +2,13 @@ package com.chuanwise.xiaoming.core.interactor.core;
 
 import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.annotation.FilterParameter;
-import com.chuanwise.xiaoming.api.annotation.RequirePermission;
+import com.chuanwise.xiaoming.api.annotation.Require;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.error.ReportMessage;
 import com.chuanwise.xiaoming.api.error.ReportMessageManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CommandWords;
-import com.chuanwise.xiaoming.api.util.TimeUtil;
+import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 
 import java.util.List;
@@ -38,13 +38,13 @@ public class ReportCommandInteractor extends CommandInteractorImpl {
             builder.append("群：" + message.getGroup());
         }
 
-        builder.append("时间：" + TimeUtil.FORMAT.format(message.getTime()));
+        builder.append("时间：" + TimeUtils.FORMAT.format(message.getTime()));
 
         user.sendPrivateMessage(builder.toString());
     }
 
     @Filter(CommandWords.RECENT + CommandWords.MESSAGE)
-    @RequirePermission("message.look")
+    @Require("message.look")
     public void onLookLastMessage(XiaomingUser user) {
         if (reportMessages.isEmpty()) {
             user.sendMessage("没有未经查看的消息哦");
@@ -69,7 +69,7 @@ public class ReportCommandInteractor extends CommandInteractorImpl {
     }
 
     @Filter(CommandWords.RECENT + CommandWords.MESSAGE + " {index}")
-    @RequirePermission("message.look")
+    @Require("message.look")
     public void onLookMessage(XiaomingUser user,
                                 @FilterParameter("index") final String indexString) {
         if (reportMessages.isEmpty()) {
@@ -98,7 +98,7 @@ public class ReportCommandInteractor extends CommandInteractorImpl {
     }
 
     @Filter(CommandWords.CLEAR + CommandWords.RECENT + CommandWords.MESSAGE)
-    @RequirePermission("message.clear")
+    @Require("message.clear")
     public void onClearMessage(XiaomingUser user) {
         if (reportMessages.isEmpty()) {
             user.sendMessage("并没有需要清除的未经查看的消息哦");

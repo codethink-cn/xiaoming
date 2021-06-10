@@ -1,15 +1,18 @@
 package com.chuanwise.xiaoming.core.interactor.core;
 
 import com.chuanwise.xiaoming.api.account.Account;
+import com.chuanwise.xiaoming.api.account.AccountEvent;
 import com.chuanwise.xiaoming.api.account.AccountManager;
 import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.annotation.FilterParameter;
-import com.chuanwise.xiaoming.api.annotation.GroupInteractor;
-import com.chuanwise.xiaoming.api.annotation.RequirePermission;
+import com.chuanwise.xiaoming.api.annotation.Require;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CommandWords;
+import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
+
+import java.util.Objects;
 
 /**
  * 和用户账号相关的指令处理器
@@ -17,6 +20,7 @@ import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
  */
 public class AccountCommandInteractor extends CommandInteractorImpl {
     final AccountManager accountManager;
+    static final String HISTORY = "(历史|history)";
 
     public AccountCommandInteractor(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
@@ -24,12 +28,25 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
         enableUsageCommand(CommandWords.ACCOUNT);
     }
 
-    @GroupInteractor
+    @Filter(HISTORY + " {qq}")
+    @Require("account.history")
+    public void onLookUserHistory(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final Account account = getXiaomingBot().getAccountManager().getAccount(qq);
+        final String emptyHistory = "该用户没有任何历史记录";
+        if (Objects.isNull(account)) {
+            user.sendWarning(emptyHistory);
+            return;
+        }
+
+        // InteractorUtils.showList(user, account.getHistories(), Object::toString, "（无）", 5);
+        InteractorUtils.showList(user, account.getCommands(), AccountEvent::getMessage, emptyHistory, 5);
+    }
+
     @Filter(CommandWords.ACCOUNT + " " + CommandWords.UNBLOCK + " {plugin}")
-    @RequirePermission("account.plugin.unblock")
+    @Require("account.plugin.unblock")
     public void onUnblockPlugin(XiaomingUser user,
                                 @FilterParameter("plugin") String plugin) {
-        final Account account = accountManager.getOrPutAccount(user.getQQ());
+        final Account account = accountManager.getOrPutAccount(user.getCode());
         if (account.isBlockPlugin(plugin)) {
             if (getXiaomingBot().getPluginManager().isLoaded(plugin)) {
                 user.sendError("小明没有加载插件：{}", plugin);
@@ -46,10 +63,10 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
     }
 
     @Filter(CommandWords.ACCOUNT + " " + CommandWords.BLOCK + " {plugin}")
-    @RequirePermission("account.plugin.block")
+    @Require("account.plugin.block")
     public void onBlockPlugin(XiaomingUser user,
                               @FilterParameter("plugin") String plugin) {
-        final Account account = accountManager.getOrPutAccount(user.getQQ());
+        final Account account = accountManager.getOrPutAccount(user.getCode());
         if (account.isBlockPlugin(plugin)) {
             user.sendError("你已经屏蔽了插件：{}", plugin);
         } else {
@@ -62,7 +79,7 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
     }
 
     @Filter(CommandWords.ALIAS + " {qq} {alias}")
-    @RequirePermission("account.user.alias")
+    @Require("account.user.alias")
     public void onSetUserAlias(XiaomingUser user,
                                @FilterParameter("qq") long qq,
                                @FilterParameter("alias") String alias) {

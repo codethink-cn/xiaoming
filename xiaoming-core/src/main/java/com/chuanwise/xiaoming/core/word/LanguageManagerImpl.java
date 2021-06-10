@@ -1,0 +1,33 @@
+package com.chuanwise.xiaoming.core.word;
+
+import com.chuanwise.xiaoming.api.bot.XiaomingBot;
+import com.chuanwise.xiaoming.api.word.LanguageManager;
+import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
+import lombok.Data;
+
+import java.util.*;
+
+@Data
+public class LanguageManagerImpl extends JsonFilePreservable implements LanguageManager {
+    transient static final Random RANDOM = new Random();
+    transient XiaomingBot xiaomingBot;
+    Map<String, Object> values = new HashMap<>();
+
+    @Override
+    public String getString(String key) {
+        final Object object = get(key);
+        String result = key;
+        if (object instanceof String) {
+            result = ((String) object);
+        } else if (object instanceof Collection && !((Collection<?>) object).isEmpty()) {
+            try {
+                final Collection<String> collection = (Collection<String>) object;
+                result = collection.toArray(new String[0])[RANDOM.nextInt(collection.size())];
+            } catch (ClassCastException ignored) {
+            }
+        } else if (Objects.nonNull(object)) {
+            result = object.toString();
+        }
+        return result;
+    }
+}

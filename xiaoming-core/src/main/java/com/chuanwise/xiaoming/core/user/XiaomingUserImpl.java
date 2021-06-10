@@ -1,14 +1,17 @@
 package com.chuanwise.xiaoming.core.user;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.recept.ReceptionTask;
+import com.chuanwise.xiaoming.api.interactor.Interactor;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import io.ktor.util.collections.ConcurrentList;
 import lombok.Getter;
 import lombok.Setter;
+import net.mamoe.mirai.message.data.At;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -18,30 +21,44 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @author Chuanwise
  */
 @Getter
-public class XiaomingUserImpl extends HostObjectImpl implements XiaomingUser {
+public abstract class XiaomingUserImpl extends HostObjectImpl implements XiaomingUser {
     @Setter
     Receptionist receptionist;
 
+    @Setter
+    Interactor interactor;
+
     public XiaomingUserImpl(XiaomingBot xiaomingBot, long qq) {
         super(xiaomingBot);
-        this.qq = qq;
-        getLog().warn("constructor user: {}", qq);
-    }
-
-    long qq;
-
-    @Override
-    public long getQQ() {
-        return qq;
+        setProperty("qq", qq);
+        setProperty("at", new At(qq).serializeToMiraiCode());
     }
 
     /**
      * 发送消息的缓存机制
      */
-    StringBuilder buffer = new StringBuilder();
+    Stack<StringWriter> stringWriters = new Stack<>();
+    Stack<PrintWriter> printWriters = new Stack<>();
 
-    @Setter
-    boolean usingBuffer;
+    @Override
+    public boolean isUsingBuffer() {
+        return !stringWriters.empty();
+    }
+
+    @Override
+    public void enableBuffer() {
+        final StringWriter stringWriter = new StringWriter();
+        stringWriters.add(stringWriter);
+        printWriters.add(new PrintWriter(stringWriter));
+    }
+
+    @Override
+    public void disableBuffer() {
+        if (isUsingBuffer()) {
+            stringWriters.pop();
+            printWriters.pop();
+        }
+    }
 
     Map<String, Object> properties = new ConcurrentHashMap<>();
 
@@ -51,10 +68,4 @@ public class XiaomingUserImpl extends HostObjectImpl implements XiaomingUser {
 
     @Setter
     List<String> globalNextMessage;
-
-    Map<Long, List<String>> recentGroupMessages = new ConcurrentHashMap<>();
-
-    Map<Long, List<String>> recentTempMessages = new ConcurrentHashMap<>();
-
-    List<String> recentPrivateMessage = new ConcurrentList<>();
 }

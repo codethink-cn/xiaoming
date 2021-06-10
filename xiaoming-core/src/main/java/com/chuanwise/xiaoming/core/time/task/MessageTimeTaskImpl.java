@@ -22,17 +22,12 @@ public class MessageTimeTaskImpl extends TimeTaskImpl implements MessageTimeTask
     public void run() {
         try {
             final Bot miraiBot = getXiaomingBot().getMiraiBot();
+            final Receptionist receptionist = getXiaomingBot().getReceptionistManager().getOrPutReceptionist(qq);
             if (group == 0) {
-                final Friend friend = miraiBot.getFriend(qq);
-                final Receptionist receptionist = getXiaomingBot().getReceptionistManager().getOrPutReceptionist(qq);
-                receptionist.onPrivateMessage(friend, message);
+                receptionist.onPrivateMessage(getXiaomingBot().getContactManager().getPrivateContact(qq), message);
             } else {
-                final Group group = miraiBot.getGroup(this.group);
-                final NormalMember member = group.get(qq);
-                final Receptionist receptionist = getXiaomingBot().getReceptionistManager().getOrPutReceptionist(qq);
-                receptionist.onGroupMessage(member, message);
+                receptionist.onGroupMessage(getXiaomingBot().getContactManager().getGroupContact(group), message);
             }
-            success = true;
         } catch (Exception exception) {
             exception.printStackTrace();
         }

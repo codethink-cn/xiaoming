@@ -3,6 +3,7 @@ package com.chuanwise.xiaoming.api.account;
 import com.chuanwise.xiaoming.api.object.HostObject;
 
 import java.io.File;
+import java.util.Map;
 
 public interface AccountManager extends HostObject {
     File accountFile(long qq);
@@ -13,5 +14,5 @@ public interface AccountManager extends HostObject {
 
     File getDirectory();
 
-    java.util.Map<Long, Account> getLoadedAccounts();
+    Map<Long, Account> getLoadedAccounts();
 }

@@ -2,11 +2,12 @@ package com.chuanwise.xiaoming.core.thread;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
-import com.chuanwise.xiaoming.api.object.XiaomingThread;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
+import com.chuanwise.xiaoming.core.contact.message.TempMessageImpl;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import com.chuanwise.xiaoming.core.recept.ReceptionistImpl;
 import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
+import lombok.Data;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Group;
@@ -17,31 +18,26 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ConsoleInputThread extends HostObjectImpl implements XiaomingThread {
+@Data
+public class ConsoleInputThread extends HostObjectImpl implements Runnable {
     static final Pattern PRIVATE_PATTERN = Pattern.compile("p(rivate)?\\s+(?<qq>\\d+)\\s+(?<content>[\\s\\S]+)");
     static final Pattern GROUP_PATTERN = Pattern.compile("g(roup)?\\s+(?<group>\\d+)\\s+(?<qq>\\d+)\\s+(?<content>[\\s\\S]+)");
     static final Pattern TEMP_PATTERN = Pattern.compile("t(emp)?\\s+(?<group>\\d+)\\s+(?<qq>\\d+)\\s+(?<content>[\\s\\S]+)");
 
     boolean warned = false;
 
-    final ConsoleXiaomingUser consoleUser;
-    final Receptionist consoleReceptionist;
+    ConsoleXiaomingUser consoleUser;
+    Receptionist consoleReceptionist;
 
     volatile Thread inputThread;
 
     public ConsoleInputThread(XiaomingBot xiaomingBot) {
         super(xiaomingBot);
-        consoleUser = (ConsoleXiaomingUser) getXiaomingBot().getConsoleXiaomingUser();
-        consoleReceptionist = new ReceptionistImpl(consoleUser);
     }
 
-    @Override
-    public void stop() {
-        consoleReceptionist.stop();
-        if (Objects.nonNull(inputThread)) {
-            // 强制关闭 IO
-            inputThread.stop();
-        }
+    public void setConsoleUser(ConsoleXiaomingUser consoleUser) {
+        this.consoleUser = consoleUser;
+        consoleReceptionist = new ReceptionistImpl(consoleUser);
     }
 
     @Override
@@ -68,7 +64,7 @@ public class ConsoleInputThread extends HostObjectImpl implements XiaomingThread
                         final long qq = Long.parseLong(privateMatcher.group("qq"));
                         final Friend friend = miraiBot.getFriend(qq);
                         if (Objects.nonNull(friend)) {
-                            consoleReceptionist.onPrivateMessage(friend, privateMatcher.group("content"));
+                            consoleReceptionist.onPrivateMessage(getXiaomingBot().getContactManager().getPrivateContact(qq), privateMatcher.group("content"));
                             camouflaged = true;
                         } else {
                             consoleUser.sendError("小明没有找到好友 {} 哦", qq);
@@ -85,7 +81,7 @@ public class ConsoleInputThread extends HostObjectImpl implements XiaomingThread
                             if (Objects.nonNull(miraiBotGroup)) {
                                 final NormalMember miraiBotMember = miraiBotGroup.getOrFail(qq);
                                 if (Objects.nonNull(miraiBotMember)) {
-                                    consoleReceptionist.onGroupMessage(miraiBotMember, matcher.group("content"));
+                                    consoleReceptionist.onGroupMessage(getXiaomingBot().getContactManager().getGroupContact(group), matcher.group("content"));
                                     camouflaged = true;
                                 } else {
                                     consoleUser.sendError("小明没有在 QQ 群 {} 中找到用户 {} 哦", miraiBotGroup.getName(), qq);
@@ -106,7 +102,7 @@ public class ConsoleInputThread extends HostObjectImpl implements XiaomingThread
                             if (Objects.nonNull(miraiBotGroup)) {
                                 final NormalMember miraiBotMember = miraiBotGroup.getOrFail(qq);
                                 if (Objects.nonNull(miraiBotMember)) {
-                                    consoleReceptionist.onTempMessage(miraiBotMember, matcher.group("content"));
+                                    consoleReceptionist.onTempMessage(getXiaomingBot().getContactManager().getTempContact(group, qq), matcher.group("content"));
                                     camouflaged = true;
                                 } else {
                                     consoleUser.sendError("小明没有在 QQ 群 {} 中找到用户 {} 哦", miraiBotGroup.getName(), qq);
@@ -122,10 +118,10 @@ public class ConsoleInputThread extends HostObjectImpl implements XiaomingThread
 
                 if (!camouflaged) {
                     if (!warned) {
-                        consoleUser.sendWarn("不伪装时，身份默认为小明本人和自己的私聊");
+                        consoleUser.sendWarning("不伪装时，身份默认为小明本人和自己的私聊");
                         warned = true;
                     }
-                    consoleReceptionist.onPrivateMessage(miraiBot.getAsFriend(), message);
+                    consoleReceptionist.onPrivateMessage(getXiaomingBot().getContactManager().getPrivateContact(consoleUser.getCode()), message);
                 }
             }
         }

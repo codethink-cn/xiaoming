@@ -1,7 +1,7 @@
 package com.chuanwise.xiaoming.api.text;
 
 import com.chuanwise.xiaoming.api.object.HostObject;
-import com.chuanwise.xiaoming.api.util.StringUtil;
+import com.chuanwise.xiaoming.api.util.StringUtils;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public interface TextManager extends HostObject {
 
     default String loadOrFail(String textName) {
         final String result = load(textName);
-        if (StringUtil.isEmpty(result)) {
+        if (StringUtils.isEmpty(result)) {
             return textName;
         } else {
             return result;
@@ -47,7 +47,7 @@ public interface TextManager extends HostObject {
 
     default String loadFromOrFail(File file) {
         final String result = loadFrom(file);
-        if (StringUtil.isEmpty(result)) {
+        if (StringUtils.isEmpty(result)) {
             return file.getName();
         } else {
             return result;

@@ -7,8 +7,8 @@ import com.chuanwise.xiaoming.api.limit.UserCallLimiter;
 import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
-import com.chuanwise.xiaoming.api.util.ArgumentUtil;
-import com.chuanwise.xiaoming.api.util.TimeUtil;
+import com.chuanwise.xiaoming.api.util.ArgumentUtils;
+import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.core.event.EventListenerImpl;
 import com.chuanwise.xiaoming.core.user.XiaomingUserImpl;
 import lombok.Getter;
@@ -43,10 +43,11 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
     @Getter
     Map<Long, Receptionist> receptionists = new ConcurrentHashMap<>();
 
+    @Override
     public Receptionist getOrPutReceptionist(long qq) {
         Receptionist receptionist = getReceptionist(qq);
         if (Objects.isNull(receptionist)) {
-            receptionist = new ReceptionistImpl(new XiaomingUserImpl(getXiaomingBot(), qq));
+            receptionist = new ReceptionistImpl(getXiaomingBot(), qq);
             receptionists.put(qq, receptionist);
         }
         return receptionist;
@@ -66,21 +67,21 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
                     final CallLimitConfig config = limiter.getConfig();
                     final String sceneName = inGroup ? "群聊" : "私聊";
                     contact.sendMessage(
-                            ArgumentUtil.replaceArguments("你在{}{}内召唤了{}次小明啦，好好休息一下，等{}咱们再一起在{}玩吧 {}",
+                            ArgumentUtils.replaceArguments("你在{}{}内召唤了{}次小明啦，好好休息一下，等{}咱们再一起在{}玩吧 {}",
                                     new Object[]{
                                             sceneName,
-                                            TimeUtil.toTimeString(config.getPeriod()),
+                                            TimeUtils.toTimeString(config.getPeriod()),
                                             config.getTop(),
-                                            TimeUtil.after(config.getPeriod()),
+                                            TimeUtils.after(config.getPeriod()),
                                             sceneName,
-                                            getXiaomingBot().getWordManager().get("happy")
+                                            getXiaomingBot().getLanguageManager().get("happy")
                                     })
                     );
 
                     limiter.setNoticed(qq);
                     final Receptionist receptionist = getReceptionist(qq);
                     if (Objects.nonNull(receptionist)) {
-                        receptionist.forceStop();
+                        receptionist.stop();
                     }
                     return false;
                 } else {
@@ -98,14 +99,17 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
     public void onGroupMessageEvent(GroupMessageEvent event) {
         final Member member = event.getSender();
 
+        final long qq = member.getId();
+
         // 检查调用频率
         if (!callable(member, true)) {
+            getLog().warn("小明收到了来自 " + qq + " 的群聊消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
             return;
         }
-
-        final long qq = member.getId();
         final Receptionist receptionist = getOrPutReceptionist(qq);
-        receptionist.onGroupMessage(member, event.getMessage().serializeToMiraiCode());
+
+        final Group group = event.getGroup();
+        receptionist.onGroupMessage(getXiaomingBot().getContactManager().getGroupContact(group.getId()), event.getMessage());
     }
 
     @Override
@@ -113,15 +117,15 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
     public void onPrivateMessageEvent(FriendMessageEvent event) {
         final Friend friend = event.getFriend();
 
+        final long qq = friend.getId();
+
         // 检查调用频率
-        if (!callable(friend, true)) {
+        if (!callable(friend, false)) {
+            getLog().warn("小明收到了来自 " + qq + " 的私聊消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
             return;
         }
-
-        // 查找该用户的接待员
-        final long qq = friend.getId();
         final Receptionist receptionist = getOrPutReceptionist(qq);
-        receptionist.onPrivateMessage(friend, event.getMessage().serializeToMiraiCode());
+        receptionist.onPrivateMessage(getXiaomingBot().getContactManager().getPrivateContact(qq), event.getMessage());
     }
 
     @Override
@@ -130,15 +134,12 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
         final Group group = event.getGroup();
         final NormalMember member = event.getSender();
 
-        // 检查调用频率
-        if (!callable(member, true)) {
+        final long qq = member.getId();
+        if (!callable(member, false)) {
+            getLog().warn("小明收到了来自 " + qq + " 的临时会话消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
             return;
         }
-
-        // 查找该用户的接待员
-        final long qq = member.getId();
         final Receptionist receptionist = getOrPutReceptionist(qq);
-
-        receptionist.onTempMessage(member, event.getMessage().serializeToMiraiCode());
+        receptionist.onTempMessage(getXiaomingBot().getContactManager().getTempContact(group.getId(), qq), event.getMessage());
     }
 }

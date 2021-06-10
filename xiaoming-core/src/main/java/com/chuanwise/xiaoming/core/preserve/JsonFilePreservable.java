@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Objects;
 
 /**
  * 可以通过 json 文件保存的数据
@@ -36,5 +37,22 @@ public class JsonFilePreservable implements Preservable<File> {
             JsonSerializerUtil.getINSTANCE().writeValue(outputStream, this);
         }
         return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof JsonFilePreservable)) {
+            return false;
+        }
+        JsonFilePreservable that = (JsonFilePreservable) o;
+        return Objects.equals(file, that.file);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(file);
     }
 }

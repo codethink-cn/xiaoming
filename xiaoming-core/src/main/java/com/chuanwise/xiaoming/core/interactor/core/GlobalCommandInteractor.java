@@ -1,13 +1,15 @@
 package com.chuanwise.xiaoming.core.interactor.core;
 
 import com.chuanwise.xiaoming.api.annotation.Filter;
-import com.chuanwise.xiaoming.api.annotation.GroupInteractor;
-import com.chuanwise.xiaoming.api.annotation.RequirePermission;
+import com.chuanwise.xiaoming.api.annotation.Require;
+import com.chuanwise.xiaoming.api.annotation.WhenExternal;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.configuration.Configuration;
+import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
+import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
@@ -25,20 +27,21 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
 
     public GlobalCommandInteractor(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
-        setExternalUse(true);
     }
 
+    @WhenExternal
     @Filter(CommandWords.USE + CommandWords.XIAOMING)
-    @RequirePermission("enable")
+    @Require("enable")
     public void onUseXiaoming(XiaomingUser user) {
         final Configuration config = getXiaomingBot().getConfiguration();
         if (config.isEnableLicense()) {
             final LicenseManager licenceManager = getXiaomingBot().getLicenseManager();
-            final long qq = user.getQQ();
+            final long qq = user.getCode();
             if (licenceManager.isAgreed(qq)) {
                 user.sendMessage("你此前已经同意了小明使用协议");
             } else {
-                user.sendPrivateMessage(getXiaomingBot().getTextManager().loadOrFail(config.getLicenseName()));
+                /*
+                user.sendPrivateMessage(getXiaomingBot().getLanguageManager().loadOrFail(config.getLicenseName()));
                 user.sendPrivateMessage("如果你同意上述协议，请告诉我「同意」");
 
                 final String nextInput = user.nextGlobalInput();
@@ -49,19 +52,22 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
                     user.sendMessage("如果未来希望使用小明，仍然可以告诉我「使用小明」");
                 }
                 getXiaomingBot().getFinalizer().readySave(licenceManager);
+
+                 */
             }
         } else {
-            user.sendMessage("不需要专门启动小明哦，小明为人民服务 {}", getXiaomingBot().getWordManager().get("happy"));
+            user.sendMessage("不需要专门启动小明哦，小明为人民服务 {happy}");
         }
     }
 
+    @WhenExternal
     @Filter(CommandWords.CANCEL + CommandWords.USE + CommandWords.XIAOMING)
-    @RequirePermission("disable")
+    @Require("disable")
     public void onCancelUseXiaoming(XiaomingUser user) {
         final Configuration config = getXiaomingBot().getConfiguration();
         if (config.isEnableLicense()) {
             final LicenseManager licenceManager = getXiaomingBot().getLicenseManager();
-            final long qq = user.getQQ();
+            final long qq = user.getCode();
             if (licenceManager.isAgreed(qq)) {
                 licenceManager.remove(qq);
                 user.sendMessage("已取消使用小明。如果未来希望使用小明，仍然可以告诉我「使用小明」");
@@ -70,26 +76,26 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
                 user.sendMessage("此前你并未同意《小明使用须知》");
             }
         } else {
-            user.sendMessage("不需要专门取消小明哦，小明为人民服务 {}", getXiaomingBot().getWordManager().get("happy"));
+            user.sendMessage("不需要专门取消小明哦，小明为人民服务 {happy}");
         }
     }
 
-    @GroupInteractor
+    @WhenExternal
     @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.ENABLE + CommandWords.XIAOMING)
-    @RequirePermission("group.enable")
-    public void onEnableXiaoming(XiaomingUser user) {
-        final Group group = user.getGroup();
+    @Require("group.enable")
+    public void onEnableXiaoming(GroupXiaomingUser user) {
+        final GroupContact contact = user.getContact();
         final ResponseGroupManager responseGroupManager = getXiaomingBot().getResponseGroupManager();
 
-        ResponseGroup responseGroup = responseGroupManager.forCode(group.getId());
+        ResponseGroup responseGroup = responseGroupManager.forCode(contact.getCode());
         if (Objects.isNull(responseGroup)) {
-            responseGroup = new ResponseGroupImpl(group.getId(), group.getName());
+            responseGroup = new ResponseGroupImpl(contact.getCode(), contact.getName());
             responseGroupManager.addGroup(responseGroup);
             getXiaomingBot().getFinalizer().readySave(responseGroupManager);
         }
 
         if (responseGroup.hasTag(ENABLE_TAG)) {
-            user.sendWarn("本群已经是小明的响应群了哦");
+            user.sendWarning("本群已经是小明的响应群了哦");
         } else {
             responseGroup.addTag(ENABLE_TAG);
             user.sendMessage("成功在本群启用小明 (๑•̀ㅂ•́)و✧");
@@ -97,14 +103,13 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
         }
     }
 
-    @GroupInteractor
+    @WhenExternal
     @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.DISABLE + CommandWords.XIAOMING)
-    @RequirePermission("group.disable")
-    public void onDisableXiaoming(XiaomingUser user) {
-        final Group group = user.getAsGroupMember().getGroup();
+    @Require("group.disable")
+    public void onDisableXiaoming(GroupXiaomingUser user) {
         final ResponseGroupManager responseGroupManager = getXiaomingBot().getResponseGroupManager();
 
-        ResponseGroup responseGroup = responseGroupManager.forCode(group.getId());
+        ResponseGroup responseGroup = responseGroupManager.forCode(user.getGroupCode());
         if (Objects.isNull(responseGroup)) {
             user.sendMessage("本群还不是小明的响应群哦");
         }
@@ -113,7 +118,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
             responseGroup.removeTag(ENABLE_TAG);
             user.sendMessage("本群不再是小明的响应群啦。未来希望启动小明输入 #启动小明 就可以啦。");
         } else {
-            user.sendWarn("本群曾是小明的响应群，但是现在还不是哦");
+            user.sendWarning("本群曾是小明的响应群，但是现在还不是哦");
             getXiaomingBot().getFinalizer().readySave(responseGroupManager);
         }
     }

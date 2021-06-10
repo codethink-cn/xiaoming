@@ -1,6 +1,6 @@
 package com.chuanwise.xiaoming.host;
 
-import com.chuanwise.xiaoming.api.util.PathUtil;
+import com.chuanwise.xiaoming.api.util.PathUtils;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -13,7 +13,7 @@ import java.io.File;
 @Slf4j
 public class XiaomingLauncher {
     public static void main(String[] args) {
-        final File launcherDir = PathUtil.LAUNCHER_DIR;
+        final File launcherDir = PathUtils.LAUNCHER;
         if (!launcherDir.isDirectory() && !launcherDir.mkdirs()) {
             log.error("无法创建启动器配置文件夹：" + launcherDir.getAbsolutePath());
             return;

@@ -39,6 +39,21 @@ public class ResponseGroupImpl implements ResponseGroup {
         return blockedPlugins.contains(pluginName);
     }
 
+    public void setTags(Set<String> tags) {
+        this.tags = tags;
+
+        // 检查原生标记
+        final String recoededTag = "recorded";
+        if (!tags.contains(recoededTag)) {
+            tags.add(recoededTag);
+        }
+
+        final String codeTag = String.valueOf(code);
+        if (!tags.contains(codeTag)) {
+            tags.add(codeTag);
+        }
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

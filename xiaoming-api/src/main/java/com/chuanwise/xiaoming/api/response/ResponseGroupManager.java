@@ -2,10 +2,12 @@ package com.chuanwise.xiaoming.api.response;
 
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
+import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 import net.mamoe.mirai.contact.Group;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -36,7 +38,7 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
      * @param tag 若干个标记
      * @return 群
      */
-    default Set<ResponseGroup> fromTag(String tag) {
+    default Set<ResponseGroup> forTag(String tag) {
         Set<ResponseGroup> result = new HashSet<>();
         for (ResponseGroup group : getGroups()) {
             if (group.hasTag(tag)) {
@@ -46,6 +48,18 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
         return result;
     }
 
+    default Set<String> getTags(long group) {
+        final ResponseGroup responseGroup = forCode(group);
+        if (Objects.nonNull(responseGroup)) {
+            return responseGroup.getTags();
+        } else {
+            Set<String> result = new HashSet<>();
+            result.add(String.valueOf(group));
+            result.add("unrecorded");
+            return result;
+        }
+    }
+
     default void addGroup(ResponseGroup group) {
         getGroups().add(group);
     }
@@ -53,7 +67,9 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
     Set<ResponseGroup> getGroups();
 
     default void sendMessageToTaggedGroup(String tag, String message) {
-        for (ResponseGroup responseGroup : getXiaomingBot().getResponseGroupManager().fromTag("log")) {
+        final Map<String, Object> values = getXiaomingBot().getLanguageManager().getValues();
+        message = ArgumentUtils.replaceArguments(message, values, getXiaomingBot().getConfiguration().getMaxIterateTime());
+        for (ResponseGroup responseGroup : getXiaomingBot().getResponseGroupManager().forTag(tag)) {
             final Group group = getXiaomingBot().getMiraiBot().getGroup(responseGroup.getCode());
             if (Objects.nonNull(group)) {
                 group.sendMessage(message);

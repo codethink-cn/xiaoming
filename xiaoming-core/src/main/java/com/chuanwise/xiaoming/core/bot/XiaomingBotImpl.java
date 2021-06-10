@@ -5,21 +5,21 @@ import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.classloader.XiaomingClassLoader;
 import com.chuanwise.xiaoming.api.configuration.Configuration;
 import com.chuanwise.xiaoming.api.configuration.Statistician;
+import com.chuanwise.xiaoming.api.contact.ContactManager;
 import com.chuanwise.xiaoming.api.error.ReportMessageManager;
 import com.chuanwise.xiaoming.api.exception.NoSuchBotException;
 import com.chuanwise.xiaoming.api.exception.XiaomingInitializeException;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.license.LicenseManager;
-import com.chuanwise.xiaoming.api.object.XiaomingThread;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
-import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.text.TextManager;
 import com.chuanwise.xiaoming.api.time.TimeTaskManager;
-import com.chuanwise.xiaoming.api.url.PictureUrlManager;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
+import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.util.TimeUtil;
-import com.chuanwise.xiaoming.api.word.WordManager;
+import com.chuanwise.xiaoming.api.util.PathUtils;
+import com.chuanwise.xiaoming.api.util.TimeUtils;
+import com.chuanwise.xiaoming.api.word.LanguageManager;
 import com.chuanwise.xiaoming.api.event.EventManager;
 import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
@@ -27,6 +27,8 @@ import com.chuanwise.xiaoming.api.plugin.PluginManager;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
 import com.chuanwise.xiaoming.api.thread.Finalizer;
 import com.chuanwise.xiaoming.core.account.AccountManagerImpl;
+import com.chuanwise.xiaoming.core.contact.ContactManagerImpl;
+import com.chuanwise.xiaoming.core.contact.contact.ConsoleContactImpl;
 import com.chuanwise.xiaoming.core.error.ReportMessageManagerImpl;
 import com.chuanwise.xiaoming.core.interactor.core.ReportInteractor;
 import com.chuanwise.xiaoming.core.interactor.InteractorManagerImpl;
@@ -39,12 +41,13 @@ import com.chuanwise.xiaoming.core.thread.FinalizerImpl;
 import com.chuanwise.xiaoming.core.config.ConfigurationImpl;
 import com.chuanwise.xiaoming.core.config.StatisticianImpl;
 import com.chuanwise.xiaoming.core.time.TimeTaskManagerImpl;
-import com.chuanwise.xiaoming.core.time.task.RegularFileSaveTask;
-import com.chuanwise.xiaoming.core.time.task.TimeTaskImpl;
-import com.chuanwise.xiaoming.core.url.PictureUrlManagerImpl;
+import com.chuanwise.xiaoming.core.time.task.FileSaveTimeTask;
+import com.chuanwise.xiaoming.core.time.task.OptimizeTimeTask;
 import com.chuanwise.xiaoming.core.recept.ReceptionistManagerImpl;
+import com.chuanwise.xiaoming.api.resource.ResourceManager;
+import com.chuanwise.xiaoming.core.url.ResourceManagerImpl;
 import com.chuanwise.xiaoming.core.user.ConsoleXiaomingUserImpl;
-import com.chuanwise.xiaoming.core.word.WordManagerImpl;
+import com.chuanwise.xiaoming.core.word.LanguageManagerImpl;
 import com.chuanwise.xiaoming.core.event.EventManagerImpl;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.core.limit.UserCallLimitManagerImpl;
@@ -52,7 +55,6 @@ import com.chuanwise.xiaoming.core.permission.PermissionManagerImpl;
 import com.chuanwise.xiaoming.core.plugin.PluginManagerImpl;
 import com.chuanwise.xiaoming.core.preserve.JsonFilePreservableFactory;
 import com.chuanwise.xiaoming.api.preserve.PreservableFactory;
-import com.chuanwise.xiaoming.api.util.PathUtil;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -119,40 +121,132 @@ public class XiaomingBotImpl implements XiaomingBot {
             miraiBot.close();
         }
         this.miraiBot = miraiBot;
-
-        // 将 mirai 的事件转发到小明的中央消息处理器
-        final EventChannel<BotEvent> eventChannel = miraiBot.getEventChannel();
-        eventChannel.registerListenerHost(new ListenerHost() {
-            @EventHandler
-            public void onEvent(Event event) {
-                eventManager.callLater(event);
-            }
-        });
     }
+
+    Map<String, Runnable> initializer = new HashMap<>();
 
     @Override
     public void load() {
-        load("configuration");
-        load("mainThreadPool");
-        load("statistician");
-        load("responseGroupManager");
-        load("accountManager");
-        load("finalizer");
-        load("statistician");
-        load("permissionManager");
-        load("wordManager");
-        load("pluginManager");
-        load("interactorManager");
-        load("eventManager");
-        load("userCallLimitManager");
-        load("userInteractManager");
-        load("reportMessageManager");
-        load("urlInMiraiCodeManager");
-        load("textManager");
-        load("receptionistManager");
-        load("licenseManager");
-        load("consoleInputThread");
-        load("timeTaskManager");
+        initializer.values().forEach(Runnable::run);
+    }
+
+    /**
+     * 加载小明的某个组件
+     * @param name 组件名
+     * @return 是否找到该组件
+     */
+    @Override
+    public boolean load(String name) {
+        final Runnable runnable = initializer.get(name);
+        if (Objects.nonNull(runnable)) {
+            runnable.run();
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    protected void fillInitializer() {
+        initializer.clear();
+
+        initializer.put("mainThreadPool", () -> {
+            mainThreadPool = Executors.newCachedThreadPool();
+        });
+
+        initializer.put("timeTaskManager", () -> {
+            timeTaskManager = filePreservableFactory
+                    .loadOrProduce(TimeTaskManagerImpl.class, new File(configDirectory, "timer-tasks.json"), TimeTaskManagerImpl::new);
+            timeTaskManager.setXiaomingBot(this);
+            mainThreadPool.execute(timeTaskManager);
+
+            timeTaskManager.addPeriodicTask(new FileSaveTimeTask(), configuration.getSavePeriod(), configuration.getSavePeriod());
+            timeTaskManager.addPeriodicTask(new OptimizeTimeTask(), configuration.getOptimizePeriod(), configuration.getOptimizePeriod());
+        });
+
+        initializer.put("configuration", () -> {
+            configuration = filePreservableFactory
+                    .loadOrProduce(ConfigurationImpl.class, new File(configDirectory, "configurations.json"), ConfigurationImpl::new);
+            configuration.setXiaomingBot(this);
+        });
+
+        initializer.put("userCallLimitManager", () -> {
+            userCallLimitManager = new UserCallLimitManagerImpl();
+            userCallLimitManager.setXiaomingBot(this);
+        });
+
+        initializer.put("eventManager", () -> {
+            eventManager = new EventManagerImpl(this);
+        });
+
+        initializer.put("interactorManager", () -> {
+            interactorManager = new InteractorManagerImpl(this);
+        });
+
+        initializer.put("pluginManager", () -> {
+            pluginManager = new PluginManagerImpl(this, pluginDirectory);
+        });
+
+        initializer.put("languageManager", () -> {
+            languageManager = filePreservableFactory
+                    .loadOrProduce(LanguageManagerImpl.class, new File(configDirectory, "language.json"), LanguageManagerImpl::new);
+            languageManager.setXiaomingBot(this);
+        });
+
+        initializer.put("permissionManager", () -> {
+            permissionManager = filePreservableFactory
+                    .loadOrProduce(PermissionManagerImpl.class, new File(configDirectory, "permissions.json"), () -> {
+                        PermissionManagerImpl manager = new PermissionManagerImpl();
+                        manager.setGroups(new HashMap<>());
+                        return manager;
+                    });
+            permissionManager.setXiaomingBot(this);
+        });
+
+        initializer.put("statistician", () -> {
+            statistician = filePreservableFactory
+                    .loadOrProduce(StatisticianImpl.class, new File(configDirectory, "counters.json"), StatisticianImpl::new);
+            statistician.setXiaomingBot(this);
+        });
+
+        initializer.put("finalizer", () -> {
+            finalizer = new FinalizerImpl(this);
+        });
+
+        initializer.put("accountManager", () -> {
+            accountManager = new AccountManagerImpl(this, accountDirectory);
+        });
+
+        initializer.put("responseGroupManager", () -> {
+            responseGroupManager = filePreservableFactory
+                    .loadOrProduce(ResponseGroupManagerImpl.class, new File(configDirectory, "groups.json"), ResponseGroupManagerImpl::new);
+            responseGroupManager.setXiaomingBot(this);
+        });
+
+        initializer.put("receptionistManager", () -> {
+            receptionistManager = new ReceptionistManagerImpl(this);
+        });
+
+        initializer.put("reportMessageManager", () -> {
+            reportMessageManager = filePreservableFactory
+                    .loadOrProduce(ReportMessageManagerImpl.class, new File(configDirectory, "errors.json"), ReportMessageManagerImpl::new);
+            reportMessageManager.setXiaomingBot(this);
+        });
+
+        initializer.put("resourceManager", () -> {
+            resourceManager = filePreservableFactory
+                    .loadOrProduce(ResourceManagerImpl.class, new File(resourceDirectory, "resources.json"), ResourceManagerImpl::new);
+            resourceManager.setXiaomingBot(this);
+        });
+
+        initializer.put("licenseManager", () -> {
+            licenseManager = filePreservableFactory
+                    .loadOrProduce(LicenceManagerImpl.class, new File(configDirectory, "license.json"), LicenceManagerImpl::new);
+            licenseManager.setXiaomingBot(this);
+        });
+
+        initializer.put("contactManager", () -> {
+            contactManager = new ContactManagerImpl(this);
+        });
     }
 
     /**
@@ -161,6 +255,11 @@ public class XiaomingBotImpl implements XiaomingBot {
     void makeDirectories() {
         if (!accountDirectory.isDirectory() && !accountDirectory.mkdirs()) {
             final String message = "无法创建账户文件夹：" + accountDirectory.getAbsolutePath();
+            throw new XiaomingInitializeException(message);
+        }
+
+        if (!resourceDirectory.isDirectory() && !resourceDirectory.mkdirs()) {
+            final String message = "无法创建本地资源文件夹：" + resourceDirectory.getAbsolutePath();
             throw new XiaomingInitializeException(message);
         }
 
@@ -186,7 +285,7 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         File lastestLog = new File(logDirectory, "lastest.log");
         if (lastestLog.isFile()) {
-            final File dest = new File(logDirectory, TimeUtil.FORMAT.format(lastestLog.lastModified()) + ".log");
+            final File dest = new File(logDirectory, TimeUtils.FORMAT.format(lastestLog.lastModified()) + ".log");
             lastestLog.renameTo(dest);
         }
         try {
@@ -207,7 +306,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         // 注册内核指令处理器
         // 全局交互器
         interactorManager.register(new GlobalCommandInteractor(this), null);
-        interactorManager.register(new TextCommandInteractor(this), null);
+        interactorManager.register(new DebugCommandInterator(this), null);
 
         interactorManager.register(new PluginInteractor(this), null);
         interactorManager.register(new TimeTaskInteractor(), null);
@@ -217,7 +316,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         interactorManager.register(new CoreCommandInteractor(this), null);
         interactorManager.register(new PermissionCommandInteractor(this), null);
         interactorManager.register(new ResponseGroupCommandInteractor(this), null);
-        interactorManager.register(new WordCommandInteractor(this), null);
+        interactorManager.register(new LanguageCommandIterator(this), null);
 
         // 注册内核交互器
         interactorManager.register(new ReportInteractor(), null);
@@ -237,6 +336,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     void initialize() {
         makeDirectories();
 
+        fillInitializer();
         load();
 
         registerCoreModules();
@@ -276,6 +376,15 @@ public class XiaomingBotImpl implements XiaomingBot {
         // 登录机器人
         miraiBot.login();
 
+        // 将 mirai 的事件转发到小明的中央消息处理器
+        final EventChannel<BotEvent> eventChannel = miraiBot.getEventChannel();
+        eventChannel.registerListenerHost(new ListenerHost() {
+            @EventHandler
+            public void onEvent(Event event) {
+                eventManager.callLater(event);
+            }
+        });
+
         try {
             post();
         } catch (Exception exception) {
@@ -289,7 +398,7 @@ public class XiaomingBotImpl implements XiaomingBot {
      * 小明启动后的一些操作
      */
     void post() {
-        responseGroupManager.sendMessageToTaggedGroup("log", "小明启动成功 " + wordManager.get("happy"));
+        responseGroupManager.sendMessageToTaggedGroup("log", "{xiaomingEnable}");
     }
 
     /**
@@ -316,19 +425,21 @@ public class XiaomingBotImpl implements XiaomingBot {
      * 统一权限管理器
      */
     @Setter
-    File configDirectory = PathUtil.CONFIG_DIR;
+    File configDirectory = PathUtils.CONFIG;
     PermissionManager permissionManager;
 
     /**
      * 表情包管理器
      */
-    WordManager wordManager;
+    LanguageManager languageManager;
+
+    ContactManager contactManager;
 
     /**
      * 插件管理器
      */
     @Setter
-    File pluginDirectory = PathUtil.PLUGIN_DIR;
+    File pluginDirectory = PathUtils.PLUGIN;
     PluginManager pluginManager;
 
     /**
@@ -352,107 +463,6 @@ public class XiaomingBotImpl implements XiaomingBot {
     Configuration configuration;
 
     /**
-     * 加载小明的某个组件
-     * @param name 组件名
-     * @return 是否找到该组件
-     */
-    @Override
-    public boolean load(String name) {
-        switch (name) {
-            case "mainThreadPool":
-                mainThreadPool = Executors.newCachedThreadPool();
-                return true;
-            case "timeTaskManager":
-                timeTaskManager = filePreservableFactory
-                        .loadOrProduce(TimeTaskManagerImpl.class, new File(configDirectory, "timer-tasks.json"), TimeTaskManagerImpl::new);
-                timeTaskManager.setXiaomingBot(this);
-                mainThreadPool.execute(timeTaskManager);
-                final RegularFileSaveTask fileSaveTask = new RegularFileSaveTask();
-                fileSaveTask.setTime(System.currentTimeMillis() + fileSaveTask.getPeriod());
-                timeTaskManager.addTask(fileSaveTask);
-                return true;
-            case "configuration":
-                configuration = filePreservableFactory
-                        .loadOrProduce(ConfigurationImpl.class, new File(configDirectory, "configurations.json"), ConfigurationImpl::new);
-                configuration.setXiaomingBot(this);
-                return true;
-            case "userCallLimitManager":
-                userCallLimitManager = new UserCallLimitManagerImpl();
-                userCallLimitManager.setXiaomingBot(this);
-                return true;
-            case "eventManager":
-                eventManager = new EventManagerImpl(this);
-                return true;
-            case "interactorManager":
-                interactorManager = new InteractorManagerImpl(this);
-                return true;
-            case "pluginManager":
-                pluginManager = new PluginManagerImpl(this, pluginDirectory);
-                return true;
-            case "wordManager":
-                wordManager = filePreservableFactory
-                        .loadOrProduce(WordManagerImpl.class, new File(configDirectory, "words.json"), WordManagerImpl::new);
-                wordManager.setXiaomingBot(this);
-                return true;
-            case "permissionManager":
-                permissionManager = filePreservableFactory
-                        .loadOrProduce(PermissionManagerImpl.class, new File(configDirectory, "permissions.json"), () -> {
-                            PermissionManagerImpl manager = new PermissionManagerImpl();
-                            manager.setGroups(new HashMap<>());
-                            return manager;
-                        });
-                permissionManager.setXiaomingBot(this);
-                return true;
-            case "statistician":
-                statistician = filePreservableFactory
-                        .loadOrProduce(StatisticianImpl.class, new File(configDirectory, "counters.json"), StatisticianImpl::new);
-                statistician.setXiaomingBot(this);
-                return true;
-            case "finalizer":
-                finalizer = new FinalizerImpl(this);
-                return true;
-            case "accountManager":
-                accountManager = new AccountManagerImpl(this, accountDirectory);
-                return true;
-            case "responseGroupManager":
-                responseGroupManager = filePreservableFactory
-                        .loadOrProduce(ResponseGroupManagerImpl.class, new File(configDirectory, "groups.json"), ResponseGroupManagerImpl::new);
-                responseGroupManager.setXiaomingBot(this);
-                return true;
-            case "receptionistManager":
-                receptionistManager = new ReceptionistManagerImpl(this);
-                return true;
-            case "reportMessageManager":
-                reportMessageManager = filePreservableFactory
-                        .loadOrProduce(ReportMessageManagerImpl.class, new File(configDirectory, "errors.json"), ReportMessageManagerImpl::new);
-                reportMessageManager.setXiaomingBot(this);
-                return true;
-            case "urlInMiraiCodeManager":
-                pictureUrlManager = filePreservableFactory
-                        .loadOrProduce(PictureUrlManagerImpl.class, new File(configDirectory, "urls.json"), PictureUrlManagerImpl::new);
-                pictureUrlManager.setXiaomingBot(this);
-                return true;
-            case "textManager":
-                textManager = new TextManagerImpl(this, textDirectory);
-                return true;
-            case "licenseManager":
-                licenseManager = filePreservableFactory
-                        .loadOrProduce(LicenceManagerImpl.class, new File(configDirectory, "license.json"), LicenceManagerImpl::new);
-                licenseManager.setXiaomingBot(this);
-                return true;
-            case "consoleInputThread":
-                if (Objects.nonNull(consoleInputThread)) {
-                    consoleInputThread.forceStop();
-                }
-                consoleInputThread = new ConsoleInputThread(this);
-                mainThreadPool.execute(consoleInputThread);
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    /**
      * 小明统计数据
      */
     Statistician statistician;
@@ -470,14 +480,17 @@ public class XiaomingBotImpl implements XiaomingBot {
     /**
      * 控制台小明使用者
      */
-    XiaomingUser consoleXiaomingUser = new ConsoleXiaomingUserImpl(this);
-    XiaomingThread consoleInputThread;
+    ConsoleInputThread consoleInputThread = new ConsoleInputThread(this);
+    ConsoleXiaomingUser consoleXiaomingUser = new ConsoleXiaomingUserImpl(new ConsoleContactImpl(this, consoleInputThread));
+    {
+        consoleInputThread.setConsoleUser(consoleXiaomingUser);
+    }
 
     /**
      * 用户数据管理器
      */
     @Setter
-    File accountDirectory = PathUtil.ACCOUNT_DIR;
+    File accountDirectory = PathUtils.ACCOUNT;
     AccountManager accountManager;
 
     /**
@@ -496,10 +509,10 @@ public class XiaomingBotImpl implements XiaomingBot {
     ReportMessageManager reportMessageManager;
 
     /**
-     * url 资源定期请求器
+     * 本地资源管理器
      */
-    @Deprecated
-    PictureUrlManager pictureUrlManager;
+    File resourceDirectory = PathUtils.RESOURCES;
+    ResourceManager resourceManager;
 
     /**
      * 用户须知管理器
@@ -514,31 +527,17 @@ public class XiaomingBotImpl implements XiaomingBot {
     /**
      * 提示文字管理器
      */
-    File textDirectory = PathUtil.TEXT_DIR;
+    File textDirectory = PathUtils.TEXT;
     TextManager textManager;
 
-    File logDirectory = PathUtil.LOG_DIR;
+    File logDirectory = PathUtils.LOG;
 
     XiaomingClassLoader xiaomingClassLoader = new XiaomingClassLoader(getClass().getClassLoader());
 
     void shutdownService(XiaomingUser user) {
         // 唤醒正在等待事件的进程，令其退出
 
-        Set<Long> sendedGroup = new HashSet<>();
-        for (Map.Entry<Long, Receptionist> entry : receptionistManager.getReceptionists().entrySet()) {
-            final Receptionist receptionist = entry.getValue();
-            final XiaomingUser currentUser = receptionist.getUser();
-
-            if (receptionist.isBusy() && currentUser != user) {
-                if (currentUser.inGroup() && sendedGroup.contains(currentUser.getGroup().getId())) {
-                    currentUser.sendError(user.getName() + "正在关闭小明，不等待你的下一次输入啦，我们下次见哦");
-                    sendedGroup.add(currentUser.getGroup().getId());
-                } else {
-                    currentUser.sendError(user.getName() + "正在关闭小明，不等待你的下一次输入啦，我们下次见哦");
-                }
-            }
-            receptionist.forceStop();
-        }
+        receptionistManager.close();
 
         // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
         mainThreadPool.shutdown();
@@ -571,42 +570,65 @@ public class XiaomingBotImpl implements XiaomingBot {
         stop = true;
 
         getLog().info("正在关闭 mirai 机器人");
-        miraiBot.close();
+        try {
+            miraiBot.close();
+        } catch (Throwable throwable) {
+            getLog().error(throwable.getMessage(), throwable);
+        }
 
         getLog().info("正在关闭线程池");
-        getConsoleInputThread().stop();
-        shutdownService(user);
+        try {
+            getConsoleInputThread().getInputThread().interrupt();
+            getTimeTaskManager().stop();
+            shutdownService(user);
 
-        if (mainThreadPool.isShutdown()) {
-            getLog().info("线程池成功关闭");
-        } else {
-            getLog().error("这些线程无法立即关闭：");
-            for (Runnable runnable : mainThreadPool.shutdownNow()) {
-                getLog().error(runnable.getClass().getName());
+            if (mainThreadPool.isShutdown()) {
+                getLog().info("线程池成功关闭");
+            } else {
+                getLog().error("这些线程无法立即关闭：");
+                for (Runnable runnable : mainThreadPool.shutdownNow()) {
+                    getLog().error(runnable.getClass().getName());
+                }
+                getLog().error("已放弃关闭这些线程");
             }
-            getLog().error("已放弃关闭这些线程");
-            user.sendError("线程池最终没有全部结束");
+        } catch (Exception exception) {
+            getLog().error(exception.getMessage(), exception);
         }
 
         // 关闭所有的插件
-        for (XiaomingPlugin plugin : pluginManager.getEnabledPlugins()) {
-            getLog().info("正在关闭插件：{}", plugin.getCompleteName());
-            try {
-                plugin.onDisable();
-            } catch (Exception exception) {
-                exception.printStackTrace();
+        getLog().info("正在关闭所有插件");
+        try {
+            for (XiaomingPlugin plugin : pluginManager.getEnabledPlugins()) {
+                getLog().info("正在关闭插件：{}", plugin.getCompleteName());
+                try {
+                    plugin.onDisable();
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
             }
+        } catch (Exception exception) {
+            getLog().error(exception.getMessage(), exception);
         }
-        for (XiaomingPlugin plugin : pluginManager.getLoadedPlugins()) {
-            getLog().info("正在卸载插件：{}", plugin.getCompleteName());
-            try {
-                plugin.onUnload();
-            } catch (Exception exception) {
-                exception.printStackTrace();
+
+        getLog().info("正在卸载所有插件");
+        try {
+            for (XiaomingPlugin plugin : pluginManager.getLoadedPlugins()) {
+                getLog().info("正在卸载插件：{}", plugin.getCompleteName());
+                try {
+                    plugin.onUnload();
+                } catch (Exception exception) {
+                    exception.printStackTrace();
+                }
             }
+        } catch (Exception exception) {
+            getLog().error(exception.getMessage(), exception);
         }
 
         getLog().info("正在执行最后的操作");
-        finalizer.onFinal();
+        try {
+            finalizer.onFinal();
+        } catch (Exception exception) {
+            getLog().error(exception.getMessage(), exception);
+        }
     }
 }

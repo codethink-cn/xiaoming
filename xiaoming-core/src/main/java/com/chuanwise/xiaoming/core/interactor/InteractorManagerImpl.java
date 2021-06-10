@@ -1,17 +1,20 @@
 package com.chuanwise.xiaoming.core.interactor;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.event.PluginResponseEvent;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.interactor.command.CommandInteractor;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
+import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl;
 import com.chuanwise.xiaoming.core.object.HostObjectImpl;
 import lombok.Getter;
 
+import java.security.acl.Group;
 import java.util.*;
 
 /**
@@ -36,7 +39,7 @@ public class InteractorManagerImpl extends HostObjectImpl implements InteractorM
      * @exception Exception 交互期间抛出的异常
      */
     @Override
-    public boolean onInput(XiaomingUser user, Class<? extends Interactor> interactorClass) throws Exception {
+    public boolean onInput(XiaomingUser user, Message message, Class<? extends Interactor> interactorClass) throws Exception {
         // 先和内核交互器交互
         boolean interacted = false;
 
@@ -44,13 +47,13 @@ public class InteractorManagerImpl extends HostObjectImpl implements InteractorM
             // 如果是指令交互器，且成功交互了
             if (interactorClass.isAssignableFrom(interactor.getClass()) &&
                     interactor.willInteract(user) &&
-                    interactor.interact(user)) {
+                    interactor.interact(user, message)) {
                 interacted = true;
             }
         }
         // 如果在群里，但是本群没有启动小明，就退出
-        if (user.inGroup()) {
-            final ResponseGroup responseGroup = getXiaomingBot().getResponseGroupManager().forCode(user.getGroup().getId());
+        if (user instanceof GroupXiaomingUser) {
+            final ResponseGroup responseGroup = getXiaomingBot().getResponseGroupManager().forCode(((GroupXiaomingUser) user).getGroupCode());
             if (Objects.isNull(responseGroup) || !responseGroup.hasTag("enable")) {
                 return interacted;
             }
@@ -62,19 +65,13 @@ public class InteractorManagerImpl extends HostObjectImpl implements InteractorM
 
             // 用户没屏蔽，不在群里或者本群也没屏蔽
             boolean usePlugin = !user.isBlockPlugin(plugin.getName()) &&
-                    (!user.inGroup() || !getXiaomingBot().getResponseGroupManager().forCode(user.getGroup().getId()).isBlockPlugin(plugin.getName()));
+                    (!(user instanceof GroupXiaomingUser) || !getXiaomingBot().getResponseGroupManager().forCode(((GroupXiaomingUser) user).getGroupCode()).isBlockPlugin(plugin.getName()));
 
             if (usePlugin) {
-                if (plugin.onMessage(user)) {
-                    // 增加调用统计次数
-                    getXiaomingBot().getStatistician().increaseCallCounter();
-                    getXiaomingBot().getEventManager().callLater(new PluginResponseEvent(plugin, user));
-                    interacted = true;
-                }
                 for (Interactor interactor : interactors) {
                     if (interactorClass.isAssignableFrom(interactor.getClass()) &&
                             interactor.willInteract(user) &&
-                            interactor.interact(user)) {
+                            interactor.interact(user, message)) {
                         interacted = true;
                     }
                 }
@@ -84,18 +81,18 @@ public class InteractorManagerImpl extends HostObjectImpl implements InteractorM
     }
 
     @Override
-    public boolean onCommand(XiaomingUser user) throws Exception {
-        return onInput(user, CommandInteractor.class);
+    public boolean onCommand(XiaomingUser user, Message message) throws Exception {
+        return onInput(user, message, CommandInteractor.class);
     }
 
     @Override
-    public boolean onMessage(XiaomingUser user) throws Exception {
-        return onInput(user, MessageInteractorImpl.class);
+    public boolean onMessage(XiaomingUser user, Message message) throws Exception {
+        return onInput(user, message, MessageInteractorImpl.class);
     }
 
     @Override
-    public boolean onInput(XiaomingUser user) throws Exception {
-        return onInput(user, Interactor.class);
+    public boolean onInput(XiaomingUser user, Message message) throws Exception {
+        return onInput(user, message, Interactor.class);
     }
 
     @Override

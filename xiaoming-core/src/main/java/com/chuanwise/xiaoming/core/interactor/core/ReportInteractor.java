@@ -15,20 +15,20 @@ public class ReportInteractor extends CommandInteractorImpl {
     @Filter("反馈")
     public void onMessage(XiaomingUser user) {
         user.sendMessage("你遇到了什么问题，或有什么建议呢？赶快告诉小明吧 {}，" +
-                "当你说完了，告诉我「结束」就可以啦", getXiaomingBot().getWordManager().get("happy"));
+                "当你说完了，告诉我「结束」就可以啦 {happy}");
 
         StringBuilder builder = new StringBuilder();
-        String nextInput = user.nextInput();
+        String nextInput = user.nextInput().serialize();
         while (true) {
             if (Objects.equals(nextInput, "结束")){
                 if (builder.length() == 0) {
                     user.sendMessage("本次没有反馈任何信息哦");
                 } else {
                     final ReportMessageManager reportMessageManager = getXiaomingBot().getReportMessageManager();
-                    reportMessageManager.addMessage(new ReportMessageImpl(user.getQQ(), builder.toString()));
+                    reportMessageManager.addMessage(new ReportMessageImpl(user.getCode(), builder.toString()));
                     getXiaomingBot().getFinalizer().readySave(reportMessageManager);
 
-                    user.sendMessage("感谢你的反馈，一起期待更好的小明吧 {}", getXiaomingBot().getWordManager().get("happy"));
+                    user.sendMessage("感谢你的反馈，一起期待更好的小明吧 {happy}");
                     getXiaomingBot().getResponseGroupManager().sendMessageToTaggedGroup("log", "收到一则用户反馈");
                 }
                 return;
@@ -39,7 +39,7 @@ public class ReportInteractor extends CommandInteractorImpl {
                     builder.append("\n").append(nextInput);
                 }
             }
-            nextInput = user.nextInput();
+            nextInput = user.nextInput().serialize();
         }
     }
 }

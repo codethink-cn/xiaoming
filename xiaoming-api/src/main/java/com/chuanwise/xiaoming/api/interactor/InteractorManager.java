@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.api.interactor;
 
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
 import com.chuanwise.xiaoming.api.object.HostObject;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
@@ -14,7 +15,7 @@ public interface InteractorManager extends HostObject {
      * @return 是否交互成功
      * @throws Exception 交互期间抛出的异常
      */
-    boolean onCommand(XiaomingUser user) throws Exception;
+    boolean onCommand(XiaomingUser user, Message message) throws Exception;
 
     /**
      * 和所有的上下文交互器交互
@@ -22,11 +23,11 @@ public interface InteractorManager extends HostObject {
      * @return 是否交互成功
      * @throws Exception 交互期间抛出的异常
      */
-    boolean onMessage(XiaomingUser user) throws Exception;
+    boolean onMessage(XiaomingUser user, Message message) throws Exception;
 
-    boolean onInput(XiaomingUser user) throws Exception;
+    boolean onInput(XiaomingUser user, Message message) throws Exception;
 
-    boolean onInput(XiaomingUser user, Class<? extends Interactor> interactorClass) throws Exception;
+    boolean onInput(XiaomingUser user, Message message, Class<? extends Interactor> interactorClass) throws Exception;
 
     /**
      * 注册交互器

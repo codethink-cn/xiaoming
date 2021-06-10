@@ -12,17 +12,39 @@ import java.io.File;
 public interface Configuration extends Preservable<File>, XiaomingObject {
     boolean isDebug();
 
+    void setMaxIterateTime(int maxIterateTime);
+
+    int getMaxIterateTime();
+
     void setDebug(boolean debug);
+
+    long getMaxUserInputWaitTime();
+
+    void setMaxUserInputWaitTime(long time);
+
+    long getMaxUserGlobalInputWaitTime();
+
+    void setMaxUserGlobalInputWaitTime(long time);
+
+    long getMaxUserPrivateInputWaitTime();
+
+    void setMaxUserPrivateInputWaitTime(long time);
+
+    long getMaxUserGroupInputWaitTime();
+
+    void setMaxUserGroupInputWaitTime(long time);
 
     CallLimitConfig getGroupCallConfig();
 
     CallLimitConfig getPrivateCallConfig();
 
-    long getAutoSaveDeltaTime();
+    long getSavePeriod();
 
-    void setAutoSaveDeltaTime(long autoSaveDeltaTime);
+    void setSavePeriod(long savePeriod);
 
-    int getMaxMainThreadNumber();
+    long getOptimizePeriod();
+
+    void setOptimizePeriod(long optimizePeriod);
 
     boolean isEnableLicense();
 
@@ -31,8 +53,4 @@ public interface Configuration extends Preservable<File>, XiaomingObject {
     void disableLicence();
 
     String getLicenseName();
-
-    void setMaxReceptThreadNumber(int maxReceptThreadNumber);
-
-    int getMaxReceptThreadNumber();
 }
