@@ -12,12 +12,11 @@ import com.chuanwise.xiaoming.api.exception.XiaomingInitializeException;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
-import com.chuanwise.xiaoming.api.text.TextManager;
 import com.chuanwise.xiaoming.api.schedule.Scheduler;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.PathUtils;
+import com.chuanwise.xiaoming.api.util.PluginLoaderUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.api.language.LanguageManager;
 import com.chuanwise.xiaoming.api.event.EventManager;
@@ -25,7 +24,6 @@ import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
 import com.chuanwise.xiaoming.api.plugin.PluginManager;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
-import com.chuanwise.xiaoming.api.thread.Finalizer;
 import com.chuanwise.xiaoming.core.account.AccountManagerImpl;
 import com.chuanwise.xiaoming.core.contact.ContactManagerImpl;
 import com.chuanwise.xiaoming.core.contact.contact.ConsoleContactImpl;
@@ -36,7 +34,6 @@ import com.chuanwise.xiaoming.core.interactor.core.*;
 import com.chuanwise.xiaoming.core.license.LicenceManagerImpl;
 import com.chuanwise.xiaoming.core.response.ResponseGroupManagerImpl;
 import com.chuanwise.xiaoming.core.thread.ConsoleInputThread;
-import com.chuanwise.xiaoming.core.thread.FinalizerImpl;
 import com.chuanwise.xiaoming.core.config.ConfigurationImpl;
 import com.chuanwise.xiaoming.core.config.StatisticianImpl;
 import com.chuanwise.xiaoming.core.schedule.SchedulerImpl;
@@ -67,6 +64,7 @@ import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLClassLoader;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -156,11 +154,9 @@ public class XiaomingBotImpl implements XiaomingBot {
         scheduler.setXiaomingBot(this);
         scheduler.start();
 
+        scheduler.run(consoleInputThread);
+
         // 添加自动任务
-        // 自动保存文件任务
-        scheduler.periodicRunLater(() -> {
-            finalizer.save();
-        }, configuration.getSavePeriod(), configuration.getSavePeriod());
         // 自动优化性能任务
         scheduler.periodicRunLater(this::optimize, configuration.getOptimizePeriod(), configuration.getOptimizePeriod());
 
@@ -179,6 +175,17 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         initializer.put("pluginManager", () -> {
             pluginManager = new PluginManagerImpl(this, pluginDirectory);
+            if (pluginDirectory.isDirectory()) {
+                for (File file : pluginDirectory.listFiles()) {
+                    if (file.isFile() && file.getName().endsWith(".jar")) {
+                        try {
+                            PluginLoaderUtils.extendURLClassLoader(file, ((URLClassLoader) getClass().getClassLoader()));
+                        } catch (Exception exception) {
+                            getLog().error("无法扩展类加载器", exception);
+                        }
+                    }
+                }
+            }
         });
 
         initializer.put("languageManager", () -> {
@@ -201,10 +208,6 @@ public class XiaomingBotImpl implements XiaomingBot {
             statistician = filePreservableFactory
                     .loadOrProduce(StatisticianImpl.class, new File(configDirectory, "counters.json"), StatisticianImpl::new);
             statistician.setXiaomingBot(this);
-        });
-
-        initializer.put("finalizer", () -> {
-            finalizer = new FinalizerImpl(this);
         });
 
         initializer.put("accountManager", () -> {
@@ -269,11 +272,6 @@ public class XiaomingBotImpl implements XiaomingBot {
             throw new XiaomingInitializeException(message);
         }
 
-        if (!textDirectory.isDirectory() && !textDirectory.mkdirs()) {
-            final String message = "无法创建文本文件夹：" + textDirectory.getAbsolutePath();
-            throw new XiaomingInitializeException(message);
-        }
-
         if (!logDirectory.isDirectory() && !logDirectory.mkdirs()) {
             final String message = "无法创建日志文件夹：" + logDirectory.getAbsolutePath();
             throw new XiaomingInitializeException(message);
@@ -305,11 +303,13 @@ public class XiaomingBotImpl implements XiaomingBot {
         interactorManager.register(new DebugCommandInterator(this), null);
 
         interactorManager.register(new PluginInteractor(this), null);
-        interactorManager.register(new TimeTaskInteractor(), null);
+        interactorManager.register(new ResourceCommandInteractor(this), null);
+        interactorManager.register(new SchedulerCommandInteractor(), null);
         interactorManager.register(new AccountCommandInteractor(this), null);
         interactorManager.register(new ReportCommandInteractor(this), null);
         interactorManager.register(new CallLimitCommandInteractor(this), null);
         interactorManager.register(new CoreCommandInteractor(this), null);
+        interactorManager.register(new ConfirationCommandInteractor(this), null);
         interactorManager.register(new PermissionCommandInteractor(this), null);
         interactorManager.register(new ResponseGroupCommandInteractor(this), null);
         interactorManager.register(new LanguageCommandIterator(this), null);
@@ -392,7 +392,7 @@ public class XiaomingBotImpl implements XiaomingBot {
      * 小明启动后的一些操作
      */
     void post() {
-        responseGroupManager.sendMessageToTaggedGroup("log", "{xiaomingEnable}");
+        responseGroupManager.sendMessageToTaggedGroup("log", "{xiaomingEnabled}");
     }
 
     /**
@@ -447,11 +447,6 @@ public class XiaomingBotImpl implements XiaomingBot {
     Statistician statistician;
 
     /**
-     * 定时数据保存器
-     */
-    Finalizer finalizer;
-
-    /**
      * 机器人正在执行的标记，默认是 {@code true}，需要使用 start 启动
      */
     volatile boolean stop = true;
@@ -503,54 +498,17 @@ public class XiaomingBotImpl implements XiaomingBot {
      */
     Scheduler scheduler;
 
-    /**
-     * 提示文字管理器
-     */
-    File textDirectory = PathUtils.TEXT;
-    TextManager textManager;
-
     File logDirectory = PathUtils.LOG;
 
     XiaomingClassLoader xiaomingClassLoader = new XiaomingClassLoader(getClass().getClassLoader());
 
     @Override
-    public synchronized void stop(XiaomingUser user) {
+    public synchronized void stop() {
         if (isStop()) {
             throw new XiaomingRuntimeException("can not stop a stopped xiaoming bot");
         }
 
-        user.sendMessage("正在关闭小明");
         stop = true;
-
-        getLog().info("正在关闭 mirai 机器人");
-        try {
-            miraiBot.close();
-        } catch (Throwable throwable) {
-            getLog().error(throwable.getMessage(), throwable);
-        }
-
-        getLog().info("正在关闭线程池");
-        // 唤醒并关闭所有用户线程
-        receptionistManager.close();
-        // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
-        scheduler.stop();
-        final ExecutorService threadPool = scheduler.getThreadPool();
-        // 如果还没关闭就尝试关闭一下
-        if (!threadPool.isShutdown()) {
-            try {
-                TimeUnit.SECONDS.sleep(10);
-            } catch (InterruptedException ignored) {
-            }
-            try {
-                int remainTryTimes = 5;
-                while (!threadPool.awaitTermination(5, TimeUnit.SECONDS) && remainTryTimes > 0) {
-                    getLog().warn("线程仍然没有全部结束，请稍等，小明还会尝试 " + remainTryTimes + " 次……");
-                    remainTryTimes--;
-                }
-            } catch (InterruptedException exception) {
-                getLog().warn("等待线程池关闭被强行中止");
-            }
-        }
 
         // 关闭所有的插件
         getLog().info("正在关闭所有插件");
@@ -581,11 +539,36 @@ public class XiaomingBotImpl implements XiaomingBot {
             getLog().error(exception.getMessage(), exception);
         }
 
-        getLog().info("正在执行最后的操作");
+        getLog().info("正在关闭 mirai 机器人");
         try {
-            finalizer.onFinal();
-        } catch (Exception exception) {
-            getLog().error(exception.getMessage(), exception);
+            miraiBot.close();
+        } catch (Throwable throwable) {
+            getLog().error(throwable.getMessage(), throwable);
+        }
+
+        getLog().info("正在关闭线程池");
+        // 唤醒并关闭所有用户线程
+        receptionistManager.close();
+
+        // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
+        scheduler.stop();
+
+        final ExecutorService threadPool = scheduler.getThreadPool();
+        // 如果还没关闭就尝试关闭一下
+        if (!threadPool.isShutdown()) {
+            try {
+                TimeUnit.SECONDS.sleep(10);
+            } catch (InterruptedException ignored) {
+            }
+            try {
+                int remainTryTimes = 5;
+                while (!threadPool.awaitTermination(5, TimeUnit.SECONDS) && remainTryTimes > 0) {
+                    getLog().warn("线程仍然没有全部结束，请稍等，小明还会尝试 " + remainTryTimes + " 次……");
+                    remainTryTimes--;
+                }
+            } catch (InterruptedException exception) {
+                getLog().warn("等待线程池关闭被强行中止");
+            }
         }
     }
 

@@ -16,7 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Getter
-public class TempXiaomingUserImpl extends XiaomingUserImpl implements TempXiaomingUser {
+public class TempXiaomingUserImpl extends XiaomingUserImpl<TempContact, TempMessage, TempReceptionTask> implements TempXiaomingUser {
     final TempContact contact;
     final List<TempMessage> recentMessages;
 
@@ -30,17 +30,8 @@ public class TempXiaomingUserImpl extends XiaomingUserImpl implements TempXiaomi
     }
 
     @Override
-    public void onNextInput(Message message) {
-        if (message instanceof TempMessage) {
-            onNextInput(((TempMessage) message));
-        } else {
-            throw new XiaomingRuntimeException("消息类型错误");
-        }
-    }
-
-    @Override
     public void onNextInput(MessageChain messages) {
-        onNextInput(new TempMessageImpl(this, contact, messages));
+        onNextInput(new TempMessageImpl(this, messages));
     }
 
     @Override

@@ -56,7 +56,7 @@ public class TempReceptionTaskImpl extends ReceptionTaskImpl implements TempRece
             final Account account = user.getOrPutAccount();
 
             account.addCommand(event);
-            getXiaomingBot().getFinalizer().readySave(account);
+            getXiaomingBot().getScheduler().readySave(account);
 
             getXiaomingBot().getUserCallLimitManager().getGroupCallLimiter().addCallRecord(user.getCode());
         } else {

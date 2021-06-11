@@ -10,7 +10,7 @@ import net.mamoe.mirai.contact.Friend;
 import java.util.List;
 import java.util.Objects;
 
-public interface PrivateContact extends XiaomingContact {
+public interface PrivateContact extends XiaomingContact<PrivateMessage, Friend> {
     default Account getAccount() {
         return getXiaomingBot().getAccountManager().getAccount(getCode());
     }
@@ -20,7 +20,9 @@ public interface PrivateContact extends XiaomingContact {
     }
 
     @Override
-    Friend getMiraiContact();
+    default String getAvatarUrl() {
+        return getMiraiContact().getAvatarUrl();
+    }
 
     @Override
     default String getName() {
@@ -48,16 +50,5 @@ public interface PrivateContact extends XiaomingContact {
 
     default void nudge() {
         getMiraiContact().nudge();
-    }
-
-    @Override
-    List<PrivateMessage> getRecentMessages();
-
-    default void addRecentMessage(PrivateMessage message) {
-        final List<PrivateMessage> list = getRecentMessages();
-        list.add(message);
-        synchronized (list) {
-            list.notifyAll();
-        }
     }
 }

@@ -9,26 +9,8 @@ import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 
 import java.util.List;
 
-public interface ConsoleXiaomingUser extends ModuleObject, XiaomingUser {
-    @Override
-    List<ConsoleMessage> getRecentMessages();
-
-    @Override
-    ConsoleContact getContact();
-
+public interface ConsoleXiaomingUser extends ModuleObject, XiaomingUser<ConsoleContact, ConsoleMessage, ConsoleReceptionTask> {
     void setReceptionTask(ConsoleReceptionTask receptionTask);
-
-    @Override
-    ConsoleReceptionTask getReceptionTask();
-
-    @Override
-    default void onNextInput(Message message) {
-        final List<ConsoleMessage> list = getRecentMessages();
-        list.add(((ConsoleMessage) message));
-        synchronized (list) {
-            list.notifyAll();
-        }
-    }
 
     @Override
     default void sendMessage(String message, Object... arguments) {

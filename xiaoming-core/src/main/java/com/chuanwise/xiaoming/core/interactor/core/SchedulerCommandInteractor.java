@@ -11,17 +11,16 @@ import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 import java.util.List;
 import java.util.Set;
 
-public class TimeTaskInteractor extends CommandInteractorImpl {
+public class SchedulerCommandInteractor extends CommandInteractorImpl {
     static final String TIME = "(时间|time)";
     static final String TASK = "(任务|task)";
 
     @Filter(TIME + TASK)
     @Require("time.list")
     public void onListTimeTasks(XiaomingUser user) {
-        final Set<ScheduableTask> tasks = getXiaomingBot().getScheduler().getTasks();
+        final Set<ScheduableTask<?>> tasks = getXiaomingBot().getScheduler().getTasks();
         user.sendMessage("任务队列：" + StringUtils.getCollectionSummary(tasks, task -> {
             final boolean timeout = task.getTime() >= System.currentTimeMillis();
-            final boolean periodic = task.isPeriodic();
             return task.getDescription() + "：" + (timeout ? "已过期" : TimeUtils.toTimeString(System.currentTimeMillis() - task.getTime()) + "后执行");
         }, "", "（无）", "\n"));
     }

@@ -98,7 +98,7 @@ public class ResourceManagerImpl extends JsonFilePreservable implements Resource
         inputStream.close();
 
         imageLastVisitTimes.put(image.getImageId(), System.currentTimeMillis());
-        getXiaomingBot().getFinalizer().readySave(this);
+        getXiaomingBot().getScheduler().readySave(this);
         return imageFile;
     }
 
@@ -107,7 +107,7 @@ public class ResourceManagerImpl extends JsonFilePreservable implements Resource
         final File file = new File(imagesDirectory, id);
         if (file.exists()) {
             imageLastVisitTimes.put(id, System.currentTimeMillis());
-            getXiaomingBot().getFinalizer().readySave(this);
+            getXiaomingBot().getScheduler().readySave(this);
             return file;
         } else {
             return null;

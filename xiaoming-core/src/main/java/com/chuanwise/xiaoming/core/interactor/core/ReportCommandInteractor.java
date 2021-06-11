@@ -51,7 +51,7 @@ public class ReportCommandInteractor extends CommandInteractorImpl {
         } else if (reportMessages.size() == 1) {
             onShowErrorMessage(user, reportMessages.get(0));
             reportMessages.clear();
-            getXiaomingBot().getFinalizer().readySave(reportMessageManager);
+            getXiaomingBot().getScheduler().readySave(reportMessageManager);
         } else {
             StringBuilder builder = new StringBuilder()
                     .append("一共有 ").append(reportMessages.size()).append(" 个未经查看的消息");
@@ -93,7 +93,7 @@ public class ReportCommandInteractor extends CommandInteractorImpl {
             final ReportMessage reportMessage = reportMessages.get(index - 1);
             onShowErrorMessage(user, reportMessage);
             reportMessages.remove(reportMessage);
-            getXiaomingBot().getFinalizer().readySave(reportMessageManager);
+            getXiaomingBot().getScheduler().readySave(reportMessageManager);
         }
     }
 
@@ -104,7 +104,7 @@ public class ReportCommandInteractor extends CommandInteractorImpl {
             user.sendMessage("并没有需要清除的未经查看的消息哦");
         } else {
             reportMessages.clear();
-            getXiaomingBot().getFinalizer().readySave(reportMessageManager);
+            getXiaomingBot().getScheduler().readySave(reportMessageManager);
             user.sendMessage("成功清除未经查看的消息");
         }
     }

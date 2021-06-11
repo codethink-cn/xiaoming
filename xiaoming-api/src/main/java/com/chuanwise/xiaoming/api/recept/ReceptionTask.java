@@ -2,6 +2,7 @@ package com.chuanwise.xiaoming.api.recept;
 
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.object.ModuleObject;
+import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 
 import java.util.List;

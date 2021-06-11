@@ -2,13 +2,17 @@ package com.chuanwise.xiaoming.core.recept;
 
 import com.chuanwise.xiaoming.api.annotation.EventHandler;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
+import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.limit.CallLimitConfig;
 import com.chuanwise.xiaoming.api.limit.UserCallLimiter;
 import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.util.ArgumentUtils;
+import com.chuanwise.xiaoming.api.util.StringUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
+import com.chuanwise.xiaoming.core.contact.message.GroupMessageImpl;
 import com.chuanwise.xiaoming.core.event.EventListenerImpl;
 import com.chuanwise.xiaoming.core.user.XiaomingUserImpl;
 import lombok.Getter;
@@ -17,6 +21,7 @@ import net.mamoe.mirai.contact.*;
 import net.mamoe.mirai.event.events.FriendMessageEvent;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.GroupTempMessageEvent;
+import net.mamoe.mirai.message.data.MessageSource;
 import org.slf4j.Logger;
 
 import java.util.Map;
@@ -27,6 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Chuanwise
  */
 @Slf4j
+@Getter
 public class ReceptionistManagerImpl extends EventListenerImpl implements ReceptionistManager {
     @Override
     public Logger getLog() {
@@ -40,8 +46,16 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
     /**
      * 用户接待员记录器
      */
-    @Getter
     Map<Long, Receptionist> receptionists = new ConcurrentHashMap<>();
+    Receptionist botReceptionist;
+
+    @Override
+    public Receptionist getBotReceptionist() {
+        if (Objects.isNull(botReceptionist)) {
+            botReceptionist = getOrPutReceptionist(getXiaomingBot().getMiraiBot().getId());
+        }
+        return botReceptionist;
+    }
 
     @Override
     public Receptionist getOrPutReceptionist(long qq) {
@@ -94,6 +108,19 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
         }
     }
 
+    public String getCallContent(String message) {
+        if (getXiaomingBot().getConfiguration().isEnableClearCall()) {
+            for (String prefix : getXiaomingBot().getConfiguration().getCallPrefixs()) {
+                if (message.startsWith(prefix) && message.length() > prefix.length()) {
+                    return message.substring(prefix.length());
+                }
+            }
+            return null;
+        } else {
+            return message;
+        }
+    }
+
     @Override
     @EventHandler
     public void onGroupMessageEvent(GroupMessageEvent event) {
@@ -101,15 +128,26 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
 
         final long qq = member.getId();
 
-        // 检查调用频率
+        final String message = event.getMessage().serializeToMiraiCode();
+        String callContent = getCallContent(message);
+        if (Objects.isNull(callContent)) {
+            return;
+        } else {
+            callContent = callContent.trim();
+            if (StringUtils.isEmpty(callContent.trim())) {
+                return;
+            }
+        }
+
         if (!callable(member, true)) {
             getLog().warn("小明收到了来自 " + qq + " 的群聊消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
             return;
         }
+
         final Receptionist receptionist = getOrPutReceptionist(qq);
 
         final Group group = event.getGroup();
-        receptionist.onGroupMessage(getXiaomingBot().getContactManager().getGroupContact(group.getId()), event.getMessage());
+        receptionist.onGroupMessage(getXiaomingBot().getContactManager().getGroupContact(group.getId()), callContent, event.getMessage());
     }
 
     @Override
@@ -119,13 +157,22 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
 
         final long qq = friend.getId();
 
-        // 检查调用频率
+        final String message = event.getMessage().serializeToMiraiCode().trim();
+        String callContent = message;
+        if (getXiaomingBot().getConfiguration().isEnablePrivateClearCall()) {
+            callContent = getCallContent(callContent);
+            if (StringUtils.isEmpty(callContent.trim())) {
+                return;
+            }
+        }
+
         if (!callable(friend, false)) {
             getLog().warn("小明收到了来自 " + qq + " 的私聊消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
             return;
         }
+
         final Receptionist receptionist = getOrPutReceptionist(qq);
-        receptionist.onPrivateMessage(getXiaomingBot().getContactManager().getPrivateContact(qq), event.getMessage());
+        receptionist.onPrivateMessage(getXiaomingBot().getContactManager().getPrivateContact(qq), callContent, event.getMessage());
     }
 
     @Override
@@ -135,11 +182,22 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
         final NormalMember member = event.getSender();
 
         final long qq = member.getId();
+
+        final String message = event.getMessage().serializeToMiraiCode().trim();
+        String callContent = message;
+        if (getXiaomingBot().getConfiguration().isEnableTempClearCall()) {
+            callContent = getCallContent(callContent);
+            if (StringUtils.isEmpty(callContent.trim())) {
+                return;
+            }
+        }
+
         if (!callable(member, false)) {
             getLog().warn("小明收到了来自 " + qq + " 的临时会话消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
             return;
         }
+
         final Receptionist receptionist = getOrPutReceptionist(qq);
-        receptionist.onTempMessage(getXiaomingBot().getContactManager().getTempContact(group.getId(), qq), event.getMessage());
+        receptionist.onTempMessage(getXiaomingBot().getContactManager().getTempContact(group.getId(), qq), callContent, event.getMessage());
     }
 }

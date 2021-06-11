@@ -20,7 +20,7 @@ import java.util.List;
  * @author Chuanwise
  */
 @Data
-public class ConsoleXiaomingUserImpl extends XiaomingUserImpl implements ConsoleXiaomingUser {
+public class ConsoleXiaomingUserImpl extends XiaomingUserImpl<ConsoleContact, ConsoleMessage, ConsoleReceptionTask> implements ConsoleXiaomingUser {
     long code;
     final ConsoleContact contact;
     final List<ConsoleMessage> recentMessages = new LinkedList<>();

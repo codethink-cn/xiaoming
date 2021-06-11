@@ -51,7 +51,7 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
             }
             if (user.hasPermission("use." + plugin)) {
                 account.unblockPlugin(plugin);
-                getXiaomingBot().getFinalizer().readySave(account);
+                getXiaomingBot().getScheduler().readySave(account);
                 user.sendMessage("成功取消屏蔽了插件：{}", plugin);
             } else {
                 user.sendError("你不能使用插件：{}", plugin);
@@ -85,6 +85,6 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
         final Account account = accountManager.getOrPutAccount(qq);
         account.setAlias(alias);
         user.sendMessage("成功将该用户的备注设置为{}", alias);
-        getXiaomingBot().getFinalizer().readySave(account);
+        getXiaomingBot().getScheduler().readySave(account);
     }
 }

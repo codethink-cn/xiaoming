@@ -3,9 +3,12 @@ package com.chuanwise.xiaoming.core.contact.contact;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.contact.contact.ConsoleContact;
 import com.chuanwise.xiaoming.api.contact.message.ConsoleMessage;
+import com.chuanwise.xiaoming.api.contact.message.Message;
+import com.chuanwise.xiaoming.core.contact.message.ConsoleMessageImpl;
 import com.chuanwise.xiaoming.core.thread.ConsoleInputThread;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.ArrayList;
@@ -13,7 +16,7 @@ import java.util.List;
 
 @Slf4j
 @Getter
-public class ConsoleContactImpl extends XiaomingContactImpl implements ConsoleContact {
+public class ConsoleContactImpl extends XiaomingContactImpl<ConsoleMessage, Friend> implements ConsoleContact {
     final ConsoleInputThread thread;
     final List<ConsoleMessage> recentMessages = new ArrayList<>();
 
@@ -23,7 +26,8 @@ public class ConsoleContactImpl extends XiaomingContactImpl implements ConsoleCo
     }
 
     @Override
-    public void send(MessageChain messages) {
-        thread.getLog().info(messages.serializeToMiraiCode());
+    public ConsoleMessage send(MessageChain messages) {
+        log.info(messages.serializeToMiraiCode());
+        return new ConsoleMessageImpl(getXiaomingBot().getConsoleXiaomingUser(), messages);
     }
 }

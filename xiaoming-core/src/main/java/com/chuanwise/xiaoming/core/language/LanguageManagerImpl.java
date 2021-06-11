@@ -15,13 +15,13 @@ public class LanguageManagerImpl extends JsonFilePreservable implements Language
     {
         values.put("happy", new ArrayList<>(Arrays.asList("(๑•̀ㅂ•́)و✧", "ヾ(^▽^*)))", "ヾ(•ω•`)o")));
 
-        values.put("warning", new ArrayList<>(Arrays.asList("(´。＿。｀)", "( *^-^)ρ(*╯^╰))")));
+        values.put("warning", new ArrayList<>(Arrays.asList()));
 
         values.put("error", new ArrayList<>(Arrays.asList("(〃＞目＜)", "（＞人＜；）", "ヽ(*。>Д<)o゜", "(ﾟДﾟ*)ﾉ", "(ノ｀Д)ノ", "( ´･･)ﾉ(._.`)", "（；´д｀）ゞ")));
     }
 
     @Override
-    public String getString(String key) {
+    public String getStringOrDefault(String key, String onFail) {
         final Object object = get(key);
         String result = key;
         if (object instanceof String) {
@@ -35,6 +35,6 @@ public class LanguageManagerImpl extends JsonFilePreservable implements Language
         } else if (Objects.nonNull(object)) {
             result = object.toString();
         }
-        return result;
+        return onFail;
     }
 }

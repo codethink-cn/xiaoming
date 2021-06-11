@@ -18,7 +18,7 @@ import java.util.List;
  * @author Chuanwise
  */
 @Getter
-public class GroupXiaomingUserImpl extends XiaomingUserImpl implements GroupXiaomingUser {
+public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupMessage, GroupReceptionTask> implements GroupXiaomingUser {
     final GroupContact contact;
     final TempContact tempContact;
     final List<GroupMessage> recentMessages;
@@ -31,15 +31,6 @@ public class GroupXiaomingUserImpl extends XiaomingUserImpl implements GroupXiao
         this.contact = contact;
         this.tempContact = tempContact;
         this.recentMessages = recentMessages;
-    }
-
-    @Override
-    public void onNextInput(Message message) {
-        if (message instanceof GroupMessage) {
-            onNextInput(((GroupMessage) message));
-        } else {
-            throw new XiaomingRuntimeException("消息类型错误");
-        }
     }
 
     @Override

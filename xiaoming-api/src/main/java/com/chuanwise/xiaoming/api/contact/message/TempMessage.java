@@ -12,4 +12,7 @@ public interface TempMessage extends Message {
 
     @Override
     TempContact getContact();
+
+    @Override
+    TempMessage clone() throws CloneNotSupportedException;
 }

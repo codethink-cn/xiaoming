@@ -69,17 +69,18 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
             return false;
         }
 
-        final ClassLoader classLoader;
+        final ClassLoader classLoader = XiaomingBot.class.getClassLoader();
         final Class<?> pluginClass;
 
+        /*
         // 扩展类加载器
         try {
-            classLoader = PluginLoaderUtils.extendURLClassLoader(property.getFile(), (URLClassLoader) XiaomingBot.class.getClassLoader());
+            classLoader = PluginLoaderUtils.extendURLClassLoader(property.getFile(), (URLClassLoader) );
         } catch (Exception exception) {
             user.sendError("严重错误：无法扩展类加载器");
             getLog().error("无法扩展类加载器", exception);
             return false;
-        }
+        }*/
 
         // 加载插件主类
         try {

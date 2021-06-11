@@ -5,6 +5,9 @@ import com.chuanwise.xiaoming.api.annotation.FilterParameter;
 import com.chuanwise.xiaoming.api.annotation.Require;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
+import com.chuanwise.xiaoming.api.contact.message.Message;
+import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
+import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 
@@ -14,22 +17,6 @@ public class DebugCommandInterator extends CommandInteractorImpl {
     public DebugCommandInterator(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
     }
-
-    @Filter("waitme {tag}")
-    @Require("debug")
-    public void onWaitUserMessage(XiaomingUser user, @FilterParameter("tag") String tag) {
-        user.sendMessage("waiting");
-        user.sendMessage("next input: {}", user.nextGroupInput(tag));
-    }
-
-    @Filter("waituser {qq} {tag}")
-    @Require("debug")
-    public void onWaitUserMessage(XiaomingUser user, @FilterParameter("tag") String tag, @FilterParameter("qq") long qq) {
-        user.sendMessage("waiting");
-        final GroupMessage message = getXiaomingBot().getReceptionistManager().getOrPutReceptionist(qq).nextGroupMessage(tag, 10000);
-        user.sendMessage("next input: {}", message);
-    }
-
     @Filter("waitgroup {tag}")
     @Require("debug")
     public void onWaitGroupMessage(XiaomingUser user, @FilterParameter("tag") String tag) {
@@ -49,5 +36,12 @@ public class DebugCommandInterator extends CommandInteractorImpl {
     @Require("debug")
     public void onOptimize(XiaomingUser user, @FilterParameter("message") String message) {
         user.sendMessage(message);
+    }
+
+    @Filter("replyNext")
+    // @Require("debug")
+    public void onReplyNext(XiaomingUser user) {
+        final Message message = user.getContact().nextMessage(100000);
+        user.reply(message, "这是你的下一条消息");
     }
 }

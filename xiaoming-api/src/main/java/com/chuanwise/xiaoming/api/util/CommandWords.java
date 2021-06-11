@@ -40,6 +40,7 @@ public class CommandWords extends StaticUtils {
     public static final String EXCEPTION = "(异常|exception)";
     public static final String CLEAR = "(清空|清除|clear)";
     public static final String SAVE = "(保存|save)";
+    public static final String PERIOD = "(周期|period)";
     public static final String SEARCH = "(查|查询|search)";
     public static final String ERROR = "(错误|error)";
     public static final String MESSAGE = "(消息|信息|message|报告|report)";
@@ -47,4 +48,5 @@ public class CommandWords extends StaticUtils {
     public static final String SET = "(设置|set)";
     public static final String USE = "(使用|use)";
     public static final String RECEPTION = "(接待员|招待员|接待者|招待者|receptionist)";
+    public static final String AUTO = "(自动|auto)";
 }

@@ -64,7 +64,7 @@ public class LanguageCommandIterator extends CommandInteractorImpl {
         }
         emojiSet.add(emoji);
         user.sendMessage("成功添加了{}类型单词：{}", key, emoji);
-        getXiaomingBot().getFinalizer().readySave(languageManager);
+        getXiaomingBot().getFileSaver().readySave(languageManager);
     }
     */
 }

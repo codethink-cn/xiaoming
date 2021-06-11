@@ -26,7 +26,7 @@ public class ReportInteractor extends CommandInteractorImpl {
                 } else {
                     final ReportMessageManager reportMessageManager = getXiaomingBot().getReportMessageManager();
                     reportMessageManager.addMessage(new ReportMessageImpl(user.getCode(), builder.toString()));
-                    getXiaomingBot().getFinalizer().readySave(reportMessageManager);
+                    getXiaomingBot().getScheduler().readySave(reportMessageManager);
 
                     user.sendMessage("感谢你的反馈，一起期待更好的小明吧 {happy}");
                     getXiaomingBot().getResponseGroupManager().sendMessageToTaggedGroup("log", "收到一则用户反馈");

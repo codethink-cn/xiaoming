@@ -17,11 +17,26 @@ import net.mamoe.mirai.message.data.MessageSource;
 public abstract class MessageImpl extends XiaomingObjectImpl implements Message {
     @Setter
     MessageChain messageChain;
+    String serializedMessageChain;
+
+    @Setter
+    MessageChain originalMessageChain;
     final long time = System.currentTimeMillis();
+
+    public void setMessageChain(MessageChain messageChain) {
+        this.messageChain = messageChain;
+        serializedMessageChain = messageChain.serializeToMiraiCode();
+    }
+
+    @Override
+    public String serialize() {
+        return serializedMessageChain;
+    }
 
     protected MessageImpl(XiaomingBot xiaomingBot, MessageChain messageChain) {
         super(xiaomingBot);
-        this.messageChain = messageChain;
+        this.originalMessageChain = messageChain;
+        setMessageChain(messageChain);
     }
 
     protected MessageImpl(XiaomingBot xiaomingBot, String message) {
@@ -36,5 +51,10 @@ public abstract class MessageImpl extends XiaomingObjectImpl implements Message 
     @Override
     public String toString() {
         return serialize();
+    }
+
+    @Override
+    public Message clone() throws CloneNotSupportedException {
+        return ((Message) super.clone());
     }
 }

@@ -1,6 +1,7 @@
 package com.chuanwise.xiaoming.core.contact.message;
 
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
 import com.chuanwise.xiaoming.api.user.PrivateXiaomingUser;
 import lombok.Getter;
@@ -23,5 +24,10 @@ public class PrivateMessageImpl extends MessageImpl implements PrivateMessage {
     @Override
     public PrivateXiaomingUser getSender() {
         return user;
+    }
+
+    @Override
+    public PrivateMessage clone() throws CloneNotSupportedException {
+        return ((PrivateMessage) super.clone());
     }
 }

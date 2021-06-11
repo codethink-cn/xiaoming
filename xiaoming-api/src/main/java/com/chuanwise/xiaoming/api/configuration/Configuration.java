@@ -5,12 +5,21 @@ import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
 
 import java.io.File;
+import java.util.Set;
 
 /**
  * 小明配置文件数据
  */
 public interface Configuration extends Preservable<File>, XiaomingObject {
     boolean isDebug();
+
+    void setEnablePrivateClearCall(boolean enablePrivateClearCall);
+
+    boolean isEnablePrivateClearCall();
+
+    void setEnableTempClearCall(boolean enablePrivateClearCall);
+
+    boolean isEnableTempClearCall();
 
     void setMaxIterateTime(int maxIterateTime);
 
@@ -48,9 +57,11 @@ public interface Configuration extends Preservable<File>, XiaomingObject {
 
     boolean isEnableLicense();
 
-    void enableLicence();
+    void setEnableLicense(boolean enableLicense);
 
-    void disableLicence();
+    boolean isEnableClearCall();
 
-    String getLicenseName();
+    void setEnableClearCall(boolean enableClearCall);
+
+    Set<String> getCallPrefixs();
 }

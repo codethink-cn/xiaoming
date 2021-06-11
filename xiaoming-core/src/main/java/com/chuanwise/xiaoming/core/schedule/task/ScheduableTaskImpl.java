@@ -18,9 +18,12 @@ public class ScheduableTaskImpl<R> extends AsyncResultImpl<R> implements Schedua
     long time;
     long period = -1;
     String description = "（无描述）";
-    Callable<R> callable;
 
     transient XiaomingBot xiaomingBot;
+
+    public ScheduableTaskImpl(Callable<R> callable) {
+        super(callable);
+    }
 
     @Override
     public boolean isPeriodic() {

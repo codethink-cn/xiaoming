@@ -1,10 +1,11 @@
 package com.chuanwise.xiaoming.api.schedule;
 
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
-import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
+import com.chuanwise.xiaoming.api.schedule.task.PreservableSaveTask;
 import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
+import com.chuanwise.xiaoming.api.user.XiaomingUser;
 
 import java.io.File;
 import java.util.List;
@@ -22,7 +23,7 @@ public interface Scheduler extends Runnable, ModuleObject, Preservable<File> {
         if (scheduableTask.getTime() < System.currentTimeMillis()) {
             getThreadPool().execute(scheduableTask);
         } else {
-            final Set<ScheduableTask> set = getTasks();
+            final Set<ScheduableTask<?>> set = getTasks();
             set.add(scheduableTask);
             synchronized (set) {
                 set.notifyAll();
@@ -78,7 +79,29 @@ public interface Scheduler extends Runnable, ModuleObject, Preservable<File> {
         }, period);
     }
 
-    Set<ScheduableTask> getTasks();
+    Set<ScheduableTask<?>> getTasks();
+
+    List<Runnable> getFinalTasks();
+
+    PreservableSaveTask getPreservableSaveTask();
+
+    default void runFinally(Runnable runnable) {
+        getFinalTasks().add(runnable);
+    }
+
+    default void runFinally(Callable<?> callable) {
+        getFinalTasks().add(() -> {
+            try {
+                callable.call();
+            } catch (Exception exception) {
+                exception.printStackTrace();
+            }
+        });
+    }
+
+    default void readySave(Preservable<?> preservable) {
+        getPreservableSaveTask().readySave(preservable);
+    }
 
     ExecutorService getThreadPool();
 

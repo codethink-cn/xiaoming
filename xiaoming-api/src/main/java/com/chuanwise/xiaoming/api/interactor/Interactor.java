@@ -10,6 +10,7 @@ import com.chuanwise.xiaoming.api.object.PluginObject;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.AtUtils;
+import com.chuanwise.xiaoming.api.util.TimeUtils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -98,6 +99,7 @@ public interface Interactor extends PluginObject {
             final Parameter[] parameters = method.getParameters();
             List<Object> arguments = new ArrayList<>(parameters.length);
             final Class<? extends XiaomingUser> userClass = user.getClass();
+            final Class<? extends Message> messageClass = message.getClass();
 
             boolean isParameterFilter = filter instanceof ParameterFilterMatcher;
             Matcher matcher = null;
@@ -111,7 +113,7 @@ public interface Interactor extends PluginObject {
                 final Class<?> type = parameter.getType();
                 if (type.isAssignableFrom(userClass)) {
                     arguments.add(user);
-                } else if (type.isAssignableFrom(Message.class)) {
+                } else if (type.isAssignableFrom(messageClass)) {
                     arguments.add(message);
                 } else if (isParameterFilter && Matcher.class.isAssignableFrom(type)) {
                     arguments.add(matcher);
@@ -232,16 +234,29 @@ public interface Interactor extends PluginObject {
      * @return 注入结果。如果为 {@code null} 则注入失败
      */
     default <T> Object onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
-        if ("qq".equalsIgnoreCase(parameterName)) {
-            long qq = AtUtils.parseQQ(currentValue);
+        Object result = null;
+        user.setProperty("string", currentValue);
+        user.setProperty(parameterName, currentValue);
+
+        // 如果是 long 且为 qq
+        if (Long.class.isAssignableFrom(clazz) && "qq".equalsIgnoreCase(parameterName)) {
+            final long qq = AtUtils.parseQQ(currentValue);
             if (qq == -1) {
-                user.sendError("{}不是一个合理的QQ哦", currentValue);
-                return null;
+                user.sendError("{stringIsNotAIllegalQQ}");
+                result = null;
             } else {
-                return qq;
+                result = qq;
+            }
+        } else if (Long.class.isAssignableFrom(clazz) && (Objects.equals("time", parameterName) || Objects.equals("period", parameterName))) {
+            final long time = TimeUtils.parseTime(currentValue);
+            if (time == -1) {
+                user.sendError("{stringIsNotAIllegalPeriod}");
+                result = null;
+            } else {
+                result = time;
             }
         }
-        return null;
+        return result;
     }
 
     /**

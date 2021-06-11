@@ -97,7 +97,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         } else {
             user.sendMessage("成功移除小明响应群：", getGroupName(group));
             groupManager.getGroups().remove(group);
-            getXiaomingBot().getFinalizer().readySave(groupManager);
+            getXiaomingBot().getScheduler().readySave(groupManager);
         }
     }
 
@@ -166,7 +166,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
             responseGroup.addTag("enable");
             user.sendMessage("成功将该群设置为小明的响应群。");
         }
-        getXiaomingBot().getFinalizer().readySave(groupManager);
+        getXiaomingBot().getScheduler().readySave(groupManager);
     }
 
     @Filter(TAG_REGEX + CommandWords.GROUP + " {group} {tag}")
@@ -186,7 +186,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
             user.sendError("{}已经有这个标记了哦", getGroupName(group));
         } else {
             tags.add(tag);
-            getXiaomingBot().getFinalizer().readySave(groupManager);
+            getXiaomingBot().getScheduler().readySave(groupManager);
             user.sendMessage("成功为{}添加了新的标记：{}", getGroupName(group), tag);
         }
     }
@@ -207,7 +207,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         if (tags.contains(tag)) {
             tags.remove(tag);
             user.sendMessage("成功移除了在该群上的标记：{}", tag);
-            getXiaomingBot().getFinalizer().readySave(groupManager);
+            getXiaomingBot().getScheduler().readySave(groupManager);
         } else {
             user.sendMessage("该群并没有标记：{}", tag);
         }
@@ -223,7 +223,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         if (tags.contains(tag)) {
             tags.remove(tag);
             user.sendMessage("成功移除本群的标记：{}", tag);
-            getXiaomingBot().getFinalizer().readySave(groupManager);
+            getXiaomingBot().getScheduler().readySave(groupManager);
         } else {
             user.sendMessage("本群并没有标记：{}", tag);
         }
@@ -240,7 +240,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
             user.sendError("本群已经有这个标记了哦");
         } else {
             tags.add(tag);
-            getXiaomingBot().getFinalizer().readySave(groupManager);
+            getXiaomingBot().getScheduler().readySave(groupManager);
             user.sendMessage("成功为本群添加了新的标记：{}", tag);
         }
     }
@@ -254,7 +254,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
             user.sendError("本群已经屏蔽了插件{}", plugin);
         } else {
             group.blockPlugin(plugin);
-            getXiaomingBot().getFinalizer().readySave(groupManager);
+            getXiaomingBot().getScheduler().readySave(groupManager);
             if (getXiaomingBot().getPluginManager().isLoaded(plugin)) {
                 user.sendMessage("成功在本群屏蔽了插件{}", plugin);
             } else {
@@ -270,7 +270,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
         ResponseGroup group = user.getResponseGroup();
         if (group.isBlockPlugin(plugin)) {
             group.getBlockedPlugins().remove(plugin);
-            getXiaomingBot().getFinalizer().readySave(groupManager);
+            getXiaomingBot().getScheduler().readySave(groupManager);
             if (getXiaomingBot().getPluginManager().isLoaded(plugin)) {
                 user.sendMessage("成功在本群取消屏蔽插件{}", plugin);
             } else {

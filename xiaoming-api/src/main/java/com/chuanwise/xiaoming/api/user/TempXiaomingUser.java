@@ -12,24 +12,7 @@ import com.chuanwise.xiaoming.api.user.XiaomingUser;
 
 import java.util.List;
 
-public interface TempXiaomingUser extends XiaomingUser {
-    @Override
-    List<TempMessage> getRecentMessages();
-
-    default void onNextInput(TempMessage message) {
-        final List<TempMessage> list = getRecentMessages();
-        list.add(message);
-        synchronized (list) {
-            list.notifyAll();
-        }
-    }
-
-    @Override
-    TempContact getContact();
-
-    @Override
-    TempReceptionTask getReceptionTask();
-
+public interface TempXiaomingUser extends XiaomingUser<TempContact, TempMessage, TempReceptionTask> {
     default ResponseGroup getResponseGroup() {
         return getContact().getResponseGroup();
     }

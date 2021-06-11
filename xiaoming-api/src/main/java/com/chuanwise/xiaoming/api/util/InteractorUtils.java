@@ -1,11 +1,15 @@
 package com.chuanwise.xiaoming.api.util;
 
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.exception.ReceptCancelledException;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -194,6 +198,59 @@ public class InteractorUtils extends StaticUtils {
     }
 
     public static <T> T waitLastElement(List<T> list, long timeout) {
-        return waitLastElement(list, timeout, () -> {});
+        return waitLastElement(list, timeout, () -> {
+        });
+    }
+
+    public static <T, C extends Collection<T>> C fillCollection(XiaomingUser user,
+                                                                String beforeInput,
+                                                                C collection, Predicate<String> isLegal, Function<String, T> translator, String illegalNotice,
+                                                                String endWord,
+                                                                boolean emptyable, String emptyNotice) {
+        user.sendMessage(beforeInput);
+        Message message = user.nextInput();
+        while (true) {
+            final String serializedMessage = message.serialize();
+            if (Objects.equals(serializedMessage, endWord)) {
+                if (!emptyable && collection.isEmpty()) {
+                    user.sendMessage(emptyNotice);
+                } else {
+                    return collection;
+                }
+            } else {
+                if (isLegal.test(serializedMessage)) {
+                    collection.add(translator.apply(serializedMessage));
+                } else {
+                    user.sendError(illegalNotice);
+                }
+            }
+            message = user.nextInput();
+        }
+    }
+
+    public static <T, C extends Collection<T>> C fillCollection(XiaomingUser user,
+                                                                String questionWithoutAsk,
+                                                                String what,
+                                                                C collection, Predicate<String> isLegal, Function<String, T> translator,
+                                                                boolean emptyable) {
+        user.setProperty("question", questionWithoutAsk);
+        user.setProperty("what", what);
+
+        final String endWord = "结束";
+        user.setProperty("endWord", endWord);
+
+        return fillCollection(user,
+                user.replaceLanguage("inputItOneByOne"),
+                collection, isLegal, translator,
+                user.replaceLanguage("illegalInput"), endWord,
+                emptyable, user.replaceLanguage("unemptyableNotice"));
+    }
+
+    public static <C extends Collection<String>> C fillStringCollection(XiaomingUser user,
+                                                                        String questionWithoutAsk,
+                                                                        String what,
+                                                                        C collection,
+                                                                        boolean emptyable) {
+        return fillCollection(user, questionWithoutAsk, what, collection, string -> true, String::toString, emptyable);
     }
 }

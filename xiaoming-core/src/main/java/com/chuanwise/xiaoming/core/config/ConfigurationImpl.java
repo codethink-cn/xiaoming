@@ -8,6 +8,8 @@ import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Data
@@ -23,22 +25,16 @@ public class ConfigurationImpl extends JsonFilePreservable implements Configurat
     int maxIterateTime = 20;
 
     boolean enableLicense = false;
-    String licenseName = "license";
+    boolean enableClearCall = false;
+    boolean enablePrivateClearCall = false;
+    boolean enableTempClearCall = false;
+    Set<String> callPrefixs = new LinkedHashSet<>();
 
     long maxUserInputWaitTime = TimeUnit.MINUTES.toMillis(10);
     long maxUserGlobalInputWaitTime = TimeUnit.MINUTES.toMillis(10);
     long maxUserPrivateInputWaitTime = TimeUnit.MINUTES.toMillis(10);
     long maxUserGroupInputWaitTime = TimeUnit.MINUTES.toMillis(10);
+
     long optimizePeriod = TimeUnit.MINUTES.toMillis(30);
     long savePeriod = TimeUnit.HOURS.toMillis(1);
-
-    @Override
-    public void enableLicence() {
-        enableLicense = true;
-    }
-
-    @Override
-    public void disableLicence() {
-        enableLicense = false;
-    }
 }

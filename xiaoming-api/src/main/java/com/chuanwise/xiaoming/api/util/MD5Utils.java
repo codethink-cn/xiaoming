@@ -12,6 +12,7 @@ import java.util.Objects;
  */
 public class MD5Utils extends UnstaticUtils {
     final MessageDigest MD5;
+    public static final MD5Utils INSTANCE = new MD5Utils();
 
     {
         MessageDigest MD;
@@ -23,14 +24,6 @@ public class MD5Utils extends UnstaticUtils {
             System.exit(-1);
         }
         MD5 = MD;
-    }
-
-    static class InstanceHolder {
-        static final MD5Utils INSTANCE = new MD5Utils();
-    }
-
-    public static MD5Utils getInstance() {
-        return InstanceHolder.INSTANCE;
     }
 
     public byte[] getMD5(byte[] inputs) {

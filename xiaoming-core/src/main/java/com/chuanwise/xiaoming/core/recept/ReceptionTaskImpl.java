@@ -43,7 +43,7 @@ public abstract class ReceptionTaskImpl extends ModuleObjectImpl implements Rece
     protected abstract void unregister();
 
     @Override
-    public void run() {
+    public final void run() {
         final XiaomingUser user = getUser();
         register();
         running = true;
@@ -57,8 +57,6 @@ public abstract class ReceptionTaskImpl extends ModuleObjectImpl implements Rece
             getLog().error("和用户" + user.getCompleteName() + "交互时出现异常", throwable);
             user.sendError("{internalError}");
             getXiaomingBot().getReportMessageManager().addThrowableMessage(user, throwable);
-        } finally {
-            busy = false;
         }
 
         // 自动执行结束时，running 还是 true，所以手动执行 stop

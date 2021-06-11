@@ -13,6 +13,7 @@ import com.chuanwise.xiaoming.api.user.PrivateXiaomingUser;
 import com.chuanwise.xiaoming.api.user.TempXiaomingUser;
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import net.mamoe.mirai.message.code.MiraiCode;
+import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.LinkedList;
@@ -26,6 +27,8 @@ import java.util.function.Consumer;
  * 小明接待员
  */
 public interface Receptionist extends ModuleObject {
+    At getAt();
+
     ExecutorService getThreadPool();
 
     long getCode();
@@ -73,12 +76,12 @@ public interface Receptionist extends ModuleObject {
         getXiaomingBot().getReceptionistManager().removeReceptionist(getCode());
     }
 
-    default ReceptionTask getGroupTask(long group) {
-        return getGroupTasks().get(group);
+    default GroupReceptionTask getGroupTask(String tag) {
+        return getGroupTasks().get(tag);
     }
 
-    default ReceptionTask getTempTask(long group)  {
-        return getTempTasks().get(group);
+    default TempReceptionTask getTempTask(String tag)  {
+        return getTempTasks().get(tag);
     }
 
     Map<String, GroupReceptionTask> getGroupTasks();
@@ -101,25 +104,19 @@ public interface Receptionist extends ModuleObject {
 
     void setPrivateTask(PrivateReceptionTask task);
 
-    default void onGroupMessage(GroupContact contact, String message) {
-        onGroupMessage(contact, MiraiCode.deserializeMiraiCode(message));
-    }
+    void onGroupMessage(GroupContact contact, String message, MessageChain originalMessageChain);
 
     void onGroupMessage(GroupContact contact, MessageChain messages);
 
     void onGroupMessage(GroupContact contact, GroupMessage message);
 
-    default void onTempMessage(TempContact contact, String message) {
-        onTempMessage(contact, MiraiCode.deserializeMiraiCode(message));
-    }
+    void onTempMessage(TempContact contact, String message, MessageChain originalMessageChain);
 
     void onTempMessage(TempContact contact, MessageChain messages);
 
     void onTempMessage(TempContact contact, TempMessage message);
 
-    default void onPrivateMessage(PrivateContact contact, String message) {
-        onPrivateMessage(contact, MiraiCode.deserializeMiraiCode(message));
-    }
+    void onPrivateMessage(PrivateContact contact, String message, MessageChain originalMessageChain);
 
     void onPrivateMessage(PrivateContact contact, MessageChain messages);
 

@@ -3,8 +3,10 @@ package com.chuanwise.xiaoming.core.schedule;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.schedule.Scheduler;
+import com.chuanwise.xiaoming.api.schedule.task.PreservableSaveTask;
 import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
+import com.chuanwise.xiaoming.core.schedule.task.PreservableSaveTaskImpl;
 import com.chuanwise.xiaoming.core.schedule.task.ScheduableTaskImpl;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +23,10 @@ import java.util.concurrent.Executors;
 @NoArgsConstructor
 public class SchedulerImpl extends JsonFilePreservable implements Scheduler {
     @Getter
-    Set<ScheduableTask> tasks = new LinkedHashSet<>();
+    Set<ScheduableTask<?>> tasks = new LinkedHashSet<>();
+
+    @Getter
+    transient List<Runnable> finalTasks = new LinkedList<>();
 
     @Getter
     @Setter
@@ -31,12 +36,15 @@ public class SchedulerImpl extends JsonFilePreservable implements Scheduler {
     transient ExecutorService threadPool = Executors.newCachedThreadPool();
     transient ScheduableTask<?> recentTask;
 
+    @Getter
+    transient PreservableSaveTask preservableSaveTask = new PreservableSaveTaskImpl();
+
     @Override
     public <T> AsyncResult<T> run(Callable<T> callable) {
         final ScheduableTaskImpl<T> task = new ScheduableTaskImpl<>();
         task.setCallable(callable);
-        task.setTime(System.currentTimeMillis());
-        return run(task);
+        getThreadPool().execute(task);
+        return task;
     }
 
     @Override
@@ -76,35 +84,42 @@ public class SchedulerImpl extends JsonFilePreservable implements Scheduler {
         synchronized (tasks) {
             tasks.notifyAll();
         }
+
+        for (Runnable finalTask : finalTasks) {
+            threadPool.execute(finalTask::run);
+        }
+
         threadPool.shutdown();
     }
 
     @Override
     public void run() {
         running = true;
+        runFinally(preservableSaveTask);
         while (running) {
             if (!tasks.isEmpty()) {
                 // 最近任务
-                ScheduableTask nearestTask = null;
-                for (ScheduableTask scheduableTask : tasks) {
+                ScheduableTask<?> nearestTask = null;
+                for (ScheduableTask<?> scheduableTask : tasks) {
                     if (Objects.isNull(nearestTask) || scheduableTask.getTime() < nearestTask.getTime()) {
                         nearestTask = scheduableTask;
                     }
                 }
 
-                synchronized (tasks) {
-                    try {
-                        tasks.wait(nearestTask.getTime() - System.currentTimeMillis());
-                    } catch (InterruptedException ignored) {
+                if (nearestTask.getTime() > System.currentTimeMillis()) {
+                    synchronized (tasks) {
+                        try {
+                            tasks.wait(nearestTask.getTime() - System.currentTimeMillis());
+                        } catch (InterruptedException ignored) {
+                        }
                     }
                 }
 
                 // 如果到时间了就说明该干活了，否则就是因为其他原因打断的，先不执行
                 // 专门开一个线程去执行
-                if (System.currentTimeMillis() >= nearestTask.getPeriod()) {
+                if (System.currentTimeMillis() >= nearestTask.getTime()) {
                     tasks.remove(nearestTask);
-                    ScheduableTask finalNearestTask = nearestTask;
-                    getThreadPool().execute(finalNearestTask);
+                    getThreadPool().execute(nearestTask);
                     if (nearestTask.isPeriodic()) {
                         try {
                             runLater(nearestTask.clone(), nearestTask.getPeriod());

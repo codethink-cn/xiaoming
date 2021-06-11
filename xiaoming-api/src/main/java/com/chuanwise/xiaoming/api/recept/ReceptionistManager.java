@@ -24,6 +24,8 @@ public interface ReceptionistManager extends ModuleObject, EventListener {
 
     Receptionist getOrPutReceptionist(long qq);
 
+    Receptionist getBotReceptionist();
+
     /**
      * 取消某个用户的接待员
      * @param qq 该用户

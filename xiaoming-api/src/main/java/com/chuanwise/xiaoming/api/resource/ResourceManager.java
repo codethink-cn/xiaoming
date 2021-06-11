@@ -3,6 +3,7 @@ package com.chuanwise.xiaoming.api.resource;
 import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.object.ModuleObject;
+import com.chuanwise.xiaoming.api.preserve.Preservable;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.MessageChain;
@@ -11,7 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
-public interface ResourceManager extends ModuleObject {
+public interface ResourceManager extends ModuleObject, Preservable<File> {
     default Message useResources(Message message) {
         message.setMessageChain(useResources(message.getMessageChain(), message.getContact().getMiraiContact()));
         return message;
@@ -41,7 +42,8 @@ public interface ResourceManager extends ModuleObject {
 
     void setResourceDirectory(File resourceDirectory);
 
-    default void removeBefore(long time) {
+    default int removeBefore(long time) {
+        int sizeBeforeRemove = getImageLastVisitTimes().size();
         getImageLastVisitTimes().entrySet().removeIf(entry -> {
             final String id = entry.getKey();
             final long lastVisitTime = entry.getValue();
@@ -49,5 +51,6 @@ public interface ResourceManager extends ModuleObject {
 
             return shouldRemove && getImage(id).delete();
         });
+        return sizeBeforeRemove - getImageLastVisitTimes().size();
     }
 }

@@ -4,17 +4,14 @@ import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.annotation.FilterParameter;
 import com.chuanwise.xiaoming.api.annotation.Require;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
-import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
+import com.chuanwise.xiaoming.api.configuration.Statistician;
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
-import com.chuanwise.xiaoming.api.configuration.Configuration;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
 import com.chuanwise.xiaoming.api.interactor.command.CommandInteractor;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
-import com.chuanwise.xiaoming.api.recept.GroupReceptionTask;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
-import com.chuanwise.xiaoming.api.thread.Finalizer;
-import com.chuanwise.xiaoming.api.text.TextManager;
+import com.chuanwise.xiaoming.api.schedule.task.PreservableSaveTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
@@ -22,6 +19,7 @@ import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.api.util.StringUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
+import net.mamoe.mirai.message.code.MiraiCode;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -70,29 +68,17 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
         setXiaomingBot(xiaomingBot);
     }
 
-    @Filter("(维护|调试|debug)")
-    @Require("debug")
-    public void onDebug(XiaomingUser user) {
-        final Configuration config = getXiaomingBot().getConfiguration();
-        config.setDebug(!config.isDebug());
-        getXiaomingBot().getFinalizer().readySave(config);
-        if (config.isDebug()) {
-            user.sendMessage("已开启小明的维护状态");
-        } else {
-            user.sendMessage("已关闭小明的维护状态");
-        }
-    }
-
     @Filter(CommandWords.INTERACTOR)
-    @Require("interactor.list")
+    @Require("core.interactor.list")
     public void onInteractorStatus(XiaomingUser user) {
         user.sendMessage(getInteractorString());
     }
 
     @Filter(CommandWords.CALL)
-    @Require("statistics.call")
+    @Require("core.statistics.call")
     public void onCallCounter(XiaomingUser user) {
-        user.sendMessage("小明至今的召唤次数：{}", getXiaomingBot().getStatistician().getCallNumber());
+        user.setProperty("counter", getXiaomingBot().getStatistician().getCallNumber());
+        user.sendMessage("{callCounterIs}");
     }
 
     /**
@@ -102,7 +88,8 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
      */
     @Filter("#" + BAT_REGEX + "#" + "{remain}")
     public void onMultipleCommands(XiaomingUser user,
-                                   @FilterParameter("remain") String remain) {
+                                   @FilterParameter("remain") String remain,
+                                   Message message) {
         final String[] subCommands = remain.split(Pattern.quote("\\n"), 0);
 
         user.enableBuffer();
@@ -113,18 +100,19 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
                 if (command.isEmpty()) {
                     continue;
                 }
-                // user.getReceptionTask().onNextInput();
-                /*
-                if (getXiaomingBot().getInteractorManager().onInput(user)) {
+                final Message clonedMessage = message.clone();
+                clonedMessage.setMessageChain(MiraiCode.deserializeMiraiCode(subCommands[i]));
+
+                if (getXiaomingBot().getInteractorManager().onInput(user, clonedMessage)) {
                     commandNumber++;
                 } else {
-                    user.sendError("无效的命令：{}，批处理任务被中断", command);
+                    user.setProperty("command", command);
+                    user.sendError("{illegalCommandInterruptBatchTask}");
                     break;
                 }
-                */
             }
         } catch (Exception exception) {
-            user.sendError("执行{}个指令时出现异常，批处理任务被中断");
+            user.sendError("{exceptionInterruptBatchTask}");
             exception.printStackTrace();
         }
 
@@ -132,57 +120,21 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
         user.sendMessage(bufferString);
 
         if (commandNumber == 0) {
-            user.sendError("小明没能成功执行任何一个指令");
+            user.sendError("{noCommandExecuted}");
         } else {
-            user.sendMessage("成功执行了 {} 个指令", commandNumber);
+            user.setProperty("counter", commandNumber);
+            user.sendMessage("{executeCommandSuccessfully}");
         }
     }
 
     @Filter(CommandWords.SAVE)
-    @Require("save")
+    @Require("core.save")
     public void onSave(XiaomingUser user) {
-        final Finalizer finalizer = getXiaomingBot().getFinalizer();
-        if (finalizer.getPreservables().isEmpty()) {
-            user.sendMessage("当前没有任何文件等待保存哦");
+        final PreservableSaveTask fileSaver = getXiaomingBot().getScheduler().getPreservableSaveTask();
+        if (fileSaver.getPreservables().isEmpty()) {
+            user.sendMessage("{noFileNeedToSave}");
         } else {
-            finalizer.save(user);
-        }
-    }
-
-    @Filter(CommandWords.ENABLE + CommandWords.USE + "(验证|verify)")
-    @Require("license.enable")
-    public void onEnableUseVerify(XiaomingUser user) {
-        final Configuration config = getXiaomingBot().getConfiguration();
-        if (config.isEnableLicense()) {
-            user.sendMessage("强制小明使用验证本就是启动的");
-        } else {
-            /*
-            final TextManager textManager = getXiaomingBot().getTextManager();
-            final String licenseName = config.getLicenseName();
-            String license = textManager.load(licenseName);
-            if (Objects.isNull(license)) {
-                user.sendMessage("你还没有设置《小明使用协议》，告诉小明它的内容吧");
-                license = user.nextInput();
-                textManager.save(licenseName, license);
-            }
-
-             */
-            config.enableLicence();
-            user.sendMessage("已启动强制小明使用验证");
-            getXiaomingBot().getFinalizer().readySave(config);
-        }
-    }
-
-    @Filter(CommandWords.DISABLE + CommandWords.USE + "(验证|verify)")
-    @Require("license.disable")
-    public void onDisableUseVerify(XiaomingUser user) {
-        final Configuration config = getXiaomingBot().getConfiguration();
-        if (config.isEnableLicense()) {
-            config.disableLicence();
-            getXiaomingBot().getFinalizer().readySave(config);
-            user.sendMessage("已关闭强制小明使用验证");
-        } else {
-            user.sendMessage("强制小明使用验证并没有开启哦");
+            fileSaver.save(user);
         }
     }
 
@@ -248,6 +200,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     }
 
     @Filter(CommandWords.HELP)
+    @Require("core.help")
     public void onGlobalHelp(XiaomingUser user) {
         user.sendMessage("欢迎使用小明！\n" +
                 "你可用的所有小明指令可以通过「指令格式」查询 {happy}");
@@ -258,39 +211,39 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
                 "如果你想要编写小明的功能，欢迎打开上述链接查看开发文档。");
     }
 
-    long lastCloseConfirmTime;
-
     @Filter(CommandWords.DISABLE + CommandWords.XIAOMING)
-    @Require("stop")
+    @Require("core.stop")
     public void onCloseXiaoming(XiaomingUser user) {
-        user.sendMessage("你确定要关闭整个小明程序吗？关闭后小明只能在后台被唤醒。如果是，请在一分钟之内发送「确定关闭小明」");
-        lastCloseConfirmTime = System.currentTimeMillis() + TimeUtils.MINUTE_MINS;
-    }
+        user.sendMessage("{doYouReallyWantToCloseXiaoming}");
+        Runnable onCancel = () -> {
+            user.sendError("{closeXiaomingPlanWasCancelled}");
+        };
 
-    @Filter(CommandWords.CONFIRM + CommandWords.DISABLE + CommandWords.XIAOMING)
-    @Require("stop")
-    public void onConfirmCloseXiaoming(XiaomingUser user) {
-        if (lastCloseConfirmTime > System.currentTimeMillis()) {
-            try {
-                TimeUnit.SECONDS.sleep(10);
-            } catch (InterruptedException exception) {
-            }
-            getXiaomingBot().stop(user);
+        if (Objects.equals(user.nextInput(TimeUnit.MINUTES.toMillis(1), onCancel).serialize(), "确定")) {
+            final long delay = TimeUnit.SECONDS.toMicros(10);
+            final String delayString = TimeUtils.toTimeString(delay);
+
+            getXiaomingBot().getScheduler().runLater(() -> {
+                getXiaomingBot().stop();
+            }, delay);
+
+            user.setProperty("delay", delayString);
+            user.sendMessage("{xiaomingWillBeCloseLater}");
         } else {
-            user.sendError("没有需要确认的小明关闭操作");
+            onCancel.run();
         }
     }
 
     @Filter(CommandWords.RECEPTION)
-    @Require("receptionist")
+    @Require("core.receptionist.list")
     public void onReceptionist(XiaomingUser user) {
         final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
         final Collection<Receptionist> receptionists = receptionistManager.getReceptionists().values();
 
         if (receptionists.isEmpty()) {
-            user.sendMessage("当前无任何接待员");
+            user.sendMessage("{thereIsNoAnyReceptionist}");
         } else {
-            user.sendMessage("当前共有 {} 个接待员：{}",
+            user.sendMessage("当前共有 {} 个{receptionist}：{}",
                     receptionists.size(),
                     StringUtils.getCollectionSummary(receptionists, receptionist -> {
                         return receptionist.getCode() + "：" + (receptionist.isBusy() ? "忙碌" : "空闲");
@@ -299,13 +252,13 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     }
 
     @Filter(CommandWords.RECEPTION + " {qq}")
-    @Require("receptionist")
+    @Require("core.receptionist.look")
     public void onReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
         final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
         final Receptionist receptionist = receptionistManager.getReceptionist(qq);
 
         if (Objects.isNull(receptionist)) {
-            user.sendMessage("该用户并没有接待员");
+            user.sendMessage("{thisUserHasNotReceptionist}");
         } else {
             final StringBuilder builder = new StringBuilder();
 
@@ -336,69 +289,72 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     }
 
     @Filter(CommandWords.DISABLE + CommandWords.RECEPTION + " {qq}")
-    @Require("receptionist.disable")
+    @Require("core.receptionist.disable")
     public void onDisableReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
         final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
         final Receptionist receptionist = receptionistManager.getReceptionist(qq);
 
         if (Objects.isNull(receptionist)) {
-            user.sendMessage("该用户并没有接待员");
+            user.sendMessage("{thisUserHasNotReceptionist}");
         } else {
             if (receptionist.isBusy()) {
                 receptionist.optimize();
-                user.sendMessage("接待员忙碌。已终止所有空闲接待线程以释放资源。如仍要强制关闭，请使用「强制关闭接待员 {}」", qq);
+                user.sendMessage("{tryOptimizedReceptionist}");
             } else {
                 receptionist.stop();
-                user.sendMessage("已尝试销毁该接待员");
+                user.sendMessage("{receptionistClosedSuccessfully}");
             }
         }
     }
 
     @Filter(CommandWords.OPTIMIZE + CommandWords.RECEPTION + " {qq}")
-    @Require("receptionist.optimize")
+    @Require("core.receptionist.optimize")
     public void onOptimizeReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
         final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
         final Receptionist receptionist = receptionistManager.getReceptionist(qq);
 
         if (Objects.isNull(receptionist)) {
-            user.sendMessage("该用户并没有接待员");
+            user.sendMessage("{thereIsNoAnyReceptionist}");
         } else {
             receptionist.optimize();
-            user.sendMessage("已优化该用户的接待员", qq);
+            user.sendMessage("{optimizedReceptionistSuccessfully}");
         }
     }
 
     @Filter(CommandWords.OPTIMIZE + CommandWords.RECEPTION)
-    @Require("receptionist.optimize")
+    @Require("core.receptionist.optimize")
     public void onOptimizeReceptionist(XiaomingUser user) {
         final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
 
         receptionistManager.optimize();
-        user.sendMessage("已优化可能优化的所有接待员");
+        user.sendMessage("{optimizedAllReceptionistSuccessfully}");
     }
 
     @Filter("(强制|force)" + CommandWords.DISABLE + CommandWords.RECEPTION + " {qq}")
-    @Require("receptionist.disable")
+    @Require("core.receptionist.disable")
     public void onForceDisableReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
         final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
         final Receptionist receptionist = receptionistManager.getReceptionist(qq);
 
         if (Objects.isNull(receptionist)) {
-            user.sendMessage("该用户并没有接待员");
+            user.sendMessage("{thereIsNoAnyReceptionist}");
         } else {
-            user.sendMessage("已尝试销毁该接待员");
+            user.sendMessage("{receptionistClosedSuccessfully}");
         }
     }
 
     @Filter(CommandWords.XIAOMING + CommandWords.STATUS)
-    @Require("status")
+    @Require("core.status")
     public void onStatus(XiaomingUser user) {
-        final long lastSaveTime = getXiaomingBot().getFinalizer().getLastSaveTime();
+        final long lastSaveTime = getXiaomingBot().getScheduler().getPreservableSaveTask().getLastSaveTime();
         StringBuilder builder = new StringBuilder();
 
-        builder.append("小明启动于：").append(TimeUtils.FORMAT.format(getXiaomingBot().getLastStartTime())).append("\n")
-                .append("已运行：").append(TimeUtils.toTimeString(System.currentTimeMillis() - getXiaomingBot().getLastStartTime())).append("\n")
+        final Statistician statistician = getXiaomingBot().getStatistician();
+
+        builder.append("{xiaoming}启动于：").append(TimeUtils.FORMAT.format(statistician.getBeginTime())).append("\n")
+                .append("已运行：").append(TimeUtils.toTimeString(System.currentTimeMillis() - statistician.getBeginTime())).append("\n")
                 .append("上次文件保存时间：").append(TimeUtils.FORMAT.format(lastSaveTime)).append("\n")
+                .append("内存空置率：").append(String.format("%.2f%%", (double) 100 * Runtime.getRuntime().freeMemory() / Runtime.getRuntime().maxMemory())).append("\n")
                 .append("距今：").append(TimeUtils.toTimeString(System.currentTimeMillis() - lastSaveTime));
 
         user.sendMessage(builder.toString());

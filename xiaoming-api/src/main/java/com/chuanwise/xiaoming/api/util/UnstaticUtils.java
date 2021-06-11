@@ -3,7 +3,7 @@ package com.chuanwise.xiaoming.api.util;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 
 public class UnstaticUtils {
-    private static boolean constructed = false;
+    private boolean constructed = false;
 
     protected UnstaticUtils() {
         if (constructed) {

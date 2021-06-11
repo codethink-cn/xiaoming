@@ -12,4 +12,7 @@ public interface ConsoleMessage extends Message {
 
     @Override
     ConsoleContact getContact();
+
+    @Override
+    ConsoleMessage clone() throws CloneNotSupportedException;
 }

@@ -51,7 +51,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
                 } else {
                     user.sendMessage("如果未来希望使用小明，仍然可以告诉我「使用小明」");
                 }
-                getXiaomingBot().getFinalizer().readySave(licenceManager);
+                getXiaomingBot().getFileSaver().readySave(licenceManager);
 
                  */
             }
@@ -71,7 +71,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
             if (licenceManager.isAgreed(qq)) {
                 licenceManager.remove(qq);
                 user.sendMessage("已取消使用小明。如果未来希望使用小明，仍然可以告诉我「使用小明」");
-                getXiaomingBot().getFinalizer().readySave(licenceManager);
+                getXiaomingBot().getScheduler().readySave(licenceManager);
             } else {
                 user.sendMessage("此前你并未同意《小明使用须知》");
             }
@@ -91,7 +91,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
         if (Objects.isNull(responseGroup)) {
             responseGroup = new ResponseGroupImpl(contact.getCode(), contact.getName());
             responseGroupManager.addGroup(responseGroup);
-            getXiaomingBot().getFinalizer().readySave(responseGroupManager);
+            getXiaomingBot().getScheduler().readySave(responseGroupManager);
         }
 
         if (responseGroup.hasTag(ENABLE_TAG)) {
@@ -99,7 +99,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
         } else {
             responseGroup.addTag(ENABLE_TAG);
             user.sendMessage("成功在本群启用小明 (๑•̀ㅂ•́)و✧");
-            getXiaomingBot().getFinalizer().readySave(responseGroupManager);
+            getXiaomingBot().getScheduler().readySave(responseGroupManager);
         }
     }
 
@@ -109,17 +109,17 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
     public void onDisableXiaoming(GroupXiaomingUser user) {
         final ResponseGroupManager responseGroupManager = getXiaomingBot().getResponseGroupManager();
 
-        ResponseGroup responseGroup = responseGroupManager.forCode(user.getGroupCode());
+        ResponseGroup responseGroup = user.getResponseGroup();
         if (Objects.isNull(responseGroup)) {
             user.sendMessage("本群还不是小明的响应群哦");
         }
 
         if (responseGroup.hasTag(ENABLE_TAG)) {
             responseGroup.removeTag(ENABLE_TAG);
-            user.sendMessage("本群不再是小明的响应群啦。未来希望启动小明输入 #启动小明 就可以啦。");
+            user.sendMessage("本群不再是小明的响应群啦。未来希望启动小明输入「本群启动小明」就可以啦。");
         } else {
             user.sendWarning("本群曾是小明的响应群，但是现在还不是哦");
-            getXiaomingBot().getFinalizer().readySave(responseGroupManager);
+            getXiaomingBot().getScheduler().readySave(responseGroupManager);
         }
     }
 }

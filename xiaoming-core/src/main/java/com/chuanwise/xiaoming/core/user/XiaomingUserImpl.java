@@ -1,7 +1,10 @@
 package com.chuanwise.xiaoming.core.user;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
+import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
+import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
@@ -20,7 +23,8 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * @author Chuanwise
  */
 @Getter
-public abstract class XiaomingUserImpl extends ModuleObjectImpl implements XiaomingUser {
+public abstract class XiaomingUserImpl<C extends XiaomingContact<M, ?>, M extends Message, R extends ReceptionTask>
+        extends ModuleObjectImpl implements XiaomingUser<C, M, R> {
     @Setter
     Receptionist receptionist;
 
@@ -64,7 +68,4 @@ public abstract class XiaomingUserImpl extends ModuleObjectImpl implements Xiaom
     Map<String, Set<Thread>> propertyWaiters = new ConcurrentHashMap<>();
 
     Set<Thread> globalMessageWaiter = new CopyOnWriteArraySet<>();
-
-    @Setter
-    List<String> globalNextMessage;
 }

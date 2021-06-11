@@ -16,7 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 @Getter
-public class PrivateXiaomingUserImpl extends XiaomingUserImpl implements PrivateXiaomingUser {
+public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, PrivateMessage, PrivateReceptionTask> implements PrivateXiaomingUser {
     final PrivateContact contact;
     final List<PrivateMessage> recentMessages;
 
@@ -27,15 +27,6 @@ public class PrivateXiaomingUserImpl extends XiaomingUserImpl implements Private
         super(contact.getXiaomingBot(), contact.getCode());
         this.contact = contact;
         this.recentMessages = recentMessages;
-    }
-
-    @Override
-    public void onNextInput(Message message) {
-        if (message instanceof PrivateMessage) {
-            onNextInput(((PrivateMessage) message));
-        } else {
-            throw new XiaomingRuntimeException("消息类型错误");
-        }
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.chuanwise.xiaoming.core.contact.message;
 
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import lombok.Getter;
 import net.mamoe.mirai.message.data.MessageChain;
@@ -25,5 +26,10 @@ public class GroupMessageImpl extends MessageImpl implements GroupMessage {
     @Override
     public GroupXiaomingUser getSender() {
         return user;
+    }
+
+    @Override
+    public GroupMessage clone() throws CloneNotSupportedException {
+        return ((GroupMessage) super.clone());
     }
 }

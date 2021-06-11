@@ -1,21 +1,21 @@
 package com.chuanwise.xiaoming.api.contact.contact;
 
 import com.chuanwise.xiaoming.api.account.Account;
-import com.chuanwise.xiaoming.api.contact.message.Message;
+import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.contact.message.TempMessage;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
+import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import net.mamoe.mirai.contact.MemberPermission;
 import net.mamoe.mirai.contact.NormalMember;
 import net.mamoe.mirai.data.UserProfile;
+import net.mamoe.mirai.message.code.MiraiCode;
+import net.mamoe.mirai.message.data.MessageChain;
+import net.mamoe.mirai.message.data.QuoteReply;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public interface TempContact extends XiaomingContact {
-    @Override
-    NormalMember getMiraiContact();
-
+public interface TempContact extends XiaomingContact<TempMessage, NormalMember> {
     default Account getOrPutAccount() {
         return getXiaomingBot().getAccountManager().getOrPutAccount(getCode());
     }
@@ -27,6 +27,11 @@ public interface TempContact extends XiaomingContact {
     @Override
     default String getName() {
         return this.getMiraiContact().getNick();
+    }
+
+    @Override
+    default String getAvatarUrl() {
+        return getMiraiContact().getAvatarUrl();
     }
 
     @Override
@@ -106,14 +111,19 @@ public interface TempContact extends XiaomingContact {
         return this.getMiraiContact().queryProfile();
     }
 
-    @Override
-    List<TempMessage> getRecentMessages();
+    default TempMessage replyGroup(GroupMessage quote, String message) {
+        return replyGroup(quote, MiraiCode.deserializeMiraiCode(message));
+    }
 
-    default void addRecentMessage(TempMessage message) {
-        final List<TempMessage> list = getRecentMessages();
-        list.add(message);
-        synchronized (list) {
-            list.notifyAll();
-        }
+    default TempMessage replyGroup(GroupMessage quote, MessageChain message) {
+        return send(new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(message));
+    }
+
+    default AsyncResult<TempMessage> replyGroupLater(long delay, GroupMessage quote, String message) {
+        return replyGroupLater(delay, quote, MiraiCode.deserializeMiraiCode(message));
+    }
+
+    default AsyncResult<TempMessage> replyGroupLater(long delay, GroupMessage quote, MessageChain message) {
+        return sendLater(delay, new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(message));
     }
 }

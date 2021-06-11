@@ -22,6 +22,8 @@ import com.chuanwise.xiaoming.core.user.PrivateXiaomingUserImpl;
 import com.chuanwise.xiaoming.core.user.TempXiaomingUserImpl;
 import lombok.Getter;
 import lombok.Setter;
+import net.mamoe.mirai.message.code.MiraiCode;
+import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.*;
@@ -37,10 +39,12 @@ import java.util.concurrent.Executors;
 public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
     final ExecutorService threadPool = Executors.newCachedThreadPool();
     final long code;
+    final At at;
 
     public ReceptionistImpl(XiaomingBot xiaomingBot, long code) {
         super(xiaomingBot);
         this.code = code;
+        this.at = new At(code);
     }
 
     public ReceptionistImpl(XiaomingUser user) {
@@ -119,10 +123,18 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
     }
 
     @Override
+    public void onGroupMessage(GroupContact contact, String message, MessageChain originalMessageChain) {
+        GroupMessage groupMessage = new GroupMessageImpl(getOrPutGroupXiaomingUser(contact, contact.getMember(code)), originalMessageChain);
+        groupMessage.setMessageChain(MiraiCode.deserializeMiraiCode(message));
+        onGroupMessage(contact, groupMessage);
+    }
+
+    @Override
     public void onGroupMessage(GroupContact contact, GroupMessage message) {
         contact.addRecentMessage(message);
-        ReceptionTask groupTask = getGroupTask(contact.getCode());
-        if (Objects.isNull(groupTask)) {
+        GroupReceptionTask groupTask = getGroupTask(contact.getCodeString());
+        boolean isFirstRecept = Objects.isNull(groupTask);
+        if (isFirstRecept) {
             // 把消息送到每一个 tag 表里
             for (String tag : contact.getTags()) {
                 final List<GroupMessage> groupRecentMessage = getOrPutGroupRecentMessage(tag);
@@ -133,13 +145,18 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
             }
 
             groupTask = new GroupReceptionTaskImpl(getOrPutGroupXiaomingUser(contact, message.getSender().getTempContact()), getOrPutGroupRecentMessage(contact.getCodeString()));
-            threadPool.execute(groupTask);
         }
-        final List<? extends Message> list = groupTask.getUser().getRecentMessages();
+        final List<GroupMessage> list = groupTask.getUser().getRecentMessages();
+        list.add(message);
         setGlobalRecentMessages(list);
-        synchronized (list) {
-            list.notifyAll();
+        if (isFirstRecept) {
+            threadPool.execute(groupTask);
+        } else {
+            synchronized (list) {
+                list.notifyAll();
+            }
         }
+
         synchronized (this) {
             this.notifyAll();
         }
@@ -148,8 +165,9 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
     @Override
     public void onTempMessage(TempContact contact, TempMessage message) {
         contact.addRecentMessage(message);
-        ReceptionTask tempTask = getTempTask(contact.getCode());
-        if (Objects.isNull(tempTask)) {
+        TempReceptionTask tempTask = getTempTask(contact.getCodeString());
+        boolean isFirstRecept = Objects.isNull(tempTask);
+        if (isFirstRecept) {
             // 把消息送到每一个 tag 表里
             for (String tag : contact.getGroupContact().getTags()) {
                 final List<TempMessage> tempRecentMessage = getOrPutTempRecentMessage(tag);
@@ -160,13 +178,18 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
             }
 
             tempTask = new TempReceptionTaskImpl(getOrPutTempXiaomingUser(contact), getOrPutTempRecentMessage(contact.getGroupContact().getCodeString()));
-            threadPool.execute(tempTask);
         }
-        final List<? extends Message> list = tempTask.getUser().getRecentMessages();
+        final List<TempMessage> list = tempTask.getUser().getRecentMessages();
+        list.add(message);
         setGlobalRecentMessages(list);
-        synchronized (list) {
-            list.notifyAll();
+        if (isFirstRecept) {
+            threadPool.execute(tempTask);
+        } else {
+            synchronized (list) {
+                list.notifyAll();
+            }
         }
+
         synchronized (this) {
             this.notifyAll();
         }
@@ -174,23 +197,35 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
 
     @Override
     public void onTempMessage(TempContact contact, MessageChain messages) {
-        TempMessage message = new TempMessageImpl(getOrPutTempXiaomingUser(contact), contact, messages);
+        TempMessage message = new TempMessageImpl(getOrPutTempXiaomingUser(contact), messages);
         onTempMessage(contact, message);
+    }
+
+    @Override
+    public void onTempMessage(TempContact contact, String message, MessageChain originalMessageChain) {
+        TempMessage tempMessage = new TempMessageImpl(getOrPutTempXiaomingUser(contact), originalMessageChain);
+        tempMessage.setMessageChain(MiraiCode.deserializeMiraiCode(message));
+        onTempMessage(contact, tempMessage);
     }
 
     @Override
     public void onPrivateMessage(PrivateContact contact, PrivateMessage message) {
         contact.addRecentMessage(message);
-        if (Objects.isNull(privateTask)) {
+        boolean isFirstRecept = Objects.isNull(privateTask);
+        if (isFirstRecept) {
             privateRecentMessages.add(message);
             privateTask = new PrivateReceptionTaskImpl(getOrPutPrivateXiaomingUser(contact), privateRecentMessages);
-            threadPool.execute(privateTask);
         }
         final List<PrivateMessage> list = this.privateRecentMessages;
         setGlobalRecentMessages(list);
-        synchronized (list) {
-            list.notifyAll();
+        if (isFirstRecept) {
+            threadPool.execute(privateTask);
+        } else {
+            synchronized (list) {
+                list.notifyAll();
+            }
         }
+
         synchronized (this) {
             this.notifyAll();
         }
@@ -200,5 +235,12 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
     public void onPrivateMessage(PrivateContact contact, MessageChain messages) {
         PrivateMessage message = new PrivateMessageImpl(getOrPutPrivateXiaomingUser(contact), messages);
         onPrivateMessage(contact, message);
+    }
+
+    @Override
+    public void onPrivateMessage(PrivateContact contact, String message, MessageChain originalMessageChain) {
+        PrivateMessage privateMessage = new PrivateMessageImpl(getOrPutPrivateXiaomingUser(contact), originalMessageChain);
+        privateMessage.setMessageChain(MiraiCode.deserializeMiraiCode(message));
+        onPrivateMessage(contact, privateMessage);
     }
 }

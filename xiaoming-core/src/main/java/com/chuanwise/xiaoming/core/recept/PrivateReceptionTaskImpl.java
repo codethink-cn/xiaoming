@@ -53,7 +53,7 @@ public class PrivateReceptionTaskImpl extends ReceptionTaskImpl implements Priva
             final Account account = user.getOrPutAccount();
 
             account.addCommand(event);
-            getXiaomingBot().getFinalizer().readySave(account);
+            getXiaomingBot().getScheduler().readySave(account);
 
             getXiaomingBot().getUserCallLimitManager().getGroupCallLimiter().addCallRecord(user.getCode());
         } else {

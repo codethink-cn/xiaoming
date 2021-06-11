@@ -12,4 +12,7 @@ public interface PrivateMessage extends Message {
 
     @Override
     PrivateContact getContact();
+
+    @Override
+    PrivateMessage clone() throws CloneNotSupportedException;
 }

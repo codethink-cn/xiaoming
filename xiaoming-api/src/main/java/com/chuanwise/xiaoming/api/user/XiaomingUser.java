@@ -13,11 +13,13 @@ import com.chuanwise.xiaoming.api.object.PropertyHolder;
 import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
+import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 import net.mamoe.mirai.message.code.MiraiCode;
+import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.MessageChain;
 
 import java.io.PrintWriter;
@@ -27,7 +29,7 @@ import java.util.*;
 /**
  * @author Chuanwise
  */
-public interface XiaomingUser extends ModuleObject, PropertyHolder {
+public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message, R extends ReceptionTask> extends ModuleObject, PropertyHolder {
     void setReceptionist(Receptionist receptionist);
 
     /**
@@ -41,15 +43,19 @@ public interface XiaomingUser extends ModuleObject, PropertyHolder {
         // 最先替换当前变量
         format = ArgumentUtils.replaceArguments(format, arguments);
 
-        // 再替换用户属性中的值：
-        format = ArgumentUtils.replaceArguments(format, arguments);
-
-        // 最后替换 Language 中的字句
+        // 替换 Language 中的字句
         format = ArgumentUtils.replaceArguments(format, getXiaomingBot().getLanguageManager().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime());
+
+        // 再替换用户属性中的值
+        format = ArgumentUtils.replaceArguments(format, getProperties(), getXiaomingBot().getConfiguration().getMaxIterateTime());
         return format;
     }
 
-    XiaomingContact getContact();
+    default String replaceLanguage(String language, Object... arguments) {
+        return replaceArguments(getXiaomingBot().getLanguageManager().getString(language), arguments);
+    }
+
+    C getContact();
 
     /**
      * 给当前使用者发普通消息
@@ -95,7 +101,7 @@ public interface XiaomingUser extends ModuleObject, PropertyHolder {
         if (hasPermission(require)) {
             return true;
         } else {
-            sendError("{lack-permission}");
+            sendError("{lackPermission}");
             return false;
         }
     }
@@ -117,23 +123,78 @@ public interface XiaomingUser extends ModuleObject, PropertyHolder {
 
     Interactor getInteractor();
 
-    void onNextInput(Message message);
+    default At getAt() {
+        return getReceptionist().getAt();
+    }
+
+    default M reply(M quote, String message) {
+        return getContact().reply(quote, message);
+    }
+
+    default M reply(M quote, M message) {
+        return getContact().reply(quote, message);
+    }
+
+    default M reply(M quote, MessageChain message) {
+        return getContact().reply(quote, message);
+    }
+
+    default AsyncResult<M> replyLater(long delay, M quote, MessageChain message) {
+        return getContact().replyLater(delay, quote, message);
+    }
+
+    default AsyncResult<M> replyLater(long delay, M quote, M message) {
+        return getContact().replyLater(delay, quote, message);
+    }
+
+    default AsyncResult<M> replyLater(long delay, M quote, String message) {
+        return getContact().replyLater(delay, quote, message);
+    }
+
+    default M replyLatest(String message) {
+        return reply(getLatestMessage(), message);
+    }
+
+    default M replyLatest(M message) {
+        return reply(getLatestMessage(), message);
+    }
+
+    default M replyLatest(MessageChain message) {
+        return reply(getLatestMessage(), message);
+    }
+
+    default AsyncResult<M> replyLatestLater(long delay, MessageChain message) {
+        return replyLater(delay, getLatestMessage(), message);
+    }
+
+    default AsyncResult<M> replyLatestLater(long delay, String message) {
+        return replyLater(delay, getLatestMessage(), message);
+    }
+
+    default void onNextInput(M message) {
+        final List<M> list = getRecentMessages();
+        list.add(message);
+        synchronized (list) {
+            list.notifyAll();
+        }
+    }
+
+    void onNextInput(MessageChain messages);
 
     default void onNextInput(String message) {
         onNextInput(MiraiCode.deserializeMiraiCode(message));
     }
 
-    void onNextInput(MessageChain messages);
 
-    default Message nextInput(long timeout, Runnable onTimeout) {
+    default M nextInput(long timeout, Runnable onTimeout) {
         return InteractorUtils.waitLastElement(getRecentMessages(), timeout, onTimeout);
     }
 
-    default Message nextInput(Runnable onTimeout) {
+    default M nextInput(Runnable onTimeout) {
         return nextInput(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime(), onTimeout);
     }
 
-    default Message nextInput(long waitTime) {
+    default M nextInput(long waitTime) {
         return nextInput(waitTime, () -> {
             setProperty("time", TimeUtils.toTimeString(waitTime));
             sendError("{userNextInputTimeOut}");
@@ -141,7 +202,7 @@ public interface XiaomingUser extends ModuleObject, PropertyHolder {
         });
     }
 
-    default Message nextInput() {
+    default M nextInput() {
         return nextInput(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime());
     }
 
@@ -248,7 +309,16 @@ public interface XiaomingUser extends ModuleObject, PropertyHolder {
      */
     String getCompleteName();
 
-    List<? extends Message> getRecentMessages();
+    List<M> getRecentMessages();
+
+    default M getLatestMessage() {
+        final List<M> recentMessages = getRecentMessages();
+        if (recentMessages.isEmpty()) {
+            return null;
+        } else {
+            return recentMessages.get(recentMessages.size() - 1);
+        }
+    }
 
     /**
      * 获取用户的账户
@@ -332,5 +402,5 @@ public interface XiaomingUser extends ModuleObject, PropertyHolder {
         printWriter.print(string);
     }
 
-    ReceptionTask getReceptionTask();
+    R getReceptionTask();
 }

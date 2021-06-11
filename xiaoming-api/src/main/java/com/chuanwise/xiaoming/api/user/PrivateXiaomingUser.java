@@ -10,23 +10,6 @@ import com.chuanwise.xiaoming.api.user.XiaomingUser;
 
 import java.util.List;
 
-public interface PrivateXiaomingUser extends XiaomingUser {
-    @Override
-    List<PrivateMessage> getRecentMessages();
-
-    default void onNextInput(PrivateMessage message) {
-        final List<PrivateMessage> list = getRecentMessages();
-        list.add(message);
-        synchronized (list) {
-            list.notifyAll();
-        }
-    }
-
-    @Override
-    PrivateContact getContact();
-
-    @Override
-    PrivateReceptionTask getReceptionTask();
-
+public interface PrivateXiaomingUser extends XiaomingUser<PrivateContact, PrivateMessage, PrivateReceptionTask> {
     void setReceptionTask(PrivateReceptionTask receptionTask);
 }

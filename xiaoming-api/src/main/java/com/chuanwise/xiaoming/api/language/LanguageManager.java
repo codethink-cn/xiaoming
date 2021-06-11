@@ -11,7 +11,11 @@ import java.util.Map;
  * @author Chuanwise
  */
 public interface LanguageManager extends Preservable<File>, XiaomingObject {
-    String getString(String key);
+    default String getString(String key) {
+        return getStringOrDefault(key, key);
+    }
+
+    String getStringOrDefault(String key, String onFail);
 
     Map<String, Object> getValues();
 
