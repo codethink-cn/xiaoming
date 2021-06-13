@@ -14,9 +14,10 @@ import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.schedule.task.PreservableSaveTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
+import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
+import com.chuanwise.xiaoming.api.util.CollectionUtils;
 import com.chuanwise.xiaoming.api.util.CommandWords;
-import com.chuanwise.xiaoming.api.util.StringUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 import net.mamoe.mirai.message.code.MiraiCode;
@@ -29,7 +30,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class CoreCommandInteractor extends CommandInteractorImpl {
-    public static final String BAT_REGEX = "(批处理|bat)";
+    public static final String BAT = "(批处理|bat)";
 
     public String getInteractorString() {
         final InteractorManager interactorManager = getXiaomingBot().getInteractorManager();
@@ -81,18 +82,32 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
         user.sendMessage("{callCounterIs}");
     }
 
+    @Filter(CommandWords.TASK + "(队列|queue)")
+    @Require("core.scheduler.list")
+    public void onListScheduler(XiaomingUser user) {
+        final Set<ScheduableTask<?>> runningTasks = getXiaomingBot().getScheduler().getRunningTasks();
+        final Set<ScheduableTask<?>> plannedTasks = getXiaomingBot().getScheduler().getPlannedTasks();
+
+        StringBuilder builder = new StringBuilder();
+        builder.append("执行中：").append(CollectionUtils.getSummary(runningTasks, ScheduableTask::getDescription, "\n")).append("\n")
+                .append("计划中：").append(CollectionUtils.getSummary(plannedTasks, task -> {
+            return task.getDescription() + "：" + (task.isTimeout() ? "已过期" : TimeUtils.after(task.getDelay()));
+        }, "\n"));
+        user.sendMessage(builder.toString());
+    }
+
     /**
      * 批处理指令
      * @param user 指令执行者
      * @param remain 指令
      */
-    @Filter("#" + BAT_REGEX + "#" + "{remain}")
+    @Filter("#" + BAT + "#" + "{remain}")
     public void onMultipleCommands(XiaomingUser user,
                                    @FilterParameter("remain") String remain,
                                    Message message) {
         final String[] subCommands = remain.split(Pattern.quote("\\n"), 0);
 
-        user.enableBuffer();
+        user.enablePrintWriter();
         int commandNumber = 0;
         try {
             for (int i = 1; i < subCommands.length; i++) {
@@ -125,6 +140,12 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
             user.setProperty("counter", commandNumber);
             user.sendMessage("{executeCommandSuccessfully}");
         }
+    }
+
+    @Filter(CommandWords.OPTIMIZE)
+    public void onOptimize(XiaomingUser user) {
+        getXiaomingBot().getScheduler().runLater(getXiaomingBot()::optimize, TimeUnit.SECONDS.toMicros(10));
+        user.sendMessage("{optimizedSuccessfully}");
     }
 
     @Filter(CommandWords.SAVE)
@@ -161,7 +182,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
                     printWriter.println(interactor.getName() + "：（无）");
                 } else {
                     printWriter.println(interactor.getName() + "：（" + usageStrings.size() + " 种）");
-                    printWriter.println(StringUtils.getCollectionSummary(usageStrings));
+                    printWriter.println(CollectionUtils.getSummary(usageStrings));
                 }
             }
         }
@@ -189,14 +210,14 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
                             printWriter.println(interactor.getName() + "：（无）");
                         } else {
                             printWriter.println(interactor.getName() + "：（" + usageStrings.size() + " 种）");
-                            printWriter.println(StringUtils.getCollectionSummary(usageStrings));
+                            printWriter.println(CollectionUtils.getSummary(usageStrings));
                         }
                     }
                 }
             }
         }
 
-        user.sendMessage(stringWriter.toString().trim());
+        user.sendPrivateMessage(stringWriter.toString().trim());
     }
 
     @Filter(CommandWords.HELP)
@@ -245,7 +266,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
         } else {
             user.sendMessage("当前共有 {} 个{receptionist}：{}",
                     receptionists.size(),
-                    StringUtils.getCollectionSummary(receptionists, receptionist -> {
+                    CollectionUtils.getSummary(receptionists, receptionist -> {
                         return receptionist.getCode() + "：" + (receptionist.isBusy() ? "忙碌" : "空闲");
                     }));
         }
@@ -276,14 +297,14 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
                     .append(singleTaskStatusFormatter.apply(receptionist.getPrivateTask()))
                     .append("\n");
 
-            Function<Map.Entry<String, ? extends ReceptionTask>, String> groupOrTempTaskStatusFormatter = entry -> {
+            Function<Map.Entry<String, ? extends ReceptionTask>, String> groupOrMemberTaskStatusFormatter = entry -> {
                 return entry.getKey() + "：" + (entry.getValue().isBusy() ? "忙碌" : "空闲");
             };
             builder.append("群接待任务：")
-                    .append(StringUtils.getCollectionSummary(receptionist.getGroupTasks().entrySet(), groupOrTempTaskStatusFormatter::apply))
+                    .append(CollectionUtils.getSummary(receptionist.getGroupTasks().entrySet(), groupOrMemberTaskStatusFormatter::apply))
                     .append("\n")
                     .append("临时会话接待任务：")
-                    .append(StringUtils.getCollectionSummary(receptionist.getTempTasks().entrySet(), groupOrTempTaskStatusFormatter::apply));
+                    .append(CollectionUtils.getSummary(receptionist.getMemberTasks().entrySet(), groupOrMemberTaskStatusFormatter::apply));
             user.sendMessage(builder.toString());
         }
     }

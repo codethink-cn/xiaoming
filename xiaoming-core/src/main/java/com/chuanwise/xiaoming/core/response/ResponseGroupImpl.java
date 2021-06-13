@@ -1,6 +1,7 @@
 package com.chuanwise.xiaoming.core.response;
 
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
+import com.chuanwise.xiaoming.core.object.XiaomingObjectImpl;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,7 +17,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 @Getter
 @NoArgsConstructor
-public class ResponseGroupImpl implements ResponseGroup {
+public class ResponseGroupImpl extends XiaomingObjectImpl implements ResponseGroup {
     long code;
     @Setter
     String alias;

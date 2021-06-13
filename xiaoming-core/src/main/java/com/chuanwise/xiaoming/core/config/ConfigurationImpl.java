@@ -27,7 +27,8 @@ public class ConfigurationImpl extends JsonFilePreservable implements Configurat
     boolean enableLicense = false;
     boolean enableClearCall = false;
     boolean enablePrivateClearCall = false;
-    boolean enableTempClearCall = false;
+    boolean enableMemberClearCall = false;
+    boolean enableStartLog = false;
     Set<String> callPrefixs = new LinkedHashSet<>();
 
     long maxUserInputWaitTime = TimeUnit.MINUTES.toMillis(10);

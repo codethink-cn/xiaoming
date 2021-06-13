@@ -14,13 +14,6 @@ public class PreservableSaveTaskImpl extends ScheduableTaskImpl<Void> implements
 
     long lastSaveTime = System.currentTimeMillis();
 
-    public PreservableSaveTaskImpl() {
-        setCallable(() -> {
-            save();
-            return null;
-        });
-    }
-
     @Override
     public void save(XiaomingUser user) {
         synchronized (preservables) {
@@ -47,5 +40,11 @@ public class PreservableSaveTaskImpl extends ScheduableTaskImpl<Void> implements
     @Override
     public void readySave(Preservable<?> preservable) {
         preservables.add(preservable);
+    }
+
+    @Override
+    public Void execute() {
+        save();
+        return null;
     }
 }

@@ -11,6 +11,8 @@ public interface AsyncResult<T> extends Runnable {
 
     boolean isCancelled();
 
+    boolean isFinished();
+
     java.util.concurrent.Callable<T> getCallable();
 
     Exception getException();

@@ -1,5 +1,7 @@
 package com.chuanwise.xiaoming.api.account;
 
+import com.chuanwise.xiaoming.api.account.record.CommandRecord;
+import com.chuanwise.xiaoming.api.account.record.Record;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
 
 import java.io.File;
@@ -7,15 +9,15 @@ import java.util.List;
 import java.util.Set;
 
 public interface Account extends Preservable<File> {
-    default void addEvent(AccountEvent event) {
+    default void addEvent(Record event) {
         getEvents().add(event);
     }
 
-    default void addHistory(AccountEvent history) {
+    default void addHistory(Record history) {
         getHistories().add(history);
     }
 
-    default void addCommand(AccountEvent command) {
+    default void addCommand(CommandRecord command) {
         getCommands().add(command);
     }
 
@@ -23,11 +25,11 @@ public interface Account extends Preservable<File> {
 
     String getAlias();
 
-    List<AccountEvent> getEvents();
+    List<Record> getEvents();
 
-    List<AccountEvent> getCommands();
+    List<CommandRecord> getCommands();
 
-    List<AccountEvent> getHistories();
+    List<Record> getHistories();
 
     void setCode(long code);
 

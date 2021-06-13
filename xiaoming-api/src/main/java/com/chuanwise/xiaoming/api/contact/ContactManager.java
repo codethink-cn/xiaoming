@@ -4,7 +4,7 @@ import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
-import com.chuanwise.xiaoming.api.contact.contact.TempContact;
+import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
 
 import java.util.*;
@@ -12,11 +12,13 @@ import java.util.*;
 public interface ContactManager extends ModuleObject {
     void clear();
 
+    PrivateContact getBotPrivateContact();
+
     PrivateContact getPrivateContact(long qq);
 
     GroupContact getGroupContact(long code);
 
-    TempContact getTempContact(long code, long qq);
+    MemberContact getMemberContact(long code, long qq);
 
     Map<String, List<GroupMessage>> getGroupRecentMessages();
 
@@ -57,10 +59,10 @@ public interface ContactManager extends ModuleObject {
         }
     }
 
-    default boolean sendTempMessage(long group, long qq, String message) {
+    default boolean sendMemberMessage(long group, long qq, String message) {
         final GroupContact groupContact = getGroupContact(group);
         if (Objects.nonNull(groupContact)) {
-            final TempContact member = groupContact.getMember(qq);
+            final MemberContact member = groupContact.getMember(qq);
             if (Objects.nonNull(member)) {
                 member.send(message);
                 return true;

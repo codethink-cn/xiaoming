@@ -3,6 +3,7 @@ package com.chuanwise.xiaoming.api.contact.message;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
+import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
@@ -39,7 +40,7 @@ public interface Message extends XiaomingObject, Cloneable {
         getXiaomingBot().getResourceManager().saveResources(this);
     }
 
-    default AsyncResult<Boolean> asyncSaveResources() {
+    default ScheduableTask<Boolean> asyncSaveResources() {
         return getXiaomingBot().getScheduler().run(() -> {
             saveResources();
             return true;
@@ -63,7 +64,7 @@ public interface Message extends XiaomingObject, Cloneable {
      * @param delay 延迟
      * @return 撤回消息的异步结果
      */
-    default AsyncResult<Boolean> recallLater(long delay) {
+    default ScheduableTask<Boolean> recallLater(long delay) {
         return getXiaomingBot().getScheduler().runLater(() -> {
             return recall();
         }, delay);

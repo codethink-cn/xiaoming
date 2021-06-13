@@ -31,28 +31,4 @@ public class StringUtils extends StaticUtils {
         }
         return builder.toString();
     }
-
-    public static <T> String getCollectionSummary(Iterable<T> iterable, Function<T, String> consumer, String prefix, String empty, String spliter) {
-        final Iterator<T> iterator = iterable.iterator();
-        if (!iterator.hasNext()) {
-            return empty;
-        } else {
-            StringBuilder builder = new StringBuilder(prefix);
-            for (T t : iterable) {
-                if (builder.length() != prefix.length()) {
-                    builder.append(spliter);
-                }
-                builder.append(consumer.apply(t));
-            }
-            return builder.toString();
-        }
-    }
-
-    public static <T> String getCollectionSummary(Iterable<T> iterable, Function<T, String> consumer) {
-        return getCollectionSummary(iterable, consumer, "", "（无）", "\n");
-    }
-
-    public static <T> String getCollectionSummary(Iterable<T> iterable) {
-        return getCollectionSummary(iterable, Objects::toString);
-    }
 }

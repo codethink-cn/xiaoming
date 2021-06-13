@@ -12,4 +12,9 @@ import java.util.List;
 
 public interface PrivateXiaomingUser extends XiaomingUser<PrivateContact, PrivateMessage, PrivateReceptionTask> {
     void setReceptionTask(PrivateReceptionTask receptionTask);
+
+    @Override
+    default void nudge() {
+        getContact().nudge();
+    }
 }

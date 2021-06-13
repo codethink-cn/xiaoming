@@ -43,7 +43,7 @@ public abstract class ReceptionTaskImpl extends ModuleObjectImpl implements Rece
     protected abstract void unregister();
 
     @Override
-    public final void run() {
+    public void run() {
         final XiaomingUser user = getUser();
         register();
         running = true;

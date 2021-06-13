@@ -1,15 +1,12 @@
 package com.chuanwise.xiaoming.core.contact.contact;
 
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
-import com.chuanwise.xiaoming.api.contact.contact.TempContact;
-import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
-import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
-import com.chuanwise.xiaoming.api.contact.message.TempMessage;
-import com.chuanwise.xiaoming.core.contact.message.TempMessageImpl;
+import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
+import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
+import com.chuanwise.xiaoming.core.contact.message.MemberMessageImpl;
 import lombok.Getter;
 import net.mamoe.mirai.contact.NormalMember;
 import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.QuoteReply;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -20,12 +17,12 @@ import java.util.concurrent.TimeUnit;
  * @author Chuanwise
  */
 @Getter
-public class TempContactImpl extends XiaomingContactImpl<TempMessage, NormalMember> implements TempContact {
+public class MemberContactImpl extends XiaomingContactImpl<MemberMessage, NormalMember> implements MemberContact {
     final NormalMember miraiContact;
     final GroupContact groupContact;
-    final List<TempMessage> recentMessages = new LinkedList<>();
+    final List<MemberMessage> recentMessages = new LinkedList<>();
 
-    public TempContactImpl(GroupContact groupContact, NormalMember miraiContact) {
+    public MemberContactImpl(GroupContact groupContact, NormalMember miraiContact) {
         super(groupContact.getXiaomingBot());
         this.miraiContact = miraiContact;
         this.groupContact = groupContact;
@@ -42,8 +39,8 @@ public class TempContactImpl extends XiaomingContactImpl<TempMessage, NormalMemb
     }
 
     @Override
-    public TempMessage send(MessageChain messages) {
-        return new TempMessageImpl(getXiaomingBot().getReceptionistManager().getBotReceptionist().getOrPutTempXiaomingUser(this),
+    public MemberMessage send(MessageChain messages) {
+        return new MemberMessageImpl(getXiaomingBot().getReceptionistManager().getBotReceptionist().getOrPutMemberXiaomingUser(this),
                 miraiContact.sendMessage(messages).getSource().getOriginalMessage());
     }
 }

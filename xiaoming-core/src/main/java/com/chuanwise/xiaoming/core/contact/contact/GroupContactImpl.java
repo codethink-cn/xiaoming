@@ -2,19 +2,13 @@ package com.chuanwise.xiaoming.core.contact.contact;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
-import com.chuanwise.xiaoming.api.contact.contact.TempContact;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
-import com.chuanwise.xiaoming.api.contact.message.Message;
-import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.core.contact.message.GroupMessageImpl;
 import lombok.Getter;
 import net.mamoe.mirai.contact.Group;
-import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.MessageChain;
 
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 
 @Getter
 public class GroupContactImpl extends XiaomingContactImpl<GroupMessage, Group> implements GroupContact {

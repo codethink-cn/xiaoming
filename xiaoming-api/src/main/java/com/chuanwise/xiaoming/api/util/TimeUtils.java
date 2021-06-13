@@ -98,15 +98,6 @@ public class TimeUtils extends StaticUtils {
     static final DateFormat MONTH_FORMAT = new SimpleDateFormat("dd hh:mm:ss");
     static final DateFormat DAYS_FORMAT = new SimpleDateFormat("dd:mm:ss");
 
-    public static long parseMillis(String timeString) {
-        try {
-            final Date parse = FULL_FORMAT.parse(timeString);
-            return parse.getTime();
-        } catch (ParseException e) {
-        }
-        return -1;
-    }
-
     @NotNull
     public static String after(final long time) {
         return after(System.currentTimeMillis(), time);

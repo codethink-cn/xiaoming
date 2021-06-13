@@ -10,16 +10,14 @@ import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
-import com.sun.media.jfxmedia.logging.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.Set;
 
-public class ConfirationCommandInteractor extends CommandInteractorImpl {
+public class ConfigurationCommandInteractor extends CommandInteractorImpl {
     final Configuration configuration;
 
-    public ConfirationCommandInteractor(XiaomingBot xiaomingBot) {
+    public ConfigurationCommandInteractor(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
         this.configuration = xiaomingBot.getConfiguration();
     }
@@ -100,11 +98,11 @@ public class ConfirationCommandInteractor extends CommandInteractorImpl {
         if (config.isEnableLicense()) {
             user.sendMessage("{compulsoryAgreementAlreadyEnabled}");
         } else {
-            String license = getXiaomingBot().getLanguageManager().getStringOrDefault("license", null);
+            String license = getXiaomingBot().getLanguage().getStringOrDefault("license", null);
             if (Objects.isNull(license)) {
                 user.sendMessage("{inputLicense}");
                 license = user.nextInput().serialize();
-                getXiaomingBot().getLanguageManager().put("license", license);
+                getXiaomingBot().getLanguage().put("license", license);
             }
             config.setEnableLicense(true);
             user.sendMessage("enableCompulsoryAgreementSuccessfully");
@@ -117,7 +115,7 @@ public class ConfirationCommandInteractor extends CommandInteractorImpl {
     public void onLookCompulsoryAgreement(XiaomingUser user) {
         final Configuration config = getXiaomingBot().getConfiguration();
         if (config.isEnableLicense()) {
-            user.sendMessage(getXiaomingBot().getLanguageManager().getString("license"));
+            user.sendMessage(getXiaomingBot().getLanguage().getString("license"));
         } else {
             user.sendMessage("{compulsoryAgreementHasNotBeenEnabled}");
         }

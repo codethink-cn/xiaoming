@@ -17,9 +17,13 @@ public interface Configuration extends Preservable<File>, XiaomingObject {
 
     boolean isEnablePrivateClearCall();
 
-    void setEnableTempClearCall(boolean enablePrivateClearCall);
+    void setEnableMemberClearCall(boolean enablePrivateClearCall);
 
-    boolean isEnableTempClearCall();
+    boolean isEnableMemberClearCall();
+
+    boolean isEnableStartLog();
+
+    void setEnableStartLog(boolean enableStartLog);
 
     void setMaxIterateTime(int maxIterateTime);
 

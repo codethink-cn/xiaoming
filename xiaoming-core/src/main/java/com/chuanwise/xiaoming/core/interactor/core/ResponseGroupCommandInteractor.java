@@ -121,11 +121,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     public void onListGroupTags(GroupXiaomingUser user) {
         final ResponseGroup group = user.getResponseGroup();
         final Set<String> tags = group.getTags();
-        if (tags.isEmpty()) {
-            user.sendMessage("{}仅具有{}和 recorded 两个原生标记", getGroupName(group), group.getCode());
-        } else {
-            user.sendMessage("{}除了具有{}和 recorded 两个原生标记，还有：{}", getGroupName(group), group.getCode(), tags);
-        }
+        user.sendMessage("{}的所有标记有：{}", getGroupName(group), group.getCode(), tags);
     }
 
     @Filter(CommandWords.NEW + CommandWords.GROUP + " {group}")
@@ -158,7 +154,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
             groupManager.addGroup(responseGroup);
             if (alreadyIn) {
                 user.sendMessage("成功将该群设置为小明的响应群。");
-                user.getXiaomingBot().getContactManager().sendGroupMessage(group, getXiaomingBot().getLanguageManager().getString("new-response-group"));
+                user.getXiaomingBot().getContactManager().sendGroupMessage(group, getXiaomingBot().getLanguage().getString("new-response-group"));
             } else {
                 user.sendMessage("成功将该群设置为小明的响应群，但小明还不在这个群中。");
             }

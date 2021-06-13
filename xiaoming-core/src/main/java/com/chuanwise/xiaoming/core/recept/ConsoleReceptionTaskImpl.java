@@ -5,8 +5,6 @@ import com.chuanwise.xiaoming.api.contact.message.ConsoleMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.recept.ConsoleReceptionTask;
 import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
-import com.chuanwise.xiaoming.api.user.PrivateXiaomingUser;
-import com.chuanwise.xiaoming.core.account.AccountEventImpl;
 import lombok.Getter;
 
 import java.util.List;
@@ -49,13 +47,7 @@ public class ConsoleReceptionTaskImpl extends ReceptionTaskImpl implements Conso
     @Override
     public void recept(Message message) throws Exception {
         if (getXiaomingBot().getInteractorManager().onInput(user, message)) {
-            final AccountEventImpl event = new AccountEventImpl(message.serialize());
-            final Account account = user.getOrPutAccount();
-
-            account.addCommand(event);
-            getXiaomingBot().getScheduler().readySave(account);
-
-            getXiaomingBot().getUserCallLimitManager().getGroupCallLimiter().addCallRecord(user.getCode());
+            
         } else {
             user.getRecentMessages().clear();
         }

@@ -10,15 +10,17 @@ import com.chuanwise.xiaoming.api.error.ReportMessageManager;
 import com.chuanwise.xiaoming.api.exception.NoSuchBotException;
 import com.chuanwise.xiaoming.api.exception.XiaomingInitializeException;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
+import com.chuanwise.xiaoming.api.language.Language;
 import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.schedule.Scheduler;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
+import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
+import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
 import com.chuanwise.xiaoming.api.util.PathUtils;
 import com.chuanwise.xiaoming.api.util.PluginLoaderUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
-import com.chuanwise.xiaoming.api.language.LanguageManager;
 import com.chuanwise.xiaoming.api.event.EventManager;
 import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
@@ -41,7 +43,7 @@ import com.chuanwise.xiaoming.core.recept.ReceptionistManagerImpl;
 import com.chuanwise.xiaoming.api.resource.ResourceManager;
 import com.chuanwise.xiaoming.core.resource.ResourceManagerImpl;
 import com.chuanwise.xiaoming.core.user.ConsoleXiaomingUserImpl;
-import com.chuanwise.xiaoming.core.language.LanguageManagerImpl;
+import com.chuanwise.xiaoming.core.language.LanguageImpl;
 import com.chuanwise.xiaoming.core.event.EventManagerImpl;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.core.limit.UserCallLimitManagerImpl;
@@ -80,8 +82,6 @@ public class XiaomingBotImpl implements XiaomingBot {
     public static final String VERSION = "1.1";
     public static final String AUTHOR = "Chuanwise";
     public static final String GITHUB = "https://github.com/Chuanwise/xiaoming-bot";
-
-    long lastStartTime = 0;
 
     @Override
     public Logger getLog() {
@@ -149,16 +149,14 @@ public class XiaomingBotImpl implements XiaomingBot {
         configuration.setXiaomingBot(this);
 
         // 加载调度器
-        scheduler = filePreservableFactory
-                .loadOrProduce(SchedulerImpl.class, new File(configDirectory, "scheduler.json"), SchedulerImpl::new);
-        scheduler.setXiaomingBot(this);
+        scheduler = new SchedulerImpl(this);
         scheduler.start();
 
-        scheduler.run(consoleInputThread);
-
         // 添加自动任务
-        // 自动优化性能任务
-        scheduler.periodicRunLater(this::optimize, configuration.getOptimizePeriod(), configuration.getOptimizePeriod());
+        scheduler.periodicRunLater(this::optimize, configuration.getOptimizePeriod(), configuration.getOptimizePeriod())
+                .setDescription("自动优化");
+        scheduler.periodicRunLater(scheduler.getPreservableSaveTask(), configuration.getSavePeriod(), configuration.getSavePeriod())
+                .setDescription("自动保存文件");
 
         initializer.put("userCallLimitManager", () -> {
             userCallLimitManager = new UserCallLimitManagerImpl();
@@ -180,6 +178,7 @@ public class XiaomingBotImpl implements XiaomingBot {
                     if (file.isFile() && file.getName().endsWith(".jar")) {
                         try {
                             PluginLoaderUtils.extendURLClassLoader(file, ((URLClassLoader) getClass().getClassLoader()));
+                            getLog().info("扩展类加载器：" + file.getAbsolutePath());
                         } catch (Exception exception) {
                             getLog().error("无法扩展类加载器", exception);
                         }
@@ -188,10 +187,10 @@ public class XiaomingBotImpl implements XiaomingBot {
             }
         });
 
-        initializer.put("languageManager", () -> {
-            languageManager = filePreservableFactory
-                    .loadOrProduce(LanguageManagerImpl.class, new File(configDirectory, "language.json"), LanguageManagerImpl::new);
-            languageManager.setXiaomingBot(this);
+        initializer.put("language", () -> {
+            language = filePreservableFactory
+                    .loadOrProduce(LanguageImpl.class, new File(configDirectory, "language.json"), LanguageImpl::new);
+            language.setXiaomingBot(this);
         });
 
         initializer.put("permissionManager", () -> {
@@ -206,7 +205,7 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         initializer.put("statistician", () -> {
             statistician = filePreservableFactory
-                    .loadOrProduce(StatisticianImpl.class, new File(configDirectory, "counters.json"), StatisticianImpl::new);
+                    .loadOrProduce(StatisticianImpl.class, new File(configDirectory, "statisticians.json"), StatisticianImpl::new);
             statistician.setXiaomingBot(this);
         });
 
@@ -245,6 +244,17 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         initializer.put("contactManager", () -> {
             contactManager = new ContactManagerImpl(this);
+        });
+
+        initializer.put("consoleXiaomingUser", () -> {
+            consoleInputThread = new ConsoleInputThread(this);
+            consoleXiaomingUser = new ConsoleXiaomingUserImpl(new ConsoleContactImpl(this, consoleInputThread));
+
+            consoleXiaomingUser.setReceptionist(receptionistManager.getBotReceptionist());
+            consoleXiaomingUser.setReceptionTask(receptionistManager.getBotReceptionistTask());
+            consoleInputThread.setConsoleUser(consoleXiaomingUser);
+
+            scheduler.run(consoleInputThread).setDescription("控制台接待任务");
         });
     }
 
@@ -304,12 +314,11 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         interactorManager.register(new PluginInteractor(this), null);
         interactorManager.register(new ResourceCommandInteractor(this), null);
-        interactorManager.register(new SchedulerCommandInteractor(), null);
         interactorManager.register(new AccountCommandInteractor(this), null);
         interactorManager.register(new ReportCommandInteractor(this), null);
         interactorManager.register(new CallLimitCommandInteractor(this), null);
         interactorManager.register(new CoreCommandInteractor(this), null);
-        interactorManager.register(new ConfirationCommandInteractor(this), null);
+        interactorManager.register(new ConfigurationCommandInteractor(this), null);
         interactorManager.register(new PermissionCommandInteractor(this), null);
         interactorManager.register(new ResponseGroupCommandInteractor(this), null);
         interactorManager.register(new LanguageCommandIterator(this), null);
@@ -384,7 +393,6 @@ public class XiaomingBotImpl implements XiaomingBot {
         } catch (Exception exception) {
             getLog().error(exception.getMessage(), exception);
         }
-        lastStartTime = System.currentTimeMillis();
         getLog().info("小明机器人启动完成");
     }
 
@@ -392,7 +400,9 @@ public class XiaomingBotImpl implements XiaomingBot {
      * 小明启动后的一些操作
      */
     void post() {
-        responseGroupManager.sendMessageToTaggedGroup("log", "{xiaomingEnabled}");
+        if (configuration.isEnableStartLog()) {
+            responseGroupManager.sendMessageToTaggedGroup("log", "{xiaomingEnabled}");
+        }
     }
 
     /**
@@ -407,10 +417,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     File configDirectory = PathUtils.CONFIG;
     PermissionManager permissionManager;
 
-    /**
-     * 表情包管理器
-     */
-    LanguageManager languageManager;
+    Language language;
 
     ContactManager contactManager;
 
@@ -454,11 +461,8 @@ public class XiaomingBotImpl implements XiaomingBot {
     /**
      * 控制台小明使用者
      */
-    ConsoleInputThread consoleInputThread = new ConsoleInputThread(this);
-    ConsoleXiaomingUser consoleXiaomingUser = new ConsoleXiaomingUserImpl(new ConsoleContactImpl(this, consoleInputThread));
-    {
-        consoleInputThread.setConsoleUser(consoleXiaomingUser);
-    }
+    ConsoleInputThread consoleInputThread;
+    ConsoleXiaomingUser consoleXiaomingUser;
 
     /**
      * 用户数据管理器
@@ -547,8 +551,12 @@ public class XiaomingBotImpl implements XiaomingBot {
         }
 
         getLog().info("正在关闭线程池");
+
         // 唤醒并关闭所有用户线程
         receptionistManager.close();
+
+        // 添加开机记录
+        statistician.onClose();
 
         // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
         scheduler.stop();

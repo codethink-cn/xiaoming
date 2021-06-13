@@ -2,7 +2,10 @@ package com.chuanwise.xiaoming.core.thread;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
+import com.chuanwise.xiaoming.api.interactor.Interactor;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
+import com.chuanwise.xiaoming.core.contact.message.ConsoleMessageImpl;
+import com.chuanwise.xiaoming.core.log.ConsoleLogger;
 import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import com.chuanwise.xiaoming.core.recept.ReceptionistImpl;
 import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
@@ -11,8 +14,11 @@ import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.NormalMember;
+import net.mamoe.mirai.message.code.MiraiCode;
+import net.mamoe.mirai.message.data.FileMessage;
 import net.mamoe.mirai.message.data.MessageChain;
 
+import java.io.File;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -26,6 +32,7 @@ public class ConsoleInputThread extends ModuleObjectImpl implements Runnable {
     Receptionist consoleReceptionist;
 
     volatile Thread inputThread;
+    ConsoleLogger consoleLogger;
 
     public ConsoleInputThread(XiaomingBot xiaomingBot) {
         super(xiaomingBot);
@@ -33,25 +40,38 @@ public class ConsoleInputThread extends ModuleObjectImpl implements Runnable {
 
     public void setConsoleUser(ConsoleXiaomingUser consoleUser) {
         this.consoleUser = consoleUser;
-        consoleReceptionist = new ReceptionistImpl(consoleUser);
+        consoleReceptionist = consoleUser.getReceptionist();
+    }
+
+    public ConsoleLogger getConsoleLogger() {
+        if (Objects.isNull(consoleLogger)) {
+            consoleLogger = getXiaomingBot().getFilePreservableFactory()
+                    .loadOrProduce(ConsoleLogger.class, new File(getXiaomingBot().getLogDirectory(), "console.json"), ConsoleLogger::new);
+        }
+        return consoleLogger;
     }
 
     @Override
     public void run() {
+        Thread.currentThread().setName("reception-task[console]");
+
         if (Objects.isNull(inputThread)) {
             inputThread = Thread.currentThread();
         } else {
             throw new XiaomingRuntimeException("multiple console input thread");
         }
 
-        final Bot miraiBot = getXiaomingBot().getMiraiBot();
-
         try (Scanner scanner = new Scanner(System.in)) {
             while (!getXiaomingBot().isStop()) {
                 final String message = scanner.nextLine();
+                final ConsoleMessageImpl consoleMessage = new ConsoleMessageImpl(consoleUser, MiraiCode.deserializeMiraiCode(message));
                 try {
-                    consoleReceptionist.onPrivateMessage(getXiaomingBot().getContactManager().getPrivateContact(consoleUser.getCode()),
-                            MessageChain.deserializeFromJsonString(message));
+                    final Interactor interactor = consoleUser.getInteractor();
+                    if (Objects.isNull(interactor)) {
+                        if (!getXiaomingBot().getInteractorManager().onInput(consoleUser, consoleMessage)) {
+                            consoleUser.sendError("小明不知道你的意思");
+                        }
+                    }
                 } catch (Exception exception) {
                     exception.printStackTrace();
                 }

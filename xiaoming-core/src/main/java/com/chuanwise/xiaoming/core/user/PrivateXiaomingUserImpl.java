@@ -1,9 +1,12 @@
 package com.chuanwise.xiaoming.core.user;
 
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
+import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
+import com.chuanwise.xiaoming.api.recept.GroupReceptionTask;
 import com.chuanwise.xiaoming.api.recept.PrivateReceptionTask;
+import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.user.PrivateXiaomingUser;
 import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
 import com.chuanwise.xiaoming.core.contact.message.GroupMessageImpl;
@@ -14,6 +17,7 @@ import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 @Getter
 public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, PrivateMessage, PrivateReceptionTask> implements PrivateXiaomingUser {
@@ -35,8 +39,35 @@ public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, Pr
     }
 
     @Override
+    public void onNextInput(PrivateMessage message) {
+        final List<PrivateMessage> list = getRecentMessages();
+        setProperty("last", message.serialize());
+        list.add(message);
+
+        final Receptionist receptionist = getReceptionist();
+        receptionist.setGlobalRecentMessages(list);
+
+        final PrivateReceptionTask receptionTask = getReceptionTask();
+        if (Objects.isNull(receptionTask)) {
+            receptionist.onPrivateMessage(getContact(), message);
+        }
+
+        synchronized (list) {
+            list.notifyAll();
+        }
+        synchronized (this) {
+            this.notifyAll();
+        }
+    }
+
+    @Override
     public void sendMessage(String message, Object... arguments) {
-        contact.send(replaceArguments(message, arguments));
+        final String replacedMessage = replaceArguments(message, arguments);
+        if (isUsingBuffer()) {
+            appendBuffer(replacedMessage);
+        } else {
+            contact.send(replacedMessage);
+        }
     }
 
     @Override

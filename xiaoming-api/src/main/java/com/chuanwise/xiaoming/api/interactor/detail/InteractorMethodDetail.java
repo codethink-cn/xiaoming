@@ -33,12 +33,14 @@ public class InteractorMethodDetail {
         final Filter[] filters = method.getAnnotationsByType(Filter.class);
         final List<String> usageStrings = new ArrayList<>();
         filterMatchers = ArrayUtils.copyAs(filters, FilterMatcher.class, filter -> {
-            String usage = filter.usage();
+            final FilterMatcher filterMatcher = FilterMatcher.filterMatcher(filter);
+            String usage = filterMatcher.toString();
             if (StringUtils.isEmpty(usage)) {
                 usage = filter.toString();
             }
+
             usageStrings.add(usage);
-            return FilterMatcher.filterMatcher(filter);
+            return filterMatcher;
         });
         this.usageStrings = usageStrings.toArray(new String[0]);
 

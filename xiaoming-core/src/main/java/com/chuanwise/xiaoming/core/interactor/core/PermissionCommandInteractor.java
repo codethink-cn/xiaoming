@@ -13,8 +13,8 @@ import com.chuanwise.xiaoming.api.permission.PermissionManager;
 import com.chuanwise.xiaoming.api.permission.PermissionUserNode;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
+import com.chuanwise.xiaoming.api.util.CollectionUtils;
 import com.chuanwise.xiaoming.api.util.CommandWords;
-import com.chuanwise.xiaoming.api.util.StringUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 import com.chuanwise.xiaoming.core.permission.PermissionGroupImpl;
 
@@ -105,7 +105,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
             }
         }
         Collections.sort(permissions);
-        user.sendMessage("当前有效的所有静态节点：" + StringUtils.getCollectionSummary(permissions, String::toString, "", "（无）", "\n"));
+        user.sendMessage("当前有效的所有静态节点：" + CollectionUtils.getSummary(permissions, String::toString, "", "（无）", "\n"));
     }
 
     /**
@@ -280,11 +280,11 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
         printWriter.println("【权限组信息】");
         printWriter.println("权限组名：" + name);
         printWriter.println("备注：" + (Objects.isNull(permissionGroup.getAlias()) ? "（无）" : permissionGroup.getAlias()));
-        printWriter.println("父权限组：" + StringUtils.getCollectionSummary(permissionGroup.getSuperGroups(), String::toString, "\n", "（无）", "\n"));
-        printWriter.println("特有权限：" + StringUtils.getCollectionSummary(permissionGroup.getPermissions(), String::toString, "\n", "（无）", "\n"));
-        printWriter.print("群组权限：" + StringUtils.getCollectionSummary(permissionGroup.getGroupPermissions().entrySet(), entry -> {
+        printWriter.println("父权限组：" + CollectionUtils.getSummary(permissionGroup.getSuperGroups(), String::toString, "\n", "（无）", "\n"));
+        printWriter.println("特有权限：" + CollectionUtils.getSummary(permissionGroup.getPermissions(), String::toString, "\n", "（无）", "\n"));
+        printWriter.print("群组权限：" + CollectionUtils.getSummary(permissionGroup.getGroupPermissions().entrySet(), entry -> {
             final String tag = entry.getKey();
-            return tag + "：" + StringUtils.getCollectionSummary(entry.getValue(), String::toString, "", "（无）", "，");
+            return tag + "：" + CollectionUtils.getSummary(entry.getValue(), String::toString, "", "（无）", "，");
         }, "\n", "（无）", "\n"));
 
         user.sendMessage(stringWriter.toString());
@@ -350,7 +350,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
     public void onListPermissionGroup(XiaomingUser user) {
         final Map<String, PermissionGroup> groups = permissionManager.getGroups();
         user.sendMessage("当前共有 " + groups.size() + " 个权限组：" +
-                StringUtils.getCollectionSummary(groups.keySet(), this::getPermissionGroupName, "\n", "（无）", "\n"));
+                CollectionUtils.getSummary(groups.keySet(), this::getPermissionGroupName, "\n", "（无）", "\n"));
     }
 
     /**
@@ -437,10 +437,10 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
 
             printWriter.println("用户权限信息：");
             printWriter.println("所属组：" + getPermissionGroupName(userNode.getGroup()));
-            printWriter.println("特有权限：" + StringUtils.getCollectionSummary(userNode.getPermissions(), String::toString, "\n", "（无）", "\n"));
-            printWriter.print("群组权限：" + StringUtils.getCollectionSummary(userNode.getGroupPermissions().entrySet(), entry -> {
+            printWriter.println("特有权限：" + CollectionUtils.getSummary(userNode.getPermissions(), String::toString, "\n", "（无）", "\n"));
+            printWriter.print("群组权限：" + CollectionUtils.getSummary(userNode.getGroupPermissions().entrySet(), entry -> {
                 final String tag = entry.getKey();
-                return tag + "：" + StringUtils.getCollectionSummary(entry.getValue(), String::toString, "", "（无）", "，");
+                return tag + "：" + CollectionUtils.getSummary(entry.getValue(), String::toString, "", "（无）", "，");
             }, "\n", "（无）", "\n"));
 
             user.sendMessage(stringWriter.toString());

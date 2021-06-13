@@ -3,6 +3,7 @@ package com.chuanwise.xiaoming.api.user;
 import com.chuanwise.xiaoming.api.contact.contact.ConsoleContact;
 import com.chuanwise.xiaoming.api.contact.message.ConsoleMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
+import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
 import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.recept.ConsoleReceptionTask;
 import com.chuanwise.xiaoming.api.util.ArgumentUtils;
@@ -13,23 +14,36 @@ public interface ConsoleXiaomingUser extends ModuleObject, XiaomingUser<ConsoleC
     void setReceptionTask(ConsoleReceptionTask receptionTask);
 
     @Override
-    default void sendMessage(String message, Object... arguments) {
-        getLog().info("消息：" + ArgumentUtils.replaceArguments(ArgumentUtils.replaceArguments(message, getProperties(), getXiaomingBot().getConfiguration().getMaxIterateTime()), arguments));
+    default boolean hasPermission(String require) {
+        return true;
     }
 
     @Override
-    default void sendWarning(String message, Object... arguments) {
-        getLog().warn(ArgumentUtils.replaceArguments(ArgumentUtils.replaceArguments(message, getProperties(), getXiaomingBot().getConfiguration().getMaxIterateTime()), arguments));
+    default String getName() {
+        return "后台";
+    }
+
+    @Override
+    default void sendMessage(String message, Object... arguments) {
+        final String replacedMessage = replaceArguments(message, arguments);
+        getLog().info(replacedMessage);
     }
 
     @Override
     default void sendError(String message, Object... arguments) {
-        getLog().error(ArgumentUtils.replaceArguments(ArgumentUtils.replaceArguments(message, getProperties(), getXiaomingBot().getConfiguration().getMaxIterateTime()), arguments));
+        final String replacedMessage = replaceArguments(message, arguments);
+        getLog().error(replacedMessage);
     }
 
     @Override
-    default boolean hasPermission(String require) {
-        return true;
+    default void sendWarning(String message, Object... arguments) {
+        final String replacedMessage = replaceArguments(message, arguments);
+        getLog().warn(replacedMessage);
+    }
+
+    @Override
+    default void sendPrivateWarning(String message, Object... arguments) {
+        sendWarning(message, arguments);
     }
 
     @Override
@@ -43,12 +57,7 @@ public interface ConsoleXiaomingUser extends ModuleObject, XiaomingUser<ConsoleC
     }
 
     @Override
-    default void sendPrivateWarning(String message, Object... arguments) {
-        sendWarning(message, arguments);
-    }
-
-    @Override
-    default String getName() {
-        return "后台";
+    default void nudge() {
+        sendWarning("戳了戳你");
     }
 }

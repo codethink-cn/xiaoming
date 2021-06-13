@@ -4,6 +4,8 @@ import com.chuanwise.xiaoming.api.contact.message.ConsoleMessage;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
+import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
+import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.message.code.MiraiCode;
@@ -42,7 +44,7 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
         return messages;
     }
 
-    default AsyncResult<M> sendLater(long timeout, String message) {
+    default ScheduableTask<M> sendLater(long timeout, String message) {
         return getXiaomingBot().getScheduler().run(() -> {
             try {
                 Thread.sleep(timeout);
@@ -53,7 +55,7 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
         });
     }
 
-    default AsyncResult<M> sendLater(long timeout, MessageChain message) {
+    default ScheduableTask<M> sendLater(long timeout, MessageChain message) {
         return getXiaomingBot().getScheduler().run(() -> {
             try {
                 Thread.sleep(timeout);
@@ -64,7 +66,7 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
         });
     }
 
-    default AsyncResult<M> sendLater(long timeout, M message) {
+    default ScheduableTask<M> sendLater(long timeout, M message) {
         return getXiaomingBot().getScheduler().run(() -> {
             try {
                 Thread.sleep(timeout);
@@ -87,15 +89,15 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
         return reply(quote, MiraiCode.deserializeMiraiCode(message));
     }
 
-    default AsyncResult<M> replyLater(long delay, M quote, MessageChain messages) {
+    default ScheduableTask<M> replyLater(long delay, M quote, MessageChain messages) {
         return sendLater(delay, new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(messages));
     }
 
-    default AsyncResult<M> replyLater(long delay, M quote, String message) {
+    default ScheduableTask<M> replyLater(long delay, M quote, String message) {
         return replyLater(delay, quote, MiraiCode.deserializeMiraiCode(message));
     }
 
-    default AsyncResult<M> replyLater(long delay, M quote, M message) {
+    default ScheduableTask<M> replyLater(long delay, M quote, M message) {
         return replyLater(delay, quote, message.getMessageChain());
     }
 

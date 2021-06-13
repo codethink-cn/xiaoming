@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.api.plugin;
 
+import com.chuanwise.xiaoming.api.language.Language;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
 import com.chuanwise.xiaoming.api.util.FileUtils;
@@ -36,6 +37,10 @@ public interface XiaomingPlugin extends XiaomingObject {
         }
         return getName();
     }
+
+    Language getLanguage();
+
+    void setLanguage(Language language);
 
     /**
      * 获取插件名
@@ -78,12 +83,19 @@ public interface XiaomingPlugin extends XiaomingObject {
     }
 
     default boolean copyResourceTo(String path, File to) throws IOException {
+        if (!to.isFile()) {
+            to.createNewFile();
+        }
         return FileUtils.copyResource(getClassLoader(), path, to);
     }
 
     default boolean copyDefaultConfiguration() throws IOException {
         return copyResourceTo(CONFIGURATION_FILE_NAME, getConfigurationFile());
     }
+
+    Language loadLanguage(File file);
+
+    Language loadLanguageOrProduce(File file);
 
     default <T extends Preservable<File>> T loadConfigurationAs(Class<T> clazz) {
         return loadFileAs(clazz, getConfigurationFile());

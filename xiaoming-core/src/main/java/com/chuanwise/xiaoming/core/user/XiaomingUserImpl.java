@@ -22,13 +22,14 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * 小明的使用者对象
  * @author Chuanwise
  */
-@Getter
 public abstract class XiaomingUserImpl<C extends XiaomingContact<M, ?>, M extends Message, R extends ReceptionTask>
         extends ModuleObjectImpl implements XiaomingUser<C, M, R> {
     @Setter
+    @Getter
     Receptionist receptionist;
 
     @Setter
+    @Getter
     Interactor interactor;
 
     public XiaomingUserImpl(XiaomingBot xiaomingBot, long qq) {
@@ -49,23 +50,60 @@ public abstract class XiaomingUserImpl<C extends XiaomingContact<M, ?>, M extend
     }
 
     @Override
-    public void enableBuffer() {
+    public void enablePrintWriter() {
         final StringWriter stringWriter = new StringWriter();
         stringWriters.add(stringWriter);
         printWriters.add(new PrintWriter(stringWriter));
     }
 
     @Override
-    public void disableBuffer() {
+    public void disablePrintWriter() {
         if (isUsingBuffer()) {
             stringWriters.pop();
             printWriters.pop();
         }
     }
 
+    @Override
+    public PrintWriter getPrintWriter() {
+        if (printWriters.empty()) {
+            return null;
+        } else {
+            return printWriters.peek();
+        }
+    }
+
+    @Override
+    public void appendBuffer(String string) {
+        final PrintWriter printWriter = getPrintWriter();
+        if (stringWriters.peek().getBuffer().length() != 0) {
+            printWriter.println();
+        }
+        printWriter.print(string);
+    }
+
+    @Override
+    public String getBufferAndClose() {
+        if (stringWriters.empty()) {
+            return null;
+        }
+
+        final String string = stringWriters.pop().toString();
+        disablePrintWriter();
+
+        if (!stringWriters.empty()) {
+            stringWriters.peek().append("\n").append(string);
+        }
+
+        return string;
+    }
+
+    @Getter
     Map<String, Object> properties = new ConcurrentHashMap<>();
 
+    @Getter
     Map<String, Set<Thread>> propertyWaiters = new ConcurrentHashMap<>();
 
+    @Getter
     Set<Thread> globalMessageWaiter = new CopyOnWriteArraySet<>();
 }

@@ -1,9 +1,11 @@
 package com.chuanwise.xiaoming.api.util;
 
 import com.chuanwise.xiaoming.api.contact.message.Message;
+import com.chuanwise.xiaoming.api.exception.InteractorTimeoutException;
 import com.chuanwise.xiaoming.api.exception.ReceptCancelledException;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -17,24 +19,22 @@ import java.util.regex.Pattern;
  * @author Chuanwise
  */
 public class InteractorUtils extends StaticUtils {
-    static final Pattern PAGE = Pattern.compile("(第|p|P)?\\s*?(?<page>\\d+)\\s*?页?");
-    static final Pattern INDEX = Pattern.compile("(第|no|No)\\s*?(?<index>\\d+)\\s*?(个?)");
+    static final Pattern PAGE = Pattern.compile("(第|P|p)\\s*(?<page>\\d+)\\s*页");
 
-    public static <T> void showList(XiaomingUser user, List<T> list, Function<T, String> consumer, String empty, int pageElemNumber) {
-        if (list.isEmpty()) {
+    public static <T> void showCollection(XiaomingUser user, Collection<T> collection, Function<T, String> summarizer, String empty, int pageElemNumber) {
+        if (collection.isEmpty()) {
             user.sendMessage(empty);
             return;
         }
 
-        List<String> strings = new ArrayList<>(list.size());
-        list.forEach(t -> strings.add(consumer.apply(t)));
-        if (list.size() < pageElemNumber) {
+        List<String> strings = new ArrayList<>(collection.size());
+        collection.forEach(t -> strings.add(summarizer.apply(t)));
+        if (collection.size() < pageElemNumber) {
             int index = 0;
             StringBuilder builder = new StringBuilder((++index) + "、" + strings.get(0));
-            for (int i = 1; i < list.size(); i++) {
+            for (int i = 1; i < collection.size(); i++) {
                 builder.append("\n").append((++index) + "、" + strings.get(0));
             }
-
             user.sendMessage(builder.toString());
         } else {
             int pageNumber = 0;
@@ -71,7 +71,7 @@ public class InteractorUtils extends StaticUtils {
                 if (nextMatcher.matches()) {
                     final int switchTo = Integer.parseInt(nextMatcher.group("page"));
                     if (switchTo < 1 || switchTo > totalPageNumber) {
-                        user.sendError("页码应该介于 [{}, {}) 哦", 1, totalPageNumber);
+                        user.sendError("页码应该在 {} 到 {} 之间", 1, totalPageNumber);
                         showPageInfo = false;
                     } else if (switchTo + 1 == pageNumber) {
                         user.sendMessage("当前就正在这一页上哦");
@@ -83,11 +83,10 @@ public class InteractorUtils extends StaticUtils {
                 }
 
                 // 第 X 个
-                final Matcher indexMatcher = INDEX.matcher(nextInput);
-                if (nextMatcher.matches()) {
-                    final int index = Integer.parseInt(indexMatcher.group("index"));
-                    if (index < 1 || index > list.size()) {
-                        user.sendError("序号应该介于 [{}, {}) 哦", 1, list.size());
+                if (nextInput.matches("\\d+")) {
+                    final int index = Integer.parseInt(nextInput);
+                    if (index < 1 || index > collection.size()) {
+                        user.sendError("序号应该在 {} 到 {} 之间", 1, collection.size());
                         showPageInfo = false;
                     } else {
                         final int switchTo = index / pageElemNumber;
@@ -125,53 +124,121 @@ public class InteractorUtils extends StaticUtils {
                         break;
                     case "退出":
                     case "exit":
-                        user.sendMessage("已退出阅览表格");
                         shouldBreak = true;
                         break;
                     default:
-                        user.sendMessage("小明不知道你的意思，就先退出啦");
-                        shouldBreak = true;
+                        user.sendMessage("应该告诉选择的序号、「第x页」「上一页」「下一页」或「退出」哦");
+                        showPageInfo = false;
                 }
             }
         }
     }
 
-    public static <T> T indexChooser(XiaomingUser user, List<T> elements, Function<T, String> summaryer, String prefix, String spliter, int pageElemNumber) {
-        /*
-        int frontIndex = 0;
-        int elementNumber = elements.size();
-        int totalPageNumber = elementNumber / frontIndex + (elementNumber % frontIndex != 0 ? 1 : 0);
-        int curPageNumber = 1;
+    public static <T> T indexChooser(XiaomingUser user, Collection<T> collection, Function<T, String> summarizer, String empty, String splitter, int pageElemNumber) {
+        if (collection.isEmpty()) {
+            user.sendMessage(empty);
+            return null;
+        }
 
-        int index = 0;
-        int finalChoose = 0;
-        StringBuilder builder = new StringBuilder();
-        while (true) {
-            builder.setLength(0);
-            builder.append("第 ").append(curPageNumber).append(" 页，共 ").append(totalPageNumber).append(" 页").append("\n");
+        List<String> strings = new ArrayList<>(collection.size());
+        collection.forEach(t -> strings.add(summarizer.apply(t)));
+        if (collection.size() < pageElemNumber) {
+            int index = 0;
+            StringBuilder builder = new StringBuilder((++index) + "、" + strings.get(0));
+            for (int i = 1; i < collection.size(); i++) {
+                builder.append("\n").append((++index) + "、" + strings.get(0));
+            }
+            user.sendMessage(builder.toString());
+        } else {
+            int pageNumber = 0;
+            final int totalPageNumber = strings.size() / pageElemNumber + (strings.size() % pageElemNumber == 0 ? 0 : 1);
 
-            if (elementNumber - frontIndex <= pageElemNumber) {
-                int thisPageElemNumber = Math.min(elementNumber, frontIndex + pageElemNumber) - frontIndex;
-                builder.append(prefix);
+            // 生成每一页的信息
+            List<String> pageInfo = new ArrayList<>(totalPageNumber);
+            for (int i = 0; i < totalPageNumber; i++) {
+                final StringBuilder builder = new StringBuilder();
 
-                builder.append(frontIndex).append("、").append(summaryer.apply(elements.get(frontIndex++)));
-                for (int i = frontIndex; i < thisPageElemNumber; i++) {
-                    builder.append(i).append("、").append(spliter).append(summaryer.apply(elements.get(i)));
+                builder.append("第 ").append(i + 1).append(" 页，共 ").append(totalPageNumber).append(" 页");
+                int pageFrontIndex = pageElemNumber * i;
+                int pageEndIndex = Math.min(pageFrontIndex + pageElemNumber, strings.size());
+                for (int j = pageFrontIndex; j < pageEndIndex; j++) {
+                    builder.append(splitter).append(j + 1).append("、").append(strings.get(j));
                 }
+
+                pageInfo.add(builder.toString());
             }
 
-            String choose = user.nextInput();
-            while (true) {
+            boolean showPageInfo = true;
+            boolean shouldBreak = false;
+            while (!shouldBreak) {
+                if (showPageInfo) {
+                    user.sendMessage(pageInfo.get(pageNumber));
+                }
+                showPageInfo = true;
 
-            }
-            if (Objects.equals(choose, "上一页")) {
-                if (curPageNumber == 1) {
-                    user.sendError("已经没有上一页啦");
+                // 选择翻页等操作
+                final String nextInput = user.nextInput().serialize();
+
+                // 第 X 页
+                final Matcher nextMatcher = PAGE.matcher(nextInput);
+                if (nextMatcher.matches()) {
+                    final int switchTo = Integer.parseInt(nextMatcher.group("page"));
+                    if (switchTo < 1 || switchTo > totalPageNumber) {
+                        user.sendError("页码应该在 {} 到 {} 之间", 1, totalPageNumber);
+                        showPageInfo = false;
+                    } else if (switchTo + 1 == pageNumber) {
+                        user.sendMessage("当前就正在这一页上哦");
+                        showPageInfo = false;
+                    } else {
+                        pageNumber = switchTo - 1;
+                    }
+                    continue;
+                }
+
+                // 第 X 个
+                if (nextInput.matches("\\d+")) {
+                    final int index = Integer.parseInt(nextInput);
+                    if (index < 1 || index > collection.size()) {
+                        user.sendError("序号应该在 {} 到 {} 之间哦", 1, collection.size());
+                        showPageInfo = false;
+                    } else {
+                        return (T) collection.toArray(new Object[0])[index - 1];
+                    }
+                    continue;
+                }
+
+                switch (nextInput) {
+                    case "下一页":
+                    case "下页":
+                    case "next":
+                        if (pageNumber + 1 == totalPageNumber) {
+                            user.sendError("已经没有下一页了，重新选择一下吧");
+                            showPageInfo = false;
+                        } else {
+                            pageNumber++;
+                        }
+                        break;
+                    case "上一页":
+                    case "上页":
+                    case "front":
+                    case "prev":
+                        if (pageNumber == 0) {
+                            user.sendError("已经没有上一页了，重新选择一下吧");
+                            showPageInfo = false;
+                        } else {
+                            pageNumber--;
+                        }
+                        break;
+                    case "退出":
+                    case "exit":
+                        shouldBreak = true;
+                        break;
+                    default:
+                        user.sendMessage("应该告诉选择的序号、「第x页」「上一页」「下一页」或「退出」哦");
+                        showPageInfo = false;
                 }
             }
         }
-
-         */
         return null;
     }
 
@@ -189,7 +256,7 @@ public class InteractorUtils extends StaticUtils {
             if (sizeBeforeWait + 1 == list.size()) {
                 return list.get(sizeBeforeWait);
             } else {
-                throw new ReceptCancelledException();
+                throw new InteractorTimeoutException();
             }
         } else {
             onTimeout.run();
@@ -198,8 +265,7 @@ public class InteractorUtils extends StaticUtils {
     }
 
     public static <T> T waitLastElement(List<T> list, long timeout) {
-        return waitLastElement(list, timeout, () -> {
-        });
+        return waitLastElement(list, timeout, () -> {});
     }
 
     public static <T, C extends Collection<T>> C fillCollection(XiaomingUser user,
@@ -252,5 +318,22 @@ public class InteractorUtils extends StaticUtils {
                                                                         C collection,
                                                                         boolean emptyable) {
         return fillCollection(user, questionWithoutAsk, what, collection, string -> true, String::toString, emptyable);
+    }
+
+    public static Message waitNextLegalInput(XiaomingUser user, Predicate<String> judger, String illegalInput) {
+        while (true) {
+            final Message message = user.nextInput();
+            final String serializedMessage = message.serialize();
+
+            if (judger.test(serializedMessage)) {
+                return message;
+            } else {
+                user.sendError(illegalInput);
+            }
+        }
+    }
+
+    public static Message waitNextInputIn(XiaomingUser user, Collection<String> definations, String illegalInput) {
+        return waitNextLegalInput(user, definations::contains, illegalInput);
     }
 }

@@ -41,7 +41,7 @@ public class GlobalCommandInteractor extends CommandInteractorImpl {
                 user.sendMessage("你此前已经同意了小明使用协议");
             } else {
                 /*
-                user.sendPrivateMessage(getXiaomingBot().getLanguageManager().loadOrFail(config.getLicenseName()));
+                user.sendPrivateMessage(getXiaomingBot().getLanguage().loadOrFail(config.getLicenseName()));
                 user.sendPrivateMessage("如果你同意上述协议，请告诉我「同意」");
 
                 final String nextInput = user.nextGlobalInput();

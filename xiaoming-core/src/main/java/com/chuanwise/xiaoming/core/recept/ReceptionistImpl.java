@@ -3,23 +3,23 @@ package com.chuanwise.xiaoming.core.recept;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
-import com.chuanwise.xiaoming.api.contact.contact.TempContact;
+import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
-import com.chuanwise.xiaoming.api.contact.message.TempMessage;
+import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
 import com.chuanwise.xiaoming.api.recept.*;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.PrivateXiaomingUser;
-import com.chuanwise.xiaoming.api.user.TempXiaomingUser;
+import com.chuanwise.xiaoming.api.user.MemberXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.contact.message.GroupMessageImpl;
 import com.chuanwise.xiaoming.core.contact.message.PrivateMessageImpl;
-import com.chuanwise.xiaoming.core.contact.message.TempMessageImpl;
+import com.chuanwise.xiaoming.core.contact.message.MemberMessageImpl;
 import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import com.chuanwise.xiaoming.core.user.GroupXiaomingUserImpl;
 import com.chuanwise.xiaoming.core.user.PrivateXiaomingUserImpl;
-import com.chuanwise.xiaoming.core.user.TempXiaomingUserImpl;
+import com.chuanwise.xiaoming.core.user.MemberXiaomingUserImpl;
 import lombok.Getter;
 import lombok.Setter;
 import net.mamoe.mirai.message.code.MiraiCode;
@@ -59,7 +59,7 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
     /**
      * 群临时会话接待线程
      */
-    Map<String, TempReceptionTask> tempTasks = new ConcurrentHashMap<>();
+    Map<String, MemberReceptionTask> memberTasks = new ConcurrentHashMap<>();
 
     /**
      * 私聊接待线程
@@ -72,14 +72,14 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
 
     List<PrivateMessage> privateRecentMessages = new LinkedList<>();
 
-    Map<String, List<TempMessage>> tempRecentMessages = new HashMap<>();
+    Map<String, List<MemberMessage>> memberRecentMessages = new HashMap<>();
 
     @Setter
     List<? extends Message> globalRecentMessages = new LinkedList<>();
 
     Map<Long, GroupXiaomingUser> groupXiaomingUsers = new HashMap<>();
 
-    Map<Long, TempXiaomingUser> tempXiaomingUsers = new HashMap<>();
+    Map<Long, MemberXiaomingUser> memberXiaomingUsers = new HashMap<>();
 
     PrivateXiaomingUser privateXiaomingUser;
 
@@ -93,11 +93,11 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
     }
 
     @Override
-    public GroupXiaomingUser getOrPutGroupXiaomingUser(GroupContact groupContact, TempContact tempContact) {
+    public GroupXiaomingUser getOrPutGroupXiaomingUser(GroupContact groupContact, MemberContact memberContact) {
         final long groupCode = groupContact.getCode();
         GroupXiaomingUser groupXiaomingUser = getGroupXiaomingUser(groupCode);
         if (Objects.isNull(groupXiaomingUser)) {
-            groupXiaomingUser = new GroupXiaomingUserImpl(groupContact, tempContact, getOrPutGroupRecentMessage(groupContact.getCodeString()));
+            groupXiaomingUser = new GroupXiaomingUserImpl(groupContact, memberContact, getOrPutGroupRecentMessage(groupContact.getCodeString()));
             groupXiaomingUser.setReceptionist(this);
             groupXiaomingUsers.put(groupCode, groupXiaomingUser);
         }
@@ -105,15 +105,15 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
     }
 
     @Override
-    public TempXiaomingUser getOrPutTempXiaomingUser(TempContact contact) {
+    public MemberXiaomingUser getOrPutMemberXiaomingUser(MemberContact contact) {
         final long groupCode = contact.getCode();
-        TempXiaomingUser tempXiaomingUser = getTempXiaomingUser(groupCode);
-        if (Objects.isNull(tempXiaomingUser)) {
-            tempXiaomingUser = new TempXiaomingUserImpl(contact, getOrPutTempRecentMessage(contact.getCodeString()));
-            tempXiaomingUser.setReceptionist(this);
-            tempXiaomingUsers.put(groupCode, tempXiaomingUser);
+        MemberXiaomingUser memberXiaomingUser = getMemberXiaomingUser(groupCode);
+        if (Objects.isNull(memberXiaomingUser)) {
+            memberXiaomingUser = new MemberXiaomingUserImpl(contact, getOrPutMemberRecentMessage(contact.getCodeString()));
+            memberXiaomingUser.setReceptionist(this);
+            memberXiaomingUsers.put(groupCode, memberXiaomingUser);
         }
-        return tempXiaomingUser;
+        return memberXiaomingUser;
     }
 
     @Override
@@ -144,68 +144,50 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
                 }
             }
 
-            groupTask = new GroupReceptionTaskImpl(getOrPutGroupXiaomingUser(contact, message.getSender().getTempContact()), getOrPutGroupRecentMessage(contact.getCodeString()));
-        }
-        final List<GroupMessage> list = groupTask.getUser().getRecentMessages();
-        list.add(message);
-        setGlobalRecentMessages(list);
-        if (isFirstRecept) {
-            threadPool.execute(groupTask);
-        } else {
-            synchronized (list) {
-                list.notifyAll();
-            }
+            groupTask = new GroupReceptionTaskImpl(getOrPutGroupXiaomingUser(contact, message.getSender().getMemberContact()), getOrPutGroupRecentMessage(contact.getCodeString()));
         }
 
-        synchronized (this) {
-            this.notifyAll();
+        groupTask.getUser().onNextInput(message);
+        if (isFirstRecept) {
+            threadPool.execute(groupTask);
         }
     }
 
     @Override
-    public void onTempMessage(TempContact contact, TempMessage message) {
+    public void onMemberMessage(MemberContact contact, MemberMessage message) {
         contact.addRecentMessage(message);
-        TempReceptionTask tempTask = getTempTask(contact.getCodeString());
-        boolean isFirstRecept = Objects.isNull(tempTask);
+        MemberReceptionTask memberTask = getMemberTask(contact.getCodeString());
+        boolean isFirstRecept = Objects.isNull(memberTask);
         if (isFirstRecept) {
             // 把消息送到每一个 tag 表里
             for (String tag : contact.getGroupContact().getTags()) {
-                final List<TempMessage> tempRecentMessage = getOrPutTempRecentMessage(tag);
-                tempRecentMessage.add(message);
-                synchronized (tempRecentMessage) {
-                    tempRecentMessage.notifyAll();
+                final List<MemberMessage> memberRecentMessage = getOrPutMemberRecentMessage(tag);
+                memberRecentMessage.add(message);
+                synchronized (memberRecentMessage) {
+                    memberRecentMessage.notifyAll();
                 }
             }
 
-            tempTask = new TempReceptionTaskImpl(getOrPutTempXiaomingUser(contact), getOrPutTempRecentMessage(contact.getGroupContact().getCodeString()));
+            memberTask = new MemberReceptionTaskImpl(getOrPutMemberXiaomingUser(contact), getOrPutMemberRecentMessage(contact.getGroupContact().getCodeString()));
         }
-        final List<TempMessage> list = tempTask.getUser().getRecentMessages();
-        list.add(message);
-        setGlobalRecentMessages(list);
+
+        memberTask.getUser().onNextInput(message);
         if (isFirstRecept) {
-            threadPool.execute(tempTask);
-        } else {
-            synchronized (list) {
-                list.notifyAll();
-            }
-        }
-
-        synchronized (this) {
-            this.notifyAll();
+            threadPool.execute(memberTask);
         }
     }
 
     @Override
-    public void onTempMessage(TempContact contact, MessageChain messages) {
-        TempMessage message = new TempMessageImpl(getOrPutTempXiaomingUser(contact), messages);
-        onTempMessage(contact, message);
+    public void onMemberMessage(MemberContact contact, MessageChain messages) {
+        MemberMessage message = new MemberMessageImpl(getOrPutMemberXiaomingUser(contact), messages);
+        onMemberMessage(contact, message);
     }
 
     @Override
-    public void onTempMessage(TempContact contact, String message, MessageChain originalMessageChain) {
-        TempMessage tempMessage = new TempMessageImpl(getOrPutTempXiaomingUser(contact), originalMessageChain);
-        tempMessage.setMessageChain(MiraiCode.deserializeMiraiCode(message));
-        onTempMessage(contact, tempMessage);
+    public void onMemberMessage(MemberContact contact, String message, MessageChain originalMessageChain) {
+        MemberMessage memberMessage = new MemberMessageImpl(getOrPutMemberXiaomingUser(contact), originalMessageChain);
+        memberMessage.setMessageChain(MiraiCode.deserializeMiraiCode(message));
+        onMemberMessage(contact, memberMessage);
     }
 
     @Override
@@ -216,18 +198,10 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
             privateRecentMessages.add(message);
             privateTask = new PrivateReceptionTaskImpl(getOrPutPrivateXiaomingUser(contact), privateRecentMessages);
         }
-        final List<PrivateMessage> list = this.privateRecentMessages;
-        setGlobalRecentMessages(list);
+
+        privateTask.getUser().onNextInput(message);
         if (isFirstRecept) {
             threadPool.execute(privateTask);
-        } else {
-            synchronized (list) {
-                list.notifyAll();
-            }
-        }
-
-        synchronized (this) {
-            this.notifyAll();
         }
     }
 

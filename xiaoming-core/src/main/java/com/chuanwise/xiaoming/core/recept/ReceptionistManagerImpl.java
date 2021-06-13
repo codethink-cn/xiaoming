@@ -2,28 +2,25 @@ package com.chuanwise.xiaoming.core.recept;
 
 import com.chuanwise.xiaoming.api.annotation.EventHandler;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
-import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.limit.CallLimitConfig;
 import com.chuanwise.xiaoming.api.limit.UserCallLimiter;
 import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
+import com.chuanwise.xiaoming.api.recept.ConsoleReceptionTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 import com.chuanwise.xiaoming.api.util.StringUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
-import com.chuanwise.xiaoming.core.contact.message.GroupMessageImpl;
 import com.chuanwise.xiaoming.core.event.EventListenerImpl;
-import com.chuanwise.xiaoming.core.user.XiaomingUserImpl;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.mamoe.mirai.contact.*;
 import net.mamoe.mirai.event.events.FriendMessageEvent;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.GroupTempMessageEvent;
-import net.mamoe.mirai.message.data.MessageSource;
 import org.slf4j.Logger;
 
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -48,6 +45,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
      */
     Map<Long, Receptionist> receptionists = new ConcurrentHashMap<>();
     Receptionist botReceptionist;
+    ConsoleReceptionTask botReceptionistTask;
 
     @Override
     public Receptionist getBotReceptionist() {
@@ -55,6 +53,14 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
             botReceptionist = getOrPutReceptionist(getXiaomingBot().getMiraiBot().getId());
         }
         return botReceptionist;
+    }
+
+    @Override
+    public ConsoleReceptionTask getBotReceptionistTask() {
+        if (Objects.isNull(botReceptionistTask)) {
+            botReceptionistTask = new ConsoleReceptionTaskImpl(getXiaomingBot().getConsoleXiaomingUser(), new LinkedList<>());
+        }
+        return botReceptionistTask;
     }
 
     @Override
@@ -88,7 +94,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
                                             config.getTop(),
                                             TimeUtils.after(config.getPeriod()),
                                             sceneName,
-                                            getXiaomingBot().getLanguageManager().get("happy")
+                                            getXiaomingBot().getLanguage().get("happy")
                                     })
                     );
 
@@ -177,7 +183,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
 
     @Override
     @EventHandler
-    public void onTempMessageEvent(GroupTempMessageEvent event) {
+    public void onMemberMessageEvent(GroupTempMessageEvent event) {
         final Group group = event.getGroup();
         final NormalMember member = event.getSender();
 
@@ -185,7 +191,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
 
         final String message = event.getMessage().serializeToMiraiCode().trim();
         String callContent = message;
-        if (getXiaomingBot().getConfiguration().isEnableTempClearCall()) {
+        if (getXiaomingBot().getConfiguration().isEnableMemberClearCall()) {
             callContent = getCallContent(callContent);
             if (StringUtils.isEmpty(callContent.trim())) {
                 return;
@@ -198,6 +204,6 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
         }
 
         final Receptionist receptionist = getOrPutReceptionist(qq);
-        receptionist.onTempMessage(getXiaomingBot().getContactManager().getTempContact(group.getId(), qq), callContent, event.getMessage());
+        receptionist.onMemberMessage(getXiaomingBot().getContactManager().getMemberContact(group.getId(), qq), callContent, event.getMessage());
     }
 }

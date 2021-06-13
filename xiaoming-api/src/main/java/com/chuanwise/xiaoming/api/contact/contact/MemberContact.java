@@ -2,9 +2,10 @@ package com.chuanwise.xiaoming.api.contact.contact;
 
 import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
-import com.chuanwise.xiaoming.api.contact.message.TempMessage;
+import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
+import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import net.mamoe.mirai.contact.MemberPermission;
 import net.mamoe.mirai.contact.NormalMember;
 import net.mamoe.mirai.data.UserProfile;
@@ -15,7 +16,7 @@ import net.mamoe.mirai.message.data.QuoteReply;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public interface TempContact extends XiaomingContact<TempMessage, NormalMember> {
+public interface MemberContact extends XiaomingContact<MemberMessage, NormalMember> {
     default Account getOrPutAccount() {
         return getXiaomingBot().getAccountManager().getOrPutAccount(getCode());
     }
@@ -75,19 +76,27 @@ public interface TempContact extends XiaomingContact<TempMessage, NormalMember> 
 
     GroupContact getGroupContact();
 
+    default long getGroupCode() {
+        return getGroupContact().getCode();
+    }
+
+    default String getGroupCodeString() {
+        return getGroupContact().getCodeString();
+    }
+
     default String getSpecialTitle() {
         return this.getMiraiContact().getSpecialTitle();
     }
 
-    default int getJoinTime() {
+    default long getJoinTime() {
         return this.getMiraiContact().getJoinTimestamp();
     }
 
-    default int getLastSpeakTime() {
+    default long getLastSpeakTime() {
         return this.getMiraiContact().getLastSpeakTimestamp();
     }
 
-    default int getRemainMuteTime() {
+    default long getRemainMuteTime() {
         return this.getMiraiContact().getMuteTimeRemaining();
     }
 
@@ -111,19 +120,19 @@ public interface TempContact extends XiaomingContact<TempMessage, NormalMember> 
         return this.getMiraiContact().queryProfile();
     }
 
-    default TempMessage replyGroup(GroupMessage quote, String message) {
+    default MemberMessage replyGroup(GroupMessage quote, String message) {
         return replyGroup(quote, MiraiCode.deserializeMiraiCode(message));
     }
 
-    default TempMessage replyGroup(GroupMessage quote, MessageChain message) {
+    default MemberMessage replyGroup(GroupMessage quote, MessageChain message) {
         return send(new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(message));
     }
 
-    default AsyncResult<TempMessage> replyGroupLater(long delay, GroupMessage quote, String message) {
+    default ScheduableTask<MemberMessage> replyGroupLater(long delay, GroupMessage quote, String message) {
         return replyGroupLater(delay, quote, MiraiCode.deserializeMiraiCode(message));
     }
 
-    default AsyncResult<TempMessage> replyGroupLater(long delay, GroupMessage quote, MessageChain message) {
+    default ScheduableTask<MemberMessage> replyGroupLater(long delay, GroupMessage quote, MessageChain message) {
         return sendLater(delay, new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(message));
     }
 }

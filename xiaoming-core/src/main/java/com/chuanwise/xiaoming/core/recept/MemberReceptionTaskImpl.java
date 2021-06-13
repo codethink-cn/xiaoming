@@ -1,22 +1,23 @@
 package com.chuanwise.xiaoming.core.recept;
 
 import com.chuanwise.xiaoming.api.account.Account;
+import com.chuanwise.xiaoming.api.account.record.CommandRecord;
+import com.chuanwise.xiaoming.api.account.record.MemberCommandRecord;
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.message.Message;
-import com.chuanwise.xiaoming.api.contact.message.TempMessage;
-import com.chuanwise.xiaoming.api.recept.TempReceptionTask;
-import com.chuanwise.xiaoming.api.user.TempXiaomingUser;
-import com.chuanwise.xiaoming.core.account.AccountEventImpl;
+import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
+import com.chuanwise.xiaoming.api.recept.MemberReceptionTask;
+import com.chuanwise.xiaoming.api.user.MemberXiaomingUser;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
-public class TempReceptionTaskImpl extends ReceptionTaskImpl implements TempReceptionTask {
-    final TempXiaomingUser user;
-    final List<TempMessage> recentMessages;
+public class MemberReceptionTaskImpl extends ReceptionTaskImpl implements MemberReceptionTask {
+    final MemberXiaomingUser user;
+    final List<MemberMessage> recentMessages;
 
-    protected TempReceptionTaskImpl(TempXiaomingUser user, List<TempMessage> recentMessages) {
+    protected MemberReceptionTaskImpl(MemberXiaomingUser user, List<MemberMessage> recentMessages) {
         super(user.getReceptionist(), "reception-task[" + user.getCompleteName() + "]");
         this.user = user;
         user.setReceptionTask(this);
@@ -39,23 +40,23 @@ public class TempReceptionTaskImpl extends ReceptionTaskImpl implements TempRece
     protected void register() {
         thread = Thread.currentThread();
         thread.setName(identify);
-        receptionist.getTempTasks().put(getUser().getContact().getGroupContact().getCodeString(), this);
+        receptionist.getMemberTasks().put(getUser().getContact().getGroupContact().getCodeString(), this);
     }
 
     @Override
     protected void unregister() {
         final GroupContact groupContact = user.getContact().getGroupContact();
         final String codeTag = groupContact.getCodeString();
-        receptionist.getTempTasks().remove(codeTag);
+        receptionist.getMemberTasks().remove(codeTag);
     }
 
     @Override
     public void recept(Message message) throws Exception {
         if (getXiaomingBot().getInteractorManager().onInput(user, message)) {
-            final AccountEventImpl event = new AccountEventImpl(message.serialize());
+            final CommandRecord record = new MemberCommandRecord(user.getGroupCode(), message.serialize());
             final Account account = user.getOrPutAccount();
 
-            account.addCommand(event);
+            account.addCommand(record);
             getXiaomingBot().getScheduler().readySave(account);
 
             getXiaomingBot().getUserCallLimitManager().getGroupCallLimiter().addCallRecord(user.getCode());

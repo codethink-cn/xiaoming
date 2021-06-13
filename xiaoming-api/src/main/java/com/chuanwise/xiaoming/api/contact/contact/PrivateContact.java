@@ -4,6 +4,7 @@ import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
+import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.contact.Friend;
 

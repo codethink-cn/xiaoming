@@ -2,6 +2,7 @@ package com.chuanwise.xiaoming.api.user;
 
 import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
+import com.chuanwise.xiaoming.api.contact.message.ConsoleMessage;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
@@ -14,8 +15,10 @@ import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
+import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 
+import com.chuanwise.xiaoming.api.util.CollectionUtils;
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 import net.mamoe.mirai.message.code.MiraiCode;
@@ -23,7 +26,6 @@ import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.MessageChain;
 
 import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.*;
 
 /**
@@ -31,6 +33,8 @@ import java.util.*;
  */
 public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message, R extends ReceptionTask> extends ModuleObject, PropertyHolder {
     void setReceptionist(Receptionist receptionist);
+
+    void setInteractor(Interactor interactor);
 
     /**
      * 以当前用户的身份替换变量
@@ -43,8 +47,16 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         // 最先替换当前变量
         format = ArgumentUtils.replaceArguments(format, arguments);
 
+        // 如果正在用插件，且插件的语言非空，也替换插件的语言
+        if (Objects.nonNull(getInteractor()) &&
+                Objects.nonNull(getInteractor().getPlugin()) &&
+                Objects.nonNull(getInteractor().getPlugin().getLanguage()) &&
+                !CollectionUtils.isEmpty(getInteractor().getPlugin().getLanguage().getValues().entrySet())) {
+            format = ArgumentUtils.replaceArguments(format, getInteractor().getPlugin().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime());
+        }
+
         // 替换 Language 中的字句
-        format = ArgumentUtils.replaceArguments(format, getXiaomingBot().getLanguageManager().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime());
+        format = ArgumentUtils.replaceArguments(format, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime());
 
         // 再替换用户属性中的值
         format = ArgumentUtils.replaceArguments(format, getProperties(), getXiaomingBot().getConfiguration().getMaxIterateTime());
@@ -52,7 +64,7 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     }
 
     default String replaceLanguage(String language, Object... arguments) {
-        return replaceArguments(getXiaomingBot().getLanguageManager().getString(language), arguments);
+        return replaceArguments(getXiaomingBot().getLanguage().getString(language), arguments);
     }
 
     C getContact();
@@ -68,19 +80,19 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     void sendPrivateMessage(String message, Object... arguments);
 
     default void sendError(String message, Object... arguments) {
-        sendMessage("{error} " + message, arguments);
+        sendMessage(getXiaomingBot().getLanguage().getString("error") + " " + message, arguments);
     }
 
     default void sendWarning(String message, Object... arguments) {
-        sendMessage("{warning} " + message, arguments);
+        sendMessage(getXiaomingBot().getLanguage().getString("warning") + " " + message, arguments);
     }
 
     default void sendPrivateError(String message, Object... arguments) {
-        sendPrivateMessage("{error} " + message, arguments);
+        sendPrivateMessage(getXiaomingBot().getLanguage().getString("error") + " " + message, arguments);
     }
 
     default void sendPrivateWarning(String message, Object... arguments) {
-        sendPrivateMessage("{warning} " + message, arguments);
+        sendPrivateMessage(getXiaomingBot().getLanguage().getString("warning") + " " + message, arguments);
     }
 
     default boolean hasPermission(String require) {
@@ -139,15 +151,15 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         return getContact().reply(quote, message);
     }
 
-    default AsyncResult<M> replyLater(long delay, M quote, MessageChain message) {
+    default ScheduableTask<M> replyLater(long delay, M quote, MessageChain message) {
         return getContact().replyLater(delay, quote, message);
     }
 
-    default AsyncResult<M> replyLater(long delay, M quote, M message) {
+    default ScheduableTask<M> replyLater(long delay, M quote, M message) {
         return getContact().replyLater(delay, quote, message);
     }
 
-    default AsyncResult<M> replyLater(long delay, M quote, String message) {
+    default ScheduableTask<M> replyLater(long delay, M quote, String message) {
         return getContact().replyLater(delay, quote, message);
     }
 
@@ -163,28 +175,21 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         return reply(getLatestMessage(), message);
     }
 
-    default AsyncResult<M> replyLatestLater(long delay, MessageChain message) {
+    default ScheduableTask<M> replyLatestLater(long delay, MessageChain message) {
         return replyLater(delay, getLatestMessage(), message);
     }
 
-    default AsyncResult<M> replyLatestLater(long delay, String message) {
+    default ScheduableTask<M> replyLatestLater(long delay, String message) {
         return replyLater(delay, getLatestMessage(), message);
     }
 
-    default void onNextInput(M message) {
-        final List<M> list = getRecentMessages();
-        list.add(message);
-        synchronized (list) {
-            list.notifyAll();
-        }
-    }
+    void onNextInput(M message);
 
     void onNextInput(MessageChain messages);
 
     default void onNextInput(String message) {
         onNextInput(MiraiCode.deserializeMiraiCode(message));
     }
-
 
     default M nextInput(long timeout, Runnable onTimeout) {
         return InteractorUtils.waitLastElement(getRecentMessages(), timeout, onTimeout);
@@ -194,9 +199,9 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         return nextInput(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime(), onTimeout);
     }
 
-    default M nextInput(long waitTime) {
-        return nextInput(waitTime, () -> {
-            setProperty("time", TimeUtils.toTimeString(waitTime));
+    default M nextInput(long timeout) {
+        return nextInput(timeout, () -> {
+            setProperty("time", TimeUtils.toTimeString(timeout));
             sendError("{userNextInputTimeOut}");
             throw new InteractorTimeoutException(getInteractor(), this);
         });
@@ -214,9 +219,9 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         return nextPrivateInput(getXiaomingBot().getConfiguration().getMaxUserPrivateInputWaitTime(), onTimeout);
     }
 
-    default PrivateMessage nextPrivateInput(long waitTime) {
-        return nextPrivateInput(waitTime, () -> {
-            setProperty("time", TimeUtils.toTimeString(waitTime));
+    default PrivateMessage nextPrivateInput(long timeout) {
+        return nextPrivateInput(timeout, () -> {
+            setProperty("time", TimeUtils.toTimeString(timeout));
             sendError("{userNextPrivateInputTimeOut}");
             throw new InteractorTimeoutException(getInteractor(), this);
         });
@@ -234,9 +239,9 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         return nextGroupInput(getXiaomingBot().getConfiguration().getMaxUserGroupInputWaitTime(), tag, onTimeout);
     }
 
-    default GroupMessage nextGroupInput(long waitTime, String tag) {
-        return nextGroupInput(waitTime, tag, () -> {
-            setProperty("time", TimeUtils.toTimeString(waitTime));
+    default GroupMessage nextGroupInput(long timeout, String tag) {
+        return nextGroupInput(timeout, tag, () -> {
+            setProperty("time", TimeUtils.toTimeString(timeout));
             setProperty("tag", tag);
             sendError("{userNextGroupInputTimeOut}");
             throw new InteractorTimeoutException(getInteractor(), this);
@@ -275,9 +280,9 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         return nextGlobalInput(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime(), onTimeout);
     }
 
-    default Message nextGlobalInput(long waitTime) {
-        return nextGlobalInput(waitTime, () -> {
-            setProperty("time", TimeUtils.toTimeString(waitTime));
+    default Message nextGlobalInput(long timeout) {
+        return nextGlobalInput(timeout, () -> {
+            setProperty("time", TimeUtils.toTimeString(timeout));
             sendError("{userGlobalNextInputTimeOut}");
             throw new InteractorTimeoutException(getInteractor(), this);
         });
@@ -346,39 +351,17 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
      * 获取当前的缓冲区
      * @return
      */
-    default PrintWriter getPrintWriter() {
-        return getPrintWriters().peek();
-    }
+    PrintWriter getPrintWriter();
+
+    void enablePrintWriter();
+
+    void disablePrintWriter();
 
     /**
-     * 获取缓冲区栈
+     * 取出缓存区中的内容，并
      * @return
      */
-    Stack<PrintWriter> getPrintWriters();
-
-    /**
-     * 获取当前的缓冲区
-     * @return
-     */
-    default StringWriter getStringWriter() {
-        return getStringWriters().peek();
-    }
-
-    /**
-     * 获取缓冲区栈
-     * @return
-     */
-    Stack<StringWriter> getStringWriters();
-
-    void enableBuffer();
-
-    void disableBuffer();
-
-    default String getBufferAndClose() {
-        final String string = getStringWriter().toString();
-        disableBuffer();
-        return string;
-    }
+    String getBufferAndClose();
 
     /**
      * 判断用户是否屏蔽了某插件
@@ -394,13 +377,9 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         }
     }
 
-    default void appendBuffer(String string) {
-        final PrintWriter printWriter = getPrintWriter();
-        if (getStringWriter().getBuffer().length() != 0) {
-            printWriter.println();
-        }
-        printWriter.print(string);
-    }
+    void appendBuffer(String string);
 
     R getReceptionTask();
+
+    void nudge();
 }

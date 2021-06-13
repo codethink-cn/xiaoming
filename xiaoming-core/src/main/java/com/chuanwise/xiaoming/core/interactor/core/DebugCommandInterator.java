@@ -9,39 +9,53 @@ import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
+import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class DebugCommandInterator extends CommandInteractorImpl {
     public DebugCommandInterator(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
     }
-    @Filter("waitgroup {tag}")
+
+    @Filter("debug")
     @Require("debug")
-    public void onWaitGroupMessage(XiaomingUser user, @FilterParameter("tag") String tag) {
-        user.sendMessage("waiting");
-        final GroupMessage message = getXiaomingBot().getContactManager().nextGroupMessage(tag, 10000);
-        user.sendMessage("next input: {}", message);
+    public void onDebug1(XiaomingUser user, @FilterParameter("tag") String tag) {
+        List<String> strings = new LinkedList<>();
+        for (int i = 0; i < 21; i++) {
+            strings.add(String.valueOf(i));
+        }
+        final String s = InteractorUtils.indexChooser(user, strings, String::toString, "（无）", "\n", 4);
+        user.sendMessage("你选择的内容是：{}", s);
     }
 
-    @Filter("optimize")
+    @Filter("debug2")
     @Require("debug")
-    public void onOptimize(XiaomingUser user) {
-        getXiaomingBot().getScheduler().runLater(getXiaomingBot()::optimize, TimeUnit.SECONDS.toMicros(10));
-        user.sendMessage("optimized");
+    public void onDebug2(XiaomingUser user) {
+        final Object waiter = new Object();
+        user.setProperty("waiter", waiter);
+        getXiaomingBot().getScheduler().run(() -> {
+            try {
+                System.err.println("wait");
+                synchronized (waiter) {
+                    waiter.wait();
+                }
+            } catch (InterruptedException exception) {
+                exception.printStackTrace();
+            }
+            System.err.println("end");
+        });
     }
 
-    @Filter("repeat {message}")
+    @Filter("debug3")
     @Require("debug")
-    public void onOptimize(XiaomingUser user, @FilterParameter("message") String message) {
-        user.sendMessage(message);
-    }
-
-    @Filter("replyNext")
-    // @Require("debug")
-    public void onReplyNext(XiaomingUser user) {
-        final Message message = user.getContact().nextMessage(100000);
-        user.reply(message, "这是你的下一条消息");
+    public void onDebug3(XiaomingUser user) {
+        final Object waiter = user.getProperty("waiter");
+        synchronized (waiter) {
+            waiter.notifyAll();
+        }
     }
 }

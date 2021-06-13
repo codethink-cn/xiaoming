@@ -10,7 +10,7 @@ import java.util.Map;
  * 小明的提示文本管理器
  * @author Chuanwise
  */
-public interface LanguageManager extends Preservable<File>, XiaomingObject {
+public interface Language extends Preservable<File>, XiaomingObject {
     default String getString(String key) {
         return getStringOrDefault(key, key);
     }

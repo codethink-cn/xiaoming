@@ -12,8 +12,7 @@ import com.chuanwise.xiaoming.api.resource.ResourceManager;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.schedule.Scheduler;
 import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.language.LanguageManager;
+import com.chuanwise.xiaoming.api.language.Language;
 import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
 import com.chuanwise.xiaoming.api.plugin.PluginManager;
@@ -37,7 +36,7 @@ public interface XiaomingBot {
 
     PermissionManager getPermissionManager();
 
-    LanguageManager getLanguageManager();
+    Language getLanguage();
 
     ContactManager getContactManager();
 
@@ -82,4 +81,14 @@ public interface XiaomingBot {
     ResourceManager getResourceManager();
 
     void optimize();
+
+    File getLogDirectory();
+
+    File getPluginDirectory();
+
+    File getConfigDirectory();
+
+    File getResourceDirectory();
+
+    File getAccountDirectory();
 }

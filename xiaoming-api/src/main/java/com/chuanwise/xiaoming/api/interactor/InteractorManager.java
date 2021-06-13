@@ -16,12 +16,6 @@ public interface InteractorManager extends ModuleObject {
      */
     boolean onCommand(XiaomingUser user, Message message) throws Exception;
 
-    /**
-     * 和所有的上下文交互器交互
-     * @param user 用户
-     * @return 是否交互成功
-     * @throws Exception 交互期间抛出的异常
-     */
     boolean onMessage(XiaomingUser user, Message message) throws Exception;
 
     boolean onInput(XiaomingUser user, Message message) throws Exception;

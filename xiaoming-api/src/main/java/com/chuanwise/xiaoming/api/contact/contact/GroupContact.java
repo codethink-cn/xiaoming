@@ -1,17 +1,15 @@
 package com.chuanwise.xiaoming.api.contact.contact;
 
-import com.chuanwise.xiaoming.api.contact.ContactManager;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
-import net.mamoe.mirai.Mirai;
+import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.MessageChain;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -53,15 +51,15 @@ public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
         return atReply(quote, message.getMessageChain());
     }
 
-    default AsyncResult<GroupMessage> atReplayLater(long delay, GroupMessage quote, MessageChain message) {
+    default ScheduableTask<GroupMessage> atReplayLater(long delay, GroupMessage quote, MessageChain message) {
         return replyLater(delay, quote, quote.getSender().getAt().plus(message));
     }
 
-    default AsyncResult<GroupMessage> atReplayLater(long delay, GroupMessage quote, String message) {
+    default ScheduableTask<GroupMessage> atReplayLater(long delay, GroupMessage quote, String message) {
         return atReplayLater(delay, quote, MiraiCode.deserializeMiraiCode(message));
     }
 
-    default AsyncResult<GroupMessage> atReplayLater(long delay, GroupMessage quote, GroupMessage message) {
+    default ScheduableTask<GroupMessage> atReplayLater(long delay, GroupMessage quote, GroupMessage message) {
         return atReplayLater(delay, quote, message.getMessageChain());
     }
 
@@ -99,8 +97,8 @@ public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
      * @param qq 群成员 QQ
      * @return 群成员信息。如果没有找到，返回 null
      */
-    default TempContact getMember(long qq) {
-        return getXiaomingBot().getContactManager().getTempContact(getCode(), qq);
+    default MemberContact getMember(long qq) {
+        return getXiaomingBot().getContactManager().getMemberContact(getCode(), qq);
     }
 
     default boolean quit() {

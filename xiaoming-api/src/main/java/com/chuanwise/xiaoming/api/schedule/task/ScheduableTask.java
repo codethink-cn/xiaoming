@@ -16,11 +16,31 @@ public interface ScheduableTask<R> extends XiaomingObject, AsyncResult<R>, Clone
 
     void setCallable(Callable<R> callable);
 
-    Callable<R> getCallable();
-
     String getDescription();
+
+    void setDescription(String description);
 
     boolean isPeriodic();
 
-    public ScheduableTask clone() throws CloneNotSupportedException;
+    default boolean isTimeout(long from) {
+        return from > getTime();
+    }
+
+    default boolean isTimeout() {
+        return System.currentTimeMillis() >= getTime();
+    }
+
+    default long getDelay() {
+        return getTime() - System.currentTimeMillis();
+    }
+
+    ScheduableTask<R> getSon();
+
+    void setSon(ScheduableTask<R> son);
+
+    ScheduableTask<R> getFather();
+
+    void setFather(ScheduableTask<R> father);
+
+    ScheduableTask<R> clone() throws CloneNotSupportedException;
 }

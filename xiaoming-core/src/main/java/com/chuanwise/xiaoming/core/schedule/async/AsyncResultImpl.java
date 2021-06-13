@@ -1,10 +1,12 @@
 package com.chuanwise.xiaoming.core.schedule.async;
 
+import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Objects;
 import java.util.concurrent.Callable;
 
 /**
@@ -18,6 +20,9 @@ public class AsyncResultImpl<T> implements AsyncResult<T> {
 
     @Getter
     volatile boolean cancelled = false;
+
+    @Getter
+    volatile boolean finished = false;
 
     @Override
     public void cancel() {
@@ -40,14 +45,23 @@ public class AsyncResultImpl<T> implements AsyncResult<T> {
     @Override
     public final void run() {
         running = true;
+        if (finished) {
+            throw new XiaomingRuntimeException("已经结束的任务无法重新启动");
+        }
+
         try {
             if (!cancelled) {
-                result = callable.call();
+                if (Objects.nonNull(callable)) {
+                    result = callable.call();
+                } else {
+                    result = execute();
+                }
             }
         } catch (Exception exception) {
             this.exception = exception;
         } finally {
             running = false;
+            finished = true;
             synchronized (this) {
                 notifyAll();
             }
@@ -55,7 +69,7 @@ public class AsyncResultImpl<T> implements AsyncResult<T> {
     }
 
     @Override
-    public T get(long timeout) throws InterruptedException {
+    public final T get(long timeout) throws InterruptedException {
         if (running) {
             synchronized (this) {
                 wait(timeout);
@@ -70,7 +84,15 @@ public class AsyncResultImpl<T> implements AsyncResult<T> {
     }
 
     @Override
-    public T get() throws InterruptedException {
+    public final T get() throws InterruptedException {
         return get(0);
+    }
+
+    public T execute() {
+        return null;
+    }
+
+    protected void setFinished(boolean finished) {
+        this.finished = finished;
     }
 }

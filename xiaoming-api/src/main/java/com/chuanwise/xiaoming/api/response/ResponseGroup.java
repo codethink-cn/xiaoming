@@ -1,10 +1,14 @@
 package com.chuanwise.xiaoming.api.response;
 
+import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
+import com.chuanwise.xiaoming.api.object.XiaomingObject;
+import com.chuanwise.xiaoming.api.util.StringUtils;
+
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 
-public interface ResponseGroup {
+public interface ResponseGroup extends XiaomingObject {
     /**
      * 判断一个群内是否屏蔽了插件
      * @param pluginName 插件名
@@ -23,6 +27,10 @@ public interface ResponseGroup {
 
     long getCode();
 
+    default String getCodeString() {
+        return String.valueOf(getCode());
+    }
+
     String getAlias();
 
     Set<String> getBlockedPlugins();
@@ -40,4 +48,17 @@ public interface ResponseGroup {
     void setAlias(String alias);
 
     void blockPlugin(String pluginName);
+
+    default String getCompleteName() {
+        final String alias = getAlias();
+        if (StringUtils.isEmpty(alias)) {
+            return getCodeString();
+        } else {
+            return alias + "(" + getCodeString() + ")";
+        }
+    }
+
+    default GroupContact getContact() {
+        return getXiaomingBot().getContactManager().getGroupContact(getCode());
+    }
 }

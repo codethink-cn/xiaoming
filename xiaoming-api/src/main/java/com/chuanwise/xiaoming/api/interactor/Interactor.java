@@ -70,6 +70,8 @@ public interface Interactor extends PluginObject {
         boolean isAgreed = !getXiaomingBot().getConfiguration().isEnableLicense() || getXiaomingBot().getLicenseManager().isAgreed(user.getCode());
         boolean isLegalUser = isLegalUser(user);
 
+        user.setInteractor(this);
+
         for (InteractorMethodDetail detail : getMethodDetails()) {
             // 验证响应条件
             if (!detail.willInteract(user)) {
@@ -85,22 +87,15 @@ public interface Interactor extends PluginObject {
             // 判断是否为合法用户
             if (!isAgreed && !detail.isExternalUsable()) {
                 user.sendError("{pleaseAgreeLicense}");
+                user.setInteractor(null);
                 return false;
-            }
-            if (!user.requirePermission(detail.getRequiredPermissions())) {
-                continue;
-            }
-            if (!isLegalUser) {
-                onIllegalUser(user);
-                return true;
             }
 
             final Method method = detail.getMethod();
             final Parameter[] parameters = method.getParameters();
             List<Object> arguments = new ArrayList<>(parameters.length);
-            final Class<? extends XiaomingUser> userClass = user.getClass();
-            final Class<? extends Message> messageClass = message.getClass();
 
+            // 准备验证权限
             boolean isParameterFilter = filter instanceof ParameterFilterMatcher;
             Matcher matcher = null;
             Set<String> parameterNames = null;
@@ -109,6 +104,16 @@ public interface Interactor extends PluginObject {
                 parameterNames = ((ParameterFilterMatcher) filter).getParameterNames();
             }
 
+            // 判断合法用户
+            if (!isLegalUser) {
+                onIllegalUser(user);
+                user.setInteractor(null);
+                return true;
+            }
+
+            // 填充参数
+            final Class<? extends XiaomingUser> userClass = user.getClass();
+            final Class<? extends Message> messageClass = message.getClass();
             for (Parameter parameter : parameters) {
                 final Class<?> type = parameter.getType();
                 if (type.isAssignableFrom(userClass)) {
@@ -125,16 +130,18 @@ public interface Interactor extends PluginObject {
                     // 带有 FilterParameter 注解，可能是 String 也可能不是
                     final FilterParameter filterParameter = parameter.getAnnotation(FilterParameter.class);
                     final String parameterName = filterParameter.value();
-                    final String parameterValue = matcher.group(parameterName);
+                    final String parameterValue;
+                    if (parameterNames.contains(parameterName)) {
+                        parameterValue = matcher.group(parameterName);
+                    } else {
+                        parameterValue = filterParameter.defaultValue();
+                    }
                     final String defaultValue = filterParameter.defaultValue();
+                    user.setProperty(parameterName, parameterValue);
 
                     // 如果是 String，就直接填充，否则交给 onParameter
                     if (String.class.isAssignableFrom(type)) {
-                        if (parameterNames.contains(parameterName)) {
-                            arguments.add(parameterValue);
-                        } else {
-                            arguments.add(defaultValue);
-                        }
+                        arguments.add(parameterValue);
                     } else {
                         final Object argument = onParameter(user, type, parameterName, parameterValue, defaultValue);
                         if (Objects.nonNull(argument)) {
@@ -153,8 +160,26 @@ public interface Interactor extends PluginObject {
                 }
             }
 
+            // 如果可以调用
             if (arguments.size() == parameters.length) {
                 try {
+                    boolean callable = true;
+
+                    // 验证权限
+                    final String[] permissions = detail.getRequiredPermissions();
+                    for (String permission : permissions) {
+                        String replacedPermission = user.replaceArguments(permission);
+                        if (!user.requirePermission(replacedPermission)) {
+                            callable = false;
+                            break;
+                        }
+                    }
+
+                    if (!callable) {
+                        user.setInteractor(null);
+                        return true;
+                    }
+
                     final Object result = method.invoke(this, arguments.toArray(new Object[0]));
 
                     // 判断是否交互了
@@ -173,6 +198,7 @@ public interface Interactor extends PluginObject {
 
                         // 查看是否需要阻塞
                         if (detail.isNonNext()) {
+                            user.setInteractor(null);
                             return true;
                         }
                     }
@@ -186,6 +212,7 @@ public interface Interactor extends PluginObject {
                 }
             }
         }
+        user.setInteractor(null);
         return interacted;
     }
 
@@ -236,10 +263,9 @@ public interface Interactor extends PluginObject {
     default <T> Object onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
         Object result = null;
         user.setProperty("string", currentValue);
-        user.setProperty(parameterName, currentValue);
 
         // 如果是 long 且为 qq
-        if (Long.class.isAssignableFrom(clazz) && "qq".equalsIgnoreCase(parameterName)) {
+        if (long.class.isAssignableFrom(clazz) && "qq".equalsIgnoreCase(parameterName)) {
             final long qq = AtUtils.parseQQ(currentValue);
             if (qq == -1) {
                 user.sendError("{stringIsNotAIllegalQQ}");
@@ -247,13 +273,19 @@ public interface Interactor extends PluginObject {
             } else {
                 result = qq;
             }
-        } else if (Long.class.isAssignableFrom(clazz) && (Objects.equals("time", parameterName) || Objects.equals("period", parameterName))) {
+        } else if (long.class.isAssignableFrom(clazz) && (Objects.equals("time", parameterName) || Objects.equals("period", parameterName))) {
             final long time = TimeUtils.parseTime(currentValue);
             if (time == -1) {
                 user.sendError("{stringIsNotAIllegalPeriod}");
                 result = null;
             } else {
                 result = time;
+            }
+        } else if (int.class.isAssignableFrom(clazz) && Objects.equals("index", parameterName)) {
+            if (currentValue.matches("\\d+")) {
+                return Integer.parseInt(currentValue);
+            } else {
+                user.sendError("「{index}」并不是一个有效的序号哦");
             }
         }
         return result;

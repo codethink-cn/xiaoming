@@ -1,9 +1,8 @@
 package com.chuanwise.xiaoming.core.user;
 
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
-import com.chuanwise.xiaoming.api.contact.contact.TempContact;
-import com.chuanwise.xiaoming.api.contact.message.Message;
-import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
+import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
+import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.recept.GroupReceptionTask;
@@ -13,6 +12,7 @@ import lombok.Setter;
 import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Chuanwise
@@ -20,16 +20,16 @@ import java.util.List;
 @Getter
 public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupMessage, GroupReceptionTask> implements GroupXiaomingUser {
     final GroupContact contact;
-    final TempContact tempContact;
+    final MemberContact memberContact;
     final List<GroupMessage> recentMessages;
 
     @Setter
     GroupReceptionTask receptionTask;
 
-    public GroupXiaomingUserImpl(GroupContact contact, TempContact tempContact, List<GroupMessage> recentMessages) {
-        super(contact.getXiaomingBot(), tempContact.getCode());
+    public GroupXiaomingUserImpl(GroupContact contact, MemberContact memberContact, List<GroupMessage> recentMessages) {
+        super(contact.getXiaomingBot(), memberContact.getCode());
         this.contact = contact;
-        this.tempContact = tempContact;
+        this.memberContact = memberContact;
         this.recentMessages = recentMessages;
     }
 
@@ -39,23 +39,50 @@ public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupM
     }
 
     @Override
+    public void onNextInput(GroupMessage message) {
+        final List<GroupMessage> list = getRecentMessages();
+        setProperty("last", message.serialize());
+        list.add(message);
+
+        final Receptionist receptionist = getReceptionist();
+        receptionist.setGlobalRecentMessages(list);
+
+        final GroupReceptionTask receptionTask = getReceptionTask();
+        if (Objects.isNull(receptionTask)) {
+            receptionist.onGroupMessage(getContact(), message);
+        }
+
+        synchronized (list) {
+            list.notifyAll();
+        }
+        synchronized (this) {
+            this.notifyAll();
+        }
+    }
+
+    @Override
     public long getCode() {
-        return tempContact.getCode();
+        return memberContact.getCode();
     }
 
     @Override
     public void sendMessage(String message, Object... arguments) {
-        contact.atSend(getCode(), replaceArguments(message, arguments));
+        final String replacedMessage = replaceArguments(message, arguments);
+        if (isUsingBuffer()) {
+            appendBuffer(replacedMessage);
+        } else {
+            contact.atSend(getCode(), replacedMessage);
+        }
     }
 
     @Override
     public void sendPrivateMessage(String message, Object... arguments) {
-        tempContact.send(replaceArguments(message, arguments));
+        memberContact.send(replaceArguments(message, arguments));
     }
 
     @Override
     public String getName() {
-        return tempContact.getName();
+        return memberContact.getName();
     }
 
     @Override

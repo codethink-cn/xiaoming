@@ -1,19 +1,18 @@
 package com.chuanwise.xiaoming.api.user;
 
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
-import com.chuanwise.xiaoming.api.contact.contact.TempContact;
+import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
-import com.chuanwise.xiaoming.api.contact.message.TempMessage;
+import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
 import com.chuanwise.xiaoming.api.recept.GroupReceptionTask;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
+import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
 
-import java.util.List;
-
 public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessage, GroupReceptionTask> {
-    TempContact getTempContact();
+    MemberContact getMemberContact();
 
     default long getGroupCode() {
         return getContact().getCode();
@@ -41,15 +40,27 @@ public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessa
         return getContact().atReply(quote, message);
     }
 
-    default AsyncResult<GroupMessage> atReplyLater(long delay, GroupMessage quote, MessageChain message) {
+    default GroupMessage sendGroupMessage(GroupMessage message) {
+        return sendGroupMessage(message.getMessageChain());
+    }
+
+    default GroupMessage sendGroupMessage(MessageChain message) {
+        return getContact().send(message);
+    }
+
+    default GroupMessage sendGroupMessage(String message) {
+        return sendGroupMessage(MiraiCode.deserializeMiraiCode(message));
+    }
+
+    default ScheduableTask<GroupMessage> atReplyLater(long delay, GroupMessage quote, MessageChain message) {
         return getContact().atReplayLater(delay, quote, message);
     }
 
-    default AsyncResult<GroupMessage> atReplyLater(long delay, GroupMessage quote, GroupMessage message) {
+    default ScheduableTask<GroupMessage> atReplyLater(long delay, GroupMessage quote, GroupMessage message) {
         return atReplyLater(delay, quote, message.getMessageChain());
     }
 
-    default AsyncResult<GroupMessage> atReplyLater(long delay, GroupMessage quote, String message) {
+    default ScheduableTask<GroupMessage> atReplyLater(long delay, GroupMessage quote, String message) {
         return atReplyLater(delay, quote, MiraiCode.deserializeMiraiCode(message));
     }
 
@@ -65,63 +76,76 @@ public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessa
         return getContact().atReply(getLatestMessage(), message);
     }
 
-    default AsyncResult<GroupMessage> atReplyLatestLater(long delay, MessageChain message) {
+    default ScheduableTask<GroupMessage> atReplyLatestLater(long delay, MessageChain message) {
         return getContact().atReplayLater(delay, getLatestMessage(), message);
     }
 
-    default AsyncResult<GroupMessage> atReplyLatestLater(long delay, GroupMessage message) {
+    default ScheduableTask<GroupMessage> atReplyLatestLater(long delay, GroupMessage message) {
         return atReplyLatestLater(delay, message.getMessageChain());
     }
 
-    default AsyncResult<GroupMessage> atReplyLatestLater(long delay, String message) {
+    default ScheduableTask<GroupMessage> atReplyLatestLater(long delay, String message) {
         return atReplyLatestLater(delay, MiraiCode.deserializeMiraiCode(message));
     }
 
-    default TempMessage privateReply(GroupMessage quote, String message) {
+    default MemberMessage privateReply(GroupMessage quote, String message) {
         return privateReply(quote, MiraiCode.deserializeMiraiCode(message));
     }
 
-    default TempMessage privateReply(GroupMessage quote, GroupMessage message) {
+    default MemberMessage privateReply(GroupMessage quote, GroupMessage message) {
         return privateReply(quote, message.getMessageChain());
     }
 
-    default TempMessage privateReply(GroupMessage quote, MessageChain message) {
-        return getTempContact().replyGroup(quote, message);
+    default MemberMessage privateReply(GroupMessage quote, MessageChain message) {
+        return getMemberContact().replyGroup(quote, message);
     }
 
-    default AsyncResult<TempMessage> privateReplyLater(long delay, GroupMessage quote, MessageChain message) {
-        return getTempContact().replyGroupLater(delay, quote, message);
+    default ScheduableTask<MemberMessage> privateReplyLater(long delay, GroupMessage quote, MessageChain message) {
+        return getMemberContact().replyGroupLater(delay, quote, message);
     }
 
-    default AsyncResult<TempMessage> privateReplyLater(long delay, GroupMessage quote, GroupMessage message) {
+    default ScheduableTask<MemberMessage> privateReplyLater(long delay, GroupMessage quote, GroupMessage message) {
         return privateReplyLater(delay, quote, message.getMessageChain());
     }
 
-    default AsyncResult<TempMessage> privateReplyLater(long delay, GroupMessage quote, String message) {
+    default ScheduableTask<MemberMessage> privateReplyLater(long delay, GroupMessage quote, String message) {
         return privateReplyLater(delay, quote, MiraiCode.deserializeMiraiCode(message));
     }
 
-    default TempMessage privateReplyLaterLatest(String message) {
+    default MemberMessage privateReplyLaterLatest(String message) {
         return privateReply(getLatestMessage(), MiraiCode.deserializeMiraiCode(message));
     }
 
-    default TempMessage privateReplyLaterLatest(GroupMessage message) {
+    default MemberMessage privateReplyLaterLatest(GroupMessage message) {
         return privateReply(getLatestMessage(), message.getMessageChain());
     }
 
-    default TempMessage privateReplyLaterLatest(MessageChain message) {
+    default MemberMessage privateReplyLaterLatest(MessageChain message) {
         return privateReply(getLatestMessage(), message);
     }
 
-    default AsyncResult<TempMessage> privateReplyLatestLater(long delay, MessageChain message) {
+    default ScheduableTask<MemberMessage> privateReplyLatestLater(long delay, MessageChain message) {
         return privateReplyLater(delay, getLatestMessage(), message);
     }
 
-    default AsyncResult<TempMessage> privateReplyLatestLater(long delay, GroupMessage message) {
+    default ScheduableTask<MemberMessage> privateReplyLatestLater(long delay, GroupMessage message) {
         return privateReplyLater(delay, getLatestMessage(), message.getMessageChain());
     }
 
-    default AsyncResult<TempMessage> privateReplyLatestLater(long delay, String message) {
+    default ScheduableTask<MemberMessage> privateReplyLatestLater(long delay, String message) {
         return privateReplyLater(delay, getLatestMessage(), MiraiCode.deserializeMiraiCode(message));
+    }
+
+    @Override
+    default void nudge() {
+        getMemberContact().nudge();
+    }
+
+    default void mute(long timeMillis) {
+        getMemberContact().mute(timeMillis);
+    }
+
+    default void lift() {
+        getMemberContact().lift();
     }
 }

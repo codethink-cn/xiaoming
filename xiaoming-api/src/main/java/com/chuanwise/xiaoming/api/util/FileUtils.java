@@ -17,6 +17,17 @@ public class FileUtils extends StaticUtils {
         }
     }
 
+    public static boolean copyResourceOrCreate(String path, File to)
+            throws IOException {
+        if (!to.isFile()) {
+            to.createNewFile();
+        }
+        try (FileOutputStream fileOutputStream = new FileOutputStream(to);
+             InputStream inputStream = FileUtils.class.getClassLoader().getResourceAsStream(path)) {
+            return copyResource(inputStream, fileOutputStream);
+        }
+    }
+
     public static boolean copyResource(InputStream inputStream, File to)
             throws IOException {
         try (FileOutputStream fileOutputStream = new FileOutputStream(to)) {

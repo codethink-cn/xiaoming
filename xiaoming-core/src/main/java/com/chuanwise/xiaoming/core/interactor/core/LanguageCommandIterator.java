@@ -1,7 +1,7 @@
 package com.chuanwise.xiaoming.core.interactor.core;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.language.LanguageManager;
+import com.chuanwise.xiaoming.api.language.Language;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 
 /**
@@ -9,12 +9,12 @@ import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
  * @author Chuanwise
  */
 public class LanguageCommandIterator extends CommandInteractorImpl {
-    final LanguageManager languageManager;
+    final Language language;
     static final String WORD = "(单词|word|words)";
 
     public LanguageCommandIterator(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
-        languageManager = getXiaomingBot().getLanguageManager();
+        language = getXiaomingBot().getLanguage();
         enableUsageCommand(WORD);
     }
 /*
@@ -22,7 +22,7 @@ public class LanguageCommandIterator extends CommandInteractorImpl {
     @Require("emoji.look")
     public void onListEmoji(XiaomingUser user,
                             @FilterParameter("key") final String key) {
-        final Set<String> set = languageManager.getSet(key);
+        final Set<String> set = language.getSet(key);
         if (Objects.isNull(set) || set.isEmpty()) {
             user.sendMessage("小明没有收录任何有关{}的单词哦", key);
         }
@@ -34,7 +34,7 @@ public class LanguageCommandIterator extends CommandInteractorImpl {
     @Filter(WORD)
     @Require("emoji.list")
     public void onListEmoji(XiaomingUser user) {
-        final Set<Map.Entry<String, Set<String>>> entries = languageManager.getValues().entrySet();
+        final Set<Map.Entry<String, Set<String>>> entries = language.getValues().entrySet();
         if (entries.isEmpty()) {
             user.sendMessage("小明没有收录任何单词哦");
             return;
@@ -56,7 +56,7 @@ public class LanguageCommandIterator extends CommandInteractorImpl {
             user.sendError("添加的单词不能为空");
             return;
         }
-        final Map<String, Set<String>> map = languageManager.getValues();
+        final Map<String, Set<String>> map = language.getValues();
         Set<String> emojiSet = map.get(key);
         if (Objects.isNull(emojiSet)) {
             emojiSet = new HashSet<>();
@@ -64,7 +64,7 @@ public class LanguageCommandIterator extends CommandInteractorImpl {
         }
         emojiSet.add(emoji);
         user.sendMessage("成功添加了{}类型单词：{}", key, emoji);
-        getXiaomingBot().getFileSaver().readySave(languageManager);
+        getXiaomingBot().getFileSaver().readySave(language);
     }
     */
 }

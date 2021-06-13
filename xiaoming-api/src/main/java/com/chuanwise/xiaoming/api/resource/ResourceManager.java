@@ -5,12 +5,15 @@ import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
 import net.mamoe.mirai.contact.Contact;
+import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.MessageChain;
+import net.mamoe.mirai.message.data.SingleMessage;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.Objects;
 
 public interface ResourceManager extends ModuleObject, Preservable<File> {
     default Message useResources(Message message) {
@@ -20,7 +23,27 @@ public interface ResourceManager extends ModuleObject, Preservable<File> {
 
     MessageChain useResources(MessageChain messages, Contact miraiContact);
 
-    Message saveResources(Message message) throws IOException;
+    default Message saveResources(Message message) throws IOException {
+        saveResources(message.getMessageChain());
+        return message;
+    }
+
+    default MessageChain saveResources(MessageChain messages) throws IOException {
+        for (SingleMessage singleMessage : messages) {
+            if (singleMessage instanceof Image) {
+                final Image image = (Image) singleMessage;
+                if (Objects.isNull(getImage(image.getImageId()))) {
+                    saveImage(image);
+                }
+            }
+        }
+        return messages;
+    }
+
+    default String saveResources(String messages) throws IOException {
+        saveResources(MiraiCode.deserializeMiraiCode(messages));
+        return messages;
+    }
 
     default Image getImage(String id, XiaomingContact contact) {
         return getImage(id, contact.getMiraiContact());

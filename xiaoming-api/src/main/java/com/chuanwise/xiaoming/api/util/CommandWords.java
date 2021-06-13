@@ -15,6 +15,7 @@ public class CommandWords extends StaticUtils {
     public static final String PERMISSION = "(权限|permission)";
     public static final String ALIAS = "(别名|昵称|绰号|备注|alias)";
     public static final String CONFIRM = "(确定|确认|confirm)";
+    public static final String COMMAND = "(指令|command)";
     public static final String USER = "(用户|玩家|好友|user)";
     public static final String XIAOMING = "(小明|xiaoming)";
     public static final String STATUS = "(状态|status)";
@@ -35,6 +36,7 @@ public class CommandWords extends StaticUtils {
     public static final String MERGE = "(合并|merge)";
     public static final String LIMIT = "(限制|limit)";
     public static final String CALL = "(调用|召唤|call|invoke)";
+    public static final String TASK = "(任务|task)";
     public static final String UNBLOCK = CANCEL + BLOCK;
     public static final String RECENT = "(近期|最近|last|recent)";
     public static final String EXCEPTION = "(异常|exception)";

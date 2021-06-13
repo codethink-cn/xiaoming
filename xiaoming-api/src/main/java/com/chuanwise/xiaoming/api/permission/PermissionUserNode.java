@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.api.permission;
 
+import com.chuanwise.xiaoming.api.account.record.Record;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 
 import java.util.List;

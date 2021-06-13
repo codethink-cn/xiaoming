@@ -4,6 +4,7 @@ import com.chuanwise.xiaoming.api.contact.message.ConsoleMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
+import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.message.code.MiraiCode;
@@ -50,15 +51,15 @@ public interface ConsoleContact extends XiaomingContact<ConsoleMessage, Friend> 
         return atReply(quote, message.getMessageChain());
     }
 
-    default AsyncResult<ConsoleMessage> atReplyLater(long delay, ConsoleMessage quote, String message) {
+    default ScheduableTask<ConsoleMessage> atReplyLater(long delay, ConsoleMessage quote, String message) {
         return atReplyLater(delay, quote, MiraiCode.deserializeMiraiCode(message));
     }
 
-    default AsyncResult<ConsoleMessage> atReplyLater(long delay, ConsoleMessage quote, MessageChain message) {
+    default ScheduableTask<ConsoleMessage> atReplyLater(long delay, ConsoleMessage quote, MessageChain message) {
         return replyLater(delay, quote, quote.getSender().getAt().plus(" ").plus(message));
     }
 
-    default AsyncResult<ConsoleMessage> atReplyLater(long delay, ConsoleMessage quote, ConsoleMessage message) {
+    default ScheduableTask<ConsoleMessage> atReplyLater(long delay, ConsoleMessage quote, ConsoleMessage message) {
         return replyLater(delay, quote, message.getMessageChain());
     }
 }

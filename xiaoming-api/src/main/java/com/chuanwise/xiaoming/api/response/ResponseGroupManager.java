@@ -62,12 +62,13 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
 
     default void addGroup(ResponseGroup group) {
         getGroups().add(group);
+        group.setXiaomingBot(getXiaomingBot());
     }
 
     Set<ResponseGroup> getGroups();
 
     default void sendMessageToTaggedGroup(String tag, String message) {
-        final Map<String, Object> values = getXiaomingBot().getLanguageManager().getValues();
+        final Map<String, Object> values = getXiaomingBot().getLanguage().getValues();
         message = ArgumentUtils.replaceArguments(message, values, getXiaomingBot().getConfiguration().getMaxIterateTime());
         for (ResponseGroup responseGroup : getXiaomingBot().getResponseGroupManager().forTag(tag)) {
             final Group group = getXiaomingBot().getMiraiBot().getGroup(responseGroup.getCode());

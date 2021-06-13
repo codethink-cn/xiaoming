@@ -55,19 +55,6 @@ public class ResourceManagerImpl extends JsonFilePreservable implements Resource
     }
 
     @Override
-    public Message saveResources(Message message) throws IOException {
-        for (SingleMessage singleMessage : message.getMessageChain()) {
-            if (singleMessage instanceof Image) {
-                final Image image = (Image) singleMessage;
-                if (Objects.isNull(getImage(image.getImageId()))) {
-                    saveImage(image);
-                }
-            }
-        }
-        return message;
-    }
-
-    @Override
     public Image getImage(String id, Contact miraiContact) {
         final File image = getImage(id);
         if (Objects.nonNull(image)) {

@@ -2,17 +2,16 @@ package com.chuanwise.xiaoming.api.recept;
 
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
-import com.chuanwise.xiaoming.api.contact.contact.TempContact;
+import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
-import com.chuanwise.xiaoming.api.contact.message.TempMessage;
+import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
 import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.PrivateXiaomingUser;
-import com.chuanwise.xiaoming.api.user.TempXiaomingUser;
+import com.chuanwise.xiaoming.api.user.MemberXiaomingUser;
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
-import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.MessageChain;
 
@@ -39,7 +38,7 @@ public interface Receptionist extends ModuleObject {
 
     default void optimize() {
         // 如果大家都是空，就销毁接待员
-        if (getGroupTasks().isEmpty() && getTempTasks().isEmpty() && Objects.isNull(getPrivateTask())) {
+        if (getGroupTasks().isEmpty() && getMemberTasks().isEmpty() && Objects.isNull(getPrivateTask())) {
             stop();
         }
     }
@@ -50,7 +49,7 @@ public interface Receptionist extends ModuleObject {
                 return true;
             }
         }
-        for (ReceptionTask task : getTempTasks().values()) {
+        for (ReceptionTask task : getMemberTasks().values()) {
             if (task.isBusy()) {
                 return true;
             }
@@ -69,7 +68,7 @@ public interface Receptionist extends ModuleObject {
         }
 
         getGroupRecentMessages().values().forEach(notifyer);
-        getTempRecentMessages().values().forEach(notifyer);
+        getMemberRecentMessages().values().forEach(notifyer);
         notifyer.accept(getPrivateRecentMessages());
 
         getThreadPool().shutdown();
@@ -80,8 +79,8 @@ public interface Receptionist extends ModuleObject {
         return getGroupTasks().get(tag);
     }
 
-    default TempReceptionTask getTempTask(String tag)  {
-        return getTempTasks().get(tag);
+    default MemberReceptionTask getMemberTask(String tag)  {
+        return getMemberTasks().get(tag);
     }
 
     Map<String, GroupReceptionTask> getGroupTasks();
@@ -90,10 +89,10 @@ public interface Receptionist extends ModuleObject {
         return InteractorUtils.waitLastElement(getOrPutGroupRecentMessage(tag), timeout);
     }
 
-    Map<String, TempReceptionTask> getTempTasks();
+    Map<String, MemberReceptionTask> getMemberTasks();
 
-    default TempMessage nextTempMessage(String tag, long timeout) {
-        return InteractorUtils.waitLastElement(getOrPutTempRecentMessage(tag), timeout);
+    default MemberMessage nextMemberMessage(String tag, long timeout) {
+        return InteractorUtils.waitLastElement(getOrPutMemberRecentMessage(tag), timeout);
     }
 
     PrivateReceptionTask getPrivateTask();
@@ -110,11 +109,11 @@ public interface Receptionist extends ModuleObject {
 
     void onGroupMessage(GroupContact contact, GroupMessage message);
 
-    void onTempMessage(TempContact contact, String message, MessageChain originalMessageChain);
+    void onMemberMessage(MemberContact contact, String message, MessageChain originalMessageChain);
 
-    void onTempMessage(TempContact contact, MessageChain messages);
+    void onMemberMessage(MemberContact contact, MessageChain messages);
 
-    void onTempMessage(TempContact contact, TempMessage message);
+    void onMemberMessage(MemberContact contact, MemberMessage message);
 
     void onPrivateMessage(PrivateContact contact, String message, MessageChain originalMessageChain);
 
@@ -124,7 +123,7 @@ public interface Receptionist extends ModuleObject {
 
     List<? extends Message> getGlobalRecentMessages();
 
-    Map<String, List<TempMessage>> getTempRecentMessages();
+    Map<String, List<MemberMessage>> getMemberRecentMessages();
 
     Map<String, List<GroupMessage>> getGroupRecentMessages();
 
@@ -132,7 +131,7 @@ public interface Receptionist extends ModuleObject {
 
     Map<Long, GroupXiaomingUser> getGroupXiaomingUsers();
 
-    Map<Long, TempXiaomingUser> getTempXiaomingUsers();
+    Map<Long, MemberXiaomingUser> getMemberXiaomingUsers();
 
     PrivateXiaomingUser getPrivateXiaomingUser();
 
@@ -142,13 +141,13 @@ public interface Receptionist extends ModuleObject {
         return getGroupXiaomingUsers().get(code);
     }
 
-    GroupXiaomingUser getOrPutGroupXiaomingUser(GroupContact groupContact, TempContact tempContact);
+    GroupXiaomingUser getOrPutGroupXiaomingUser(GroupContact groupContact, MemberContact memberContact);
 
-    default TempXiaomingUser getTempXiaomingUser(long code) {
-        return getTempXiaomingUsers().get(code);
+    default MemberXiaomingUser getMemberXiaomingUser(long code) {
+        return getMemberXiaomingUsers().get(code);
     }
 
-    TempXiaomingUser getOrPutTempXiaomingUser(TempContact contact);
+    MemberXiaomingUser getOrPutMemberXiaomingUser(MemberContact contact);
 
     void setGlobalRecentMessages(List<? extends Message> list);
 
@@ -165,15 +164,15 @@ public interface Receptionist extends ModuleObject {
         return recentMessage;
     }
 
-    default List<TempMessage> getTempRecentMessage(String tag) {
-        return getTempRecentMessages().get(tag);
+    default List<MemberMessage> getMemberRecentMessage(String tag) {
+        return getMemberRecentMessages().get(tag);
     }
 
-    default List<TempMessage> getOrPutTempRecentMessage(String tag) {
-        List<TempMessage> recentMessage = getTempRecentMessage(tag);
+    default List<MemberMessage> getOrPutMemberRecentMessage(String tag) {
+        List<MemberMessage> recentMessage = getMemberRecentMessage(tag);
         if (Objects.isNull(recentMessage)) {
             recentMessage = new LinkedList<>();
-            getTempRecentMessages().put(tag, recentMessage);
+            getMemberRecentMessages().put(tag, recentMessage);
         }
         return recentMessage;
     }

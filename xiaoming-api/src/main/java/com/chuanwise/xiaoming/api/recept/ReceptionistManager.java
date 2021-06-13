@@ -26,6 +26,8 @@ public interface ReceptionistManager extends ModuleObject, EventListener {
 
     Receptionist getBotReceptionist();
 
+    ConsoleReceptionTask getBotReceptionistTask();
+
     /**
      * 取消某个用户的接待员
      * @param qq 该用户
@@ -53,7 +55,7 @@ public interface ReceptionistManager extends ModuleObject, EventListener {
      * @param event 来自 mirai 的临时会话消息事件
      */
     @EventHandler
-    void onTempMessageEvent(GroupTempMessageEvent event);
+    void onMemberMessageEvent(GroupTempMessageEvent event);
 
     /**
      * 获得接待员记录器

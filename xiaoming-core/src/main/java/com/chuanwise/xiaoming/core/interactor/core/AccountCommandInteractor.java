@@ -1,8 +1,8 @@
 package com.chuanwise.xiaoming.core.interactor.core;
 
 import com.chuanwise.xiaoming.api.account.Account;
-import com.chuanwise.xiaoming.api.account.AccountEvent;
 import com.chuanwise.xiaoming.api.account.AccountManager;
+import com.chuanwise.xiaoming.api.account.record.Record;
 import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.annotation.FilterParameter;
 import com.chuanwise.xiaoming.api.annotation.Require;
@@ -32,12 +32,12 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
     @Require("account.history")
     public void onLookUserHistory(XiaomingUser user, @FilterParameter("qq") long qq) {
         final Account account = getXiaomingBot().getAccountManager().getAccount(qq);
-        final String emptyHistory = "该用户没有任何历史记录";
+        final String emptyHistory = "{userHasNoHistory}";
         if (Objects.isNull(account)) {
             user.sendWarning(emptyHistory);
             return;
         }
-        InteractorUtils.showList(user, account.getCommands(), AccountEvent::getMessage, emptyHistory, 5);
+        InteractorUtils.showCollection(user, account.getCommands(), Record::getMessage, emptyHistory, 5);
     }
 
     @Filter(CommandWords.ACCOUNT + " " + CommandWords.UNBLOCK + " {plugin}")
