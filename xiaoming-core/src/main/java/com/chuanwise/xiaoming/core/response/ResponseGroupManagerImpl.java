@@ -30,10 +30,18 @@ public class ResponseGroupManagerImpl extends JsonFilePreservable implements Res
         return (Set) groups;
     }
 
+    @Override
+    public ResponseGroup addGroup(long group, String alias) {
+        ResponseGroup responseGroup = new ResponseGroupImpl(group, alias);
+        return addGroup(responseGroup);
+    }
+
     public void setGroups(Set<ResponseGroupImpl> groups) {
         this.groups = groups;
         for (ResponseGroupImpl group : groups) {
             group.setXiaomingBot(getXiaomingBot());
+            group.addTag("recorded");
+            group.addTag(String.valueOf(group.code));
         }
     }
 

@@ -1,15 +1,19 @@
 package com.chuanwise.xiaoming.host;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
+import com.chuanwise.xiaoming.api.launcher.XiaomingLauncher;
 import com.chuanwise.xiaoming.api.preserve.PreservableFactory;
 import com.chuanwise.xiaoming.api.util.PathUtils;
 import com.chuanwise.xiaoming.core.bot.XiaomingBotImpl;
-import com.chuanwise.xiaoming.host.config.BotAccount;
-import com.chuanwise.xiaoming.host.config.LauncherConfig;
+import com.chuanwise.xiaoming.host.configuration.BotAccount;
+import com.chuanwise.xiaoming.host.configuration.LauncherConfiguration;
 import com.chuanwise.xiaoming.core.preserve.JsonFilePreservableFactory;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.BotFactory;
+import net.mamoe.mirai.utils.BotConfiguration;
+import org.slf4j.Logger;
 
 import java.io.*;
 import java.util.Objects;
@@ -19,7 +23,7 @@ import java.util.Objects;
  */
 @Slf4j
 @Getter
-public class XiaomingHost {
+public class HostXiaomingLauncher implements XiaomingLauncher {
     final XiaomingBot xiaomingBot = new XiaomingBotImpl();
 
     /**
@@ -30,18 +34,18 @@ public class XiaomingHost {
     /**
      * 启动器设置
      */
-    final LauncherConfig launcherConfig = filePreservableFactory.
-            loadOrProduce(LauncherConfig.class, new File(PathUtils.LAUNCHER, "launcher.json"), LauncherConfig::new);
+    final LauncherConfiguration launcherConfiguration = filePreservableFactory.
+            loadOrProduce(LauncherConfiguration.class, new File(PathUtils.LAUNCHER, "launcher.json"), LauncherConfiguration::new);
 
     /**
      * 读取机器人账号密码并准备登录
      */
     boolean readyLogin() {
-        final BotAccount account = launcherConfig.getAccount();
-        final File medium = launcherConfig.getMedium();
+        final BotAccount account = launcherConfiguration.getAccount();
+        final File medium = launcherConfiguration.getMedium();
         if (!medium.isFile() || Objects.isNull(account)) {
             log.error("请在 " + medium.getAbsolutePath() + " 文件中写入机器人的账号密码");
-            launcherConfig.save();
+            launcherConfiguration.save();
             return false;
         }
 
@@ -55,11 +59,21 @@ public class XiaomingHost {
             if (Objects.isNull(password) && Objects.isNull(md5)) {
                 log.error("请检查位于 bots.json 中的账号信息是否正确。password 和 md5 属性至少要有一个");
                 return false;
-            } else if (Objects.nonNull(md5)) {
-                xiaomingBot.setMiraiBot(BotFactory.INSTANCE.newBot(account.getQq(), md5));
-            } else {
-                xiaomingBot.setMiraiBot(BotFactory.INSTANCE.newBot(account.getQq(), password));
             }
+
+            final Bot bot;
+            final BotConfiguration configuration = new BotConfiguration();
+
+            configuration.setProtocol(launcherConfiguration.getProtocol());
+            configuration.setAutoReconnectOnForceOffline(launcherConfiguration.isAutoReconnectOnForceOffline());
+
+            if (Objects.nonNull(md5)) {
+                bot = BotFactory.INSTANCE.newBot(account.getQq(), md5, configuration);
+            } else {
+                bot = BotFactory.INSTANCE.newBot(account.getQq(), password);
+            }
+
+            xiaomingBot.setMiraiBot(bot);
             return true;
         } catch (Exception exception) {
             log.error("请检查位于 bots.json 中的账号信息是否正确");
@@ -68,41 +82,22 @@ public class XiaomingHost {
         }
     }
 
-    /**
-     * 载入一大堆设置
-     * @return
-     */
+    @Override
     public boolean launch() {
         try {
-            // 尝试设置账号密码
-            if (!readyLogin()) {
-                return false;
-            }
-
-            return start();
+            return readyLogin();
         } catch (Exception exception) {
             log.error(exception.getMessage(), exception);
             return false;
         }
     }
 
-    /**
-     * 启动小明
-     */
-    public boolean start() {
-        try {
-            xiaomingBot.start();
-        } catch (Exception exception) {
-            log.error("启动小明时出现异常：" + exception);
-            exception.printStackTrace();
-            return false;
-        }
-        return true;
+    @Override
+    public Logger getLog() {
+        return log;
     }
 
-    /**
-     * 关闭小明
-     */
+    @Override
     public void stop() {
         xiaomingBot.stop();
     }

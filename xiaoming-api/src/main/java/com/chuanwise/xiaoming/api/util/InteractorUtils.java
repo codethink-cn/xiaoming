@@ -134,6 +134,10 @@ public class InteractorUtils extends StaticUtils {
         }
     }
 
+    public static <T> T indexChooser(XiaomingUser user, Collection<T> collection, Function<T, String> summarizer, int pageElemNumber) {
+        return indexChooser(user, collection, summarizer, "（无）", "\n", pageElemNumber);
+    }
+
     public static <T> T indexChooser(XiaomingUser user, Collection<T> collection, Function<T, String> summarizer, String empty, String splitter, int pageElemNumber) {
         if (collection.isEmpty()) {
             user.sendMessage(empty);
@@ -142,100 +146,121 @@ public class InteractorUtils extends StaticUtils {
 
         List<String> strings = new ArrayList<>(collection.size());
         collection.forEach(t -> strings.add(summarizer.apply(t)));
-        if (collection.size() < pageElemNumber) {
-            int index = 0;
-            StringBuilder builder = new StringBuilder((++index) + "、" + strings.get(0));
-            for (int i = 1; i < collection.size(); i++) {
-                builder.append("\n").append((++index) + "、" + strings.get(0));
-            }
-            user.sendMessage(builder.toString());
+
+        if (collection.size() == 1) {
+            return collection.iterator().next();
         } else {
-            int pageNumber = 0;
-            final int totalPageNumber = strings.size() / pageElemNumber + (strings.size() % pageElemNumber == 0 ? 0 : 1);
+            final Object[] objects = collection.toArray(new Object[0]);
 
-            // 生成每一页的信息
-            List<String> pageInfo = new ArrayList<>(totalPageNumber);
-            for (int i = 0; i < totalPageNumber; i++) {
-                final StringBuilder builder = new StringBuilder();
-
-                builder.append("第 ").append(i + 1).append(" 页，共 ").append(totalPageNumber).append(" 页");
-                int pageFrontIndex = pageElemNumber * i;
-                int pageEndIndex = Math.min(pageFrontIndex + pageElemNumber, strings.size());
-                for (int j = pageFrontIndex; j < pageEndIndex; j++) {
-                    builder.append(splitter).append(j + 1).append("、").append(strings.get(j));
+            if (collection.size() < pageElemNumber) {
+                int index = 0;
+                StringBuilder builder = new StringBuilder((++index) + "、" + strings.get(0));
+                for (int i = 1; i < collection.size(); i++) {
+                    builder.append("\n").append((++index) + "、" + strings.get(i));
                 }
+                user.sendMessage(builder.toString());
 
-                pageInfo.add(builder.toString());
-            }
-
-            boolean showPageInfo = true;
-            boolean shouldBreak = false;
-            while (!shouldBreak) {
-                if (showPageInfo) {
-                    user.sendMessage(pageInfo.get(pageNumber));
-                }
-                showPageInfo = true;
-
-                // 选择翻页等操作
-                final String nextInput = user.nextInput().serialize();
-
-                // 第 X 页
-                final Matcher nextMatcher = PAGE.matcher(nextInput);
-                if (nextMatcher.matches()) {
-                    final int switchTo = Integer.parseInt(nextMatcher.group("page"));
-                    if (switchTo < 1 || switchTo > totalPageNumber) {
-                        user.sendError("页码应该在 {} 到 {} 之间", 1, totalPageNumber);
-                        showPageInfo = false;
-                    } else if (switchTo + 1 == pageNumber) {
-                        user.sendMessage("当前就正在这一页上哦");
-                        showPageInfo = false;
+                final String choose = waitNextLegalInput(user, string -> {
+                    if (string.matches("\\d+")) {
+                        final int i = Integer.parseInt(string);
+                        return i >= 1 && i <= collection.size();
                     } else {
-                        pageNumber = switchTo - 1;
+                        return Objects.equals(string, "退出");
                     }
-                    continue;
+                }, "应该告诉我你要选择的序号（在 1 到 " + collection.size() + " 之间），或「退出」哦").serialize();
+                if (Objects.equals(choose, "退出")) {
+                    return null;
+                } else {
+                    return (T) objects[Integer.parseInt(choose) - 1];
+                }
+            } else {
+                int pageNumber = 0;
+                final int totalPageNumber = strings.size() / pageElemNumber + (strings.size() % pageElemNumber == 0 ? 0 : 1);
+
+                // 生成每一页的信息
+                List<String> pageInfo = new ArrayList<>(totalPageNumber);
+                for (int i = 0; i < totalPageNumber; i++) {
+                    final StringBuilder builder = new StringBuilder();
+
+                    builder.append("第 ").append(i + 1).append(" 页，共 ").append(totalPageNumber).append(" 页");
+                    int pageFrontIndex = pageElemNumber * i;
+                    int pageEndIndex = Math.min(pageFrontIndex + pageElemNumber, strings.size());
+                    for (int j = pageFrontIndex; j < pageEndIndex; j++) {
+                        builder.append(splitter).append(j + 1).append("、").append(strings.get(j));
+                    }
+
+                    pageInfo.add(builder.toString());
                 }
 
-                // 第 X 个
-                if (nextInput.matches("\\d+")) {
-                    final int index = Integer.parseInt(nextInput);
-                    if (index < 1 || index > collection.size()) {
-                        user.sendError("序号应该在 {} 到 {} 之间哦", 1, collection.size());
-                        showPageInfo = false;
-                    } else {
-                        return (T) collection.toArray(new Object[0])[index - 1];
+                boolean showPageInfo = true;
+                boolean shouldBreak = false;
+                while (!shouldBreak) {
+                    if (showPageInfo) {
+                        user.sendMessage(pageInfo.get(pageNumber));
                     }
-                    continue;
-                }
+                    showPageInfo = true;
 
-                switch (nextInput) {
-                    case "下一页":
-                    case "下页":
-                    case "next":
-                        if (pageNumber + 1 == totalPageNumber) {
-                            user.sendError("已经没有下一页了，重新选择一下吧");
+                    // 选择翻页等操作
+                    final String nextInput = user.nextInput().serialize();
+
+                    // 第 X 页
+                    final Matcher nextMatcher = PAGE.matcher(nextInput);
+                    if (nextMatcher.matches()) {
+                        final int switchTo = Integer.parseInt(nextMatcher.group("page"));
+                        if (switchTo < 1 || switchTo > totalPageNumber) {
+                            user.sendError("页码应该在 {} 到 {} 之间", 1, totalPageNumber);
+                            showPageInfo = false;
+                        } else if (switchTo + 1 == pageNumber) {
+                            user.sendMessage("当前就正在这一页上哦");
                             showPageInfo = false;
                         } else {
-                            pageNumber++;
+                            pageNumber = switchTo - 1;
                         }
-                        break;
-                    case "上一页":
-                    case "上页":
-                    case "front":
-                    case "prev":
-                        if (pageNumber == 0) {
-                            user.sendError("已经没有上一页了，重新选择一下吧");
+                        continue;
+                    }
+
+                    // 第 X 个
+                    if (nextInput.matches("\\d+")) {
+                        final int index = Integer.parseInt(nextInput);
+                        if (index < 1 || index > collection.size()) {
+                            user.sendError("序号应该在 {} 到 {} 之间哦", 1, collection.size());
                             showPageInfo = false;
                         } else {
-                            pageNumber--;
+                            return (T) objects[index - 1];
                         }
-                        break;
-                    case "退出":
-                    case "exit":
-                        shouldBreak = true;
-                        break;
-                    default:
-                        user.sendMessage("应该告诉选择的序号、「第x页」「上一页」「下一页」或「退出」哦");
-                        showPageInfo = false;
+                        continue;
+                    }
+
+                    switch (nextInput) {
+                        case "下一页":
+                        case "下页":
+                        case "next":
+                            if (pageNumber + 1 == totalPageNumber) {
+                                user.sendError("已经没有下一页了，重新选择一下吧");
+                                showPageInfo = false;
+                            } else {
+                                pageNumber++;
+                            }
+                            break;
+                        case "上一页":
+                        case "上页":
+                        case "front":
+                        case "prev":
+                            if (pageNumber == 0) {
+                                user.sendError("已经没有上一页了，重新选择一下吧");
+                                showPageInfo = false;
+                            } else {
+                                pageNumber--;
+                            }
+                            break;
+                        case "退出":
+                        case "exit":
+                            shouldBreak = true;
+                            break;
+                        default:
+                            user.sendMessage("应该告诉选择的序号、「第x页」「上一页」「下一页」或「退出」哦");
+                            showPageInfo = false;
+                    }
                 }
             }
         }
@@ -254,9 +279,10 @@ public class InteractorUtils extends StaticUtils {
         }
         if (System.currentTimeMillis() < latestTime) {
             if (sizeBeforeWait + 1 == list.size()) {
-                return list.get(sizeBeforeWait);
+                final T result = list.get(sizeBeforeWait);
+                return result;
             } else {
-                throw new InteractorTimeoutException();
+                throw new ReceptCancelledException();
             }
         } else {
             onTimeout.run();
@@ -273,7 +299,7 @@ public class InteractorUtils extends StaticUtils {
                                                                 C collection, Predicate<String> isLegal, Function<String, T> translator, String illegalNotice,
                                                                 String endWord,
                                                                 boolean emptyable, String emptyNotice) {
-        user.sendMessage(beforeInput);
+        user.sendMessage(beforeInput + "，使用「" + endWord + "」结束");
         Message message = user.nextInput();
         while (true) {
             final String serializedMessage = message.serialize();
@@ -287,7 +313,7 @@ public class InteractorUtils extends StaticUtils {
                 if (isLegal.test(serializedMessage)) {
                     collection.add(translator.apply(serializedMessage));
                 } else {
-                    user.sendError(illegalNotice);
+                    user.reply(message, illegalNotice);
                 }
             }
             message = user.nextInput();

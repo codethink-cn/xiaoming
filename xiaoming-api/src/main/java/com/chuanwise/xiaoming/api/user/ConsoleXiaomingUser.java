@@ -7,6 +7,7 @@ import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
 import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.recept.ConsoleReceptionTask;
 import com.chuanwise.xiaoming.api.util.ArgumentUtils;
+import net.mamoe.mirai.message.code.MiraiCode;
 
 import java.util.List;
 
@@ -44,11 +45,6 @@ public interface ConsoleXiaomingUser extends ModuleObject, XiaomingUser<ConsoleC
     @Override
     default void sendPrivateWarning(String message, Object... arguments) {
         sendWarning(message, arguments);
-    }
-
-    @Override
-    default void sendPrivateMessage(String message, Object... arguments) {
-        sendMessage(message, arguments);
     }
 
     @Override

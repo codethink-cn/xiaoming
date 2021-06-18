@@ -5,6 +5,7 @@ import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.interactor.command.CommandInteractor;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
+import com.chuanwise.xiaoming.api.interactor.message.MessageInteractor;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
@@ -85,7 +86,7 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
 
     @Override
     public boolean onMessage(XiaomingUser user, Message message) throws Exception {
-        return onInput(user, message, MessageInteractorImpl.class);
+        return onInput(user, message, MessageInteractor.class);
     }
 
     @Override

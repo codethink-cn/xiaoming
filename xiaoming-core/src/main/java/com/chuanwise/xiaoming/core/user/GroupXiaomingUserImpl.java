@@ -1,7 +1,9 @@
 package com.chuanwise.xiaoming.core.user;
 
+import com.chuanwise.xiaoming.api.account.record.GroupCommandRecord;
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
+import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
@@ -52,6 +54,8 @@ public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupM
             receptionist.onGroupMessage(getContact(), message);
         }
 
+        getOrPutAccount().addCommand(new GroupCommandRecord(getGroupCode(), message.serialize()));
+
         synchronized (list) {
             list.notifyAll();
         }
@@ -73,11 +77,6 @@ public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupM
         } else {
             contact.atSend(getCode(), replacedMessage);
         }
-    }
-
-    @Override
-    public void sendPrivateMessage(String message, Object... arguments) {
-        memberContact.send(replaceArguments(message, arguments));
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.chuanwise.xiaoming.api.user;
 
 import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
-import com.chuanwise.xiaoming.api.contact.message.ConsoleMessage;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
@@ -23,7 +22,9 @@ import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.At;
+import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.MessageChain;
+import net.mamoe.mirai.utils.ExternalResource;
 
 import java.io.PrintWriter;
 import java.util.*;
@@ -77,7 +78,23 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
      */
     void sendMessage(String message, Object... arguments);
 
-    void sendPrivateMessage(String message, Object... arguments);
+    default AsyncResult<Boolean> sendMessageLater(long delay, String message, Object... arguments) {
+        final ScheduableTask<Boolean> task = getXiaomingBot().getScheduler().runLater(delay, () -> {
+            sendMessage(message, arguments);
+        });
+        task.setDescription("异步消息发送任务");
+        return task;
+    }
+
+    M sendPrivateMessage(String message, Object... arguments);
+
+    default ScheduableTask<M> sendPrivateMessageLater(long delay, String message, Object... arguments) {
+        final ScheduableTask<M> task = getXiaomingBot().getScheduler().runLater(delay, () -> {
+            return sendPrivateMessage(message, arguments);
+        });
+        task.setDescription("异步消息发送任务");
+        return task;
+    }
 
     default void sendError(String message, Object... arguments) {
         sendMessage(getXiaomingBot().getLanguage().getString("error") + " " + message, arguments);
@@ -93,6 +110,22 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
 
     default void sendPrivateWarning(String message, Object... arguments) {
         sendPrivateMessage(getXiaomingBot().getLanguage().getString("warning") + " " + message, arguments);
+    }
+
+    default void sendErrorLater(long delay, String message, Object... arguments) {
+        sendMessageLater(delay, getXiaomingBot().getLanguage().getString("error") + " " + message, arguments);
+    }
+
+    default void sendWarningLater(long delay, String message, Object... arguments) {
+        sendMessageLater(delay, getXiaomingBot().getLanguage().getString("warning") + " " + message, arguments);
+    }
+
+    default void sendPrivateErrorLater(long delay, String message, Object... arguments) {
+        sendPrivateMessageLater(delay, getXiaomingBot().getLanguage().getString("error") + " " + message, arguments);
+    }
+
+    default void sendPrivateWarningLater(long delay, String message, Object... arguments) {
+        sendPrivateMessageLater(delay, getXiaomingBot().getLanguage().getString("warning") + " " + message, arguments);
     }
 
     default boolean hasPermission(String require) {
@@ -139,27 +172,27 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         return getReceptionist().getAt();
     }
 
-    default M reply(M quote, String message) {
+    default M reply(Message quote, String message) {
         return getContact().reply(quote, message);
     }
 
-    default M reply(M quote, M message) {
+    default M reply(Message quote, M message) {
         return getContact().reply(quote, message);
     }
 
-    default M reply(M quote, MessageChain message) {
+    default M reply(Message quote, MessageChain message) {
         return getContact().reply(quote, message);
     }
 
-    default ScheduableTask<M> replyLater(long delay, M quote, MessageChain message) {
+    default ScheduableTask<M> replyLater(long delay, Message quote, MessageChain message) {
         return getContact().replyLater(delay, quote, message);
     }
 
-    default ScheduableTask<M> replyLater(long delay, M quote, M message) {
+    default ScheduableTask<M> replyLater(long delay, Message quote, M message) {
         return getContact().replyLater(delay, quote, message);
     }
 
-    default ScheduableTask<M> replyLater(long delay, M quote, String message) {
+    default ScheduableTask<M> replyLater(long delay, Message quote, String message) {
         return getContact().replyLater(delay, quote, message);
     }
 
@@ -188,11 +221,17 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     void onNextInput(MessageChain messages);
 
     default void onNextInput(String message) {
-        onNextInput(MiraiCode.deserializeMiraiCode(message));
+        onNextInput(MiraiCode.deserializeMiraiCode(ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
     }
 
     default M nextInput(long timeout, Runnable onTimeout) {
-        return InteractorUtils.waitLastElement(getRecentMessages(), timeout, onTimeout);
+        final M lastElement = InteractorUtils.waitLastElement(getRecentMessages(), timeout, onTimeout);
+        if (Objects.equals(lastElement.serialize(), "退出")) {
+            sendMessage("退出成功");
+            throw new ReceptCancelledException();
+        } else {
+            return lastElement;
+        }
     }
 
     default M nextInput(Runnable onTimeout) {
@@ -232,7 +271,7 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     }
 
     default GroupMessage nextGroupInput(long timeout, String tag, Runnable onTimeout) {
-        return InteractorUtils.waitLastElement(getReceptionist().getOrPutGroupRecentMessage(tag), timeout, onTimeout);
+        return InteractorUtils.waitLastElement(getReceptionist().getOrPutGroupRecentMessages(tag), timeout, onTimeout);
     }
 
     default GroupMessage nextGroupInput(String tag, Runnable onTimeout) {
@@ -363,6 +402,15 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
      */
     String getBufferAndClose();
 
+    default String getAlias() {
+        final Account account = getAccount();
+        if (Objects.nonNull(account) && Objects.nonNull(account.getAlias())) {
+            return account.getAlias();
+        } else {
+            return getName();
+        }
+    }
+
     /**
      * 判断用户是否屏蔽了某插件
      * @param pluginName 插件名
@@ -377,9 +425,17 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         }
     }
 
+    default String getAliasAndCode() {
+        return getAlias() + "(" + getCodeString() + ")";
+    }
+
     void appendBuffer(String string);
 
     R getReceptionTask();
 
     void nudge();
+
+    default Image uploadImage(ExternalResource resource) {
+        return getContact().uploadImage(resource);
+    }
 }

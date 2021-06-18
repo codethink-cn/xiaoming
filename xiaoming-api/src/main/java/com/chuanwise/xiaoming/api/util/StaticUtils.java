@@ -4,6 +4,6 @@ import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 
 public class StaticUtils {
     protected StaticUtils() {
-        throw new XiaomingRuntimeException("Can not construct a util class.");
+        throw new XiaomingRuntimeException("Can not construct a static util class.");
     }
 }

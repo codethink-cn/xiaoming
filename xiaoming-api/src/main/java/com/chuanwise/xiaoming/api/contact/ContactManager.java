@@ -6,6 +6,7 @@ import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
 import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
+import net.mamoe.mirai.contact.NormalMember;
 
 import java.util.*;
 
@@ -19,6 +20,8 @@ public interface ContactManager extends ModuleObject {
     GroupContact getGroupContact(long code);
 
     MemberContact getMemberContact(long code, long qq);
+
+    MemberContact getMemberContact(GroupContact groupContact, NormalMember normalMember);
 
     Map<String, List<GroupMessage>> getGroupRecentMessages();
 

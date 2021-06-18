@@ -26,12 +26,12 @@ public interface Scheduler extends Runnable, ModuleObject {
 
     <T> ScheduableTask<T> run(ScheduableTask<T> scheduableTask);
 
-    default <T> ScheduableTask<T> runLater(ScheduableTask<T> scheduableTask, long delay) {
+    default <T> ScheduableTask<T> runLater(long delay, ScheduableTask<T> scheduableTask) {
         scheduableTask.setTime(System.currentTimeMillis() + delay);
         return run(scheduableTask);
     }
 
-    default <T> ScheduableTask<T> periodicRunLater(ScheduableTask<T> scheduableTask, long period, long delay) {
+    default <T> ScheduableTask<T> periodicRunLater(long period, long delay, ScheduableTask<T> scheduableTask) {
         scheduableTask.setPeriod(period);
         scheduableTask.setTime(System.currentTimeMillis() + delay);
         return run(scheduableTask);
@@ -44,33 +44,33 @@ public interface Scheduler extends Runnable, ModuleObject {
         });
     }
 
-    default ScheduableTask<Boolean> runLater(Runnable runnable, long delay) {
-        return runLater(() -> {
+    default ScheduableTask<Boolean> runLater(long delay, Runnable runnable) {
+        return runLater(delay, () -> {
             runnable.run();
             return true;
-        }, delay);
+        });
     }
 
     <T> ScheduableTask<T> run(Callable<T> callable);
 
-    <T> ScheduableTask<T> runLater(Callable<T> callable, long delay);
+    <T> ScheduableTask<T> runLater(long delay, Callable<T> callable);
 
-    <T> ScheduableTask<T> periodicRunLater(Callable<T> callable, long period, long delay);
+    <T> ScheduableTask<T> periodicRunLater(long period, long delay, Callable<T> callable);
 
-    <T> ScheduableTask<T> periodicRun(Callable<T> callable, long period);
+    <T> ScheduableTask<T> periodicRun(long period, Callable<T> callable);
 
-    default ScheduableTask<Boolean> periodicRunLater(Runnable runnable, long period, long delay) {
-        return periodicRunLater(() -> {
+    default ScheduableTask<Boolean> periodicRunLater(long period, long delay, Runnable runnable) {
+        return periodicRunLater(period, delay, () -> {
             runnable.run();
             return true;
-        }, period, delay);
+        });
     }
 
-    default ScheduableTask<Boolean> periodicRun(Runnable runnable, long period) {
-        return periodicRun(() -> {
+    default ScheduableTask<Boolean> periodicRun(long period, Runnable runnable) {
+        return periodicRun(period, () -> {
             runnable.run();
             return true;
-        }, period);
+        });
     }
 
     Set<ScheduableTask<?>> getPlannedTasks();

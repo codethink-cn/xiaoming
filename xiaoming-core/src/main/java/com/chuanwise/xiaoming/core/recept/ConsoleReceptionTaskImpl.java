@@ -46,9 +46,7 @@ public class ConsoleReceptionTaskImpl extends ReceptionTaskImpl implements Conso
 
     @Override
     public void recept(Message message) throws Exception {
-        if (getXiaomingBot().getInteractorManager().onInput(user, message)) {
-            
-        } else {
+        if (!getXiaomingBot().getInteractorManager().onInput(user, message)) {
             user.getRecentMessages().clear();
         }
     }

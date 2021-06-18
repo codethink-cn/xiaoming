@@ -5,6 +5,7 @@ import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
+import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.message.code.MiraiCode;
@@ -39,27 +40,27 @@ public interface ConsoleContact extends XiaomingContact<ConsoleMessage, Friend> 
         return "后台";
     }
 
-    default ConsoleMessage atReply(ConsoleMessage quote, String message) {
-        return atReply(quote, MiraiCode.deserializeMiraiCode(message));
+    default ConsoleMessage atReply(Message quote, String message) {
+        return atReply(quote, MiraiCode.deserializeMiraiCode(ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
     }
 
-    default ConsoleMessage atReply(ConsoleMessage quote, MessageChain message) {
+    default ConsoleMessage atReply(Message quote, MessageChain message) {
         return reply(quote, quote.getSender().getAt().plus(" ").plus(message));
     }
 
-    default ConsoleMessage atReply(ConsoleMessage quote, ConsoleMessage message) {
+    default ConsoleMessage atReply(Message quote, ConsoleMessage message) {
         return atReply(quote, message.getMessageChain());
     }
 
-    default ScheduableTask<ConsoleMessage> atReplyLater(long delay, ConsoleMessage quote, String message) {
-        return atReplyLater(delay, quote, MiraiCode.deserializeMiraiCode(message));
+    default ScheduableTask<ConsoleMessage> atReplyLater(long delay, Message quote, String message) {
+        return atReplyLater(delay, quote, MiraiCode.deserializeMiraiCode(ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
     }
 
-    default ScheduableTask<ConsoleMessage> atReplyLater(long delay, ConsoleMessage quote, MessageChain message) {
+    default ScheduableTask<ConsoleMessage> atReplyLater(long delay, Message quote, MessageChain message) {
         return replyLater(delay, quote, quote.getSender().getAt().plus(" ").plus(message));
     }
 
-    default ScheduableTask<ConsoleMessage> atReplyLater(long delay, ConsoleMessage quote, ConsoleMessage message) {
+    default ScheduableTask<ConsoleMessage> atReplyLater(long delay, Message quote, ConsoleMessage message) {
         return replyLater(delay, quote, message.getMessageChain());
     }
 }

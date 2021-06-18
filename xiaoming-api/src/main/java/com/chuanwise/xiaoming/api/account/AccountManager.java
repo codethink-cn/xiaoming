@@ -4,6 +4,7 @@ import com.chuanwise.xiaoming.api.object.ModuleObject;
 
 import java.io.File;
 import java.util.Map;
+import java.util.Objects;
 
 public interface AccountManager extends ModuleObject {
     File accountFile(long qq);
@@ -15,4 +16,21 @@ public interface AccountManager extends ModuleObject {
     File getDirectory();
 
     Map<Long, Account> getLoadedAccounts();
+
+    default boolean hasTag(long qq, String tag) {
+        if (tag == String.valueOf(qq)) {
+            return true;
+        }
+
+        final Account account = getAccount(qq);
+        if (Objects.nonNull(account)) {
+            if (Objects.equals("recorded", tag)) {
+                return true;
+            } else {
+                return account.hasTag(tag);
+            }
+        } else {
+            return false;
+        }
+    }
 }

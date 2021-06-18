@@ -55,13 +55,11 @@ public class ScheduableTaskImpl<R> extends AsyncResultImpl<R> implements Schedua
         ScheduableTaskImpl<?> that = (ScheduableTaskImpl<?>) o;
         return time == that.time &&
                 period == that.period &&
-                Objects.equals(son, that.son) &&
-                Objects.equals(father, that.father) &&
                 Objects.equals(description, that.description);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(time, period, son, father, description);
+        return Objects.hash(time, period, description);
     }
 }

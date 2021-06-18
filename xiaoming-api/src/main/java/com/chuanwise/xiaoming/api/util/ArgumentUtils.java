@@ -44,7 +44,7 @@ public class ArgumentUtils extends StaticUtils {
                     current.append(ch);
                     state = 2;
                     break;
-                    // 普通参数内部
+                // 普通参数内部
                 case 2:
                     if (spaceChar) {
                         state = 0;
@@ -53,7 +53,7 @@ public class ArgumentUtils extends StaticUtils {
                         current.append(ch);
                     }
                     break;
-                    // 英文引号参数内部
+                // 英文引号参数内部
                 case 3:
                     if (ch == '\"') {
                         state = 0;
@@ -62,7 +62,7 @@ public class ArgumentUtils extends StaticUtils {
                         current.append(ch);
                     }
                     break;
-                    // 中文引号参数内部
+                // 中文引号参数内部
                 case 4:
                     if (ch == '”') {
                         state = 0;
@@ -71,7 +71,7 @@ public class ArgumentUtils extends StaticUtils {
                         current.append(ch);
                     }
                     break;
-                    // 英文大括号参数内部
+                // 英文大括号参数内部
                 case 5:
                     current.append(ch);
                     if (ch == '}') {
@@ -89,18 +89,22 @@ public class ArgumentUtils extends StaticUtils {
         return result;
     }
 
-    public static String getReaminArgs(List<String> args, int begin) {
-        if (args.isEmpty() || begin >= args.size()) {
+    public static String getReaminArgs(String[] arguments, int begin) {
+        if (arguments.length == 0 || begin >= arguments.length) {
             return "";
         }
-        if (begin == args.size() - 1) {
-            return args.get(begin);
+        if (begin == arguments.length - 1) {
+            return arguments[begin];
         }
-        StringBuilder builder = new StringBuilder(args.get(begin));
-        for (int index = begin + 1; index < args.size(); index ++) {
-            builder.append(" ").append(args.get(index));
+        StringBuilder builder = new StringBuilder(arguments[begin]);
+        for (int index = begin + 1; index < arguments.length; index ++) {
+            builder.append(" ").append(arguments[index]);
         }
         return builder.toString();
+    }
+
+    public static String getReaminArgs(List<String> arguments, int begin) {
+        return getReaminArgs(arguments.toArray(new String[0]), begin);
     }
 
     public static String replaceArguments(String format, Object[] arguments) {

@@ -49,15 +49,7 @@ public class PrivateReceptionTaskImpl extends ReceptionTaskImpl implements Priva
 
     @Override
     public void recept(Message message) throws Exception {
-        if (getXiaomingBot().getInteractorManager().onInput(user, message)) {
-            final CommandRecord record = new PrivateCommandRecord(message.serialize());
-            final Account account = user.getOrPutAccount();
-
-            account.addCommand(record);
-            getXiaomingBot().getScheduler().readySave(account);
-
-            getXiaomingBot().getUserCallLimitManager().getGroupCallLimiter().addCallRecord(user.getCode());
-        } else {
+        if (!getXiaomingBot().getInteractorManager().onInput(user, message)) {
             user.getRecentMessages().clear();
         }
     }

@@ -7,6 +7,7 @@ import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.error.ReportMessage;
 import com.chuanwise.xiaoming.api.error.ReportMessageManager;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
+import com.chuanwise.xiaoming.api.util.CollectionUtils;
 import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
@@ -18,64 +19,58 @@ public class ReportCommandInteractor extends CommandInteractorImpl {
     final ReportMessageManager reportMessageManager;
     final List<ReportMessage> reportMessages;
 
+    static final String REPORT = "(报告|report)";
+
     public ReportCommandInteractor(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
         reportMessageManager = getXiaomingBot().getReportMessageManager();
         reportMessages = reportMessageManager.getReportMessages();
     }
 
-    public void onShowErrorMessage(XiaomingUser user,
-                                   ReportMessage message) {
-        StringBuilder builder = new StringBuilder("【消息详情】").append("\n");
+    public void showReportMessage(XiaomingUser user,
+                                  ReportMessage message) {
+        StringBuilder builder = new StringBuilder("【报告详情】").append("\n");
         builder.append(message.getMessage()).append("\n")
                 .append("QQ：" + message.getQq());
 
         if (Objects.nonNull(message.getLastInputs())) {
-            builder.append("输入：" + message.getLastInputs());
+            builder.append("\n").append("输入：" + CollectionUtils.getSummary(message.getLastInputs(), String::toString, "", "（空）", "、"));
         }
 
         if (message.getGroup() != 0) {
-            builder.append("群：" + message.getGroup());
+            builder.append("\n").append("群：" + message.getGroup());
         }
 
-        builder.append("时间：" + TimeUtils.FORMAT.format(message.getTime()));
+        builder.append("\n").append("时间：" + TimeUtils.FORMAT.format(message.getTime()));
 
         user.sendPrivateMessage(builder.toString());
     }
 
-    @Filter(CommandWords.RECENT + CommandWords.MESSAGE)
+    @Filter(CommandWords.RECENT + REPORT)
     @Require("message.look")
     public void onLookLastMessage(XiaomingUser user) {
         if (reportMessages.isEmpty()) {
-            user.sendMessage("没有未经查看的消息哦");
+            user.sendMessage("没有未经查看的报告哦");
         } else if (reportMessages.size() == 1) {
-            onShowErrorMessage(user, reportMessages.get(0));
+            showReportMessage(user, reportMessages.get(0));
             reportMessages.clear();
             getXiaomingBot().getScheduler().readySave(reportMessageManager);
         } else {
-            StringBuilder builder = new StringBuilder()
-                    .append("一共有 ").append(reportMessages.size()).append(" 个未经查看的消息");
-
-            int index = 1;
-            for (ReportMessage reportMessage : reportMessages) {
-                String shortMessage = reportMessage.getMessage();
-                if (shortMessage.length() > 30) {
-                    shortMessage = shortMessage.substring(0, 29) + "...";
-                }
-                builder.append("\n").append(index++).append("、").append(shortMessage);
-            }
-            user.sendMessage(builder.toString());
+            user.sendMessage("一共有 " + reportMessages.size() + " 个未经查看的报告：\n" +
+                    CollectionUtils.getIndexSummary(reportMessages, message -> {
+                        return message.getMessage();
+                    }));
         }
     }
 
-    @Filter(CommandWords.RECENT + CommandWords.MESSAGE + " {index}")
+    @Filter(CommandWords.RECENT + REPORT + " {index}")
     @Require("message.look")
     public void onLookMessage(XiaomingUser user,
                                 @FilterParameter("index") final String indexString) {
         if (reportMessages.isEmpty()) {
-            user.sendMessage("没有未经查看的消息哦");
+            user.sendMessage("没有未经查看的报告哦");
         } else if (reportMessages.size() == 1) {
-            user.sendMessage("只有一个未经处理的消息，直接使用 #近期消息 就可以啦");
+            user.sendMessage("只有一个未经处理的报告，直接使用「近期报告」就可以啦");
             return;
         }
 
@@ -91,21 +86,21 @@ public class ReportCommandInteractor extends CommandInteractorImpl {
             user.sendError("{}不对哦，它应该是介于 1 到 {} 之间的数字", indexString, reportMessages.size());
         } else {
             final ReportMessage reportMessage = reportMessages.get(index - 1);
-            onShowErrorMessage(user, reportMessage);
+            showReportMessage(user, reportMessage);
             reportMessages.remove(reportMessage);
             getXiaomingBot().getScheduler().readySave(reportMessageManager);
         }
     }
 
-    @Filter(CommandWords.CLEAR + CommandWords.RECENT + CommandWords.MESSAGE)
+    @Filter(CommandWords.CLEAR + CommandWords.RECENT + REPORT)
     @Require("message.clear")
     public void onClearMessage(XiaomingUser user) {
         if (reportMessages.isEmpty()) {
-            user.sendMessage("并没有需要清除的未经查看的消息哦");
+            user.sendMessage("并没有需要清除的未经查看的报告哦");
         } else {
             reportMessages.clear();
             getXiaomingBot().getScheduler().readySave(reportMessageManager);
-            user.sendMessage("成功清除未经查看的消息");
+            user.sendMessage("成功清除未经查看的报告");
         }
     }
 }

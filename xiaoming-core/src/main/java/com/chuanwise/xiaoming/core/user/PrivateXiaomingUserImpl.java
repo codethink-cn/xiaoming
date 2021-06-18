@@ -1,5 +1,7 @@
 package com.chuanwise.xiaoming.core.user;
 
+import com.chuanwise.xiaoming.api.account.record.MemberCommandRecord;
+import com.chuanwise.xiaoming.api.account.record.PrivateCommandRecord;
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
@@ -52,6 +54,8 @@ public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, Pr
             receptionist.onPrivateMessage(getContact(), message);
         }
 
+        getOrPutAccount().addCommand(new PrivateCommandRecord(message.serialize()));
+
         synchronized (list) {
             list.notifyAll();
         }
@@ -68,11 +72,6 @@ public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, Pr
         } else {
             contact.send(replacedMessage);
         }
-    }
-
-    @Override
-    public void sendPrivateMessage(String message, Object... arguments) {
-        sendMessage(message, arguments);
     }
 
     @Override

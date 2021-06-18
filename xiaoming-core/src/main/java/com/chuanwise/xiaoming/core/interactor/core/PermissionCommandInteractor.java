@@ -15,6 +15,7 @@ import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CollectionUtils;
 import com.chuanwise.xiaoming.api.util.CommandWords;
+import com.chuanwise.xiaoming.api.util.StringUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 import com.chuanwise.xiaoming.core.permission.PermissionGroupImpl;
 
@@ -50,12 +51,21 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
     @Override
     public <T> Object onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
         Object result = super.onParameter(user, clazz, parameterName, currentValue, defaultValue);
+        if (Objects.nonNull(result)) {
+            return result;
+        }
+
         if (Objects.equals(parameterName, "permissionGroup") && PermissionGroup.class.isAssignableFrom(clazz)) {
+            if (StringUtils.isEmpty(currentValue)) {
+                user.sendMessage("告诉{xiaoming}权限组的名字吧");
+                currentValue = user.nextInput().serialize();
+                user.setProperty("permissionGroup", currentValue);
+            }
             final PermissionGroup permissionGroup = permissionManager.getPermissionGroup(currentValue);
             if (Objects.nonNull(permissionGroup)) {
                 result = permissionGroup;
             } else {
-                user.sendError("小明找不到权限组：{}", currentValue);
+                user.sendError("{xiaoming}找不到权限组：{}", currentValue);
             }
         }
         return result;
@@ -65,19 +75,22 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      * 新增权限组
      */
     @Filter(CommandWords.NEW + CommandWords.PERMISSION_GROUP + " {permissionGroup}")
+    @Filter(CommandWords.ADD + CommandWords.PERMISSION_GROUP + " {permissionGroup}")
     @Require("permission.group.new")
     public void onNewPermissionGroup(XiaomingUser user,
                                      @FilterParameter("permissionGroup") String name) {
         PermissionGroup group = permissionManager.getPermissionGroup(name);
         if (Objects.nonNull(group)) {
-            user.sendError("权限组{}已经已经存在了", getPermissionGroupName(name));
+            user.sendError("{permissionGroupAlreadyExists}");
         } else {
             PermissionGroup permissionGroup = new PermissionGroupImpl();
             permissionGroup.addSuperGroup(PermissionManager.DEFAULT_PERMISSION_GROUP);
+
             permissionManager.addGroup(name, permissionGroup);
             getXiaomingBot().getScheduler().readySave(permissionManager);
-            user.sendMessage("已增加新的权限组：{}，小明已经将其继承自{}了",
-                    name, getPermissionGroupName(PermissionManager.DEFAULT_PERMISSION_GROUP));
+
+            user.setProperty("superGroup", getPermissionGroupName(PermissionManager.DEFAULT_PERMISSION_GROUP));
+            user.sendMessage("{createPermissionGroupSuccessfully}");
         }
     }
 
@@ -105,7 +118,9 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
             }
         }
         Collections.sort(permissions);
-        user.sendMessage("当前有效的所有静态节点：" + CollectionUtils.getSummary(permissions, String::toString, "", "（无）", "\n"));
+
+        user.setProperty("list", CollectionUtils.getSummary(permissions, String::toString, "\n"));
+        user.sendMessage("{allStaticPermissionNodes}");
     }
 
     /**
@@ -118,7 +133,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
                                @FilterParameter("permissionGroup") String name,
                                @FilterParameter("permissionGroup") PermissionGroup permissionGroup) {
         permissionManager.getOrPutUserNode(qq).setGroup(name);
-        user.sendMessage("成功设置用户的权限组为：{}", getPermissionGroupName(name));
+        user.sendMessage("{setUserPermissionGroupSuccessfully}");
         getXiaomingBot().getScheduler().readySave(permissionManager);
     }
 
@@ -131,7 +146,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
                                         @FilterParameter("permissionGroup") String name,
                                         @FilterParameter("permissionGroup") PermissionGroup permissionGroup) {
         permissionManager.removeGroup(name);
-        user.sendMessage("已删除权限组{}", getPermissionGroupName(name));
+        user.sendMessage("{removePermissionGroupSuccessfully}");
         getXiaomingBot().getScheduler().readySave(permissionManager);
     }
 
@@ -145,13 +160,15 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
                                 @FilterParameter("alias") String alias) {
         String elderAlias = permissionGroup.getAlias();
         permissionGroup.setAlias(alias);
-        getXiaomingBot().getScheduler().readySave(permissionManager);
 
         if (Objects.isNull(elderAlias)) {
-            user.sendMessage("已为该权限组创建了备注：{}", alias);
+            user.sendMessage("{createAliasForPermissionGroupSuccessfully}");
         } else {
-            user.sendMessage("已将该权限组的备注由 {}改为：{}", elderAlias, alias);
+            user.setProperty("elderAlias", elderAlias);
+            user.sendMessage("{changeAliasForPermissionGroupSuccessfully}");
         }
+
+        getXiaomingBot().getScheduler().readySave(permissionManager);
     }
 
     /**
@@ -166,11 +183,11 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
                                           @FilterParameter("node") String node) {
         final PermissionAccessible beforeAccessible = permissionManager.permissionGroupAccessible(permissionGroup, tag, node);
         if (beforeAccessible == PermissionAccessible.ACCESSABLE) {
-            user.sendWarning("{}已经具备带有{}标记的群中的权限{}了", getPermissionGroupName(groupName), tag, node);
+            user.sendWarning("{permissionGroupAlreadyHasPermissionOnGroup}");
         } else {
             permissionGroup.getOrPutGroupPermission(tag).add(node);
             getXiaomingBot().getScheduler().readySave(permissionManager);
-            user.sendMessage("成功为{}增加在有{}标记的群中的权限{}", getPermissionGroupName(groupName), tag, node);
+            user.sendMessage("{grantPermissionGroupPermissionInGroupSuccessfully}");
         }
     }
 
@@ -186,11 +203,11 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
         final PermissionUserNode userNode = permissionManager.getOrPutUserNode(qq);
         final PermissionAccessible beforeAccessible = permissionManager.userAccessible(qq, tag, node);
         if (beforeAccessible == PermissionAccessible.ACCESSABLE) {
-            user.sendWarning("该用户已经具备带有{}标记的群中的权限{}了", tag, node);
+            user.sendWarning("{userAlreadyHasPermissionOnGroup}");
         } else {
             userNode.addPermission(node);
             getXiaomingBot().getScheduler().readySave(permissionManager);
-            user.sendMessage("成功为该用户增加在有{}标记的群中的权限{}", tag, node);
+            user.sendMessage("{grantUserPermissionInGroupSuccessfully}");
         }
     }
 
@@ -221,13 +238,13 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
                 afterInserted.addAll(permissions);
                 permissionGroup.setPermissions(afterInserted);
 
-                user.sendWarning("小明尝试删除了{}在带有{}标记的群中的权限{}，但其父权限组仍具备该权限。小明已经帮当前组增加了权限节点 -{} 以强制删除该权限", getPermissionGroupName(groupName), tag, node, node);
+                user.sendWarning("{permissionInPermissionGroupRemovedSuccessfullyButDeleteNodeAdded}");
             } else {
-                user.sendWarning("成功删除了{}在带有{}标记的群中的权限{}", getPermissionGroupName(groupName), tag, node);
+                user.sendWarning("{permissionInPermissionGroupRemovedSuccessfully}");
             }
             getXiaomingBot().getScheduler().readySave(permissionManager);
         } else {
-            user.sendWarning("{}还并不具备在带有{}标记的群中的权限{}", getPermissionGroupName(groupName), tag, node);
+            user.sendWarning("{permissionGroupHasNotThisGroupPermission}");
         }
     }
 
@@ -256,13 +273,13 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
                 afterInserted.addAll(permissions);
                 userNode.setPermissions(afterInserted);
 
-                user.sendWarning("小明尝试删除了该用户在带有{}标记的群中的权限{}，但其父权限组仍具备该权限。小明已经帮该用户增加了权限节点 -{} 以强制删除该权限", tag, node, node);
+                user.sendWarning("{revokeUserGroupPermissionSuccessfullyButDeleteNodeAdded}");
             } else {
-                user.sendWarning("成功删除了该用户在带有{}标记的群中的权限{}",tag, node);
+                user.sendWarning("{revokeUserGroupPermissionSuccessfully}");
             }
             getXiaomingBot().getScheduler().readySave(permissionManager);
         } else {
-            user.sendWarning("该用户还并不具备在带有{}标记的群中的权限{}", tag, node);
+            user.sendWarning("{userHasNotThisGroupPermission}", tag, node);
         }
     }
 
@@ -295,14 +312,10 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      */
     @Filter(GRANT + " {qq} {node}")
     @Filter(CommandWords.SET + CommandWords.USE + CommandWords.PERMISSION_GROUP + " {qq} {node}")
+    @Require("permission.user.add.{node}")
     public void onGiveUserPermission(XiaomingUser user,
                                      @FilterParameter("qq") long qq,
                                      @FilterParameter("node") String node) {
-        final String requiredPermission = "permission.user.add." + node;
-        if (!user.requirePermission(requiredPermission)) {
-            return;
-        }
-
         final PermissionUserNode userNode = permissionManager.getOrPutUserNode(qq);
         userNode.addPermission(node);
         user.sendMessage("已授予 {} 权限节点：{}", qq, node);
@@ -371,14 +384,10 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
      * @param node 要删除的权限
      */
     @Filter(REVOKE + " {qq} {node}")
+    @Require("permission.user.remove.{node}")
     public void onRemoveUserPermission(XiaomingUser user,
                                        @FilterParameter("qq") long qq,
                                        @FilterParameter("node") String node) {
-        final String requiredPermission = "permission.user.remove." + node;
-        if (!user.requirePermission(requiredPermission)) {
-            return;
-        }
-
         if (permissionManager.removeUserPermission(qq, node)) {
             user.sendMessage("已移除该用户的权限：{}", node);
             getXiaomingBot().getScheduler().readySave(permissionManager);

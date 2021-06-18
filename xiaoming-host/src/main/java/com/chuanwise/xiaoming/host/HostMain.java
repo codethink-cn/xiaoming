@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.host;
 
+import com.chuanwise.xiaoming.api.launcher.XiaomingLauncher;
 import com.chuanwise.xiaoming.api.util.PathUtils;
 import lombok.extern.slf4j.Slf4j;
 
@@ -11,7 +12,7 @@ import java.io.File;
  * @author Chuanwise
  */
 @Slf4j
-public class XiaomingLauncher {
+public class HostMain {
     public static void main(String[] args) {
         final File launcherDir = PathUtils.LAUNCHER;
         if (!launcherDir.isDirectory() && !launcherDir.mkdirs()) {
@@ -19,16 +20,8 @@ public class XiaomingLauncher {
             return;
         }
 
-        final XiaomingHost launcher = new XiaomingHost();
-
-        // 设置关闭时的数据保存操作
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            // 如果小明此时还没有关闭则关闭
-            if (!launcher.getXiaomingBot().isStop()) {
-                launcher.stop();
-            }
-        }));
-
+        final XiaomingLauncher launcher = new HostXiaomingLauncher();
         launcher.launch();
+        launcher.start();
     }
 }

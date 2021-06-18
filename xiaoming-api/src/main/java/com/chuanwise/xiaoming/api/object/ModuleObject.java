@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.api.object;
 
+import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import org.slf4j.Logger;
 
 /**
@@ -11,4 +12,6 @@ public interface ModuleObject extends XiaomingObject {
      * @return 日志对象
      */
     Logger getLog();
+
+    default void flushBotReference(XiaomingBot xiaomingBot) {}
 }

@@ -1,5 +1,7 @@
 package com.chuanwise.xiaoming.core.user;
 
+import com.chuanwise.xiaoming.api.account.record.GroupCommandRecord;
+import com.chuanwise.xiaoming.api.account.record.MemberCommandRecord;
 import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.recept.MemberReceptionTask;
@@ -8,6 +10,7 @@ import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
 import com.chuanwise.xiaoming.core.contact.message.MemberMessageImpl;
 import lombok.Getter;
 import lombok.Setter;
+import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.List;
@@ -46,6 +49,8 @@ public class MemberXiaomingUserImpl extends XiaomingUserImpl<MemberContact, Memb
             receptionist.onMemberMessage(getContact(), message);
         }
 
+        getOrPutAccount().addCommand(new MemberCommandRecord(getGroupCode(), message.serialize()));
+
         synchronized (list) {
             list.notifyAll();
         }
@@ -67,11 +72,6 @@ public class MemberXiaomingUserImpl extends XiaomingUserImpl<MemberContact, Memb
         } else {
             contact.send(replacedMessage);
         }
-    }
-
-    @Override
-    public void sendPrivateMessage(String message, Object... arguments) {
-        sendMessage(message, arguments);
     }
 
     @Override

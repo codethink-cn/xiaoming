@@ -67,4 +67,11 @@ public class ConsoleXiaomingUserImpl extends XiaomingUserImpl<ConsoleContact, Co
             this.notifyAll();
         }
     }
+
+    @Override
+    public ConsoleMessage sendPrivateMessage(String message, Object... arguments) {
+        sendMessage(message, arguments);
+        final MessageChain messages = MiraiCode.deserializeMiraiCode(replaceArguments(message, arguments));
+        return new ConsoleMessageImpl(this, messages);
+    }
 }

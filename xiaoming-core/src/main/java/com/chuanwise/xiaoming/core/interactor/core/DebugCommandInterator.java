@@ -21,41 +21,12 @@ public class DebugCommandInterator extends CommandInteractorImpl {
         setXiaomingBot(xiaomingBot);
     }
 
-    @Filter("debug")
+    @Filter("debug1")
     @Require("debug")
-    public void onDebug1(XiaomingUser user, @FilterParameter("tag") String tag) {
-        List<String> strings = new LinkedList<>();
-        for (int i = 0; i < 21; i++) {
-            strings.add(String.valueOf(i));
-        }
-        final String s = InteractorUtils.indexChooser(user, strings, String::toString, "（无）", "\n", 4);
-        user.sendMessage("你选择的内容是：{}", s);
-    }
-
-    @Filter("debug2")
-    @Require("debug")
-    public void onDebug2(XiaomingUser user) {
-        final Object waiter = new Object();
-        user.setProperty("waiter", waiter);
-        getXiaomingBot().getScheduler().run(() -> {
-            try {
-                System.err.println("wait");
-                synchronized (waiter) {
-                    waiter.wait();
-                }
-            } catch (InterruptedException exception) {
-                exception.printStackTrace();
-            }
-            System.err.println("end");
-        });
-    }
-
-    @Filter("debug3")
-    @Require("debug")
-    public void onDebug3(XiaomingUser user) {
-        final Object waiter = user.getProperty("waiter");
-        synchronized (waiter) {
-            waiter.notifyAll();
-        }
+    public void onDebug1(XiaomingUser user) {
+        getXiaomingBot().getScheduler().run(() -> getLog().info("normal run")).setDescription("run");
+        getXiaomingBot().getScheduler().runLater(5000, () -> getLog().info("runLater: 5000")).setDescription("runLater");
+        getXiaomingBot().getScheduler().periodicRun(3000, () -> getLog().info("periodicRun: 5000")).setDescription("periodicRun");
+        getXiaomingBot().getScheduler().periodicRunLater(4000, 5000, () -> getLog().info("periodicRunLater: 4000, 5000")).setDescription("periodicRunLater");
     }
 }

@@ -38,3 +38,7 @@ hs_err_pid*
 /accounts/
 /texts/
 /resources/
+/xiaoming-example/src/test/
+/xiaoming-example/src/main/resources/
+/resources/
+docs/_backup.md

@@ -46,7 +46,7 @@ public class CommandInteractorImpl extends InteractorImpl implements CommandInte
                 register(getClass().getMethod("onUsage", XiaomingUser.class),
                         new String[0],
                         new FilterMatcher[]{ new ParameterFilterMatcher(format) },
-                        new String[]{ format },
+                        new String[]{ StringUtils.translateUsageRegex(format) },
                         false,
                         false);
             } catch (NoSuchMethodException exception) {

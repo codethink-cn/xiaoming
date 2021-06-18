@@ -1,8 +1,16 @@
 package com.chuanwise.xiaoming.core.interactor.core;
 
+import com.chuanwise.xiaoming.api.annotation.Filter;
+import com.chuanwise.xiaoming.api.annotation.FilterParameter;
+import com.chuanwise.xiaoming.api.annotation.Require;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.language.Language;
+import com.chuanwise.xiaoming.api.user.XiaomingUser;
+import com.chuanwise.xiaoming.api.util.CollectionUtils;
+import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
+
+import java.util.*;
 
 /**
  * 单词指令处理器
@@ -17,54 +25,53 @@ public class LanguageCommandIterator extends CommandInteractorImpl {
         language = getXiaomingBot().getLanguage();
         enableUsageCommand(WORD);
     }
-/*
+
     @Filter(WORD + " {key}")
     @Require("emoji.look")
     public void onListEmoji(XiaomingUser user,
-                            @FilterParameter("key") final String key) {
-        final Set<String> set = language.getSet(key);
-        if (Objects.isNull(set) || set.isEmpty()) {
-            user.sendMessage("小明没有收录任何有关{}的单词哦", key);
+                            @FilterParameter("key") String key) {
+        final Object object = language.get(key);
+        if (Objects.isNull(object)) {
+            user.sendMessage("{xiaoming}没有收录任何有关「{key}」{}的提示语");
         }
         else {
-            user.sendMessage("小明收录的{}类单词有：{}", key, set);
+            if (object instanceof Collection) {
+                user.sendMessage("{xiaoming}收录的「{key}」类提示语有：" + CollectionUtils.getSummary(((Collection<?>) object), Object::toString));
+            } else {
+                user.sendMessage("{xiaoming}收录的「{key}」类提示语为：" + object);
+            }
         }
-    }
-
-    @Filter(WORD)
-    @Require("emoji.list")
-    public void onListEmoji(XiaomingUser user) {
-        final Set<Map.Entry<String, Set<String>>> entries = language.getValues().entrySet();
-        if (entries.isEmpty()) {
-            user.sendMessage("小明没有收录任何单词哦");
-            return;
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append("小明收录了").append(entries.size()).append("种单词：");
-        for (Map.Entry<String, Set<String>> entry : entries) {
-            builder.append("\n").append(entry.getKey()).append("：").append(entry.getValue());
-        }
-        user.sendMessage(builder.toString());
     }
 
     @Filter(WORD + " {key} " + CommandWords.NEW + " {remain}")
     @Require("emoji.add")
     public void onAddEmoji(XiaomingUser user,
-                           @FilterParameter("key") final String key,
-                           @FilterParameter("remain") final String emoji) {
-        if (emoji.isEmpty()) {
+                           @FilterParameter("key") String key,
+                           @FilterParameter("remain") String content) {
+        if (content.isEmpty()) {
             user.sendError("添加的单词不能为空");
             return;
         }
-        final Map<String, Set<String>> map = language.getValues();
-        Set<String> emojiSet = map.get(key);
-        if (Objects.isNull(emojiSet)) {
-            emojiSet = new HashSet<>();
-            map.put(key, emojiSet);
+        final Object object = language.get(key);
+        boolean isNewKey = false;
+        if (Objects.isNull(object)) {
+            language.put(key, content);
+            isNewKey = true;
+        } else if (object instanceof String) {
+            final HashSet<Object> objects = new HashSet<>();
+            objects.add(object);
+            objects.add(content);
+            language.put(key, object);
+        } else {
+            ((Collection<String>) object).add(content);
         }
-        emojiSet.add(emoji);
-        user.sendMessage("成功添加了{}类型单词：{}", key, emoji);
-        getXiaomingBot().getFileSaver().readySave(language);
+
+        if (isNewKey) {
+            user.sendMessage("成功添加了新的提示语「{key}」「{content}」");
+        } else {
+            user.sendMessage("成功在现有提示语「{key}」中追加了新的「{content}」");
+        }
+
+        getXiaomingBot().getScheduler().readySave(language);
     }
-    */
 }

@@ -24,6 +24,15 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
         return null;
     }
 
+    default ResponseGroup addTag(long group, String alias, String tag) {
+        ResponseGroup responseGroup = forCode(group);
+        if (Objects.isNull(responseGroup)) {
+            responseGroup = addGroup(group, alias);
+        }
+        responseGroup.addTag(tag);
+        return responseGroup;
+    }
+
     default boolean hasTag(long group, String tag) {
         final ResponseGroup responseGroup = forCode(group);
         if (Objects.nonNull(responseGroup)) {
@@ -60,9 +69,14 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
         }
     }
 
-    default void addGroup(ResponseGroup group) {
+    ResponseGroup addGroup(long group, String alias);
+
+    default ResponseGroup addGroup(ResponseGroup group) {
         getGroups().add(group);
         group.setXiaomingBot(getXiaomingBot());
+        group.addTag("recorded");
+        group.addTag(String.valueOf(group.getCode()));
+        return group;
     }
 
     Set<ResponseGroup> getGroups();

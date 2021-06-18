@@ -153,9 +153,9 @@ public class XiaomingBotImpl implements XiaomingBot {
         scheduler.start();
 
         // 添加自动任务
-        scheduler.periodicRunLater(this::optimize, configuration.getOptimizePeriod(), configuration.getOptimizePeriod())
+        scheduler.periodicRunLater(configuration.getOptimizePeriod(), configuration.getOptimizePeriod(), this::optimize)
                 .setDescription("自动优化");
-        scheduler.periodicRunLater(scheduler.getPreservableSaveTask(), configuration.getSavePeriod(), configuration.getSavePeriod())
+        scheduler.periodicRunLater(configuration.getSavePeriod(), configuration.getSavePeriod(), scheduler.getPreservableSaveTask())
                 .setDescription("自动保存文件");
 
         initializer.put("userCallLimitManager", () -> {
@@ -217,6 +217,7 @@ public class XiaomingBotImpl implements XiaomingBot {
             responseGroupManager = filePreservableFactory
                     .loadOrProduce(ResponseGroupManagerImpl.class, new File(configDirectory, "groups.json"), ResponseGroupManagerImpl::new);
             responseGroupManager.setXiaomingBot(this);
+            ((ResponseGroupManagerImpl) responseGroupManager).setGroups(((Set) responseGroupManager.getGroups()));
         });
 
         initializer.put("receptionistManager", () -> {
@@ -225,7 +226,7 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         initializer.put("reportMessageManager", () -> {
             reportMessageManager = filePreservableFactory
-                    .loadOrProduce(ReportMessageManagerImpl.class, new File(configDirectory, "errors.json"), ReportMessageManagerImpl::new);
+                    .loadOrProduce(ReportMessageManagerImpl.class, new File(configDirectory, "reports.json"), ReportMessageManagerImpl::new);
             reportMessageManager.setXiaomingBot(this);
         });
 
@@ -254,7 +255,7 @@ public class XiaomingBotImpl implements XiaomingBot {
             consoleXiaomingUser.setReceptionTask(receptionistManager.getBotReceptionistTask());
             consoleInputThread.setConsoleUser(consoleXiaomingUser);
 
-            scheduler.run(consoleInputThread).setDescription("控制台接待任务");
+            scheduler.run(consoleInputThread).setDescription("控制台输入线程");
         });
     }
 

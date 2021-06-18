@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.core.permission;
 
+import com.chuanwise.xiaoming.api.account.record.Record;
 import com.chuanwise.xiaoming.api.permission.PermissionUserNode;
 import lombok.Data;
 

@@ -17,6 +17,7 @@ public interface Preservable<Medium> {
         try {
             return saveTo(getMedium());
         } catch (Exception exception) {
+            exception.printStackTrace();
             return false;
         }
     }

@@ -1,5 +1,10 @@
 package com.chuanwise.xiaoming.api.interactor;
 
+import com.chuanwise.xiaoming.api.account.Account;
+import com.chuanwise.xiaoming.api.account.record.CommandRecord;
+import com.chuanwise.xiaoming.api.account.record.GroupCommandRecord;
+import com.chuanwise.xiaoming.api.account.record.MemberCommandRecord;
+import com.chuanwise.xiaoming.api.account.record.PrivateCommandRecord;
 import com.chuanwise.xiaoming.api.annotation.*;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.event.InteractorResponseEvent;
@@ -8,11 +13,13 @@ import com.chuanwise.xiaoming.api.interactor.filter.FilterMatcher;
 import com.chuanwise.xiaoming.api.interactor.filter.ParameterFilterMatcher;
 import com.chuanwise.xiaoming.api.object.PluginObject;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
+import com.chuanwise.xiaoming.api.user.*;
+import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 import com.chuanwise.xiaoming.api.util.AtUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -24,10 +31,6 @@ import java.util.regex.Matcher;
  * @author Chuanwise
  */
 public interface Interactor extends PluginObject {
-    String getName();
-
-    void setName(String name);
-
     /**
      * 初始化方法，主要是加载子交互函数之类
      */
@@ -143,6 +146,10 @@ public interface Interactor extends PluginObject {
                     if (String.class.isAssignableFrom(type)) {
                         arguments.add(parameterValue);
                     } else {
+                        if (String[].class.isAssignableFrom(type) && Objects.equals("arguments", parameterName)) {
+                            arguments.add(ArgumentUtils.splitArgs(message.serialize()).toArray(new String[0]));
+                            continue;
+                        }
                         final Object argument = onParameter(user, type, parameterName, parameterValue, defaultValue);
                         if (Objects.nonNull(argument)) {
                             arguments.add(argument);
@@ -180,15 +187,32 @@ public interface Interactor extends PluginObject {
                         return true;
                     }
 
+                    final Account account = user.getOrPutAccount();
+                    final List<CommandRecord> commands = account.getCommands();
+                    final int sizeBeforeInteract = commands.size();
+
                     final Object result = method.invoke(this, arguments.toArray(new Object[0]));
 
                     // 判断是否交互了
                     if (result instanceof Boolean) {
                         interacted = ((Boolean) result);
-                    } else if (result instanceof Number) {
-                        interacted = ((Number) result).longValue() > 0;
                     } else {
                         interacted = true;
+                    }
+
+                    // 添加指令使用记录
+                    if (interacted) {
+                        final CommandRecord record;
+                        if (user instanceof GroupXiaomingUser) {
+                            record = new GroupCommandRecord(((GroupXiaomingUser) user).getGroupCode(), message.serialize());
+                        } else if (user instanceof MemberXiaomingUser) {
+                            record = new MemberCommandRecord(((MemberXiaomingUser) user).getGroupCode(), message.serialize());
+                        } else {
+                            record = new PrivateCommandRecord(message.serialize());
+                        }
+
+                        commands.add(sizeBeforeInteract, record);
+                        getXiaomingBot().getScheduler().readySave(account);
                     }
 
                     // 增加调用统计次数
@@ -286,6 +310,12 @@ public interface Interactor extends PluginObject {
                 return Integer.parseInt(currentValue);
             } else {
                 user.sendError("「{index}」并不是一个有效的序号哦");
+            }
+        } else if (long.class.isAssignableFrom(clazz) && Objects.equals("group", parameterName)) {
+            if (currentValue.matches("\\d+")) {
+                return Long.parseLong(currentValue);
+            } else {
+                user.sendError("「{group}」并不是一个有效的群号哦");
             }
         }
         return result;

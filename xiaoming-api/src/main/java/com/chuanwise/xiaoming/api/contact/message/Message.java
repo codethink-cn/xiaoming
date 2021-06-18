@@ -65,8 +65,6 @@ public interface Message extends XiaomingObject, Cloneable {
      * @return 撤回消息的异步结果
      */
     default ScheduableTask<Boolean> recallLater(long delay) {
-        return getXiaomingBot().getScheduler().runLater(() -> {
-            return recall();
-        }, delay);
+        return getXiaomingBot().getScheduler().runLater(delay, this::recall);
     }
 }

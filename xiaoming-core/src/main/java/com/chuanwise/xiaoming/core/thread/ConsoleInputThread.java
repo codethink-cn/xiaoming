@@ -4,12 +4,15 @@ import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
+import com.chuanwise.xiaoming.api.util.StringUtils;
 import com.chuanwise.xiaoming.core.contact.message.ConsoleMessageImpl;
 import com.chuanwise.xiaoming.core.log.ConsoleLogger;
 import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import com.chuanwise.xiaoming.core.recept.ReceptionistImpl;
 import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Group;
@@ -24,7 +27,8 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@Data
+@Getter
+@Setter
 public class ConsoleInputThread extends ModuleObjectImpl implements Runnable {
     boolean warned = false;
 
@@ -68,9 +72,14 @@ public class ConsoleInputThread extends ModuleObjectImpl implements Runnable {
                 try {
                     final Interactor interactor = consoleUser.getInteractor();
                     if (Objects.isNull(interactor)) {
-                        if (!getXiaomingBot().getInteractorManager().onInput(consoleUser, consoleMessage)) {
-                            consoleUser.sendError("小明不知道你的意思");
-                        }
+                        getXiaomingBot().getScheduler().run(() -> {
+                            if (!getXiaomingBot().getInteractorManager().onInput(consoleUser, consoleMessage)) {
+                                consoleUser.sendError("小明不知道你的意思");
+                            }
+                            return true;
+                        }).setDescription("控制台接待任务");
+                    } else {
+                        consoleUser.onNextInput(consoleMessage);
                     }
                 } catch (Exception exception) {
                     exception.printStackTrace();

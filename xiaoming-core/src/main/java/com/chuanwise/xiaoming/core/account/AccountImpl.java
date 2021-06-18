@@ -23,6 +23,6 @@ public class AccountImpl extends JsonFilePreservable implements Account {
 
     public void setTags(Set<String> tags) {
         this.tags = tags;
-        tags.addAll(Arrays.asList(code + "", "recorded"));
+        tags.addAll(Arrays.asList(String.valueOf(code), "recorded"));
     }
 }

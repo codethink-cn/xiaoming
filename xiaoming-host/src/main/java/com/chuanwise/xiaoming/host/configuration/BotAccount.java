@@ -1,4 +1,4 @@
-package com.chuanwise.xiaoming.host.config;
+package com.chuanwise.xiaoming.host.configuration;
 
 import com.chuanwise.xiaoming.api.util.MD5Utils;
 import lombok.*;

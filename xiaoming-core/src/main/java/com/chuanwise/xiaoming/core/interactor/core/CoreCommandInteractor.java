@@ -10,6 +10,7 @@ import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
 import com.chuanwise.xiaoming.api.interactor.command.CommandInteractor;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
+import com.chuanwise.xiaoming.api.preserve.Preservable;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.schedule.task.PreservableSaveTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
@@ -30,7 +31,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 
 public class CoreCommandInteractor extends CommandInteractorImpl {
-    public static final String BAT = "(批处理|bat)";
+    public static final String BATCH = "(批处理|bat)";
 
     public String getInteractorString() {
         final InteractorManager interactorManager = getXiaomingBot().getInteractorManager();
@@ -101,7 +102,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
      * @param user 指令执行者
      * @param remain 指令
      */
-    @Filter("#" + BAT + "#" + "{remain}")
+    @Filter("#" + BATCH + "#" + "{remain}")
     public void onMultipleCommands(XiaomingUser user,
                                    @FilterParameter("remain") String remain,
                                    Message message) {
@@ -118,12 +119,27 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
                 final Message clonedMessage = message.clone();
                 clonedMessage.setMessageChain(MiraiCode.deserializeMiraiCode(subCommands[i]));
 
-                if (getXiaomingBot().getInteractorManager().onInput(user, clonedMessage)) {
-                    commandNumber++;
+                ScheduableTask<Boolean> task;
+                if (Objects.isNull(user.getInteractor())) {
+                    task = getXiaomingBot().getScheduler().run(() -> {
+                        return getXiaomingBot().getInteractorManager().onInput(user, clonedMessage);
+                    });
+                    task.setDescription("批处理临时接待任务");
+                    if (Objects.isNull(user.getInteractor())) {
+                        try {
+                            if (!task.get()) {
+                                user.setProperty("command", command);
+                                user.sendError("{illegalCommandInterruptBatchTask}");
+                                break;
+                            } else {
+                                commandNumber++;
+                            }
+                        } catch (InterruptedException ignored) {
+                        }
+                    }
                 } else {
-                    user.setProperty("command", command);
-                    user.sendError("{illegalCommandInterruptBatchTask}");
-                    break;
+                    user.onNextInput(clonedMessage);
+                    commandNumber++;
                 }
             }
         } catch (Exception exception) {
@@ -144,18 +160,37 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
 
     @Filter(CommandWords.OPTIMIZE)
     public void onOptimize(XiaomingUser user) {
-        getXiaomingBot().getScheduler().runLater(getXiaomingBot()::optimize, TimeUnit.SECONDS.toMicros(10));
+        getXiaomingBot().getScheduler().runLater(TimeUnit.SECONDS.toMillis(10), getXiaomingBot()::optimize).setDescription("手动优化任务");
         user.sendMessage("{optimizedSuccessfully}");
     }
 
     @Filter(CommandWords.SAVE)
-    @Require("core.save")
+    @Require("core.save.do")
     public void onSave(XiaomingUser user) {
         final PreservableSaveTask fileSaver = getXiaomingBot().getScheduler().getPreservableSaveTask();
         if (fileSaver.getPreservables().isEmpty()) {
             user.sendMessage("{noFileNeedToSave}");
         } else {
             fileSaver.save(user);
+        }
+    }
+
+    @Filter(CommandWords.CANCEL + CommandWords.SAVE)
+    @Require("core.save.cancel")
+    public void onCancelSave(XiaomingUser user) {
+        final PreservableSaveTask task = getXiaomingBot().getScheduler().getPreservableSaveTask();
+        final Set<Preservable<?>> preservables = task.getPreservables();
+
+        if (preservables.isEmpty()) {
+            user.sendMessage("没有任何等待保存的文件");
+        } else {
+            user.sendWarning("真的要取消保存 " + preservables.size() + " 个文件吗？这可能导致部分数据丢失！如果确定，请在一分钟之内回复「确定」");
+            if (Objects.equals(user.nextInput().serialize(), "确定")) {
+                preservables.clear();
+                user.sendMessage("成功取消保存待保存的文件队列");
+            } else {
+                user.sendMessage("已取消取消保存");
+            }
         }
     }
 
@@ -172,18 +207,17 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
             printWriter.println("内核指令：（无）");
         } else {
             printWriter.println("内核指令：");
+            List<String> kernalCommands = new LinkedList<>();
             for (Interactor interactor : coreInteractors) {
                 if (!(interactor instanceof CommandInteractor)) {
                     continue;
                 }
-                final List<String> usageStrings = Arrays.asList(interactor.getUsageStrings(user).toArray(new String[0]));
-                Collections.sort(usageStrings);
-                if (usageStrings.isEmpty()) {
-                    printWriter.println(interactor.getName() + "：（无）");
-                } else {
-                    printWriter.println(interactor.getName() + "：（" + usageStrings.size() + " 种）");
-                    printWriter.println(CollectionUtils.getSummary(usageStrings));
-                }
+                kernalCommands.addAll(Arrays.asList(interactor.getUsageStrings(user).toArray(new String[0])));
+            }
+
+            Collections.sort(kernalCommands);
+            for (String command : kernalCommands) {
+                printWriter.println(command);
             }
         }
 
@@ -194,24 +228,25 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
             printWriter.println("插件指令：（无）");
         } else {
             printWriter.println("插件指令：");
+
             for (Map.Entry<XiaomingPlugin, Set<Interactor>> entry : pluginInteractors.entrySet()) {
                 final XiaomingPlugin plugin = entry.getKey();
                 final Set<Interactor> interactors = entry.getValue();
 
                 if (!user.isBlockPlugin(plugin.getName())) {
-                    printWriter.println(plugin.getName() + "：");
+                    printWriter.println("\n" + plugin.getAlias() + "：");
+
+                    List<String> pluginCommands = new LinkedList<>();
                     for (Interactor interactor : interactors) {
                         if (!(interactor instanceof CommandInteractor)) {
                             continue;
                         }
-                        final List<String> usageStrings = Arrays.asList(interactor.getUsageStrings(user).toArray(new String[0]));
-                        Collections.sort(usageStrings);
-                        if (usageStrings.isEmpty()) {
-                            printWriter.println(interactor.getName() + "：（无）");
-                        } else {
-                            printWriter.println(interactor.getName() + "：（" + usageStrings.size() + " 种）");
-                            printWriter.println(CollectionUtils.getSummary(usageStrings));
-                        }
+                        pluginCommands.addAll(Arrays.asList(interactor.getUsageStrings(user).toArray(new String[0])));
+                    }
+
+                    Collections.sort(pluginCommands);
+                    for (String pluginCommand : pluginCommands) {
+                        printWriter.println(pluginCommand);
                     }
                 }
             }
@@ -241,12 +276,12 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
         };
 
         if (Objects.equals(user.nextInput(TimeUnit.MINUTES.toMillis(1), onCancel).serialize(), "确定")) {
-            final long delay = TimeUnit.SECONDS.toMicros(10);
+            final long delay = TimeUnit.SECONDS.toMillis(10);
             final String delayString = TimeUtils.toTimeString(delay);
 
-            getXiaomingBot().getScheduler().runLater(() -> {
+            getXiaomingBot().getScheduler().runLater(delay, () -> {
                 getXiaomingBot().stop();
-            }, delay);
+            });
 
             user.setProperty("delay", delayString);
             user.sendMessage("{xiaomingWillBeCloseLater}");
@@ -268,7 +303,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
                     receptionists.size(),
                     CollectionUtils.getSummary(receptionists, receptionist -> {
                         return receptionist.getCode() + "：" + (receptionist.isBusy() ? "忙碌" : "空闲");
-                    }));
+                    }, "\n"));
         }
     }
 
@@ -360,6 +395,8 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
         if (Objects.isNull(receptionist)) {
             user.sendMessage("{thereIsNoAnyReceptionist}");
         } else {
+            receptionist.stop();
+            receptionistManager.getReceptionists().remove(qq);
             user.sendMessage("{receptionistClosedSuccessfully}");
         }
     }

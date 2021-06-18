@@ -42,6 +42,23 @@ public class CollectionUtils extends StaticUtils {
         }
     }
 
+    public static <T> String getIndexSummary(Iterable<T> iterable, Function<T, String> consumer, String prefix, String empty, String spliter) {
+        final Iterator<T> iterator = iterable.iterator();
+        if (!iterator.hasNext()) {
+            return empty;
+        } else {
+            StringBuilder builder = new StringBuilder(prefix);
+            int index = 1;
+            for (T t : iterable) {
+                if (builder.length() != prefix.length()) {
+                    builder.append(spliter);
+                }
+                builder.append(index++).append("、").append(consumer.apply(t));
+            }
+            return builder.toString();
+        }
+    }
+
     public static <T> String getSummary(Iterable<T> iterable, Function<T, String> consumer, String prefix) {
         return getSummary(iterable, consumer, prefix, "（无）", "\n");
     }
@@ -52,5 +69,17 @@ public class CollectionUtils extends StaticUtils {
 
     public static <T> String getSummary(Iterable<T> iterable) {
         return getSummary(iterable, Objects::toString);
+    }
+
+    public static <T> String getIndexSummary(Iterable<T> iterable, Function<T, String> consumer, String prefix) {
+        return getIndexSummary(iterable, consumer, prefix, "（无）", "\n");
+    }
+
+    public static <T> String getIndexSummary(Iterable<T> iterable, Function<T, String> consumer) {
+        return getIndexSummary(iterable, consumer, "", "（无）", "\n");
+    }
+
+    public static <T> String getIndexSummary(Iterable<T> iterable) {
+        return getIndexSummary(iterable, Objects::toString);
     }
 }

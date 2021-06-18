@@ -52,15 +52,7 @@ public class MemberReceptionTaskImpl extends ReceptionTaskImpl implements Member
 
     @Override
     public void recept(Message message) throws Exception {
-        if (getXiaomingBot().getInteractorManager().onInput(user, message)) {
-            final CommandRecord record = new MemberCommandRecord(user.getGroupCode(), message.serialize());
-            final Account account = user.getOrPutAccount();
-
-            account.addCommand(record);
-            getXiaomingBot().getScheduler().readySave(account);
-
-            getXiaomingBot().getUserCallLimitManager().getGroupCallLimiter().addCallRecord(user.getCode());
-        } else {
+        if (!getXiaomingBot().getInteractorManager().onInput(user, message)) {
             user.getRecentMessages().clear();
         }
     }

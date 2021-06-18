@@ -28,6 +28,7 @@ import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -68,18 +69,18 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
     PrivateReceptionTask privateTask;
 
     /** 最近的群聊消息。String 是 tag */
-    Map<String, List<GroupMessage>> groupRecentMessages = new HashMap<>();
+    Map<String, List<GroupMessage>> groupRecentMessages = new ConcurrentHashMap<>();
 
-    List<PrivateMessage> privateRecentMessages = new LinkedList<>();
+    List<PrivateMessage> privateRecentMessages = new CopyOnWriteArrayList<>();
 
-    Map<String, List<MemberMessage>> memberRecentMessages = new HashMap<>();
+    Map<String, List<MemberMessage>> memberRecentMessages = new ConcurrentHashMap<>();
 
     @Setter
-    List<? extends Message> globalRecentMessages = new LinkedList<>();
+    List<? extends Message> globalRecentMessages;
 
-    Map<Long, GroupXiaomingUser> groupXiaomingUsers = new HashMap<>();
+    Map<Long, GroupXiaomingUser> groupXiaomingUsers = new ConcurrentHashMap<>();
 
-    Map<Long, MemberXiaomingUser> memberXiaomingUsers = new HashMap<>();
+    Map<Long, MemberXiaomingUser> memberXiaomingUsers = new ConcurrentHashMap<>();
 
     PrivateXiaomingUser privateXiaomingUser;
 
@@ -97,7 +98,7 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
         final long groupCode = groupContact.getCode();
         GroupXiaomingUser groupXiaomingUser = getGroupXiaomingUser(groupCode);
         if (Objects.isNull(groupXiaomingUser)) {
-            groupXiaomingUser = new GroupXiaomingUserImpl(groupContact, memberContact, getOrPutGroupRecentMessage(groupContact.getCodeString()));
+            groupXiaomingUser = new GroupXiaomingUserImpl(groupContact, memberContact, getOrPutGroupRecentMessages(groupContact.getCodeString()));
             groupXiaomingUser.setReceptionist(this);
             groupXiaomingUsers.put(groupCode, groupXiaomingUser);
         }
@@ -109,7 +110,7 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
         final long groupCode = contact.getCode();
         MemberXiaomingUser memberXiaomingUser = getMemberXiaomingUser(groupCode);
         if (Objects.isNull(memberXiaomingUser)) {
-            memberXiaomingUser = new MemberXiaomingUserImpl(contact, getOrPutMemberRecentMessage(contact.getCodeString()));
+            memberXiaomingUser = new MemberXiaomingUserImpl(contact, getOrPutMemberRecentMessages(contact.getCodeString()));
             memberXiaomingUser.setReceptionist(this);
             memberXiaomingUsers.put(groupCode, memberXiaomingUser);
         }
@@ -137,14 +138,14 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
         if (isFirstRecept) {
             // 把消息送到每一个 tag 表里
             for (String tag : contact.getTags()) {
-                final List<GroupMessage> groupRecentMessage = getOrPutGroupRecentMessage(tag);
+                final List<GroupMessage> groupRecentMessage = getOrPutGroupRecentMessages(tag);
                 groupRecentMessage.add(message);
                 synchronized (groupRecentMessage) {
                     groupRecentMessage.notifyAll();
                 }
             }
 
-            groupTask = new GroupReceptionTaskImpl(getOrPutGroupXiaomingUser(contact, message.getSender().getMemberContact()), getOrPutGroupRecentMessage(contact.getCodeString()));
+            groupTask = new GroupReceptionTaskImpl(getOrPutGroupXiaomingUser(contact, message.getSender().getMemberContact()), getOrPutGroupRecentMessages(contact.getCodeString()));
         }
 
         groupTask.getUser().onNextInput(message);
@@ -161,14 +162,14 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
         if (isFirstRecept) {
             // 把消息送到每一个 tag 表里
             for (String tag : contact.getGroupContact().getTags()) {
-                final List<MemberMessage> memberRecentMessage = getOrPutMemberRecentMessage(tag);
+                final List<MemberMessage> memberRecentMessage = getOrPutMemberRecentMessages(tag);
                 memberRecentMessage.add(message);
                 synchronized (memberRecentMessage) {
                     memberRecentMessage.notifyAll();
                 }
             }
 
-            memberTask = new MemberReceptionTaskImpl(getOrPutMemberXiaomingUser(contact), getOrPutMemberRecentMessage(contact.getGroupContact().getCodeString()));
+            memberTask = new MemberReceptionTaskImpl(getOrPutMemberXiaomingUser(contact), getOrPutMemberRecentMessages(contact.getGroupContact().getCodeString()));
         }
 
         memberTask.getUser().onNextInput(message);

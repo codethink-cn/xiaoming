@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Constructor;
 import java.net.URLClassLoader;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -99,13 +100,28 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
         }
 
         // 尝试调用默认构造函数
+        Constructor<?> constructor = null;
         try {
-            plugin = (XiaomingPlugin) pluginClass.getDeclaredConstructor().newInstance();
-        } catch (IllegalAccessException exception) {
-            user.sendError("无法访问插件主类：{}的构造函数，请为其准备一个默认的无参构造函数", pluginMainClassName);
-            return false;
+            constructor = pluginClass.getDeclaredConstructor();
         } catch (Exception exception) {
             user.sendError("构造插件主类时出现异常：{}，请检查{}的默认的无参构造函数", pluginMainClassName, exception);
+            getLog().error("构造插件主类时出现异常", exception);
+            return false;
+        }
+
+        if (Objects.isNull(constructor)) {
+            user.sendError("没有找到插件主类 {} 的默认无参构造函数", pluginMainClassName);
+            getLog().error("没有找到插件主类 {} 的默认无参构造函数", pluginMainClassName);
+            return false;
+        }
+
+        try {
+            plugin = (XiaomingPlugin) constructor.newInstance();
+        } catch (IllegalAccessException exception) {
+            user.sendError("权限不足，无法访问插件主类：{} 的构造函数", pluginMainClassName);
+            return false;
+        } catch (Exception exception) {
+            user.sendError("构造插件主类时出现异常：{}", pluginMainClassName, exception);
             getLog().error("构造插件主类时出现异常", exception);
             return false;
         }

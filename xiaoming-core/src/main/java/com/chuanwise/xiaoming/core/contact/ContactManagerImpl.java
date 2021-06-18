@@ -106,43 +106,41 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
 
     @Override
     public MemberContact getMemberContact(long code, long qq) {
-        final Group miraiGroup = getXiaomingBot().getMiraiBot().getGroup(code);
-        Map<Long, MemberContact> contactMap = memberContacts.get(code);
-
-        // 在这个群，但还没记录这个群
-        if (Objects.isNull(contactMap) && Objects.nonNull(miraiGroup)) {
-            contactMap = new HashMap<>();
-            memberContacts.put(code, contactMap);
-        }
-
-        // 记录了这个群，但发现现在找不到了，说明该退了
-        if (Objects.isNull(miraiGroup) && Objects.nonNull(contactMap)) {
-            memberContacts.remove(code);
-            contactMap = null;
-        }
-
-        // 如果没这个群了，就退
-        if (Objects.isNull(contactMap)) {
+        final GroupContact groupContact = getGroupContact(code);
+        if (Objects.isNull(groupContact)) {
             return null;
         }
 
-        MemberContact memberContact = contactMap.get(qq);
-        NormalMember miraiMember = miraiGroup.get(qq);
+        final NormalMember member = groupContact.getMiraiContact().get(qq);
+        return Objects.nonNull(member) ? getMemberContact(groupContact, member) : null;
+    }
+
+    @Override
+    public MemberContact getMemberContact(GroupContact groupContact, NormalMember miraiMember) {
+        final long code = groupContact.getCode();
+        Map<Long, MemberContact> memberContacts = this.memberContacts.get(code);
+        if (Objects.isNull(memberContacts)) {
+            memberContacts = new HashMap<>();
+            this.memberContacts.put(code, memberContacts);
+        }
+
+        final long qq = miraiMember.getId();
+        MemberContact memberContact = memberContacts.get(qq);
 
         // 记录了本群，但还没记录这个成员
         if (Objects.isNull(memberContact) && Objects.nonNull(miraiMember)) {
             memberContact = new MemberContactImpl(getGroupContact(code), miraiMember);
-            contactMap.put(qq, memberContact);
+            memberContacts.put(qq, memberContact);
         }
 
         // 记录了本群，但这个成员无了
         if (Objects.isNull(miraiMember) && Objects.nonNull(memberContact)) {
-            contactMap.remove(qq);
+            memberContacts.remove(qq);
             memberContact = null;
         }
 
-        if (contactMap.isEmpty()) {
-            memberContacts.remove(code);
+        if (memberContacts.isEmpty()) {
+            this.memberContacts.remove(code);
         }
 
         return memberContact;

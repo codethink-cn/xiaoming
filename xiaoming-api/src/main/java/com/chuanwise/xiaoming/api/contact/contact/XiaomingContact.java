@@ -9,8 +9,10 @@ import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.message.code.MiraiCode;
+import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.QuoteReply;
+import net.mamoe.mirai.utils.ExternalResource;
 
 import java.util.List;
 
@@ -34,7 +36,7 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
     String getAvatarUrl();
 
     default M send(String message) {
-        return send(MiraiCode.deserializeMiraiCode(message));
+        return send(MiraiCode.deserializeMiraiCode(ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
     }
 
     M send(MessageChain messages);
@@ -77,27 +79,27 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
         });
     }
 
-    default M reply(M quote, MessageChain messages) {
+    default M reply(Message quote, MessageChain messages) {
         return send(new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(messages));
     }
 
-    default M reply(M quote, M message) {
+    default M reply(Message quote, M message) {
         return reply(quote, message.getMessageChain());
     }
 
-    default M reply(M quote, String message) {
-        return reply(quote, MiraiCode.deserializeMiraiCode(message));
+    default M reply(Message quote, String message) {
+        return reply(quote, MiraiCode.deserializeMiraiCode(ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
     }
 
-    default ScheduableTask<M> replyLater(long delay, M quote, MessageChain messages) {
+    default ScheduableTask<M> replyLater(long delay, Message quote, MessageChain messages) {
         return sendLater(delay, new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(messages));
     }
 
-    default ScheduableTask<M> replyLater(long delay, M quote, String message) {
-        return replyLater(delay, quote, MiraiCode.deserializeMiraiCode(message));
+    default ScheduableTask<M> replyLater(long delay, Message quote, String message) {
+        return replyLater(delay, quote, MiraiCode.deserializeMiraiCode(ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
     }
 
-    default ScheduableTask<M> replyLater(long delay, M quote, M message) {
+    default ScheduableTask<M> replyLater(long delay, Message quote, M message) {
         return replyLater(delay, quote, message.getMessageChain());
     }
 
@@ -113,5 +115,9 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
         synchronized (list) {
             list.notifyAll();
         }
+    }
+
+    default Image uploadImage(ExternalResource resource) {
+        return getMiraiContact().uploadImage(resource);
     }
 }

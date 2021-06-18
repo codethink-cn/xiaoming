@@ -4,6 +4,7 @@ import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.schedule.Scheduler;
 import com.chuanwise.xiaoming.api.schedule.task.PreservableSaveTask;
 import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
+import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import com.chuanwise.xiaoming.core.schedule.task.PreservableSaveTaskImpl;
 import com.chuanwise.xiaoming.core.schedule.task.ScheduableTaskImpl;
@@ -13,16 +14,17 @@ import org.slf4j.Logger;
 
 import java.util.*;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 @Slf4j
 public class SchedulerImpl extends ModuleObjectImpl implements Scheduler {
     @Getter
-    Set<ScheduableTask<?>> plannedTasks = new LinkedHashSet<>();
+    Set<ScheduableTask<?>> plannedTasks = new CopyOnWriteArraySet<>();
 
     @Getter
-    Set<ScheduableTask<?>> runningTasks = new LinkedHashSet<>();
+    Set<ScheduableTask<?>> runningTasks = new CopyOnWriteArraySet<>();
 
     @Getter
     transient List<Runnable> finalTasks = new LinkedList<>();
@@ -50,24 +52,36 @@ public class SchedulerImpl extends ModuleObjectImpl implements Scheduler {
                 runningTasks.remove(scheduableTask);
             }
         });
+        // 周期性任务派生
+        if (scheduableTask.isPeriodic()) {
+            try {
+                final ScheduableTask<T> clonedTask = scheduableTask.clone();
+                clonedTask.setTime(System.currentTimeMillis() + clonedTask.getPeriod());
+                synchronized (plannedTasks) {
+                    plannedTasks.add(clonedTask);
+                }
+            } catch (CloneNotSupportedException e) {
+                getLog().error("派生周期性任务：" + scheduableTask.getDescription() + "时出现异常", e);
+            }
+        }
         return scheduableTask;
     }
 
     @Override
     public <T> ScheduableTask<T> run(ScheduableTask<T> scheduableTask) {
         scheduableTask.setXiaomingBot(getXiaomingBot());
-        final Set<ScheduableTask<?>> tasks = this.getPlannedTasks();
+        final Set<ScheduableTask<?>> plannedTasks = getPlannedTasks();
 
         // 加入就绪队列
-        synchronized (tasks) {
-            tasks.add(scheduableTask);
+        synchronized (plannedTasks) {
+            plannedTasks.add(scheduableTask);
         }
 
         if (scheduableTask.isTimeout()) {
             runImmediately(scheduableTask);
         } else {
-            synchronized (tasks) {
-                tasks.notifyAll();
+            synchronized (plannedTasks) {
+                plannedTasks.notifyAll();
             }
         }
         return scheduableTask;
@@ -82,14 +96,14 @@ public class SchedulerImpl extends ModuleObjectImpl implements Scheduler {
     }
 
     @Override
-    public <T> ScheduableTask<T> runLater(Callable<T> callable, long delay) {
+    public <T> ScheduableTask<T> runLater(long delay, Callable<T> callable) {
         final ScheduableTaskImpl<T> task = new ScheduableTaskImpl<>();
         task.setCallable(callable);
-        return runLater(task, delay);
+        return runLater(delay, task);
     }
 
     @Override
-    public <T> ScheduableTask<T> periodicRun(Callable<T> callable, long period) {
+    public <T> ScheduableTask<T> periodicRun(long period, Callable<T> callable) {
         final ScheduableTaskImpl<T> task = new ScheduableTaskImpl<>();
         task.setCallable(callable);
         task.setPeriod(period);
@@ -98,11 +112,11 @@ public class SchedulerImpl extends ModuleObjectImpl implements Scheduler {
     }
 
     @Override
-    public <T> ScheduableTask<T> periodicRunLater(Callable<T> callable, long period, long delay) {
+    public <T> ScheduableTask<T> periodicRunLater(long period, long delay, Callable<T> callable) {
         final ScheduableTaskImpl<T> task = new ScheduableTaskImpl<>();
         task.setCallable(callable);
         task.setPeriod(period);
-        return runLater(task, delay);
+        return runLater(delay, task);
     }
 
     @Override
@@ -119,8 +133,7 @@ public class SchedulerImpl extends ModuleObjectImpl implements Scheduler {
             plannedTasks.notifyAll();
         }
 
-
-
+        preservableSaveTask.save();
         for (Runnable finalTask : finalTasks) {
             threadPool.execute(finalTask);
         }
@@ -147,6 +160,9 @@ public class SchedulerImpl extends ModuleObjectImpl implements Scheduler {
                         }
                     }
                 }
+                if (Objects.isNull(nearestTask)) {
+                    continue;
+                }
 
                 // 超时等待
                 if (!nearestTask.isTimeout()) {
@@ -160,16 +176,8 @@ public class SchedulerImpl extends ModuleObjectImpl implements Scheduler {
 
                 // 如果到时间了就说明该干活了，否则就是因为其他原因打断的，先不执行
                 // 专门开一个线程去执行
-                if (!nearestTask.isFinished() && plannedTasks.contains(nearestTask) && nearestTask.isTimeout()) {
+                if (!nearestTask.isFinished() && nearestTask.isTimeout()) {
                     runImmediately(nearestTask);
-
-                    if (nearestTask.isPeriodic()) {
-                        try {
-                            runLater(nearestTask.clone(), nearestTask.getPeriod());
-                        } catch (CloneNotSupportedException e) {
-                            e.printStackTrace();
-                        }
-                    }
                 }
             } else {
                 synchronized (plannedTasks) {

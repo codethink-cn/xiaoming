@@ -15,10 +15,10 @@ import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.MessageChain;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
@@ -86,13 +86,13 @@ public interface Receptionist extends ModuleObject {
     Map<String, GroupReceptionTask> getGroupTasks();
 
     default GroupMessage nextGroupMessage(String tag, long timeout) {
-        return InteractorUtils.waitLastElement(getOrPutGroupRecentMessage(tag), timeout);
+        return InteractorUtils.waitLastElement(getOrPutGroupRecentMessages(tag), timeout);
     }
 
     Map<String, MemberReceptionTask> getMemberTasks();
 
     default MemberMessage nextMemberMessage(String tag, long timeout) {
-        return InteractorUtils.waitLastElement(getOrPutMemberRecentMessage(tag), timeout);
+        return InteractorUtils.waitLastElement(getOrPutMemberRecentMessages(tag), timeout);
     }
 
     PrivateReceptionTask getPrivateTask();
@@ -151,27 +151,27 @@ public interface Receptionist extends ModuleObject {
 
     void setGlobalRecentMessages(List<? extends Message> list);
 
-    default List<GroupMessage> getGroupRecentMessage(String tag) {
+    default List<GroupMessage> getGroupRecentMessages(String tag) {
         return getGroupRecentMessages().get(tag);
     }
 
-    default List<GroupMessage> getOrPutGroupRecentMessage(String tag) {
-        List<GroupMessage> recentMessage = getGroupRecentMessage(tag);
+    default List<GroupMessage> getOrPutGroupRecentMessages(String tag) {
+        List<GroupMessage> recentMessage = getGroupRecentMessages(tag);
         if (Objects.isNull(recentMessage)) {
-            recentMessage = new LinkedList<>();
+            recentMessage = new CopyOnWriteArrayList<>();
             getGroupRecentMessages().put(tag, recentMessage);
         }
         return recentMessage;
     }
 
-    default List<MemberMessage> getMemberRecentMessage(String tag) {
+    default List<MemberMessage> getMemberRecentMessages(String tag) {
         return getMemberRecentMessages().get(tag);
     }
 
-    default List<MemberMessage> getOrPutMemberRecentMessage(String tag) {
-        List<MemberMessage> recentMessage = getMemberRecentMessage(tag);
+    default List<MemberMessage> getOrPutMemberRecentMessages(String tag) {
+        List<MemberMessage> recentMessage = getMemberRecentMessages(tag);
         if (Objects.isNull(recentMessage)) {
-            recentMessage = new LinkedList<>();
+            recentMessage = new CopyOnWriteArrayList<>();
             getMemberRecentMessages().put(tag, recentMessage);
         }
         return recentMessage;

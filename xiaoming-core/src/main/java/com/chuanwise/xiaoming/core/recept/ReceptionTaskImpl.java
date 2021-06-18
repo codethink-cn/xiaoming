@@ -7,6 +7,7 @@ import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
+import kotlinx.coroutines.TimeoutCancellationException;
 import lombok.Getter;
 
 import java.util.List;
@@ -51,8 +52,13 @@ public abstract class ReceptionTaskImpl extends ModuleObjectImpl implements Rece
         try {
             busy = true;
             final List<? extends Message> list = getRecentMessages();
-            recept(list.get(list.size() - 1));
+            if (list.isEmpty()) {
+                getLog().error("在近期消息为空时启动了接待任务：" + identify);
+            } else {
+                recept(list.get(list.size() - 1));
+            }
         } catch (ReceptCancelledException | InteractorTimeoutException exception) {
+        } catch (TimeoutCancellationException exception) {
         } catch (Throwable throwable) {
             getLog().error("和用户" + user.getCompleteName() + "交互时出现异常", throwable);
             user.sendError("{internalError}");

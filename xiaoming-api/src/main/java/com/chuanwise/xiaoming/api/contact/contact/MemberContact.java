@@ -3,9 +3,11 @@ package com.chuanwise.xiaoming.api.contact.contact;
 import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
+import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
+import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 import net.mamoe.mirai.contact.MemberPermission;
 import net.mamoe.mirai.contact.NormalMember;
 import net.mamoe.mirai.data.UserProfile;
@@ -120,19 +122,19 @@ public interface MemberContact extends XiaomingContact<MemberMessage, NormalMemb
         return this.getMiraiContact().queryProfile();
     }
 
-    default MemberMessage replyGroup(GroupMessage quote, String message) {
-        return replyGroup(quote, MiraiCode.deserializeMiraiCode(message));
+    default MemberMessage replyGroup(Message quote, String message) {
+        return replyGroup(quote, MiraiCode.deserializeMiraiCode(ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
     }
 
-    default MemberMessage replyGroup(GroupMessage quote, MessageChain message) {
+    default MemberMessage replyGroup(Message quote, MessageChain message) {
         return send(new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(message));
     }
 
-    default ScheduableTask<MemberMessage> replyGroupLater(long delay, GroupMessage quote, String message) {
-        return replyGroupLater(delay, quote, MiraiCode.deserializeMiraiCode(message));
+    default ScheduableTask<MemberMessage> replyGroupLater(long delay, Message quote, String message) {
+        return replyGroupLater(delay, quote, MiraiCode.deserializeMiraiCode(ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
     }
 
-    default ScheduableTask<MemberMessage> replyGroupLater(long delay, GroupMessage quote, MessageChain message) {
+    default ScheduableTask<MemberMessage> replyGroupLater(long delay, Message quote, MessageChain message) {
         return sendLater(delay, new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(message));
     }
 }
