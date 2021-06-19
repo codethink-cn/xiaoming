@@ -6,6 +6,7 @@ import com.chuanwise.xiaoming.api.preserve.Preservable;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public interface Account extends Preservable<File> {
@@ -22,6 +23,15 @@ public interface Account extends Preservable<File> {
     }
 
     long getCode();
+
+    default String getCodeString() {
+        return String.valueOf(getCode());
+    }
+
+    default String getCompleteName() {
+        final String alias = getAlias();
+        return Objects.nonNull(alias) ? (alias + "（" + getCodeString() + "）") : getCodeString();
+    }
 
     String getAlias();
 

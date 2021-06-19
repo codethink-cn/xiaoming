@@ -30,10 +30,9 @@ public class InteractorUtils extends StaticUtils {
         List<String> strings = new ArrayList<>(collection.size());
         collection.forEach(t -> strings.add(summarizer.apply(t)));
         if (collection.size() < pageElemNumber) {
-            int index = 0;
-            StringBuilder builder = new StringBuilder((++index) + "、" + strings.get(0));
+            StringBuilder builder = new StringBuilder(1 + "、" + strings.get(0));
             for (int i = 1; i < collection.size(); i++) {
-                builder.append("\n").append((++index) + "、" + strings.get(0));
+                builder.append("\n").append((i + 1) + "、" + strings.get(i));
             }
             user.sendMessage(builder.toString());
         } else {
@@ -153,10 +152,9 @@ public class InteractorUtils extends StaticUtils {
             final Object[] objects = collection.toArray(new Object[0]);
 
             if (collection.size() < pageElemNumber) {
-                int index = 0;
-                StringBuilder builder = new StringBuilder((++index) + "、" + strings.get(0));
+                StringBuilder builder = new StringBuilder(1 + "、" + strings.get(0));
                 for (int i = 1; i < collection.size(); i++) {
-                    builder.append("\n").append((++index) + "、" + strings.get(i));
+                    builder.append("\n").append((i + 1) + "、" + strings.get(i));
                 }
                 user.sendMessage(builder.toString());
 

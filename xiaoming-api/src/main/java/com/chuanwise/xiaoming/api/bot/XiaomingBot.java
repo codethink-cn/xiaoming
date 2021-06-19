@@ -28,6 +28,10 @@ import java.io.File;
  * @author Chuanwise
  */
 public interface XiaomingBot {
+    String VERSION = "2.2";
+    String AUTHOR = "Chuanwise";
+    String GITHUB = "https://github.com/Chuanwise/xiaoming-bot";
+
     Bot getMiraiBot();
 
     void setMiraiBot(Bot bot);

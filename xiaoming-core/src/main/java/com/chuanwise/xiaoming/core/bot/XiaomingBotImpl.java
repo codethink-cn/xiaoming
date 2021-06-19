@@ -15,8 +15,6 @@ import com.chuanwise.xiaoming.api.license.LicenseManager;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.schedule.Scheduler;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
-import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
-import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
 import com.chuanwise.xiaoming.api.util.PathUtils;
 import com.chuanwise.xiaoming.api.util.PluginLoaderUtils;
@@ -79,9 +77,6 @@ import java.util.concurrent.TimeUnit;
 @Getter
 @Slf4j
 public class XiaomingBotImpl implements XiaomingBot {
-    public static final String VERSION = "1.1";
-    public static final String AUTHOR = "Chuanwise";
-    public static final String GITHUB = "https://github.com/Chuanwise/xiaoming-bot";
 
     @Override
     public Logger getLog() {

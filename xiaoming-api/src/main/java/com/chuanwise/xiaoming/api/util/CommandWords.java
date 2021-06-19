@@ -9,7 +9,7 @@ public class CommandWords extends StaticUtils {
     public static final String QQ = "(qq|QQ|Qq|qQ)";
     public static final String REMOVE = "(删除|删掉|卸载|删|取消|移除|去除|减少|remove|delete)";
     public static final String PERSONAL = "(我的|我|私人|私有|用户|me|my|personal|private)";
-    public static final String OTHER = "(他人|别人|他|别人|his|her|its)";
+    public static final String OTHERS = "(他人|别人|他|别人|his|her|its)";
     public static final String PLUGIN = "(插件|plugin|plugins)";
     public static final String PERMISSION_GROUP = "(权限组|permissiongroup)";
     public static final String PERMISSION = "(权限|permission)";

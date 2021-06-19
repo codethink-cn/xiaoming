@@ -77,7 +77,7 @@ public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
 
     @Override
     default String getCompleteName() {
-        return getName() + "(" + getCodeString() + ")";
+        return getName() + "（" + getCodeString() + "）";
     }
 
     @Override

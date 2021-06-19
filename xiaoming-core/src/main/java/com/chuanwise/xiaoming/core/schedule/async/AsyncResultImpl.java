@@ -5,6 +5,7 @@ import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
@@ -46,7 +47,8 @@ public class AsyncResultImpl<T> implements AsyncResult<T> {
     public final void run() {
         running = true;
         if (finished) {
-            throw new XiaomingRuntimeException("已经结束的任务无法重新启动");
+            LoggerFactory.getLogger(getClass()).warn("重新启动已经结束的任务");
+            finished = false;
         }
 
         try {
@@ -88,7 +90,7 @@ public class AsyncResultImpl<T> implements AsyncResult<T> {
         return get(0);
     }
 
-    public T execute() {
+    public T execute() throws Exception {
         return null;
     }
 

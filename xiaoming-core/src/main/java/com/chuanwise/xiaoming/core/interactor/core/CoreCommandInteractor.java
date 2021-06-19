@@ -12,6 +12,7 @@ import com.chuanwise.xiaoming.api.interactor.command.CommandInteractor;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
+import com.chuanwise.xiaoming.api.schedule.Scheduler;
 import com.chuanwise.xiaoming.api.schedule.task.PreservableSaveTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
@@ -404,30 +405,19 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     @Filter(CommandWords.XIAOMING + CommandWords.STATUS)
     @Require("core.status")
     public void onStatus(XiaomingUser user) {
-        final long lastSaveTime = getXiaomingBot().getScheduler().getPreservableSaveTask().getLastSaveTime();
+        final Scheduler scheduler = getXiaomingBot().getScheduler();
+        final long lastSaveTime = scheduler.getPreservableSaveTask().getLastSaveTime();
         StringBuilder builder = new StringBuilder();
-
         final Statistician statistician = getXiaomingBot().getStatistician();
 
-        builder.append("{xiaoming}启动于：").append(TimeUtils.FORMAT.format(statistician.getBeginTime())).append("\n")
-                .append("已运行：").append(TimeUtils.toTimeString(System.currentTimeMillis() - statistician.getBeginTime())).append("\n")
-                .append("上次文件保存时间：").append(TimeUtils.FORMAT.format(lastSaveTime)).append("\n")
-                .append("内存空置率：").append(String.format("%.2f%%", (double) 100 * Runtime.getRuntime().freeMemory() / Runtime.getRuntime().maxMemory())).append("\n")
-                .append("距今：").append(TimeUtils.toTimeString(System.currentTimeMillis() - lastSaveTime));
-
-        user.sendMessage(builder.toString());
-    }
-
-    @Override
-    public <T> Object onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
-        Object parameter = super.onParameter(user, clazz, parameterName, currentValue, defaultValue);
-        if (long.class.isAssignableFrom(clazz) && Objects.equals(parameterName, "group")) {
-            if (currentValue.matches("\\d+")) {
-                return Long.parseLong(currentValue);
-            } else {
-                user.sendError("{}并不是一个合理的群号哦", currentValue);
-            }
-        }
-        return parameter;
+        user.sendMessage( "{xiaoming}启动于：" + TimeUtils.FORMAT.format(statistician.getBeginTime()) + "\n" +
+                 "已运行：" + TimeUtils.toTimeString(System.currentTimeMillis() - statistician.getBeginTime()) + "\n" +
+                 "上次文件保存时间：" + TimeUtils.FORMAT.format(lastSaveTime) + "\n" +
+                 "距今：" + TimeUtils.toTimeString(System.currentTimeMillis() - lastSaveTime) + "\n" +
+                 "内核版本：" + XiaomingBot.VERSION + "\n" +
+                 "待处理任务数：" + scheduler.getPlannedTasks().size() + "\n" +
+                 "正在执行的任务数：" + scheduler.getRunningTasks().size() + "\n" +
+                 "待保存文件数：" + scheduler.getPreservableSaveTask().getPreservables().size() + "\n" +
+                 "内存使用率：" + String.format("%.2f%%", 100 - ((double) 100 * Runtime.getRuntime().freeMemory() / Runtime.getRuntime().maxMemory())));
     }
 }

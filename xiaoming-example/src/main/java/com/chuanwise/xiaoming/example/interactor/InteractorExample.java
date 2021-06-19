@@ -14,18 +14,19 @@ import java.util.concurrent.TimeUnit;
  * @author Chuanwise
  */
 public class InteractorExample extends MessageInteractorImpl {
-    @Filter("你好骚啊")
+    @Filter("杰哥，这是什么啊")
     public void onYouAreCoquettish(GroupXiaomingUser user) {
-        user.sendWarning("你敢再说一次试试！");
+        user.sendWarning("哎哟，你脸红啦");
 
         final GroupMessage nextMessage = user.nextInput();
-        if (Objects.equals(nextMessage.serialize(), "你好骚啊")) {
+        if (Objects.equals(nextMessage.serialize(), "杰哥不要")) {
             try {
-                user.mute(TimeUnit.DAYS.toMillis(29));
-                user.sendWarning("哼，看你还怎么说！");
+                user.mute(TimeUnit.DAYS.toMillis(1));
             } catch (Exception exception) {
-                user.sendWarning("哼！");
             }
         }
+
+        // 以下为付费内容
+
     }
 }

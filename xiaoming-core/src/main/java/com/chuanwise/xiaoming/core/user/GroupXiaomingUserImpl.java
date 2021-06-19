@@ -86,6 +86,6 @@ public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupM
 
     @Override
     public String getCompleteName() {
-        return contact.getCompleteName() + getName() + "(" + getCodeString() + ")";
+        return "「" + contact.getCompleteName() + "」" + getName() + "（" + getCodeString() + "）";
     }
 }

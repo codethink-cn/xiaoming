@@ -3,6 +3,7 @@ package com.chuanwise.xiaoming.core.schedule.task;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
 import com.chuanwise.xiaoming.api.schedule.task.PreservableSaveTask;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
+import com.chuanwise.xiaoming.api.util.CollectionUtils;
 import lombok.Getter;
 
 import java.util.Set;
@@ -27,7 +28,9 @@ public class PreservableSaveTaskImpl extends ScheduableTaskImpl<Void> implements
             if (preservables.isEmpty()) {
                 user.sendMessage("成功保存了 {} 个文件 {happy}", needsToSaveFileNumber);
             } else {
-                user.sendError("共需要保存 {} 个文件，但 {} 个文件保存失败。小明会在下一保存周期再次尝试保存它们。", needsToSaveFileNumber, preservables.size());
+                user.sendError("共需要保存 {} 个文件，但 {} 个文件保存失败：\n" +
+                                CollectionUtils.getIndexSummary(preservables, preservable -> preservable.getMedium().toString()) +
+                        "小明会在下一保存周期再次尝试保存它们。", needsToSaveFileNumber, preservables.size());
             }
         }
     }

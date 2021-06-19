@@ -39,7 +39,7 @@ public interface MemberContact extends XiaomingContact<MemberMessage, NormalMemb
 
     @Override
     default String getCompleteName() {
-        return "[" + getGroupContact().getCompleteName() + "]" + getName() + "(" + getCodeString() + ")";
+        return "「" + getGroupContact().getCompleteName() + "」" + getName() + "（" + getCodeString() + "）";
     }
 
     @Override

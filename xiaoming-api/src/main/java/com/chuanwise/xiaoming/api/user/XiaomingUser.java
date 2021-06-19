@@ -1,6 +1,7 @@
 package com.chuanwise.xiaoming.api.user;
 
 import com.chuanwise.xiaoming.api.account.Account;
+import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
 import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
@@ -86,10 +87,10 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         return task;
     }
 
-    M sendPrivateMessage(String message, Object... arguments);
+    Message sendPrivateMessage(String message, Object... arguments);
 
-    default ScheduableTask<M> sendPrivateMessageLater(long delay, String message, Object... arguments) {
-        final ScheduableTask<M> task = getXiaomingBot().getScheduler().runLater(delay, () -> {
+    default ScheduableTask<Message> sendPrivateMessageLater(long delay, String message, Object... arguments) {
+        final ScheduableTask<Message> task = getXiaomingBot().getScheduler().runLater(delay, () -> {
             return sendPrivateMessage(message, arguments);
         });
         task.setDescription("异步消息发送任务");
@@ -426,7 +427,7 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     }
 
     default String getAliasAndCode() {
-        return getAlias() + "(" + getCodeString() + ")";
+        return getAlias() + "（" + getCodeString() + "）";
     }
 
     void appendBuffer(String string);

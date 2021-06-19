@@ -1,11 +1,13 @@
 ### 小明机器人框架 xiaoming-bot
 # 开发文档
-> 你当前的位置：[项目 README](https://github.com/Chuanwise/xiaoming-bot) -> [文档](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs) -> 开发文档
+> 你当前的位置：[项目首页](https://github.com/Chuanwise/xiaoming-bot) -> 开发文档
 
 欢迎来到小明机器人框架的开发文档。
 
+阅读开发文档时，我们默认你已经掌握了小明的使用方法。如果你尚不清楚小明组件的构成，请查阅[用户手册](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/Manual.md)。
+
 ## 小明开发方式
-将你编写的代码和小明结合起来，一共有两种方式：小明调用你的代码（开发小明插件）和你调用小明（小明作为你的组件）。它们的区别主要在启动小明。
+将你编写的代码和小明结合起来，一共有两种方式：小明调用你的代码（开发小明插件）和你调用小明（小明作为你的组件）。它们的区别主要在[启动小明的方式](#启动小明的方式)。
 
 ## 小明内部的组件
 ### 小明本体
@@ -21,33 +23,27 @@
 
 ### 各类插件
 * 插件开发文档：[PluginDevelopment](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/PluginDevelopment.md)
+* 插件中心：[PluginCenter](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/PluginCenter.md)
 
 ### 其他组件
-* 插件管理器：[PluginManager](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/PluginManager.md)
-* 交互器管理器：[InteractorManager](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/InteractorManager.md)
-* 调度器：[Scheduler](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/Scheduler.md)
-* 未完待续
+|组件名|标识符|文档|说明|
+|---|---|---|---|
+|交互器管理器|`InteractorManager`|[InteractorManager](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/InteractorManager.md)|响应 `QQ` 消息的**交互器**的管理器，用于注册、卸载、查看交互器
+|接待员管理器|`ReceptionistManager`|[ReceptionistManager](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/ReceptionistManager.md)|专职处理用户消息的接待员的管理器，用于查看用户交互状态、以用户身份执行指令等
+|调度器|`Scheduler`|[Scheduler](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/Scheduler.md)|进行异步任务、定时、周期任务等操作的小明统一的线程池
+|权限管理器|`PermissionManager`|[PermissionManager](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/PermissionManager.md)|管理用户在小明处的权限等信息
+|事件管理器|`EventListenerManager`|[EventListenerManager](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/EventListenerManager.md)|监听各类事件的监听器的管理器，用于注册、卸载、查看监听器
+|响应群管理器|`ResponseGroupManager`|[ResponseGroupManager](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/ResponseGroupManager.md)|用来增加、删除、获取有关响应群等设置
+|统计数据|`Statistician`|[Statistician](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/Statistician.md)|小明运行状态、调用次数等统计数据的管理器
+|基础配置信息|`Configuration`|[Configuration](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/Configuration.md)|小明的基础设置，例如最长等待时间、调用限制数据等等，大部分设置修改后重启才能生效
+|用户调用限制器|`UserCallLimitManager`|[UserCallLimitManager](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/UserCallLimitManager.md)|限制用户高频或多次调用小明的管理器
+|小明账户管理器|`AccountManager`|[AccountManager](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/AccountManager.md)|查看、管理用户指令记录、相关事件的痕迹等等
+|插件管理器|`PluginManager`|[PluginManager](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/PluginManager.md)|管理、获取、加载或卸载现有的插件相关功能
 
 
 ## 启动小明的方式
 ### 开发小明插件
-使用小明启动你的插件时，需要具备 `Java` 环境及小明的启动器。我们提供了一款能满足基础需求的启动器：`xiaoming-host`。请在[这里](https://github.com/Chuanwise/xiaoming-bot/releases)下载最新的`xiaoming-host`。
-
-使用 `Java` 启动该 `jar` 文件。你可以在同目录下创建脚本 `start.bat`，并输入以下内容保存后双击启动：
-```bash
-java -jar xiaoming-host-xxx.jar
-```
-若是初次在当前设备上登录，则涉及滑块验证等。
-
-请在 `mirai` 运行时中添加 `JVM` 属性 `mirai.slider.captcha.supported` (添加参数 `-Dmirai.slider.captcha.supported`) ，例如：
-```bash
-java -Dmirai.slider.captcha.supported -jar xiaoming-host-xxx.jar
-```
-之后重新启动该脚本。下载[滑块验证助手](https://github.com/mzdluo123/TxCaptchaHelper)，将 `mirai` 显示的弹框内容复制到滑块验证助手中，再将获得的 `ticket` 复制回 `mirai` 显示的弹框后关闭即可。
-
-如果上述方式仍无法正确通过滑块验证，请查阅[最新的 Mirai 滑块验证模块文档](https://github.com/project-mirai/mirai-login-solver-selenium)。
-
-将插件 jar 文件放在小明目录的 plugins 文件夹中，重启小明，或执行以下指令：
+将插件 `jar` 文件放在小明目录的 `plugins` 文件夹中，重启小明，或执行以下指令：
 ```xiaoming
 刷新插件
 加载插件 <你的插件名>
@@ -81,3 +77,16 @@ public class EnableXiaomingExample {
 }
 ```
 如果你已经有现成的 `Mirai` 协议的 `Bot`，可以使用 `xiaomingBot.setMiraiBot(Bot miraiBot)` 直接设置现成的。
+
+> **声明**
+> 
+> 到此你已经阅读结束小明的开发文档，赶快去写几个插件试一试吧！
+>
+> 返回[开发文档](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/Development.md)<br>
+> 查看[插件中心](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/PluginCenter.md)<br>
+> 查看[插件开发文档](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/PluginDevelopment.md)<br>
+> 返回[项目首页](https://github.com/Chuanwise/xiaoming-bot/)<br>
+> 
+> |本文作者|最后更新时间|对应版本号|
+> |---|---|---|
+> |`Chuanwise`|`2021年6月18日`|`1.0`

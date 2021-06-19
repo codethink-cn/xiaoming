@@ -38,7 +38,7 @@ public interface PrivateContact extends XiaomingContact<PrivateMessage, Friend> 
 
     @Override
     default String getCompleteName() {
-        return getAlias() + "(" + getCodeString() + ")";
+        return getAlias() + "（" + getCodeString() + "）";
     }
 
     default String getRemark() {

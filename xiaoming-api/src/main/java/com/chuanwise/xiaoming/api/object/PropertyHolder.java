@@ -17,20 +17,30 @@ public interface PropertyHolder {
     Map<String, Object> getProperties();
 
     default void setProperty(String name, Object content) {
-        getProperties().put(name, content);
+        final Map<String, Object> properties = getProperties();
+        final Map<String, Set<Thread>> propertyWaiters = getPropertyWaiters();
 
-        // 唤醒那些正在等待的线程
-        final Set<Thread> threads = getPropertyWaiters().get(name);
-        if (Objects.nonNull(threads)) {
-            synchronized (threads) {
-                threads.notifyAll();
+        synchronized (properties) {
+            synchronized (propertyWaiters) {
+                properties.put(name, content);
+
+                // 唤醒那些正在等待的线程
+                final Set<Thread> threads = propertyWaiters.get(name);
+                if (Objects.nonNull(threads)) {
+                    synchronized (threads) {
+                        threads.notifyAll();
+                    }
+                    propertyWaiters.remove(name);
+                }
             }
-            getPropertyWaiters().remove(name);
         }
     }
 
     default Object getProperty(String name) {
-        return getProperties().get(name);
+        final Map<String, Object> properties = getProperties();
+        synchronized (properties) {
+            return properties.get(name);
+        }
     }
 
     default <T> T getProperty(String name, Class<T> clazz) {
@@ -38,19 +48,29 @@ public interface PropertyHolder {
     }
 
     default <T> T getPropertyOrDefault(String name, T defaultContent) {
-        return ((T) getPropertyOrDefault(name, defaultContent));
+        final Object property = getProperty(name);
+        return Objects.isNull(property) ? defaultContent : (((T) property));
     }
 
     default void removeProperty(String name) {
-        getProperties().remove(name);
+        final Map<String, Object> properties = getProperties();
+        synchronized (properties) {
+            properties.remove(name);
+        }
     }
 
     default void clearProperties() {
-        getProperties().clear();
+        final Map<String, Object> properties = getProperties();
+        synchronized (properties) {
+            properties.clear();
+        }
     }
 
     default boolean hasProperty(String name) {
-        return getProperties().containsKey(name);
+        final Map<String, Object> properties = getProperties();
+        synchronized (properties) {
+            return properties.containsKey(name);
+        }
     }
 
     /**

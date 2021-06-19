@@ -153,7 +153,7 @@ public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessa
     }
 
     @Override
-    default GroupMessage sendPrivateMessage(String message, Object... arguments) {
-        return getContact().send(MiraiCode.deserializeMiraiCode(replaceArguments(message, arguments)));
+    default MemberMessage sendPrivateMessage(String message, Object... arguments) {
+        return getMemberContact().send(MiraiCode.deserializeMiraiCode(replaceArguments(message, arguments)));
     }
 }

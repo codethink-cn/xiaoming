@@ -54,7 +54,7 @@ public interface ResponseGroup extends XiaomingObject {
         if (StringUtils.isEmpty(alias)) {
             return getCodeString();
         } else {
-            return alias + "(" + getCodeString() + ")";
+            return alias + "（" + getCodeString() + "）";
         }
     }
 

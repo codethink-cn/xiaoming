@@ -109,6 +109,10 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
         return InteractorUtils.waitLastElement(getRecentMessages(), timeout);
     }
 
+    default M nextMessage() {
+        return nextMessage(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime());
+    }
+
     default void addRecentMessage(M recentMessage) {
         final List<M> list = getRecentMessages();
         list.add(recentMessage);
