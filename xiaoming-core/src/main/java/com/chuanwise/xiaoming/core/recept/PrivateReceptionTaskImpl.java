@@ -46,11 +46,4 @@ public class PrivateReceptionTaskImpl extends ReceptionTaskImpl implements Priva
     protected void unregister() {
         receptionist.setPrivateTask(null);
     }
-
-    @Override
-    public void recept(Message message) throws Exception {
-        if (!getXiaomingBot().getInteractorManager().onInput(user, message)) {
-            user.getRecentMessages().clear();
-        }
-    }
 }

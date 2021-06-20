@@ -52,8 +52,6 @@ public class MemberReceptionTaskImpl extends ReceptionTaskImpl implements Member
 
     @Override
     public void recept(Message message) throws Exception {
-        if (!getXiaomingBot().getInteractorManager().onInput(user, message)) {
-            user.getRecentMessages().clear();
-        }
+        getXiaomingBot().getInteractorManager().onInput(user, message);
     }
 }

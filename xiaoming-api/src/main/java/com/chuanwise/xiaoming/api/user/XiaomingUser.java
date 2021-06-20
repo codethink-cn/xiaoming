@@ -4,6 +4,7 @@ import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
 import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
+import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
 import com.chuanwise.xiaoming.api.exception.InteractorTimeoutException;
@@ -25,6 +26,7 @@ import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.MessageChain;
+import net.mamoe.mirai.message.data.QuoteReply;
 import net.mamoe.mirai.utils.ExternalResource;
 
 import java.io.PrintWriter;
@@ -88,6 +90,57 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     }
 
     Message sendPrivateMessage(String message, Object... arguments);
+
+    default Message privateReply(Message quote, String message) {
+        return privateReply(quote, MiraiCode.deserializeMiraiCode(message));
+    }
+
+    default Message privateReply(Message quote, GroupMessage message) {
+        return privateReply(quote, message.getMessageChain());
+    }
+
+    default Message privateReply(Message quote, MessageChain message) {
+        return sendPrivateMessage(new QuoteReply(quote.getOriginalMessageChain()).plus(message).serializeToMiraiCode());
+    }
+
+    default ScheduableTask<Message> privateReplyLater(long delay, Message quote, MessageChain message) {
+        return getXiaomingBot().getScheduler().runLater(delay, () -> {
+            return privateReply(quote, message);
+        });
+    }
+
+    default ScheduableTask<Message> privateReplyLater(long delay, Message quote, GroupMessage message) {
+        return privateReplyLater(delay, quote, message.getMessageChain());
+    }
+
+    default ScheduableTask<Message> privateReplyLater(long delay, Message quote, String message) {
+        return privateReplyLater(delay, quote, MiraiCode.deserializeMiraiCode(message));
+    }
+
+    default Message privateReplyLaterLatest(String message) {
+        return privateReply(getLatestMessage(), MiraiCode.deserializeMiraiCode(message));
+    }
+
+    default Message privateReplyLaterLatest(GroupMessage message) {
+        return privateReply(getLatestMessage(), message.getMessageChain());
+    }
+
+    default Message privateReplyLaterLatest(MessageChain message) {
+        return privateReply(getLatestMessage(), message);
+    }
+
+    default ScheduableTask<Message> privateReplyLatestLater(long delay, MessageChain message) {
+        return privateReplyLater(delay, getLatestMessage(), message);
+    }
+
+    default ScheduableTask<Message> privateReplyLatestLater(long delay, GroupMessage message) {
+        return privateReplyLater(delay, getLatestMessage(), message.getMessageChain());
+    }
+
+    default ScheduableTask<Message> privateReplyLatestLater(long delay, String message) {
+        return privateReplyLater(delay, getLatestMessage(), MiraiCode.deserializeMiraiCode(message));
+    }
+
 
     default ScheduableTask<Message> sendPrivateMessageLater(long delay, String message, Object... arguments) {
         final ScheduableTask<Message> task = getXiaomingBot().getScheduler().runLater(delay, () -> {

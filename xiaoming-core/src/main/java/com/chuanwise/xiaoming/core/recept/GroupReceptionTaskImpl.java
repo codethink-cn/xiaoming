@@ -47,11 +47,4 @@ public class GroupReceptionTaskImpl extends ReceptionTaskImpl implements GroupRe
     protected void unregister() {
         receptionist.getGroupTasks().remove(user.getGroupCodeString());
     }
-
-    @Override
-    public void recept(Message message) throws Exception {
-        if (!getXiaomingBot().getInteractorManager().onInput(user, message)) {
-            user.getRecentMessages().clear();
-        }
-    }
 }

@@ -6,6 +6,7 @@ import com.chuanwise.xiaoming.api.account.record.GroupCommandRecord;
 import com.chuanwise.xiaoming.api.account.record.MemberCommandRecord;
 import com.chuanwise.xiaoming.api.account.record.PrivateCommandRecord;
 import com.chuanwise.xiaoming.api.annotation.*;
+import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.event.InteractorResponseEvent;
 import com.chuanwise.xiaoming.api.interactor.detail.InteractorMethodDetail;
@@ -117,12 +118,15 @@ public interface Interactor extends PluginObject {
             // 填充参数
             final Class<? extends XiaomingUser> userClass = user.getClass();
             final Class<? extends Message> messageClass = message.getClass();
+            final Class<? extends XiaomingContact> contactClass = user.getContact().getClass();
             for (Parameter parameter : parameters) {
                 final Class<?> type = parameter.getType();
                 if (type.isAssignableFrom(userClass)) {
                     arguments.add(user);
                 } else if (type.isAssignableFrom(messageClass)) {
                     arguments.add(message);
+                } else if (type.isAssignableFrom(contactClass)) {
+                    arguments.add(user.getContact());
                 } else if (isParameterFilter && Matcher.class.isAssignableFrom(type)) {
                     arguments.add(matcher);
                 } else if (FilterMatcher.class.isAssignableFrom(type)) {

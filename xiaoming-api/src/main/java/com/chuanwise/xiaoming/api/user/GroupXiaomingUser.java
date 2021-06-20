@@ -91,54 +91,6 @@ public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessa
         return atReplyLatestLater(delay, MiraiCode.deserializeMiraiCode(message));
     }
 
-    default MemberMessage privateReply(Message quote, String message) {
-        return privateReply(quote, MiraiCode.deserializeMiraiCode(message));
-    }
-
-    default MemberMessage privateReply(Message quote, GroupMessage message) {
-        return privateReply(quote, message.getMessageChain());
-    }
-
-    default MemberMessage privateReply(Message quote, MessageChain message) {
-        return getMemberContact().replyGroup(quote, message);
-    }
-
-    default ScheduableTask<MemberMessage> privateReplyLater(long delay, Message quote, MessageChain message) {
-        return getMemberContact().replyGroupLater(delay, quote, message);
-    }
-
-    default ScheduableTask<MemberMessage> privateReplyLater(long delay, Message quote, GroupMessage message) {
-        return privateReplyLater(delay, quote, message.getMessageChain());
-    }
-
-    default ScheduableTask<MemberMessage> privateReplyLater(long delay, Message quote, String message) {
-        return privateReplyLater(delay, quote, MiraiCode.deserializeMiraiCode(message));
-    }
-
-    default MemberMessage privateReplyLaterLatest(String message) {
-        return privateReply(getLatestMessage(), MiraiCode.deserializeMiraiCode(message));
-    }
-
-    default MemberMessage privateReplyLaterLatest(GroupMessage message) {
-        return privateReply(getLatestMessage(), message.getMessageChain());
-    }
-
-    default MemberMessage privateReplyLaterLatest(MessageChain message) {
-        return privateReply(getLatestMessage(), message);
-    }
-
-    default ScheduableTask<MemberMessage> privateReplyLatestLater(long delay, MessageChain message) {
-        return privateReplyLater(delay, getLatestMessage(), message);
-    }
-
-    default ScheduableTask<MemberMessage> privateReplyLatestLater(long delay, GroupMessage message) {
-        return privateReplyLater(delay, getLatestMessage(), message.getMessageChain());
-    }
-
-    default ScheduableTask<MemberMessage> privateReplyLatestLater(long delay, String message) {
-        return privateReplyLater(delay, getLatestMessage(), MiraiCode.deserializeMiraiCode(message));
-    }
-
     @Override
     default void nudge() {
         getMemberContact().nudge();

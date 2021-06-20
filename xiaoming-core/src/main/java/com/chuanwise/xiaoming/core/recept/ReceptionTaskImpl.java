@@ -35,7 +35,9 @@ public abstract class ReceptionTaskImpl extends ModuleObjectImpl implements Rece
     @Override
     public abstract XiaomingUser getUser();
 
-    public abstract void recept(Message message) throws Exception;
+    public void recept(Message message) throws Exception {
+        getXiaomingBot().getInteractorManager().onInput(getUser(), message);
+    }
 
     public abstract void stop();
 
