@@ -68,6 +68,8 @@ import java.net.URLClassLoader;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 /**
  * 小明机器人核心
@@ -140,7 +142,7 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         // 优先加载配置文件
         configuration = filePreservableFactory
-                .loadOrProduce(ConfigurationImpl.class, new File(configDirectory, "configurations.json"), ConfigurationImpl::new);
+                .loadOrProduce(ConfigurationImpl.class, new File(configurationDirectory, "configurations.json"), ConfigurationImpl::new);
         configuration.setXiaomingBot(this);
 
         // 加载调度器
@@ -152,6 +154,20 @@ public class XiaomingBotImpl implements XiaomingBot {
                 .setDescription("自动优化");
         scheduler.periodicRunLater(configuration.getSavePeriod(), configuration.getSavePeriod(), scheduler.getPreservableSaveTask())
                 .setDescription("自动保存文件");
+
+        BiConsumer<File, String> checkIfFileExistAndLog = (file, type) -> {
+            if (file.isFile()) {
+                log.info("存在" + type + "：" + file.getAbsolutePath() + "，正在载入");
+            } else {
+                log.info("找不到" + type + "：" + file.getAbsolutePath() + "，将使用默认设置");
+            }
+        };
+
+        BiConsumer<File, String> checkIfShouldUpdateAndLog = (file, type) -> {
+            if (file.isFile()) {
+                log.info(file.getAbsolutePath() + "，是早些内核版本的" + type + "，可以删除");
+            }
+        };
 
         initializer.put("userCallLimitManager", () -> {
             userCallLimitManager = new UserCallLimitManagerImpl();
@@ -167,7 +183,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         });
 
         initializer.put("pluginManager", () -> {
-            pluginManager = new PluginManagerImpl(this, pluginDirectory);
+            log.info("正在准备加载插件");
             if (pluginDirectory.isDirectory()) {
                 for (File file : pluginDirectory.listFiles()) {
                     if (file.isFile() && file.getName().endsWith(".jar")) {
@@ -180,17 +196,23 @@ public class XiaomingBotImpl implements XiaomingBot {
                     }
                 }
             }
+            pluginManager = new PluginManagerImpl(this, pluginDirectory);
         });
 
         initializer.put("language", () -> {
-            language = filePreservableFactory
-                    .loadOrProduce(LanguageImpl.class, new File(configDirectory, "language.json"), LanguageImpl::new);
+            final File file = new File(configurationDirectory, "language.json");
+            checkIfFileExistAndLog.accept(file, "语言文件");
+
+            language = filePreservableFactory.loadOrProduce(LanguageImpl.class, file, LanguageImpl::new);
             language.setXiaomingBot(this);
         });
 
         initializer.put("permissionManager", () -> {
+            final File file = new File(configurationDirectory, "permissions.json");
+            checkIfFileExistAndLog.accept(file, "权限组文件");
+
             permissionManager = filePreservableFactory
-                    .loadOrProduce(PermissionManagerImpl.class, new File(configDirectory, "permissions.json"), () -> {
+                    .loadOrProduce(PermissionManagerImpl.class, file, () -> {
                         PermissionManagerImpl manager = new PermissionManagerImpl();
                         manager.setGroups(new HashMap<>());
                         return manager;
@@ -199,8 +221,14 @@ public class XiaomingBotImpl implements XiaomingBot {
         });
 
         initializer.put("statistician", () -> {
-            statistician = filePreservableFactory
-                    .loadOrProduce(StatisticianImpl.class, new File(configDirectory, "statisticians.json"), StatisticianImpl::new);
+            final File file = new File(configurationDirectory, "statisticians.json");
+            final String fileType = "统计数据文件";
+            checkIfFileExistAndLog.accept(file, fileType);
+
+            final File elderVersionFile = new File(configurationDirectory, "counters.json");
+            checkIfShouldUpdateAndLog.accept(elderVersionFile, fileType);
+
+            statistician = filePreservableFactory.loadOrProduce(StatisticianImpl.class, file, StatisticianImpl::new);
             statistician.setXiaomingBot(this);
         });
 
@@ -209,8 +237,11 @@ public class XiaomingBotImpl implements XiaomingBot {
         });
 
         initializer.put("responseGroupManager", () -> {
+            final File file = new File(configurationDirectory, "groups.json");
+            checkIfFileExistAndLog.accept(file, "响应群数据文件");
+
             responseGroupManager = filePreservableFactory
-                    .loadOrProduce(ResponseGroupManagerImpl.class, new File(configDirectory, "groups.json"), ResponseGroupManagerImpl::new);
+                    .loadOrProduce(ResponseGroupManagerImpl.class, file, ResponseGroupManagerImpl::new);
             responseGroupManager.setXiaomingBot(this);
             ((ResponseGroupManagerImpl) responseGroupManager).setGroups(((Set) responseGroupManager.getGroups()));
         });
@@ -220,21 +251,30 @@ public class XiaomingBotImpl implements XiaomingBot {
         });
 
         initializer.put("reportMessageManager", () -> {
+            final File file = new File(configurationDirectory, "reports.json");
+            checkIfFileExistAndLog.accept(file, "反馈和错误报告文件");
+
             reportMessageManager = filePreservableFactory
-                    .loadOrProduce(ReportMessageManagerImpl.class, new File(configDirectory, "reports.json"), ReportMessageManagerImpl::new);
+                    .loadOrProduce(ReportMessageManagerImpl.class, file, ReportMessageManagerImpl::new);
             reportMessageManager.setXiaomingBot(this);
         });
 
         initializer.put("resourceManager", () -> {
+            final File file = new File(resourceDirectory, "resources.json");
+            checkIfFileExistAndLog.accept(file, "资源概况文件");
+
             resourceManager = filePreservableFactory
-                    .loadOrProduce(ResourceManagerImpl.class, new File(resourceDirectory, "resources.json"), ResourceManagerImpl::new);
+                    .loadOrProduce(ResourceManagerImpl.class, file, ResourceManagerImpl::new);
             resourceManager.setXiaomingBot(this);
             resourceManager.setResourceDirectory(resourceDirectory);
         });
 
         initializer.put("licenseManager", () -> {
+            final File file = new File(configurationDirectory, "license.json");
+            checkIfFileExistAndLog.accept(file, "小明协议验证数据");
+
             licenseManager = filePreservableFactory
-                    .loadOrProduce(LicenceManagerImpl.class, new File(configDirectory, "license.json"), LicenceManagerImpl::new);
+                    .loadOrProduce(LicenceManagerImpl.class, file, LicenceManagerImpl::new);
             licenseManager.setXiaomingBot(this);
         });
 
@@ -250,7 +290,7 @@ public class XiaomingBotImpl implements XiaomingBot {
             consoleXiaomingUser.setReceptionTask(receptionistManager.getBotReceptionistTask());
             consoleInputThread.setConsoleUser(consoleXiaomingUser);
 
-            scheduler.run(consoleInputThread).setDescription("控制台输入线程");
+            scheduler.run(consoleInputThread).setDescription("控制台输入任务");
         });
     }
 
@@ -268,8 +308,8 @@ public class XiaomingBotImpl implements XiaomingBot {
             throw new XiaomingInitializeException(message);
         }
 
-        if (!configDirectory.isDirectory() && !configDirectory.mkdirs()) {
-            final String message = "无法创建配置文件夹：" + configDirectory.getAbsolutePath();
+        if (!configurationDirectory.isDirectory() && !configurationDirectory.mkdirs()) {
+            final String message = "无法创建配置文件夹：" + configurationDirectory.getAbsolutePath();
             throw new XiaomingInitializeException(message);
         }
 
@@ -280,21 +320,6 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         if (!logDirectory.isDirectory() && !logDirectory.mkdirs()) {
             final String message = "无法创建日志文件夹：" + logDirectory.getAbsolutePath();
-            throw new XiaomingInitializeException(message);
-        }
-
-        File lastestLog = new File(logDirectory, "lastest.log");
-        if (lastestLog.isFile()) {
-            final File dest = new File(logDirectory, TimeUtils.FORMAT.format(lastestLog.lastModified()) + ".log");
-            lastestLog.renameTo(dest);
-        }
-        try {
-            if (!lastestLog.isFile()) {
-                lastestLog.createNewFile();
-            }
-        } catch (IOException exception) {
-            exception.printStackTrace();
-            final String message = "无法创建日志文件 " + logDirectory.getAbsolutePath() + " 时出现异常：" + exception;
             throw new XiaomingInitializeException(message);
         }
     }
@@ -410,7 +435,7 @@ public class XiaomingBotImpl implements XiaomingBot {
      * 统一权限管理器
      */
     @Setter
-    File configDirectory = PathUtils.CONFIG;
+    File configurationDirectory = PathUtils.CONFIG;
     PermissionManager permissionManager;
 
     Language language;

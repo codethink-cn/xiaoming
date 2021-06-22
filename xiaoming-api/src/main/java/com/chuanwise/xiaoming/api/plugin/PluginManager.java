@@ -116,7 +116,7 @@ public interface PluginManager extends XiaomingObject, ModuleObject {
         try {
             plugin.onLoad();
             getLoadedPlugins().add(plugin);
-            user.sendMessage("插件{}加载成功", plugin.getCompleteName());
+            user.sendMessage("插件 {} 加载成功", plugin.getCompleteName());
             return true;
         } catch (Exception exception) {
             user.sendError("加载插件时出现异常：{}", exception);

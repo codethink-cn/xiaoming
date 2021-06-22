@@ -100,7 +100,9 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
         if (Objects.isNull(groupXiaomingUser)) {
             groupXiaomingUser = new GroupXiaomingUserImpl(groupContact, memberContact, getOrPutGroupRecentMessages(groupContact.getCodeString()));
             groupXiaomingUser.setReceptionist(this);
-            groupXiaomingUsers.put(groupCode, groupXiaomingUser);
+            synchronized (groupXiaomingUsers) {
+                groupXiaomingUsers.put(groupCode, groupXiaomingUser);
+            }
         }
         return groupXiaomingUser;
     }
@@ -112,7 +114,9 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
         if (Objects.isNull(memberXiaomingUser)) {
             memberXiaomingUser = new MemberXiaomingUserImpl(contact, getOrPutMemberRecentMessages(contact.getCodeString()));
             memberXiaomingUser.setReceptionist(this);
-            memberXiaomingUsers.put(groupCode, memberXiaomingUser);
+            synchronized (memberXiaomingUsers) {
+                memberXiaomingUsers.put(groupCode, memberXiaomingUser);
+            }
         }
         return memberXiaomingUser;
     }
@@ -139,7 +143,9 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
             // 把消息送到每一个 tag 表里
             for (String tag : contact.getTags()) {
                 final List<GroupMessage> groupRecentMessage = getOrPutGroupRecentMessages(tag);
-                groupRecentMessage.add(message);
+                synchronized (groupRecentMessage) {
+                    groupRecentMessage.add(message);
+                }
                 synchronized (groupRecentMessage) {
                     groupRecentMessage.notifyAll();
                 }
@@ -163,7 +169,9 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
             // 把消息送到每一个 tag 表里
             for (String tag : contact.getGroupContact().getTags()) {
                 final List<MemberMessage> memberRecentMessage = getOrPutMemberRecentMessages(tag);
-                memberRecentMessage.add(message);
+                synchronized (memberRecentMessage) {
+                    memberRecentMessage.add(message);
+                }
                 synchronized (memberRecentMessage) {
                     memberRecentMessage.notifyAll();
                 }
@@ -196,7 +204,9 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
         contact.addRecentMessage(message);
         boolean isFirstRecept = Objects.isNull(privateTask);
         if (isFirstRecept) {
-            privateRecentMessages.add(message);
+            synchronized (privateRecentMessages) {
+                privateRecentMessages.add(message);
+            }
             privateTask = new PrivateReceptionTaskImpl(getOrPutPrivateXiaomingUser(contact), privateRecentMessages);
         }
 

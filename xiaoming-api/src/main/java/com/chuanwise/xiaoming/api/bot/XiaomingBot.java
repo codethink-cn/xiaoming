@@ -90,7 +90,7 @@ public interface XiaomingBot {
 
     File getPluginDirectory();
 
-    File getConfigDirectory();
+    File getConfigurationDirectory();
 
     File getResourceDirectory();
 

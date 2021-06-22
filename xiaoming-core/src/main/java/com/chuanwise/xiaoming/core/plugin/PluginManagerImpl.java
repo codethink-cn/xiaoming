@@ -174,6 +174,7 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
         for (XiaomingPlugin plugin : loadablePlugins) {
             try {
                 plugin.onLoad();
+
                 currentLoadedPlugins.add(plugin);
                 loadedPlugins.add(plugin);
             } catch (Exception exception) {

@@ -13,22 +13,11 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class ColorPatternLayout extends PatternLayout {
-   static final Map<String, String> COLORS = new HashMap<String, String>() {{
-        put("black", "\033[30m");
-        put("red", "\033[31m");
-        put("green", "\033[32m");
-        put("yellow", "\033[33m");
-        put("blue", "\033[34m");
-        put("purple", "\033[35m");
-        put("cyan", "\033[36m");
-        put("gray", "\033[37m");
-        put("white", "\033[0m");
-    }};
+public class UncolorPatternLayout extends PatternLayout {
     static final Pattern COLOR_PATTERN = Pattern.compile("\\$(?<color>\\w+)");
 
     String color(String name) {
-        return COLORS.getOrDefault(name, "\033[0m");
+        return "";
     }
 
     static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");

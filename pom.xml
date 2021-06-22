@@ -38,10 +38,11 @@
             <version>4.4</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.21</version>
+            <version>1.7.25</version>
         </dependency>
 
         <!-- use jackjson for json string serialization -->
@@ -50,32 +51,17 @@
             <artifactId>jackson-core</artifactId>
             <version>2.12.2</version>
         </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-annotations</artifactId>
             <version>2.12.2</version>
         </dependency>
+
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.12.2</version>
         </dependency>
-
-
-<!--        <dependency>-->
-<!--            <groupId>cn.afterturn</groupId>-->
-<!--            <artifactId>easypoi-base</artifactId>-->
-<!--            <version>4.1.0</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>cn.afterturn</groupId>-->
-<!--            <artifactId>easypoi-web</artifactId>-->
-<!--            <version>4.1.0</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>cn.afterturn</groupId>-->
-<!--            <artifactId>easypoi-annotation</artifactId>-->
-<!--            <version>4.1.0</version>-->
-<!--        </dependency>-->
     </dependencies>
 </project>
