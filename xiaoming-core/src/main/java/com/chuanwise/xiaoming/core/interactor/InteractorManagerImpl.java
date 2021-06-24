@@ -5,11 +5,13 @@ import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.interactor.command.CommandInteractor;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
+import com.chuanwise.xiaoming.api.interactor.detail.InteractorMethodDetail;
 import com.chuanwise.xiaoming.api.interactor.message.MessageInteractor;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
+import com.chuanwise.xiaoming.api.util.CollectionUtils;
 import com.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl;
 import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import lombok.Getter;
@@ -98,11 +100,22 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
     public void register(Interactor interactor, XiaomingPlugin plugin) {
         if (Objects.nonNull(plugin)) {
             getOrPutInteractors(plugin).add(interactor);
+            getLog().info("正在载入插件 " + plugin.getCompleteName() + " 交互器 {} 中的交互方法", interactor.getClass().getName());
         } else {
             coreInteractors.add(interactor);
+            getLog().info("正在载入内核交互器 {} 中的交互方法", interactor.getClass().getName());
         }
         interactor.setXiaomingBot(getXiaomingBot());
+
         interactor.initialize();
+        final Set<InteractorMethodDetail> methodDetails = interactor.getMethodDetails();
+        if (methodDetails.isEmpty()) {
+            getLog().info("没有载入任何交互方法");
+        } else {
+            getLog().info("成功载入 " + methodDetails.size() + " 个交互方法：\n" + CollectionUtils.getIndexSummary(methodDetails, detail -> {
+                        return Arrays.toString(detail.getUsageStrings());
+                    }, "", "", "、"));
+        }
         interactor.setPlugin(plugin);
     }
 

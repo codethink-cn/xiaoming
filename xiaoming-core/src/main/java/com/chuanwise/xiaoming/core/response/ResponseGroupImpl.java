@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.mamoe.mirai.contact.Group;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -42,17 +43,7 @@ public class ResponseGroupImpl extends XiaomingObjectImpl implements ResponseGro
 
     public void setTags(Set<String> tags) {
         this.tags = tags;
-
-        // 检查原生标记
-        final String recoededTag = "recorded";
-        if (!tags.contains(recoededTag)) {
-            tags.add(recoededTag);
-        }
-
-        final String codeTag = String.valueOf(code);
-        if (!tags.contains(codeTag)) {
-            tags.add(codeTag);
-        }
+        tags.addAll(Arrays.asList("recorded", String.valueOf(code)));
     }
 
     @Override

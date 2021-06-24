@@ -2,7 +2,9 @@ package com.chuanwise.xiaoming.api.util;
 
 import com.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 
+import java.lang.reflect.Field;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -153,5 +155,51 @@ public class ArgumentUtils extends StaticUtils {
             times++;
         }
         return builder.toString();
+    }
+
+    protected static Set<Class<?>> classes = new CopyOnWriteArraySet<>();
+    public static Map<String, Object> makeEnvironment(Object object) {
+        if (Objects.isNull(object)) {
+            return null;
+        }
+        synchronized (classes) {
+            classes.clear();
+            return makeEnvironment(object, "");
+        }
+    }
+
+    protected static Map<String, Object> makeEnvironment(Object object, String prefix) {
+        if (Objects.isNull(object)) {
+            return null;
+        }
+
+        final Class<?> clazz = object.getClass();
+        if (classes.contains(clazz)) {
+            return null;
+        } else {
+            classes.add(clazz);
+        }
+        Map<String, Object> environment = new HashMap<>();
+        for (Field field : clazz.getDeclaredFields()) {
+            final boolean accessible = field.isAccessible();
+            field.setAccessible(true);
+
+            try {
+                final Object value = field.get(object);
+                if (Objects.nonNull(value) && !(value instanceof String)) {
+                    final Map<String, Object> map = makeEnvironment(value, prefix + (StringUtils.isEmpty(prefix) ? "" : ".") + field.getName());
+                    if (Objects.nonNull(map)) {
+                        environment.putAll(map);
+                    }
+                }
+                environment.put(prefix + field.getName(), value);
+            } catch (IllegalAccessException illegalAccessException) {
+                illegalAccessException.printStackTrace();
+            }
+
+            field.setAccessible(accessible);
+        }
+
+        return environment;
     }
 }

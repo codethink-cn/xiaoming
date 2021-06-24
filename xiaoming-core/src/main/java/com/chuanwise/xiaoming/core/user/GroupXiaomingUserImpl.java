@@ -44,24 +44,30 @@ public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupM
     public void onNextInput(GroupMessage message) {
         final List<GroupMessage> list = getRecentMessages();
         setProperty("last", message.serialize());
-        list.add(message);
-
-        final Receptionist receptionist = getReceptionist();
-        receptionist.setGlobalRecentMessages(list);
 
         final GroupReceptionTask receptionTask = getReceptionTask();
         if (Objects.isNull(receptionTask)) {
             receptionist.onGroupMessage(getContact(), message);
+            return;
         }
 
-        getOrPutAccount().addCommand(new GroupCommandRecord(getGroupCode(), message.serialize()));
-
-        synchronized (list) {
-            list.notifyAll();
-        }
+        final Receptionist receptionist = getReceptionist();
+        receptionist.setGlobalRecentMessages(list);
         synchronized (this) {
             this.notifyAll();
         }
+
+        for (String tag : getContact().getTags()) {
+            final List<GroupMessage> recentMessages = receptionist.getOrPutGroupRecentMessages(tag);
+            synchronized (recentMessages) {
+                recentMessages.add(message);
+                recentMessages.notifyAll();
+            }
+        }
+
+        message.getContact().addRecentMessage(message);
+
+        getOrPutAccount().addCommand(new GroupCommandRecord(getGroupCode(), message.serialize()));
     }
 
     @Override

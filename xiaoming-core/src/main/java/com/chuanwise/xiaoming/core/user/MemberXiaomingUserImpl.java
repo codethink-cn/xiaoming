@@ -3,6 +3,8 @@ package com.chuanwise.xiaoming.core.user;
 import com.chuanwise.xiaoming.api.account.record.GroupCommandRecord;
 import com.chuanwise.xiaoming.api.account.record.MemberCommandRecord;
 import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
+import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
+import com.chuanwise.xiaoming.api.recept.GroupReceptionTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.recept.MemberReceptionTask;
 import com.chuanwise.xiaoming.api.user.MemberXiaomingUser;
@@ -39,24 +41,29 @@ public class MemberXiaomingUserImpl extends XiaomingUserImpl<MemberContact, Memb
     public void onNextInput(MemberMessage message) {
         final List<MemberMessage> list = getRecentMessages();
         setProperty("last", message.serialize());
-        list.add(message);
-
-        final Receptionist receptionist = getReceptionist();
-        receptionist.setGlobalRecentMessages(list);
 
         final MemberReceptionTask receptionTask = getReceptionTask();
         if (Objects.isNull(receptionTask)) {
             receptionist.onMemberMessage(getContact(), message);
+            return;
         }
 
-        getOrPutAccount().addCommand(new MemberCommandRecord(getGroupCode(), message.serialize()));
-
-        synchronized (list) {
-            list.notifyAll();
-        }
+        final Receptionist receptionist = getReceptionist();
+        receptionist.setGlobalRecentMessages(list);
         synchronized (this) {
             this.notifyAll();
         }
+
+        // 对本人最近输入的追加
+        for (String tag : getContact().getGroupContact().getTags()) {
+            final List<MemberMessage> recentMessages = receptionist.getOrPutMemberRecentMessages(tag);
+            synchronized (recentMessages) {
+                recentMessages.add(message);
+                recentMessages.notifyAll();
+            }
+        }
+
+        getOrPutAccount().addCommand(new MemberCommandRecord(getGroupCode(), message.serialize()));
     }
 
     @Override

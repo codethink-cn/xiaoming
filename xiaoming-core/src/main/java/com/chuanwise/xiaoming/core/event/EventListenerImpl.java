@@ -2,6 +2,7 @@ package com.chuanwise.xiaoming.core.event;
 
 import com.chuanwise.xiaoming.api.annotation.EventHandler;
 import com.chuanwise.xiaoming.api.event.EventListener;
+import com.chuanwise.xiaoming.api.util.CollectionUtils;
 import com.chuanwise.xiaoming.core.object.PluginObjectImpl;
 import lombok.Getter;
 import net.mamoe.mirai.event.Event;
@@ -36,7 +37,8 @@ public class EventListenerImpl extends PluginObjectImpl implements EventListener
         if (handlerMethods.isEmpty()) {
             logger.error("没有载入任何消息处理方法");
         } else {
-            logger.info("成功载入了 {} 个消息处理方法", handlerMethods.size());
+            logger.info("成功载入 " + handlerMethods.size() + " 个消息处理方法：\n" +
+                    CollectionUtils.getIndexSummary(handlerMethods, Method::getName, "", "", "、"));
         }
     }
 

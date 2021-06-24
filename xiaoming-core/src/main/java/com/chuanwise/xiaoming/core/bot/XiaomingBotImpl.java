@@ -18,7 +18,6 @@ import com.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import com.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
 import com.chuanwise.xiaoming.api.util.PathUtils;
 import com.chuanwise.xiaoming.api.util.PluginLoaderUtils;
-import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.api.event.EventManager;
 import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
@@ -63,13 +62,11 @@ import net.mamoe.mirai.event.events.BotEvent;
 import org.slf4j.Logger;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URLClassLoader;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 
 /**
  * 小明机器人核心
@@ -163,11 +160,13 @@ public class XiaomingBotImpl implements XiaomingBot {
             }
         };
 
-        BiConsumer<File, String> checkIfShouldUpdateAndLog = (file, type) -> {
+        BiConsumer<File, String> checkIfCanDeleteAndLog = (file, type) -> {
             if (file.isFile()) {
-                log.info(file.getAbsolutePath() + "，是早些内核版本的" + type + "，可以删除");
+                log.warn(file.getAbsolutePath() + "，是早些内核版本的" + type + "，可以删除");
             }
         };
+
+        checkIfCanDeleteAndLog.accept(new File("texts"), "文本文件");
 
         initializer.put("userCallLimitManager", () -> {
             userCallLimitManager = new UserCallLimitManagerImpl();
@@ -226,7 +225,7 @@ public class XiaomingBotImpl implements XiaomingBot {
             checkIfFileExistAndLog.accept(file, fileType);
 
             final File elderVersionFile = new File(configurationDirectory, "counters.json");
-            checkIfShouldUpdateAndLog.accept(elderVersionFile, fileType);
+            checkIfCanDeleteAndLog.accept(elderVersionFile, fileType);
 
             statistician = filePreservableFactory.loadOrProduce(StatisticianImpl.class, file, StatisticianImpl::new);
             statistician.setXiaomingBot(this);
@@ -375,7 +374,17 @@ public class XiaomingBotImpl implements XiaomingBot {
 
     @Override
     public void start() {
-        System.out.println("\n" +
+        final List<String> tips = Arrays.asList(
+                "椽子曾经用小明框架交他的软件工程大作业",
+                "你知道吗，当你看到这条 TIPS 时，你就阅读了一条 TIPS",
+                "@FilterParameter(\"argument\") 除了这种最基础的用法，" +
+                        "还可以自定义默认参数值，" +
+                        "就像 @FilterParameter(value = \"argument\", defaultValue = \"defaultValue\")",
+                "你知道吗，椽子的英文名 Chuanwise 前半部分是拼音，后半部分是英文"
+        );
+
+        getLog().warn("\n" +
+                "\n" +
                 " __   __ _                __  __  _               \n" +
                 " \\ \\ / /(_)              |  \\/  |(_)              \n" +
                 "  \\ V /  _   __ _   ___  | \\  / | _  _ __    __ _ \n" +
@@ -384,10 +393,10 @@ public class XiaomingBotImpl implements XiaomingBot {
                 " /_/ \\_\\|_| \\__,_| \\___/ |_|  |_||_||_| |_| \\__, |\n" +
                 "                                             __/ |\n" +
                 "                                            |___/ \n" +
-                "                                        @" + AUTHOR + "\n" +
-                "version: " + VERSION + "\n" +
-                "github: " + GITHUB +
-                "\n");
+                "                                        @" + SPONSOR + "\n" +
+                "core version: " + VERSION + "\n" +
+                "github: " + GITHUB + "\n" +
+                "tips: " + tips.get(new Random().nextInt(tips.size())) + "\n");
         getLog().info("正在启动小明机器人……");
 
         if (Objects.isNull(miraiBot)) {

@@ -17,6 +17,24 @@ public interface AccountManager extends ModuleObject {
 
     Map<Long, Account> getLoadedAccounts();
 
+    default String getAliasOrCode(long qq) {
+        final Account account = getAccount(qq);
+        if (Objects.isNull(account)) {
+            return String.valueOf(qq);
+        } else {
+            return account.getAlias();
+        }
+    }
+
+    default String getAliasAndCode(long qq) {
+        final Account account = getAccount(qq);
+        if (Objects.isNull(account)) {
+            return String.valueOf(qq);
+        } else {
+            return account.getCompleteName();
+        }
+    }
+
     default boolean hasTag(long qq, String tag) {
         if (tag == String.valueOf(qq)) {
             return true;

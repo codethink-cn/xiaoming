@@ -86,10 +86,10 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
         // 加载插件主类
         try {
             pluginClass = classLoader.loadClass(pluginMainClassName);
-        } catch (ClassNotFoundException exception) {
+        } catch (Throwable throwable) {
             user.sendError("找不到插件主类：{}", pluginMainClassName);
             getXiaomingBot().getReportMessageManager().addMessage(new ReportMessageImpl("找不到插件主类：" + pluginMainClassName));
-            exception.printStackTrace();
+            throwable.printStackTrace();
             return false;
         }
 

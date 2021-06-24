@@ -136,21 +136,10 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
 
     @Override
     public void onGroupMessage(GroupContact contact, GroupMessage message) {
-        contact.addRecentMessage(message);
         GroupReceptionTask groupTask = getGroupTask(contact.getCodeString());
         boolean isFirstRecept = Objects.isNull(groupTask);
-        if (isFirstRecept) {
-            // 把消息送到每一个 tag 表里
-            for (String tag : contact.getTags()) {
-                final List<GroupMessage> groupRecentMessage = getOrPutGroupRecentMessages(tag);
-                synchronized (groupRecentMessage) {
-                    groupRecentMessage.add(message);
-                }
-                synchronized (groupRecentMessage) {
-                    groupRecentMessage.notifyAll();
-                }
-            }
 
+        if (isFirstRecept) {
             groupTask = new GroupReceptionTaskImpl(getOrPutGroupXiaomingUser(contact, message.getSender().getMemberContact()), getOrPutGroupRecentMessages(contact.getCodeString()));
         }
 
@@ -162,21 +151,10 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
 
     @Override
     public void onMemberMessage(MemberContact contact, MemberMessage message) {
-        contact.addRecentMessage(message);
         MemberReceptionTask memberTask = getMemberTask(contact.getCodeString());
+
         boolean isFirstRecept = Objects.isNull(memberTask);
         if (isFirstRecept) {
-            // 把消息送到每一个 tag 表里
-            for (String tag : contact.getGroupContact().getTags()) {
-                final List<MemberMessage> memberRecentMessage = getOrPutMemberRecentMessages(tag);
-                synchronized (memberRecentMessage) {
-                    memberRecentMessage.add(message);
-                }
-                synchronized (memberRecentMessage) {
-                    memberRecentMessage.notifyAll();
-                }
-            }
-
             memberTask = new MemberReceptionTaskImpl(getOrPutMemberXiaomingUser(contact), getOrPutMemberRecentMessages(contact.getGroupContact().getCodeString()));
         }
 
@@ -201,12 +179,9 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
 
     @Override
     public void onPrivateMessage(PrivateContact contact, PrivateMessage message) {
-        contact.addRecentMessage(message);
         boolean isFirstRecept = Objects.isNull(privateTask);
+
         if (isFirstRecept) {
-            synchronized (privateRecentMessages) {
-                privateRecentMessages.add(message);
-            }
             privateTask = new PrivateReceptionTaskImpl(getOrPutPrivateXiaomingUser(contact), privateRecentMessages);
         }
 

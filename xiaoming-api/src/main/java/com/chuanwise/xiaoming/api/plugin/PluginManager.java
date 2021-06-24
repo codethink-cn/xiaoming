@@ -13,7 +13,11 @@ import java.util.Set;
 import java.util.jar.JarFile;
 
 /**
- * 插件管理器是小明所有插件的管理者、加载者和卸载者。
+ * 插件管理器是小明所有插件的管理者、加载者和卸载者
+ *
+ * @see XiaomingPlugin
+ * @date 2021年5月3日
+ * @version 3.2
  * @author Chuanwise
  */
 public interface PluginManager extends XiaomingObject, ModuleObject {

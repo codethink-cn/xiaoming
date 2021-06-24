@@ -158,7 +158,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
 
     default PermissionAccessible groupAccessible(ResponseGroup responseGroup, PermissionGroup permissionGroup, String require) {
         // 先检测是否有专属 tag
-        final String codeTag = responseGroup.getCode() + "";
+        final String codeTag = String.valueOf(responseGroup.getCode());
         final PermissionAccessible codeTagAccessible = permissionGroupAccessible(permissionGroup, codeTag, require);
         if (codeTagAccessible != PermissionAccessible.UNKNOWN) {
             return codeTagAccessible;

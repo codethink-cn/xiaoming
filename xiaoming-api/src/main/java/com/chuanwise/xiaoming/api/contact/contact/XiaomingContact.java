@@ -115,8 +115,8 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
 
     default void addRecentMessage(M recentMessage) {
         final List<M> list = getRecentMessages();
-        list.add(recentMessage);
         synchronized (list) {
+            list.add(recentMessage);
             list.notifyAll();
         }
     }

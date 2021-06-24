@@ -68,6 +68,6 @@ public interface Account extends Preservable<File> {
     }
 
     default boolean hasTag(String tag) {
-        return getTags().contains(tag) || tag == String.valueOf(getCode()) || tag == "recorded";
+        return getTags().contains(tag);
     }
 }

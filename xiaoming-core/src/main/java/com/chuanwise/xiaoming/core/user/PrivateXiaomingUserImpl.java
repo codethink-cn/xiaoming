@@ -44,24 +44,24 @@ public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, Pr
     public void onNextInput(PrivateMessage message) {
         final List<PrivateMessage> list = getRecentMessages();
         setProperty("last", message.serialize());
-        list.add(message);
-
-        final Receptionist receptionist = getReceptionist();
-        receptionist.setGlobalRecentMessages(list);
 
         final PrivateReceptionTask receptionTask = getReceptionTask();
         if (Objects.isNull(receptionTask)) {
             receptionist.onPrivateMessage(getContact(), message);
+            return;
         }
 
-        getOrPutAccount().addCommand(new PrivateCommandRecord(message.serialize()));
-
-        synchronized (list) {
-            list.notifyAll();
-        }
+        final Receptionist receptionist = getReceptionist();
+        receptionist.setGlobalRecentMessages(list);
         synchronized (this) {
             this.notifyAll();
         }
+        synchronized (list) {
+            list.add(message);
+            list.notifyAll();
+        }
+
+        getOrPutAccount().addCommand(new PrivateCommandRecord(message.serialize()));
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.chuanwise.xiaoming.api.language.Language;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
 import com.chuanwise.xiaoming.api.preserve.Preservable;
 import com.chuanwise.xiaoming.api.util.FileUtils;
+import org.jetbrains.annotations.TestOnly;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -12,19 +13,28 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * 小明插件本体
+ * 小明插件主类
+ * 插件主类是小明加载插件的唯一入口。通过 {@code XiaomingClassLoader} 加载插件类后，会检查该类是否是
+ * 本接口的实现。如果是，才会继续通过多态性调用本接口的 {@code onLoad()} 和 {@code onEnable()} 以
+ * 启动插件。
+ * {@code onLoad()} 的执行顺序是随机的，但 {@code onEnable()} 的执行顺序必然是一个前置插件关系的拓
+ * 扑序列。
+ *
+ * @see PluginManager
+ * @date 2021年5月3日
+ * @version 3.1
  * @author Chuanwise
  */
 public interface XiaomingPlugin extends XiaomingObject {
-    String CONFIGURATION_FILE_NAME = "congurations.json";
-    /**
-     * 获取插件名
-     * @return
-     */
+    /** 配置文件名 */
+    String CONFIGURATION_FILE_NAME = "configurations.json";
+
+    /** 获取插件名。如果插件属性中没有插件名，以 {@code jar} 文件名作为插件名 */
     default String getName() {
         return getProperty().getName();
     }
 
+    /** 获取插件别名 */
     default String getAlias() {
         final Object alias = getProperty().get("alias");
         if (alias instanceof String) {
@@ -38,26 +48,32 @@ public interface XiaomingPlugin extends XiaomingObject {
         return getName();
     }
 
+    /** 获得插件语言包 */
     Language getLanguage();
 
+    /**
+     * 设置插件语言包。此方法不要轻易调用，建议使用 {@code loadLanguageAs(...)}
+     * @param language 语言包信息
+     */
     void setLanguage(Language language);
 
-    /**
-     * 获取插件名
-     * @return
-     */
+    /** 获取插件版本号 */
     default String getVersion() {
         return getProperty().getVersion();
     }
 
+    /** 获得插件名（版本） */
     default String getCompleteName() {
         return getName() + "（" + getVersion() + "）";
     }
 
+    /** 插件启动时执行 */
     default void onEnable() {}
 
+    /** 插件关闭时执行 */
     default void onDisable() {}
 
+    /** 插件加载时执行 */
     default void onLoad() {}
 
     default void onUnload() {}

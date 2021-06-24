@@ -29,7 +29,7 @@ import java.io.File;
  */
 public interface XiaomingBot {
     String VERSION = "2.3";
-    String AUTHOR = "Chuanwise";
+    String SPONSOR = "Chuanwise";
     String GITHUB = "https://github.com/Chuanwise/xiaoming-bot";
 
     Bot getMiraiBot();

@@ -32,16 +32,8 @@ import java.util.regex.Matcher;
  * @author Chuanwise
  */
 public interface Interactor extends PluginObject {
-    /**
-     * 初始化方法，主要是加载子交互函数之类
-     */
+    /** 初始化方法，主要是加载子交互函数之类 */
     void initialize();
-
-    default boolean isLegalUser(XiaomingUser user) {
-        return true;
-    }
-
-    default void onIllegalUser(XiaomingUser user) {}
 
     /**
      * 查看用户是否具有交互资格
@@ -259,6 +251,7 @@ public interface Interactor extends PluginObject {
         return true;
     }
 
+
     /**
      * 注册一个指定权限和过滤器的响应函数
      * @param method 响应函数
@@ -324,6 +317,12 @@ public interface Interactor extends PluginObject {
         }
         return result;
     }
+
+    default boolean isLegalUser(XiaomingUser user) {
+        return true;
+    }
+
+    default void onIllegalUser(XiaomingUser user) {}
 
     /**
      * 获得用户可用的指令格式
