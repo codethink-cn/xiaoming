@@ -57,8 +57,6 @@ public class ConsoleInputThread extends ModuleObjectImpl implements Runnable {
 
     @Override
     public void run() {
-        Thread.currentThread().setName("reception-task[console]");
-
         if (Objects.isNull(inputThread)) {
             inputThread = Thread.currentThread();
         } else {
@@ -74,6 +72,7 @@ public class ConsoleInputThread extends ModuleObjectImpl implements Runnable {
                     if (Objects.isNull(interactor)) {
                         getXiaomingBot().getScheduler().run(() -> {
                             if (!getXiaomingBot().getInteractorManager().onInput(consoleUser, consoleMessage)) {
+                                Thread.currentThread().setName("reception-task[console]");
                                 consoleUser.sendError("小明不知道你的意思");
                             }
                             return true;

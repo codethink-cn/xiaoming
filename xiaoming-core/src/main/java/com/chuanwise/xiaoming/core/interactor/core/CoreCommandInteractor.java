@@ -20,6 +20,7 @@ import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CollectionUtils;
 import com.chuanwise.xiaoming.api.util.CommandWords;
+import com.chuanwise.xiaoming.api.util.StringUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
 import com.chuanwise.xiaoming.core.schedule.SchedulerImpl;
@@ -110,57 +111,42 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
                                    @FilterParameter("remain") String remain,
                                    Message message) {
         final String[] subCommands = remain.split(Pattern.quote("\\n"), 0);
+        final long maxJoinTime = TimeUnit.SECONDS.toMillis(1);
 
         user.enablePrintWriter();
-        int commandNumber = 0;
         try {
+            ScheduableTask<Boolean> task = null;
             for (int i = 1; i < subCommands.length; i++) {
                 String command = subCommands[i];
                 if (command.isEmpty()) {
                     continue;
                 }
-                final Message clonedMessage = message.clone();
-                final MessageChain messageChain = MiraiCode.deserializeMiraiCode(subCommands[i]);
-                clonedMessage.setMessageChain(messageChain);
-                clonedMessage.setOriginalMessageChain(messageChain);
 
-                ScheduableTask<Boolean> task;
-                if (Objects.isNull(user.getInteractor())) {
+                if (Objects.isNull(task) || (task.isFinished() || task.isRunning())) {
+                    int finalI = i;
                     task = getXiaomingBot().getScheduler().run(() -> {
+                        final Message clonedMessage = message.clone();
+                        final MessageChain messageChain = MiraiCode.deserializeMiraiCode(subCommands[finalI]);
+                        clonedMessage.setMessageChain(messageChain);
+                        clonedMessage.setOriginalMessageChain(messageChain);
+
                         return getXiaomingBot().getInteractorManager().onInput(user, clonedMessage);
                     });
                     task.setDescription("批处理临时接待任务");
-                    if (Objects.isNull(user.getInteractor())) {
-                        try {
-                            if (!task.get()) {
-                                user.setProperty("command", command);
-                                user.sendError("{illegalCommandInterruptBatchTask}");
-                                break;
-                            } else {
-                                commandNumber++;
-                            }
-                        } catch (InterruptedException ignored) {
-                        }
-                    }
+                    task.join(maxJoinTime);
                 } else {
-                    user.onNextInput(clonedMessage);
-                    commandNumber++;
+                    user.onNextInput(command);
                 }
+            }
+            if (Objects.nonNull(task)) {
+                task.join();
             }
         } catch (Exception exception) {
             user.sendError("{exceptionInterruptBatchTask}");
             exception.printStackTrace();
         }
-
-        final String bufferString = user.getBufferAndClose();
-        user.sendMessage(bufferString);
-
-        if (commandNumber == 0) {
-            user.sendError("{noCommandExecuted}");
-        } else {
-            user.setProperty("counter", commandNumber);
-            user.sendMessage("{executeCommandSuccessfully}");
-        }
+        final String buffer = user.getBufferAndClose();
+        user.sendMessage(StringUtils.isEmpty(buffer) ? "指令没有任何输出" : buffer);
     }
 
     @Filter(CommandWords.OPTIMIZE)

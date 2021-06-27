@@ -57,6 +57,34 @@ public class AsyncResultImpl<T> implements AsyncResult<T> {
         }
     }
 
+    @Override
+    public void join() throws InterruptedException {
+        while (!isFinished()) {
+            synchronized (this) {
+                if (!isFinished()) {
+                    this.wait();
+                }
+            }
+        }
+    }
+
+    @Override
+    public boolean join(long timeout) throws InterruptedException {
+        final long latestTime = System.currentTimeMillis() + timeout;
+        while (!isFinished()) {
+            synchronized (this) {
+                if (!isFinished()) {
+                    final long remainWaitTime = latestTime - System.currentTimeMillis();
+                    if (remainWaitTime <= 0) {
+                        return false;
+                    }
+                    this.wait(remainWaitTime);
+                }
+            }
+        }
+        return true;
+    }
+
     @Getter
     @Setter
     Callable<T> callable;

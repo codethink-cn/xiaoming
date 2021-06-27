@@ -5,6 +5,10 @@ public interface AsyncResult<T> extends Runnable {
 
     void interrupt();
 
+    void join() throws InterruptedException;
+
+    boolean join(long timeout) throws InterruptedException;
+
     T get(long timeout) throws InterruptedException;
 
     T get() throws InterruptedException;
