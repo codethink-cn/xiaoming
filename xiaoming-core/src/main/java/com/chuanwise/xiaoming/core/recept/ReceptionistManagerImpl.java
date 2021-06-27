@@ -2,6 +2,7 @@ package com.chuanwise.xiaoming.core.recept;
 
 import com.chuanwise.xiaoming.api.annotation.EventHandler;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
+import com.chuanwise.xiaoming.api.configuration.Configuration;
 import com.chuanwise.xiaoming.api.limit.CallLimitConfig;
 import com.chuanwise.xiaoming.api.limit.UserCallLimiter;
 import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
@@ -114,35 +115,32 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
         }
     }
 
-    public String getCallContent(String message) {
-        if (getXiaomingBot().getConfiguration().isEnableClearCall()) {
-            for (String prefix : getXiaomingBot().getConfiguration().getCallPrefixs()) {
-                if (message.startsWith(prefix) && message.length() > prefix.length()) {
-                    return message.substring(prefix.length());
-                }
-            }
-            return null;
-        } else {
-            return message;
-        }
-    }
-
     @Override
     @EventHandler
     public void onGroupMessageEvent(GroupMessageEvent event) {
         final Member member = event.getSender();
-
         final long qq = member.getId();
 
         final String message = event.getMessage().serializeToMiraiCode();
-        String callContent = getCallContent(message);
-        if (Objects.isNull(callContent)) {
-            return;
-        } else {
-            callContent = callContent.trim();
-            if (StringUtils.isEmpty(callContent.trim())) {
-                return;
+        final Configuration configuration = getXiaomingBot().getConfiguration();
+
+        // 如果本群是启动明确调用的群
+        // 检查明确调用
+        String callContent = null;
+        if (configuration.isEnableClearCall() && getXiaomingBot().getResponseGroupManager().hasTag(event.getGroup().getId(), configuration.getClearCallGroupTag())) {
+            for (String prefix : configuration.getClearCallPrefixes()) {
+                if (message.startsWith(prefix) && message.length() > prefix.length()) {
+                    callContent = message.substring(prefix.length());
+                }
             }
+        } else {
+            callContent = message;
+        }
+        if (Objects.nonNull(callContent)) {
+            callContent = callContent.trim();
+        }
+        if (StringUtils.isEmpty(callContent)) {
+            return;
         }
 
         if (!callable(member, true)) {
@@ -162,23 +160,13 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
         final Friend friend = event.getFriend();
 
         final long qq = friend.getId();
-
-        final String message = event.getMessage().serializeToMiraiCode().trim();
-        String callContent = message;
-        if (getXiaomingBot().getConfiguration().isEnablePrivateClearCall()) {
-            callContent = getCallContent(callContent);
-            if (StringUtils.isEmpty(callContent.trim())) {
-                return;
-            }
-        }
-
         if (!callable(friend, false)) {
             getLog().warn("小明收到了来自 " + qq + " 的私聊消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
             return;
         }
 
         final Receptionist receptionist = getOrPutReceptionist(qq);
-        receptionist.onPrivateMessage(getXiaomingBot().getContactManager().getPrivateContact(qq), callContent, event.getMessage());
+        receptionist.onPrivateMessage(getXiaomingBot().getContactManager().getPrivateContact(qq), event.getMessage());
     }
 
     @Override
@@ -188,22 +176,12 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
         final NormalMember member = event.getSender();
 
         final long qq = member.getId();
-
-        final String message = event.getMessage().serializeToMiraiCode().trim();
-        String callContent = message;
-        if (getXiaomingBot().getConfiguration().isEnableMemberClearCall()) {
-            callContent = getCallContent(callContent);
-            if (StringUtils.isEmpty(callContent.trim())) {
-                return;
-            }
-        }
-
         if (!callable(member, false)) {
             getLog().warn("小明收到了来自 " + qq + " 的临时会话消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
             return;
         }
 
         final Receptionist receptionist = getOrPutReceptionist(qq);
-        receptionist.onMemberMessage(getXiaomingBot().getContactManager().getMemberContact(group.getId(), qq), callContent, event.getMessage());
+        receptionist.onMemberMessage(getXiaomingBot().getContactManager().getMemberContact(group.getId(), qq), event.getMessage());
     }
 }

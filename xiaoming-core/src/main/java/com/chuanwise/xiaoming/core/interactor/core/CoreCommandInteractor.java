@@ -22,7 +22,9 @@ import com.chuanwise.xiaoming.api.util.CollectionUtils;
 import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
+import com.chuanwise.xiaoming.core.schedule.SchedulerImpl;
 import net.mamoe.mirai.message.code.MiraiCode;
+import net.mamoe.mirai.message.data.MessageChain;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -118,7 +120,9 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
                     continue;
                 }
                 final Message clonedMessage = message.clone();
-                clonedMessage.setMessageChain(MiraiCode.deserializeMiraiCode(subCommands[i]));
+                final MessageChain messageChain = MiraiCode.deserializeMiraiCode(subCommands[i]);
+                clonedMessage.setMessageChain(messageChain);
+                clonedMessage.setOriginalMessageChain(messageChain);
 
                 ScheduableTask<Boolean> task;
                 if (Objects.isNull(user.getInteractor())) {

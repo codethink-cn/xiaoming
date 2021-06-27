@@ -356,6 +356,7 @@ public interface Interactor extends PluginObject {
             for (String s : strings) {
                 builder.append("\n").append(s);
             }
+            user.sendPrivateMessage(builder.toString());
         }
     }
 

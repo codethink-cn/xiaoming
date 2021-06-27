@@ -62,4 +62,13 @@ public class StringUtils extends StaticUtils {
         }
         return builder.toString();
     }
+
+    public static StringBuilder replaceAll(StringBuilder stringBuilder, String from, String to) {
+        int position = stringBuilder.indexOf(from);
+        while (position != -1) {
+            stringBuilder.replace(position, position + from.length(), to);
+            position = stringBuilder.indexOf(from, position + to.length());
+        }
+        return stringBuilder;
+    }
 }

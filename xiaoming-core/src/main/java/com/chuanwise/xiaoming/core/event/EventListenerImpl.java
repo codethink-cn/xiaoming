@@ -37,8 +37,7 @@ public class EventListenerImpl extends PluginObjectImpl implements EventListener
         if (handlerMethods.isEmpty()) {
             logger.error("没有载入任何消息处理方法");
         } else {
-            logger.info("成功载入 " + handlerMethods.size() + " 个消息处理方法：\n" +
-                    CollectionUtils.getIndexSummary(handlerMethods, Method::getName, "", "", "、"));
+            logger.info("成功载入 " + handlerMethods.size() + " 个消息处理方法");
         }
     }
 

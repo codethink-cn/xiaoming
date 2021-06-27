@@ -6,6 +6,7 @@ import com.chuanwise.xiaoming.api.annotation.Require;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.configuration.Configuration;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
+import com.chuanwise.xiaoming.api.util.CollectionUtils;
 import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
@@ -56,7 +57,7 @@ public class ConfigurationCommandInteractor extends CommandInteractorImpl {
         if (configuration.isEnableClearCall()) {
             user.sendMessage("{clearCallAlreadyEnabled}");
         } else {
-            final Set<String> callPrefixs = configuration.getCallPrefixs();
+            final Set<String> callPrefixs = configuration.getClearCallPrefixes();
             InteractorUtils.fillStringCollection(user,
                     user.replaceLanguage("theMessageBeginWithWitchElementsShouldBeNoticed"),
                     user.replaceLanguage("clearCallPrefixSet"), callPrefixs, false);
@@ -72,11 +73,28 @@ public class ConfigurationCommandInteractor extends CommandInteractorImpl {
     @Require("config.clearcall.look")
     public void onListClearCallPrefix(XiaomingUser user) {
         if (configuration.isEnableClearCall()) {
-            user.setProperty("set", configuration.getCallPrefixs());
-            user.sendMessage("{onlyTheMessageBeginWithTheElementInThisSetWillBeNoticed}");
+            final Set<String> clearCallPrefixes = configuration.getClearCallPrefixes();
+            if (clearCallPrefixes.isEmpty()) {
+                user.sendMessage("当前具备 " + configuration.getClearCallGroupTag() + " 标记的群内启动了明确调用，但还没有设置任何消息开头的格式");
+            } else {
+                user.sendMessage("当前具备 " + configuration.getClearCallGroupTag() + " 标记的群内启动了明确调用，消息开头必须为 " +
+                        CollectionUtils.getSummary(clearCallPrefixes, String::toString, "", "", "、") + " 当中的一个");
+            }
         } else {
             user.sendMessage("{clearCallHasNotBeenEnabled}");
         }
+    }
+
+    @Filter(CommandWords.SET + CLEAR + CommandWords.CALL + CommandWords.MESSAGE + CommandWords.HEAD)
+    @Filter(CommandWords.EDIT + CLEAR + CommandWords.CALL + CommandWords.MESSAGE + CommandWords.HEAD)
+    @Require("config.clearcall.head.set")
+    public void onSetClearCallPrefix(XiaomingUser user) {
+        final Set<String> clearCallPrefixes = configuration.getClearCallPrefixes();
+        clearCallPrefixes.clear();
+        InteractorUtils.fillStringCollection(user, "以什么开头的消息需要被小明注意到呢", "明确调用消息头", clearCallPrefixes, false);
+
+        getXiaomingBot().getScheduler().readySave(configuration);
+        user.sendMessage("成功修改明确调用消息头为：" + CollectionUtils.getSummary(clearCallPrefixes, String::toString, "", "", "、"));
     }
 
     @Filter(CommandWords.DISABLE + CLEAR + CommandWords.CALL)

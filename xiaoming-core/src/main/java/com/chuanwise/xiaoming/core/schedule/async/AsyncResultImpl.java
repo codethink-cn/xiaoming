@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 异步操作结果
@@ -17,17 +18,43 @@ import java.util.concurrent.Callable;
 @NoArgsConstructor
 public class AsyncResultImpl<T> implements AsyncResult<T> {
     @Getter
-    volatile boolean running;
+    volatile AtomicBoolean running = new AtomicBoolean(false);
+
+    @Override
+    public boolean isRunning() {
+        return running.get();
+    }
 
     @Getter
-    volatile boolean cancelled = false;
+    volatile AtomicBoolean cancelled = new AtomicBoolean(false);
+
+    @Override
+    public boolean isCancelled() {
+        return cancelled.get();
+    }
 
     @Getter
-    volatile boolean finished = false;
+    volatile AtomicBoolean finished = new AtomicBoolean(false);
+
+    @Override
+    public boolean isFinished() {
+        return finished.get();
+    }
 
     @Override
     public void cancel() {
-        cancelled = true;
+        if (isRunning()) {
+            interrupt();
+        } else {
+            cancelled.set(true);
+        }
+    }
+
+    @Override
+    public void interrupt() {
+        if (Objects.nonNull(thread)) {
+            thread.interrupt();
+        }
     }
 
     @Getter
@@ -39,31 +66,38 @@ public class AsyncResultImpl<T> implements AsyncResult<T> {
 
     volatile T result = null;
 
+    volatile Thread thread;
+
     public AsyncResultImpl(Callable<T> callable) {
         this.callable = callable;
     }
 
     @Override
     public final void run() {
-        running = true;
-        if (finished) {
+        running.set(true);
+        if (isFinished()) {
             LoggerFactory.getLogger(getClass()).warn("重新启动已经结束的任务");
-            finished = false;
+            finished.set(false);
         }
+        thread = Thread.currentThread();
 
         try {
-            if (!cancelled) {
+            if (!isCancelled()) {
                 if (Objects.nonNull(callable)) {
                     result = callable.call();
                 } else {
                     result = execute();
                 }
             }
+        } catch (InterruptedException exception) {
+            running.set(false);
+            result = null;
         } catch (Exception exception) {
             this.exception = exception;
         } finally {
-            running = false;
-            finished = true;
+            running.set(false);
+            finished.set(true);
+            thread = null;
             synchronized (this) {
                 notifyAll();
             }
@@ -72,17 +106,14 @@ public class AsyncResultImpl<T> implements AsyncResult<T> {
 
     @Override
     public final T get(long timeout) throws InterruptedException {
-        if (running) {
+        while (!isFinished()) {
             synchronized (this) {
-                wait(timeout);
+                if (!isFinished()) {
+                    wait(timeout);
+                }
             }
         }
-
-        if (running) {
-            return null;
-        } else {
-            return result;
-        }
+        return isFinished() ? result : null;
     }
 
     @Override
@@ -95,6 +126,6 @@ public class AsyncResultImpl<T> implements AsyncResult<T> {
     }
 
     protected void setFinished(boolean finished) {
-        this.finished = finished;
+        this.finished.set(finished);
     }
 }

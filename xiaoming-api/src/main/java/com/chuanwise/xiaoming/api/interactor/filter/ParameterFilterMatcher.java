@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 @Getter
 public class ParameterFilterMatcher extends RegexFilterMatcher {
     public static final String NORMAL_VARIABLE_REGEX = "\\S+";
-    public static final String REMAIN_VARIABLE_REGEX = "[\\s\\S]*";
+    public static final String REMAIN_VARIABLE_REGEX = "[\\s\\S]+";
     public static final String SPACING = "\\s+";
     Set<String> parameterNames;
     Map<Long, Matcher> matchers = new ConcurrentHashMap<>();

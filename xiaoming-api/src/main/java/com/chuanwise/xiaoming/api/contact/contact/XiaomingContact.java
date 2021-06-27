@@ -9,9 +9,7 @@ import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.message.code.MiraiCode;
-import net.mamoe.mirai.message.data.Image;
-import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.QuoteReply;
+import net.mamoe.mirai.message.data.*;
 import net.mamoe.mirai.utils.ExternalResource;
 
 import java.util.List;
@@ -36,7 +34,17 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
     String getAvatarUrl();
 
     default M send(String message) {
-        return send(MiraiCode.deserializeMiraiCode(ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
+        final String content = ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime());
+        MessageChain messageChain = null;
+        try {
+            messageChain = MiraiCode.deserializeMiraiCode(content);
+        } catch (Exception exception) {
+            final PlainText plainText = new PlainText(content);
+            final MessageChainBuilder messages = new MessageChainBuilder();
+            messages.add(plainText);
+            messageChain = messages.asMessageChain();
+        }
+        return send(messageChain);
     }
 
     M send(MessageChain messages);

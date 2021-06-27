@@ -28,8 +28,6 @@ import java.util.function.Consumer;
 public interface Receptionist extends ModuleObject {
     At getAt();
 
-    ExecutorService getThreadPool();
-
     long getCode();
 
     default String getCodeString() {
@@ -71,7 +69,6 @@ public interface Receptionist extends ModuleObject {
         getMemberRecentMessages().values().forEach(notifyer);
         notifyer.accept(getPrivateRecentMessages());
 
-        getThreadPool().shutdown();
         getXiaomingBot().getReceptionistManager().removeReceptionist(getCode());
     }
 

@@ -1,8 +1,7 @@
-package com.chuanwise.xiaoming.core.config;
+package com.chuanwise.xiaoming.core.configuration;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.configuration.Configuration;
-import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.core.limit.CallLimitConfigImpl;
 import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
 import lombok.Data;
@@ -18,6 +17,7 @@ public class ConfigurationImpl extends JsonFilePreservable implements Configurat
     transient XiaomingBot xiaomingBot;
 
     boolean debug = false;
+    boolean enablePreviewFunctions = false;
 
     CallLimitConfigImpl groupCallConfig = new CallLimitConfigImpl();
     CallLimitConfigImpl privateCallConfig = new CallLimitConfigImpl();
@@ -25,11 +25,12 @@ public class ConfigurationImpl extends JsonFilePreservable implements Configurat
     int maxIterateTime = 20;
 
     boolean enableLicense = false;
-    boolean enableClearCall = false;
-    boolean enablePrivateClearCall = false;
-    boolean enableMemberClearCall = false;
+
     boolean enableStartLog = false;
-    Set<String> callPrefixs = new LinkedHashSet<>();
+
+    boolean enableClearCall = false;
+    Set<String> clearCallPrefixes = new LinkedHashSet<>();
+    String clearCallGroupTag = "clear-call";
 
     long maxUserInputWaitTime = TimeUnit.MINUTES.toMillis(10);
     long maxUserGlobalInputWaitTime = TimeUnit.MINUTES.toMillis(10);

@@ -51,6 +51,12 @@ public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, Pr
             return;
         }
 
+        final List<PrivateMessage> recentMessages = getContact().getRecentMessages();
+        synchronized (recentMessages) {
+            recentMessages.add(message);
+            recentMessages.notifyAll();
+        }
+
         final Receptionist receptionist = getReceptionist();
         receptionist.setGlobalRecentMessages(list);
         synchronized (this) {

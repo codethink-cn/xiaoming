@@ -2,30 +2,201 @@ package com.chuanwise.xiaoming.core.interactor.core;
 
 import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.annotation.FilterParameter;
+import com.chuanwise.xiaoming.api.annotation.NonNext;
 import com.chuanwise.xiaoming.api.annotation.Require;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
-import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
-import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
-import com.chuanwise.xiaoming.api.contact.message.Message;
-import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
-import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.util.ArgumentUtils;
-import com.chuanwise.xiaoming.api.util.InteractorUtils;
+import com.chuanwise.xiaoming.api.util.CollectionUtils;
+import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
-import net.mamoe.mirai.message.data.FlashImage;
-import net.mamoe.mirai.message.data.SingleMessage;
-import org.jetbrains.annotations.TestOnly;
+import net.mamoe.mirai.contact.Contact;
+import net.mamoe.mirai.contact.Friend;
+import net.mamoe.mirai.contact.Group;
+import net.mamoe.mirai.utils.ExternalResource;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
+import java.io.*;
+import java.util.*;
 
 public class DebugCommandInterator extends CommandInteractorImpl {
     public DebugCommandInterator(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
+    }
+
+    static final String FILE = "(文件|file)";
+    static final String DIRECTORY = "(文件夹|directory)";
+    static final String CONTENT = "(目录|content)";
+    static final String CD = "(进入|cd)";
+    static final String LS = "(列举|ls|dir)";
+    static final String CURRENT = "(当前|current|cur)";
+    static final String DOWNLOAD = "(获取|下载|download|get)";
+    static final String UPLOAD = "(上传|上载|upload|give)";
+
+    static final String CURRENT_CONTENT_PROPERTY = "file-current-content";
+    protected File getCurrentPath(XiaomingUser user) {
+        Object property = user.getProperty(CURRENT_CONTENT_PROPERTY);
+        if (property instanceof File) {
+            return ((File) property);
+        } else {
+            final File content = new File(new File("").getAbsolutePath());
+            user.setProperty(CURRENT_CONTENT_PROPERTY, content);
+            return content;
+        }
+    }
+
+    protected void setCurrentPath(XiaomingUser user, File currentPath) {
+        user.setProperty(CURRENT_CONTENT_PROPERTY, currentPath);
+    }
+
+    @NonNext
+    @Filter(CURRENT + CONTENT)
+    @Filter("pwd")
+    @Require("file.pwd")
+    public void onPwd(XiaomingUser user) {
+        user.sendMessage(getCurrentPath(user).getAbsolutePath());
+    }
+
+    public String getDirectoryDetails(File file) {
+        if (!file.isDirectory()) {
+            return file.getAbsolutePath() + " 不是文件夹";
+        } else {
+            final File[] files = file.listFiles();
+            if (files.length == 0) {
+                return file.getAbsolutePath() + " 下无任何文件";
+            } else {
+                return file.getAbsolutePath() + "：" +
+                        "\n" + CollectionUtils.getIndexSummary(Arrays.asList(files), File::getName);
+            }
+        }
+    }
+
+    @NonNext
+    @Filter(CD + " {remain}")
+    @Require("file.cd")
+    public void onCd(XiaomingUser user, @FilterParameter("remain") String path) {
+        final File elderFile = getCurrentPath(user);
+        File currentPath = elderFile;
+        // 尝试切换目录
+        if (Objects.equals(path, "..")) {
+            currentPath = currentPath.getParentFile();
+        } else {
+            // 先尝试一下看看是不是相对路径
+            final File asRelativePath = new File(currentPath, path);
+            if (asRelativePath.isDirectory()) {
+                currentPath = asRelativePath;
+            }
+
+            if (elderFile == currentPath) {
+                final File asAbsolutePath = new File(path);
+                if (asAbsolutePath.isDirectory()) {
+                    currentPath = asAbsolutePath;
+                }
+            }
+        }
+
+        if (elderFile == currentPath || Objects.isNull(currentPath)) {
+            user.sendWarning("没有切换当前目录");
+        } else {
+            setCurrentPath(user, currentPath);
+            user.sendMessage(getDirectoryDetails(currentPath));
+        }
+    }
+
+    @NonNext
+    @Filter(LS)
+    @Require("file.ls")
+    public void onLs(XiaomingUser user) {
+        user.sendMessage(getDirectoryDetails(getCurrentPath(user)));
+    }
+
+    @NonNext
+    @Filter(LS + " {remain}")
+    @Require("file.ls")
+    public void onLs(XiaomingUser user, @FilterParameter("remain") String path) {
+        final File currentPath = getCurrentPath(user);
+        File targetFile = currentPath;
+        // 尝试切换目录
+        if (Objects.equals(path, "..")) {
+            targetFile = targetFile.getParentFile();
+        } else {
+            // 先尝试一下看看是不是相对路径
+            final File asRelativePath = new File(targetFile, path);
+            if (asRelativePath.isDirectory()) {
+                targetFile = asRelativePath;
+            }
+
+            if (currentPath == targetFile) {
+                final File asAbsolutePath = new File(path);
+                if (asAbsolutePath.isDirectory()) {
+                    targetFile = asAbsolutePath;
+                }
+            }
+        }
+
+        if (currentPath == targetFile) {
+            user.sendWarning("没有招待该目录");
+        } else {
+            user.sendMessage(getDirectoryDetails(targetFile));
+        }
+    }
+
+    @NonNext
+    @Filter(CommandWords.ADD + DIRECTORY + " {remain}")
+    @Filter(CommandWords.NEW + DIRECTORY + " {remain}")
+    @Filter("(make|mk)" + DIRECTORY + " {remain}")
+    @Require("file.mkdir")
+    public void onMakeDirectory(XiaomingUser user, @FilterParameter("remain") String path) {
+        final File currentPath = getCurrentPath(user);
+        final File subDirectory = new File(currentPath, path);
+        if (subDirectory.mkdir()) {
+            user.sendMessage("创建成功");
+        } else {
+            user.sendError("创建失败，可能是文件夹已存在或缺少权限");
+        }
+    }
+
+    @NonNext
+    @Filter(CommandWords.ADD + FILE + " {remain}")
+    @Filter(CommandWords.NEW + FILE + " {remain}")
+    @Filter("(make|mk)" + FILE + " {remain}")
+    @Require("file.mkfile")
+    public void onMakeFile(XiaomingUser user, @FilterParameter("remain") String path) {
+        final File currentPath = getCurrentPath(user);
+        final File subFile = new File(currentPath, path);
+        boolean success;
+        try {
+            success = subFile.createNewFile();
+        } catch (IOException exception) {
+            success = false;
+        }
+        if (success) {
+            user.sendMessage("创建成功");
+        } else {
+            user.sendError("创建失败");
+        }
+    }
+
+    @NonNext
+    @Filter(UPLOAD + FILE + " {remain}")
+    @Require("file.upload")
+    public void onGetFile(XiaomingUser user, @FilterParameter("remain") String path) {
+        final GroupContact groupContact;
+        user.sendMessage("需要将该文件提取到哪个群文件中？");
+        final File currentPath = getCurrentPath(user);
+        final File target = new File(currentPath, path);
+
+        if (!target.isFile()) {
+            user.sendError("该文件不存在");
+            return;
+        }
+
+        try {
+            final Contact miraiContact = user.getContact().getMiraiContact();
+            try (ExternalResource resource = ExternalResource.create(target)) {
+
+            }
+        } catch (IOException exception) {
+            user.sendMessage("无法获取该文件，请去后台手动处理");
+        }
     }
 }

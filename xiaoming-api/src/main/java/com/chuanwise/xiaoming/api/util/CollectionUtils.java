@@ -1,8 +1,6 @@
 package com.chuanwise.xiaoming.api.util;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 
 public class CollectionUtils extends StaticUtils {
@@ -81,5 +79,9 @@ public class CollectionUtils extends StaticUtils {
 
     public static <T> String getIndexSummary(Iterable<T> iterable) {
         return getIndexSummary(iterable, Objects::toString);
+    }
+
+    public static <T> Set<T> asSet(T... elements) {
+        return addTo(Arrays.asList(elements), new HashSet<>(elements.length), element -> element);
     }
 }

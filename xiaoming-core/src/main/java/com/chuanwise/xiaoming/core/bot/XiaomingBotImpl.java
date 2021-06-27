@@ -33,8 +33,8 @@ import com.chuanwise.xiaoming.core.interactor.core.*;
 import com.chuanwise.xiaoming.core.license.LicenceManagerImpl;
 import com.chuanwise.xiaoming.core.response.ResponseGroupManagerImpl;
 import com.chuanwise.xiaoming.core.thread.ConsoleInputThread;
-import com.chuanwise.xiaoming.core.config.ConfigurationImpl;
-import com.chuanwise.xiaoming.core.config.StatisticianImpl;
+import com.chuanwise.xiaoming.core.configuration.ConfigurationImpl;
+import com.chuanwise.xiaoming.core.configuration.StatisticianImpl;
 import com.chuanwise.xiaoming.core.schedule.SchedulerImpl;
 import com.chuanwise.xiaoming.core.recept.ReceptionistManagerImpl;
 import com.chuanwise.xiaoming.api.resource.ResourceManager;
@@ -330,7 +330,9 @@ public class XiaomingBotImpl implements XiaomingBot {
         // 注册内核指令处理器
         // 全局交互器
         interactorManager.register(new GlobalCommandInteractor(this), null);
-        interactorManager.register(new DebugCommandInterator(this), null);
+        if (configuration.isEnablePreviewFunctions()) {
+            interactorManager.register(new DebugCommandInterator(this), null);
+        }
 
         interactorManager.register(new PluginInteractor(this), null);
         interactorManager.register(new ResourceCommandInteractor(this), null);

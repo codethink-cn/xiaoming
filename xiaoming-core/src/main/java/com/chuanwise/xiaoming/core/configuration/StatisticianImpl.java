@@ -1,9 +1,8 @@
-package com.chuanwise.xiaoming.core.config;
+package com.chuanwise.xiaoming.core.configuration;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.configuration.Statistician;
 import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

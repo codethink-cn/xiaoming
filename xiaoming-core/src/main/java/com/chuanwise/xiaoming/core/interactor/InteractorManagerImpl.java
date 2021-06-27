@@ -112,9 +112,7 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
         if (methodDetails.isEmpty()) {
             getLog().info("没有载入任何交互方法");
         } else {
-            getLog().info("成功载入 " + methodDetails.size() + " 个交互方法：\n" + CollectionUtils.getIndexSummary(methodDetails, detail -> {
-                        return Arrays.toString(detail.getUsageStrings());
-                    }, "", "", "、"));
+            getLog().info("成功载入 " + methodDetails.size() + " 个交互方法");
         }
         interactor.setPlugin(plugin);
     }

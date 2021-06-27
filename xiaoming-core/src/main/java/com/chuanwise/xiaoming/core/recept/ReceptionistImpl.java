@@ -38,7 +38,6 @@ import java.util.concurrent.Executors;
  */
 @Getter
 public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
-    final ExecutorService threadPool = Executors.newCachedThreadPool();
     final long code;
     final At at;
 
@@ -145,7 +144,7 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
 
         groupTask.getUser().onNextInput(message);
         if (isFirstRecept) {
-            threadPool.execute(groupTask);
+            getXiaomingBot().getScheduler().run(groupTask).setDescription(groupTask.getIdentify());
         }
     }
 
@@ -160,7 +159,7 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
 
         memberTask.getUser().onNextInput(message);
         if (isFirstRecept) {
-            threadPool.execute(memberTask);
+            getXiaomingBot().getScheduler().run(memberTask).setDescription(memberTask.getIdentify());
         }
     }
 
@@ -187,7 +186,7 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
 
         privateTask.getUser().onNextInput(message);
         if (isFirstRecept) {
-            threadPool.execute(privateTask);
+            getXiaomingBot().getScheduler().run(privateTask).setDescription(privateTask.getIdentify());
         }
     }
 

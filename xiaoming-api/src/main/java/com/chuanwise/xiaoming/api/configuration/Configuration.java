@@ -13,13 +13,9 @@ import java.util.Set;
 public interface Configuration extends Preservable<File>, XiaomingObject {
     boolean isDebug();
 
-    void setEnablePrivateClearCall(boolean enablePrivateClearCall);
+    boolean isEnablePreviewFunctions();
 
-    boolean isEnablePrivateClearCall();
-
-    void setEnableMemberClearCall(boolean enablePrivateClearCall);
-
-    boolean isEnableMemberClearCall();
+    void setEnablePreviewFunctions(boolean enablePreviewFunction);
 
     boolean isEnableStartLog();
 
@@ -67,5 +63,11 @@ public interface Configuration extends Preservable<File>, XiaomingObject {
 
     void setEnableClearCall(boolean enableClearCall);
 
-    Set<String> getCallPrefixs();
+    Set<String> getClearCallPrefixes();
+
+    void setClearCallPrefixes(Set<String> clearCallPrefixes);
+
+    String getClearCallGroupTag();
+
+    void setClearCallGroupTag(String tag);
 }
