@@ -35,10 +35,9 @@ hs_err_pid*
 /xiaoming-api/src/test/
 /xiaoming-core/src/test/
 /xiaoming-host/src/test/
-/accounts/
 /texts/
 /resources/
 /xiaoming-example/src/test/
 /xiaoming-example/src/main/resources/
-/resources/
 docs/_backup.md
+/start.bat

@@ -1,6 +1,0 @@
-{
-  "name": "example-plugin",
-  "main": "com.chuanwise.xiaoming.example.ExamplePlugin",
-  "author": "Chuanwise",
-  "version": "1.0.TEST"
-}
