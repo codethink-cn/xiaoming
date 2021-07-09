@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.core.interactor.core;
 
+import com.chuanwise.toolkit.preservable.Preservable;
 import com.chuanwise.xiaoming.api.annotation.Filter;
 import com.chuanwise.xiaoming.api.annotation.FilterParameter;
 import com.chuanwise.xiaoming.api.annotation.Require;
@@ -10,7 +11,6 @@ import com.chuanwise.xiaoming.api.interactor.InteractorManager;
 import com.chuanwise.xiaoming.api.interactor.Interactor;
 import com.chuanwise.xiaoming.api.interactor.command.CommandInteractor;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
-import com.chuanwise.xiaoming.api.preserve.Preservable;
 import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.schedule.Scheduler;
 import com.chuanwise.xiaoming.api.schedule.task.PreservableSaveTask;
@@ -23,7 +23,6 @@ import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.api.util.StringUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
-import com.chuanwise.xiaoming.core.schedule.SchedulerImpl;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
 
@@ -185,6 +184,12 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
         }
     }
 
+    @Filter(CommandWords.ECHO + " {remain}")
+    @Require("core.echo")
+    public void onEcho(XiaomingUser user, @FilterParameter("remain") String remain) {
+        user.sendMessage(remain);
+    }
+
     @Filter("(指令格式|格式|usage|format)")
     public void onGlobalUsage(XiaomingUser user) {
         StringWriter stringWriter = new StringWriter();
@@ -250,12 +255,11 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     @Require("core.help")
     public void onGlobalHelp(XiaomingUser user) {
         user.sendMessage("欢迎使用小明！\n" +
-                "你可用的所有小明指令可以通过「指令格式」查询 {happy}");
+                "你可用的所有指令可以通过「指令格式」查询 {happy}");
 
-        user.sendMessage("如果你觉得小明很不错，欢迎到 https://github.com/TaixueChina/xiaoming-bot 给我们点亮一颗星星\n" +
-                "如果在使用途中小明对你造成了困扰，或者希望邀请小明来你的群，欢迎私聊椽子（QQ：1437100907）或者去上述 Github 提 issue\n" +
-                "小明正在学习的技能有：百科词条、和MC服务器互通。期待更好的小明把~\n" +
-                "如果你想要编写小明的功能，欢迎打开上述链接查看开发文档。");
+        user.sendMessage("如果你觉得小明很不错，欢迎到 " + XiaomingBot.GITHUB + " 给我们点亮一颗星星\n" +
+                "小明用户交流群：" + XiaomingBot.GROUP +  "\n" +
+                "如果你想要编写小明的功能，欢迎阅读开发文档：" + XiaomingBot.DEVELOPMENT_DOCUMENT);
     }
 
     @Filter(CommandWords.DISABLE + CommandWords.XIAOMING)
@@ -302,7 +306,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     @Require("core.receptionist.look")
     public void onReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
         final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
-        final Receptionist receptionist = receptionistManager.getReceptionist(qq);
+        final Receptionist receptionist = receptionistManager.forReceptionist(qq);
 
         if (Objects.isNull(receptionist)) {
             user.sendMessage("{thisUserHasNotReceptionist}");
@@ -323,7 +327,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
                     .append(singleTaskStatusFormatter.apply(receptionist.getPrivateTask()))
                     .append("\n");
 
-            Function<Map.Entry<String, ? extends ReceptionTask>, String> groupOrMemberTaskStatusFormatter = entry -> {
+            Function<Map.Entry<Long, ? extends ReceptionTask>, String> groupOrMemberTaskStatusFormatter = entry -> {
                 return entry.getKey() + "：" + (entry.getValue().isBusy() ? "忙碌" : "空闲");
             };
             builder.append("群接待任务：")
@@ -339,7 +343,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     @Require("core.receptionist.disable")
     public void onDisableReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
         final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
-        final Receptionist receptionist = receptionistManager.getReceptionist(qq);
+        final Receptionist receptionist = receptionistManager.forReceptionist(qq);
 
         if (Objects.isNull(receptionist)) {
             user.sendMessage("{thisUserHasNotReceptionist}");
@@ -358,7 +362,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     @Require("core.receptionist.optimize")
     public void onOptimizeReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
         final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
-        final Receptionist receptionist = receptionistManager.getReceptionist(qq);
+        final Receptionist receptionist = receptionistManager.forReceptionist(qq);
 
         if (Objects.isNull(receptionist)) {
             user.sendMessage("{thereIsNoAnyReceptionist}");
@@ -381,7 +385,7 @@ public class CoreCommandInteractor extends CommandInteractorImpl {
     @Require("core.receptionist.disable")
     public void onForceDisableReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
         final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
-        final Receptionist receptionist = receptionistManager.getReceptionist(qq);
+        final Receptionist receptionist = receptionistManager.forReceptionist(qq);
 
         if (Objects.isNull(receptionist)) {
             user.sendMessage("{thereIsNoAnyReceptionist}");

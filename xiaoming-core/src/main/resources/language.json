@@ -1,0 +1,114 @@
+{
+  "values": {
+    "@class": "java.util.HashMap",
+
+    "happy": ["java.util.ArrayList", ["(๑•̀ㅂ•́)و✧", "ヾ(^▽^*)))", "ヾ(•ω•`)o"]],
+    "warning": ["java.util.ArrayList", ["(´。＿。｀)", "( *^-^)ρ(*╯^╰))"]],
+    "error": ["java.util.ArrayList", ["(〃＞目＜)", "（＞人＜；）", "ヽ(*。>Д<)o゜", "(ﾟДﾟ*)ﾉ", "(ノ｀Д)ノ", "( ´･･)ﾉ(._.`)", "（；´д｀）ゞ"]],
+
+    "xiaoming": "小明",
+    "me": "我",
+    "itWillWorkAfterRestart": "它将在重启后生效",
+    "stringIsNotAIllegalQQ": "「{qq}」并不是一个合理的QQ哦",
+    "stringIsNotAIllegalPeriod": "「{period}」并不是一个合理的时间哦",
+    "xiaomingLackPermission": "{xiaoming}没有足够的权限",
+
+    "xiaomingEnabled": "{xiaoming}启动成功 {happy}",
+    "lackPermission": "{xiaoming}不能帮你做这件事哦，因为你缺少权限：{permission}",
+    "userNextInputTimeOut": "你已经 {time} 没理{xiaoming}啦，就不等你的下一次输入啦",
+    "userNextGlobalInputTimeOut": "{userNextInputTimeOut}",
+    "userNextGroupInputTimeOut": "{userNextInputTimeOut}",
+    "userNextPrivateInputTimeOut": "{userNextInputTimeOut}",
+    "pleaseAgreeLicense": "你还没有同意《{xiaoming}使用须知》，告诉小明「使用小明」以开始使用小明吧",
+    "internalError": "{xiaoming}遇到了一个问题，这个问题已经上报了，期待更好的{me}吧 {happy}",
+    "inputItOneByOne": "{question}？逐一告诉{xiaoming}吧",
+    "illegalInput": "「{last}」并不是一个有效的{what}呢",
+    "unemptyableNotice": "{what}不能为空哦",
+
+    "clearCallPrefixSet": "明确调用前缀表",
+    "theMessageBeginWithWitchElementsShouldBeNoticed": "未来那些符号开头的消息需要被小明注意呢（不要带空格）",
+    "onlyTheMessageBeginWithTheElementInThisSetWillBeNoticed": "只有以 {set} 开头的消息才会被{xiaoming}注意",
+    "iWillOnlyMentionMessageStartsWithTheElementInThisSet": "{me}以后只会注意 {set} 开头的消息啦",
+    "clearCallAlreadyEnabled": "明确调用已经启动了",
+    "clearCallHasNotBeenEnabled": "明确调用尚未被启动",
+    "clearCallDisabledSuccessfully": "明确调用关闭成功，未来{xiaoming}会注意所有消息",
+
+    "compulsoryAgreement": "强制{xiaoming}使用协议",
+    "compulsoryAgreementAlreadyEnabled": "{compulsoryAgreement}已经启动了",
+    "compulsoryAgreementHasNotBeenEnabled": "{compulsoryAgreement}尚未启动",
+    "enableCompulsoryAgreementSuccessfully": "成功启动{compulsoryAgreement}",
+    "disableCompulsoryAgreementSuccessfully": "成功关闭{compulsoryAgreement}",
+    "inputLicense": "你还没有设置《{xiaoming}使用协议》，告诉{me}它的内容吧",
+
+    "debugMode": "调试模式",
+    "debugModeAlreadyEnabled": "{debugMode}已经启动了。在此模式下，控制台会输出大量的调试信息",
+    "debugModeHasNotBeenEnabled": "{debugMode}尚未启动",
+    "debugModeEnabledSuccessfully": "成功启动{debugMode}",
+    "debugModeDisabledSuccessfully": "成功关闭{debugMode}",
+
+    "autoSavePeriod": "自动文件保存周期",
+    "autoSavePeriodIs": "{autoSavePeriod}是{period}",
+    "autoSavePeriodSetSuccessfully": "{autoSavePeriod}成功被设置为{period}，{itWillWorkAfterRestart}",
+    "noFileNeedToSave": "当前没有任何等待保存的文件",
+
+    "autoOptimizePeriod": "自动优化周期",
+    "autoOptimizePeriodIs": "{autoOptimizePeriod}是{period}",
+    "autoOptimizePeriodSetSuccessfully": "{autoOptimizePeriod}成功被设置为{period}，{itWillWorkAfterRestart}",
+
+    "doYouReallyWantToCloseXiaoming": "你确定要关闭整个程序吗？关闭后只能在后台被唤醒。如果是，请在一分钟之内发送「确定」",
+    "closeXiaomingPlanWasCancelled": "关闭{xiaoming}任务已被取消",
+    "xiaomingWillBeCloseLater": "{xiaoming}将在{delay}后自动关闭",
+
+    "receptionist": "接待员",
+    "thereIsNoAnyReceptionist": "当前无任何{receptionist}",
+    "thisUserHasNotReceptionist": "该用户没有{receptionist}",
+    "tryOptimizedReceptionist": "{receptionist}忙碌。已终止所有空闲接待线程以释放资源。如仍要强制关闭，请使用「强制关闭接待员 {qq}」",
+    "receptionistClosedSuccessfully": "已销毁该{receptionist}",
+    "optimizedReceptionistSuccessfully": "已优化该用户的{receptionist}",
+    "optimizedAllReceptionistSuccessfully": "已优化所有{receptionist}",
+
+    "callCounter": "调用次数",
+    "callCounterIs": "小明至今的{callCounter}：{counter}",
+
+    "batchTask": "批处理任务",
+    "illegalCommandInterruptBatchTask": "无效的命令：{command}，{batchTask}被中断",
+    "exceptionInterruptBatchTask": "出现异常，{batchTask}被中断",
+    "noCommandExecuted": "没有任何一个指令成功执行",
+    "executeCommandSuccessfully": "成功执行了{counter}个指令",
+
+    "resource": "资源",
+    "noAnyImageResource": "没有任何图片资源",
+    "howManyImageResourceSaved": "当前共有 {size} 个图片资源",
+    "howLongAfterVisitTheImageWhoHasNotBeenVisitForLongestTime": "最久有一张图片{earliestVisit}没有访问了",
+    "howLongAfterVisitTheImageWhoHasNotBeenVisitForShortestTime": "最近访问图片是在{latestVisit}之前",
+    "howManyImageResourceRemoved": "成功删除了 {size} 个图片资源",
+    "noAnyImageResourceRemoved": "没有任何图片资源被删除",
+
+    "optimize": "优化",
+    "optimizedSuccessfully": "优化成功",
+
+    "history": "历史记录",
+    "userHasNoHistory": "该用户没有任何{history}",
+
+    "permissionGroupAlreadyExists": "权限组「{permissionGroup}」已经存在了",
+    "createPermissionGroupSuccessfully": "已增加新的权限组：{permissionGroup}，小明已经将其继承自{superGroup}了",
+    "allStaticPermissionNodes": "当前有效的所有静态节点：{list}",
+    "setUserPermissionGroupSuccessfully": "成功设置用户的权限组为「{permissionGroup}」",
+    "removePermissionGroupSuccessfully": "已删除权限组「{permissionGroup}」",
+    "createAliasForPermissionGroupSuccessfully": "已为该权限组创建了备注「{alias}」",
+    "changeAliasForPermissionGroupSuccessfully": "已将该权限组的备注由「{elderAlias}」改为「{alias}」",
+
+    "permissionGroupAlreadyHasPermissionOnGroup": "「{permissionGroup}」已经具备带有「{tag}」标记的群中的权限「{node}」了",
+    "grantPermissionGroupPermissionInGroupSuccessfully": "成功为「{permissionGroup}」增加在有「{tag}」标记的群中的权限「{node}」",
+    "userAlreadyHasPermissionOnGroup": "该用户已经具备带有「{tag}」标记的群中的权限「{node}」了",
+    "grantUserPermissionInGroupSuccessfully": "成功为该用户增加在有「{tag}」标记的群中的权限「{node}」",
+
+    "permissionInPermissionGroupRemovedSuccessfully": "成功删除了「{permissionGroup}」在带有「{tag}」标记的群中的权限「{node}」",
+    "permissionInPermissionGroupRemovedSuccessfullyButDeleteNodeAdded": "{xiaoming}尝试删除了「{permissionGroup}」在带有「{tag}」标记的群中的权限「{node}」，但其父权限组仍具备该权限。小明已经帮当前组增加了权限节点 -{node} 以强制删除该权限",
+    "permissionGroupHasNotThisGroupPermission": "「{permissionGroup}」还并不具备在带有「{tag}」标记的群中的权限「{node}」",
+
+    "revokeUserGroupPermissionSuccessfully": "成功删除了「{permissionGroup}」在带有「{tag}」标记的群中的权限「{node}」",
+    "revokeUserGroupPermissionSuccessfullyButDeleteNodeAdded": "{xiaoming}尝试删除了「{permissionGroup}」在带有「{tag}」标记的群中的权限「{node}」，但其父权限组仍具备该权限。小明已经帮当前组增加了权限节点 -{node} 以强制删除该权限",
+    "userHasNotThisGroupPermission": "「{permissionGroup}」还并不具备在带有「{tag}」标记的群中的权限「{node}」"
+  }
+}

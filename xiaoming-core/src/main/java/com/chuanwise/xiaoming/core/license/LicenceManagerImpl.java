@@ -1,8 +1,8 @@
 package com.chuanwise.xiaoming.core.license;
 
+import com.chuanwise.toolkit.preservable.file.FilePreservableImpl;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.license.LicenseManager;
-import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -15,7 +15,7 @@ import java.util.Map;
  */
 @Slf4j
 @Data
-public class LicenceManagerImpl extends JsonFilePreservable implements LicenseManager {
+public class LicenceManagerImpl extends FilePreservableImpl implements LicenseManager {
     transient XiaomingBot xiaomingBot;
 
     @Override

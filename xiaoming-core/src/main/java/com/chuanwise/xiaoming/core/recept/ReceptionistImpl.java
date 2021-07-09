@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.core.recept;
 
+import com.chuanwise.utility.CollectionUtility;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
@@ -18,8 +19,8 @@ import com.chuanwise.xiaoming.core.contact.message.PrivateMessageImpl;
 import com.chuanwise.xiaoming.core.contact.message.MemberMessageImpl;
 import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import com.chuanwise.xiaoming.core.user.GroupXiaomingUserImpl;
-import com.chuanwise.xiaoming.core.user.PrivateXiaomingUserImpl;
 import com.chuanwise.xiaoming.core.user.MemberXiaomingUserImpl;
+import com.chuanwise.xiaoming.core.user.PrivateXiaomingUserImpl;
 import lombok.Getter;
 import lombok.Setter;
 import net.mamoe.mirai.message.code.MiraiCode;
@@ -28,7 +29,6 @@ import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -45,37 +45,31 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
         super(xiaomingBot);
         this.code = code;
         this.at = new At(code);
+        this.threadPool = Executors.newFixedThreadPool(xiaomingBot.getConfiguration().getMaxReceptionThreadPoolSize());
     }
 
-    public ReceptionistImpl(XiaomingUser user) {
-        this(user.getXiaomingBot(), user.getCode());
-    }
+    /** 群接待任务 */
+    Map<Long, GroupReceptionTask> groupTasks = new ConcurrentHashMap<>();
 
-    /**
-     * 群接待线程
-     */
-    Map<String, GroupReceptionTask> groupTasks = new ConcurrentHashMap<>();
+    /** 群临时会话接待任务 */
+    Map<Long, MemberReceptionTask> memberTasks = new ConcurrentHashMap<>();
 
-    /**
-     * 群临时会话接待线程
-     */
-    Map<String, MemberReceptionTask> memberTasks = new ConcurrentHashMap<>();
-
-    /**
-     * 私聊接待线程
-     */
+    /** 私聊接待线程任务 */
     @Setter
-    PrivateReceptionTask privateTask;
+    volatile PrivateReceptionTask privateTask;
 
     /** 最近的群聊消息。String 是 tag */
     Map<String, List<GroupMessage>> groupRecentMessages = new ConcurrentHashMap<>();
 
-    List<PrivateMessage> privateRecentMessages = new CopyOnWriteArrayList<>();
+    /** 最近私聊消息只存在 ContactManager 中，每次添加消息也是如此。 这里只是存一个引用。 */
+    List<PrivateMessage> privateRecentMessages;
 
+    /** 最近临时消息只存在 MemberContact 的 recentMessage 中，每次添加消息也是如此。 这里只是存一个引用。 */
     Map<String, List<MemberMessage>> memberRecentMessages = new ConcurrentHashMap<>();
 
+    /** 全局最新消息 */
     @Setter
-    List<? extends Message> globalRecentMessages;
+    volatile List<? extends Message> globalRecentMessages;
 
     Map<Long, GroupXiaomingUser> groupXiaomingUsers = new ConcurrentHashMap<>();
 
@@ -83,68 +77,69 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
 
     PrivateXiaomingUser privateXiaomingUser;
 
+    final ExecutorService threadPool;
+
     @Override
-    public PrivateXiaomingUser getOrPutPrivateXiaomingUser(PrivateContact contact) {
+    public GroupXiaomingUser forGroup(long groupCode) {
+        return CollectionUtility.getOrSupplie(groupXiaomingUsers, groupCode,
+                () -> new GroupXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code)));
+    }
+
+    @Override
+    public MemberXiaomingUser forMember(long groupCode) {
+        return CollectionUtility.getOrSupplie(memberXiaomingUsers, groupCode,
+                () -> new MemberXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code)));
+    }
+
+    @Override
+    public PrivateXiaomingUser forPrivate() {
         if (Objects.isNull(privateXiaomingUser)) {
-            privateXiaomingUser = new PrivateXiaomingUserImpl(contact, privateRecentMessages);
-            privateXiaomingUser.setReceptionist(this);
+            privateXiaomingUser = new PrivateXiaomingUserImpl(getXiaomingBot().getContactManager().getPrivateContact(getCode()));
         }
         return privateXiaomingUser;
     }
 
     @Override
-    public GroupXiaomingUser getOrPutGroupXiaomingUser(GroupContact groupContact, MemberContact memberContact) {
-        final long groupCode = groupContact.getCode();
-        GroupXiaomingUser groupXiaomingUser = getGroupXiaomingUser(groupCode);
-        if (Objects.isNull(groupXiaomingUser)) {
-            groupXiaomingUser = new GroupXiaomingUserImpl(groupContact, memberContact, getOrPutGroupRecentMessages(groupContact.getCodeString()));
-            groupXiaomingUser.setReceptionist(this);
-            synchronized (groupXiaomingUsers) {
-                groupXiaomingUsers.put(groupCode, groupXiaomingUser);
-            }
-        }
-        return groupXiaomingUser;
+    public List<GroupMessage> forGroupRecentMessages(String groupTag) {
+        return getXiaomingBot().getContactManager().forGroupMemberMessages(groupTag, getCodeString());
     }
 
     @Override
-    public MemberXiaomingUser getOrPutMemberXiaomingUser(MemberContact contact) {
-        final long groupCode = contact.getCode();
-        MemberXiaomingUser memberXiaomingUser = getMemberXiaomingUser(groupCode);
-        if (Objects.isNull(memberXiaomingUser)) {
-            memberXiaomingUser = new MemberXiaomingUserImpl(contact, getOrPutMemberRecentMessages(contact.getCodeString()));
-            memberXiaomingUser.setReceptionist(this);
-            synchronized (memberXiaomingUsers) {
-                memberXiaomingUsers.put(groupCode, memberXiaomingUser);
-            }
-        }
-        return memberXiaomingUser;
+    public List<MemberMessage> forMemberRecentMessages(String groupTag) {
+        return getXiaomingBot().getContactManager().forMemberMessages(groupTag, getCodeString());
+    }
+
+    @Override
+    public List<PrivateMessage> forPrivateRecentMessages() {
+        return getXiaomingBot().getContactManager().forPrivateMessages(getCodeString());
     }
 
     @Override
     public void onGroupMessage(GroupContact contact, MessageChain messages) {
-        GroupMessage message = new GroupMessageImpl(getOrPutGroupXiaomingUser(contact, contact.getMember(code)), messages);
+        GroupMessage message = new GroupMessageImpl(forGroup(contact.getCode()), messages);
         onGroupMessage(contact, message);
     }
 
     @Override
     public void onGroupMessage(GroupContact contact, String message, MessageChain originalMessageChain) {
-        GroupMessage groupMessage = new GroupMessageImpl(getOrPutGroupXiaomingUser(contact, contact.getMember(code)), originalMessageChain);
+        GroupMessage groupMessage = new GroupMessageImpl(forGroup(contact.getCode()), originalMessageChain);
         groupMessage.setMessageChain(MiraiCode.deserializeMiraiCode(message));
         onGroupMessage(contact, groupMessage);
     }
 
     @Override
     public void onGroupMessage(GroupContact contact, GroupMessage message) {
-        GroupReceptionTask groupTask = getGroupTask(contact.getCodeString());
+        final String groupCodeString = contact.getCodeString();
+        GroupReceptionTask groupTask = getGroupTask(groupCodeString);
         boolean isFirstRecept = Objects.isNull(groupTask);
 
         if (isFirstRecept) {
-            groupTask = new GroupReceptionTaskImpl(getOrPutGroupXiaomingUser(contact, message.getSender().getMemberContact()), getOrPutGroupRecentMessages(contact.getCodeString()));
+            groupTask = new GroupReceptionTaskImpl(forGroup(contact.getCode()), message);
         }
 
         groupTask.getUser().onNextInput(message);
         if (isFirstRecept) {
-            getXiaomingBot().getScheduler().run(groupTask).setDescription(groupTask.getIdentify());
+            threadPool.execute(groupTask);
         }
     }
 
@@ -154,24 +149,24 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
 
         boolean isFirstRecept = Objects.isNull(memberTask);
         if (isFirstRecept) {
-            memberTask = new MemberReceptionTaskImpl(getOrPutMemberXiaomingUser(contact), getOrPutMemberRecentMessages(contact.getGroupContact().getCodeString()));
+            memberTask = new MemberReceptionTaskImpl(forMember(contact.getCode()), message);
         }
 
         memberTask.getUser().onNextInput(message);
         if (isFirstRecept) {
-            getXiaomingBot().getScheduler().run(memberTask).setDescription(memberTask.getIdentify());
+            threadPool.execute(memberTask);
         }
     }
 
     @Override
     public void onMemberMessage(MemberContact contact, MessageChain messages) {
-        MemberMessage message = new MemberMessageImpl(getOrPutMemberXiaomingUser(contact), messages);
+        MemberMessage message = new MemberMessageImpl(forMember(contact.getCode()), messages);
         onMemberMessage(contact, message);
     }
 
     @Override
     public void onMemberMessage(MemberContact contact, String message, MessageChain originalMessageChain) {
-        MemberMessage memberMessage = new MemberMessageImpl(getOrPutMemberXiaomingUser(contact), originalMessageChain);
+        MemberMessage memberMessage = new MemberMessageImpl(forMember(contact.getCode()), originalMessageChain);
         memberMessage.setMessageChain(MiraiCode.deserializeMiraiCode(message));
         onMemberMessage(contact, memberMessage);
     }
@@ -181,24 +176,24 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
         boolean isFirstRecept = Objects.isNull(privateTask);
 
         if (isFirstRecept) {
-            privateTask = new PrivateReceptionTaskImpl(getOrPutPrivateXiaomingUser(contact), privateRecentMessages);
+            privateTask = new PrivateReceptionTaskImpl(forPrivate(), message);
         }
 
         privateTask.getUser().onNextInput(message);
         if (isFirstRecept) {
-            getXiaomingBot().getScheduler().run(privateTask).setDescription(privateTask.getIdentify());
+            threadPool.execute(privateTask);
         }
     }
 
     @Override
     public void onPrivateMessage(PrivateContact contact, MessageChain messages) {
-        PrivateMessage message = new PrivateMessageImpl(getOrPutPrivateXiaomingUser(contact), messages);
+        PrivateMessage message = new PrivateMessageImpl(forPrivate(), messages);
         onPrivateMessage(contact, message);
     }
 
     @Override
     public void onPrivateMessage(PrivateContact contact, String message, MessageChain originalMessageChain) {
-        PrivateMessage privateMessage = new PrivateMessageImpl(getOrPutPrivateXiaomingUser(contact), originalMessageChain);
+        PrivateMessage privateMessage = new PrivateMessageImpl(forPrivate(), originalMessageChain);
         privateMessage.setMessageChain(MiraiCode.deserializeMiraiCode(message));
         onPrivateMessage(contact, privateMessage);
     }

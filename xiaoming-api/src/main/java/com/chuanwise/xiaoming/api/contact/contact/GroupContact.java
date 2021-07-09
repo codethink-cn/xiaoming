@@ -7,6 +7,7 @@ import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import com.chuanwise.xiaoming.api.util.ArgumentUtils;
+import com.chuanwise.xiaoming.api.util.MessageChainUtils;
 import net.mamoe.mirai.contact.*;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.At;
@@ -18,29 +19,29 @@ import java.util.Objects;
 import java.util.Set;
 
 public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
-    default void atSend(long qq, String message) {
-        atSend(qq, MiraiCode.deserializeMiraiCode(ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
+    default GroupMessage atSend(long qq, String message) {
+        return atSend(qq, MiraiCode.deserializeMiraiCode(ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
     }
 
-    default void atSend(long qq, MessageChain messages) {
-        send(new At(qq).plus(" ").plus(messages));
+    default GroupMessage atSend(long qq, MessageChain messages) {
+        return send(new At(qq).plus(" ").plus(messages));
     }
 
-    default void atSend(long qq, Message messages) {
-        atSend(qq, messages.getMessageChain());
+    default GroupMessage atSend(long qq, Message messages) {
+        return atSend(qq, messages.getMessageChain());
     }
 
-    default void atSendLater(long delay, long qq, String message) {
-        sendLater(delay, new At(qq).plus(MiraiCode.deserializeMiraiCode(ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime()))));
+    default AsyncResult<GroupMessage> atSendLater(long delay, long qq, String message) {
+        return getXiaomingBot().getScheduler().runLater(delay, () -> send(message));
     }
 
-    default void atSendLater(long delay, long qq, MessageChain messages) {
+    default AsyncResult<GroupMessage> atSendLater(long delay, long qq, MessageChain messages) {
         messages.add(0, new At(qq));
-        sendLater(delay, messages);
+        return sendLater(delay, messages);
     }
 
-    default void atSendLater(long delay, long qq, Message messages) {
-        atSendLater(delay, qq, messages.getMessageChain());
+    default AsyncResult<GroupMessage> atSendLater(long delay, long qq, Message messages) {
+        return atSendLater(delay, qq, messages.getMessageChain());
     }
 
     default GroupMessage atReply(Message quote, String message) {

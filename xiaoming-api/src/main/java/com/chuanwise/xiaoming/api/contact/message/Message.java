@@ -10,7 +10,6 @@ import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.MessageSource;
 import net.mamoe.mirai.message.data.QuoteReply;
 
-import javax.activation.UnsupportedDataTypeException;
 import java.io.IOException;
 
 public interface Message extends XiaomingObject, Cloneable {

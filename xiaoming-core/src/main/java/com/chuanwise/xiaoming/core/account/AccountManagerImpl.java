@@ -1,5 +1,7 @@
 package com.chuanwise.xiaoming.core.account;
 
+import com.chuanwise.toolkit.preservable.file.FileLoader;
+import com.chuanwise.utility.CollectionUtility;
 import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.account.AccountManager;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
@@ -29,31 +31,13 @@ public class AccountManagerImpl extends ModuleObjectImpl implements AccountManag
     }
 
     @Override
-    public Account getAccount(long qq) {
-        Account account = loadedAccounts.get(qq);
-        if (Objects.nonNull(account)) {
-            return account;
-        }
-        account = getXiaomingBot().getFilePreservableFactory().load(AccountImpl.class, accountFile(qq));
-        if (Objects.nonNull(account)) {
-            loadedAccounts.put(qq, account);
-        }
-        return account;
-    }
-
-    @Override
-    public Account getOrPutAccount(long qq) {
-        Account account = getAccount(qq);
-        if (Objects.isNull(account)) {
-            account = new AccountImpl();
-            account.setMedium(accountFile(qq));
-            account.setCode(qq);
-            final Friend friend = getXiaomingBot().getMiraiBot().getFriend(qq);
-            if (Objects.nonNull(friend)) {
-                account.setAlias(friend.getNick());
-            }
-            loadedAccounts.put(qq, account);
-        }
-        return account;
+    public Account forAccount(long qq) {
+        return CollectionUtility.getOrSupplie(loadedAccounts, qq,
+                () -> getXiaomingBot().getFileLoader().loadOrSupplie(AccountImpl.class, accountFile(qq),
+                        () -> {
+                            final AccountImpl account = new AccountImpl();
+                            account.setCode(qq);
+                            return account;
+                        }));
     }
 }

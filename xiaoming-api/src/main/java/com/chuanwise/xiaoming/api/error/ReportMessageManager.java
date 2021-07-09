@@ -1,7 +1,7 @@
 package com.chuanwise.xiaoming.api.error;
 
 import com.chuanwise.xiaoming.api.object.ModuleObject;
-import com.chuanwise.xiaoming.api.preserve.Preservable;
+import com.chuanwise.toolkit.preservable.Preservable;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 
 import java.io.File;

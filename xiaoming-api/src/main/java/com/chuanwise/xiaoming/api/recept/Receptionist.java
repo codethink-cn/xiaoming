@@ -1,12 +1,10 @@
 package com.chuanwise.xiaoming.api.recept;
 
+import com.chuanwise.utility.CollectionUtility;
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
 import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
-import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
-import com.chuanwise.xiaoming.api.contact.message.Message;
-import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
-import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
+import com.chuanwise.xiaoming.api.contact.message.*;
 import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.PrivateXiaomingUser;
@@ -15,10 +13,10 @@ import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.MessageChain;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 
@@ -56,21 +54,25 @@ public interface Receptionist extends ModuleObject {
     }
 
     default void stop() {
-        Consumer<List<? extends Message>> notifyer = messages -> {
+        Consumer<Object> notifyer = messages -> {
             synchronized (messages) {
                 messages.notifyAll();
             }
         };
-        synchronized (this) {
-            notifyAll();
-        }
+        notifyer.accept(this);
 
         getGroupRecentMessages().values().forEach(notifyer);
         getMemberRecentMessages().values().forEach(notifyer);
-        notifyer.accept(getPrivateRecentMessages());
+        if (Objects.nonNull(getPrivateTask())) {
+            notifyer.accept(getPrivateTask().getRecentMessages());
+        }
+
+        getThreadPool().shutdown();
 
         getXiaomingBot().getReceptionistManager().removeReceptionist(getCode());
     }
+
+    ExecutorService getThreadPool();
 
     default GroupReceptionTask getGroupTask(String tag) {
         return getGroupTasks().get(tag);
@@ -80,25 +82,15 @@ public interface Receptionist extends ModuleObject {
         return getMemberTasks().get(tag);
     }
 
-    Map<String, GroupReceptionTask> getGroupTasks();
+    Map<Long, GroupReceptionTask> getGroupTasks();
 
-    default GroupMessage nextGroupMessage(String tag, long timeout) {
-        return InteractorUtils.waitLastElement(getOrPutGroupRecentMessages(tag), timeout);
-    }
-
-    Map<String, MemberReceptionTask> getMemberTasks();
-
-    default MemberMessage nextMemberMessage(String tag, long timeout) {
-        return InteractorUtils.waitLastElement(getOrPutMemberRecentMessages(tag), timeout);
-    }
+    Map<Long, MemberReceptionTask> getMemberTasks();
 
     PrivateReceptionTask getPrivateTask();
 
     default PrivateMessage nextPrivateMessage(long timeout) {
-        return InteractorUtils.waitLastElement(getPrivateRecentMessages(), timeout);
+        return InteractorUtils.waitLastElement(forPrivateRecentMessages(), timeout);
     }
-
-    void setPrivateTask(PrivateReceptionTask task);
 
     void onGroupMessage(GroupContact contact, String message, MessageChain originalMessageChain);
 
@@ -124,53 +116,27 @@ public interface Receptionist extends ModuleObject {
 
     Map<String, List<GroupMessage>> getGroupRecentMessages();
 
-    List<PrivateMessage> getPrivateRecentMessages();
-
     Map<Long, GroupXiaomingUser> getGroupXiaomingUsers();
 
     Map<Long, MemberXiaomingUser> getMemberXiaomingUsers();
 
-    PrivateXiaomingUser getPrivateXiaomingUser();
+    PrivateXiaomingUser forPrivate();
 
-    PrivateXiaomingUser getOrPutPrivateXiaomingUser(PrivateContact contact);
+    GroupXiaomingUser forGroup(long groupCode);
 
-    default GroupXiaomingUser getGroupXiaomingUser(long code) {
-        return getGroupXiaomingUsers().get(code);
+    MemberXiaomingUser forMember(long code);
+
+    List<PrivateMessage> forPrivateRecentMessages();
+
+    default List<GroupMessage> forGroupRecentMessages(String groupTag) {
+        return CollectionUtility.getOrSupplie(getGroupRecentMessages(), groupTag, LinkedList::new);
     }
 
-    GroupXiaomingUser getOrPutGroupXiaomingUser(GroupContact groupContact, MemberContact memberContact);
-
-    default MemberXiaomingUser getMemberXiaomingUser(long code) {
-        return getMemberXiaomingUsers().get(code);
+    default List<MemberMessage> forMemberRecentMessages(String groupTag) {
+        return CollectionUtility.getOrSupplie(getMemberRecentMessages(), groupTag, LinkedList::new);
     }
-
-    MemberXiaomingUser getOrPutMemberXiaomingUser(MemberContact contact);
 
     void setGlobalRecentMessages(List<? extends Message> list);
 
-    default List<GroupMessage> getGroupRecentMessages(String tag) {
-        return getGroupRecentMessages().get(tag);
-    }
-
-    default List<GroupMessage> getOrPutGroupRecentMessages(String tag) {
-        List<GroupMessage> recentMessage = getGroupRecentMessages(tag);
-        if (Objects.isNull(recentMessage)) {
-            recentMessage = new CopyOnWriteArrayList<>();
-            getGroupRecentMessages().put(tag, recentMessage);
-        }
-        return recentMessage;
-    }
-
-    default List<MemberMessage> getMemberRecentMessages(String tag) {
-        return getMemberRecentMessages().get(tag);
-    }
-
-    default List<MemberMessage> getOrPutMemberRecentMessages(String tag) {
-        List<MemberMessage> recentMessage = getMemberRecentMessages(tag);
-        if (Objects.isNull(recentMessage)) {
-            recentMessage = new CopyOnWriteArrayList<>();
-            getMemberRecentMessages().put(tag, recentMessage);
-        }
-        return recentMessage;
-    }
+    void setPrivateTask(PrivateReceptionTask privateReceptionTask);
 }

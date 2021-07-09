@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.core.report;
 
+import com.chuanwise.toolkit.preservable.file.FilePreservableImpl;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.error.ReportMessage;
@@ -7,7 +8,6 @@ import com.chuanwise.xiaoming.api.error.ReportMessageManager;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CollectionUtils;
-import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import java.util.Objects;
 @Data
 @NoArgsConstructor
 @Slf4j
-public class ReportMessageManagerImpl extends JsonFilePreservable implements ReportMessageManager {
+public class ReportMessageManagerImpl extends FilePreservableImpl implements ReportMessageManager {
     transient XiaomingBot xiaomingBot;
 
     List<ReportMessageImpl> reportMessages = new ArrayList<>();

@@ -1,12 +1,11 @@
 package com.chuanwise.xiaoming.core.permission;
 
+import com.chuanwise.toolkit.preservable.file.FilePreservableImpl;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.permission.PermissionAccessible;
 import com.chuanwise.xiaoming.api.permission.PermissionGroup;
 import com.chuanwise.xiaoming.api.permission.PermissionManager;
 import com.chuanwise.xiaoming.api.permission.PermissionUserNode;
-import com.chuanwise.xiaoming.api.response.ResponseGroup;
-import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -19,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Data
 @NoArgsConstructor
-public class PermissionManagerImpl extends JsonFilePreservable implements PermissionManager {
+public class PermissionManagerImpl extends FilePreservableImpl implements PermissionManager {
     Map<String, PermissionGroupImpl> groups = new ConcurrentHashMap<>();
     Map<Long, PermissionUserNodeImpl> users = new ConcurrentHashMap<>();
     transient PermissionGroup defaultGroup;

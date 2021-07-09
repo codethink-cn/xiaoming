@@ -40,7 +40,7 @@ public class MemberContactImpl extends XiaomingContactImpl<MemberMessage, Normal
 
     @Override
     public MemberMessage send(MessageChain messages) {
-        return new MemberMessageImpl(getXiaomingBot().getReceptionistManager().getBotReceptionist().getOrPutMemberXiaomingUser(this),
+        return new MemberMessageImpl(getXiaomingBot().getReceptionistManager().getBotReceptionist().forMember(getGroupCode()),
                 miraiContact.sendMessage(messages).getSource().getOriginalMessage());
     }
 }

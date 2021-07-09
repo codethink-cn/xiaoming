@@ -40,4 +40,5 @@ hs_err_pid*
 /xiaoming-example/src/test/
 /xiaoming-example/src/main/resources/
 docs/_backup.md
-/start.bat
+/xiaoming-gui/
+/xiaoming-device-info-collector/src/test/

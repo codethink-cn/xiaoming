@@ -1,7 +1,7 @@
 package com.chuanwise.xiaoming.api.license;
 
 import com.chuanwise.xiaoming.api.object.ModuleObject;
-import com.chuanwise.xiaoming.api.preserve.Preservable;
+import com.chuanwise.toolkit.preservable.Preservable;
 
 import java.io.File;
 

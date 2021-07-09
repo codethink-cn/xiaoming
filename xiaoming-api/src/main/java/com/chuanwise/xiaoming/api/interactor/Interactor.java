@@ -20,7 +20,6 @@ import com.chuanwise.xiaoming.api.util.AtUtils;
 import com.chuanwise.xiaoming.api.util.TimeUtils;
 
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
@@ -93,11 +92,9 @@ public interface Interactor extends PluginObject {
 
             // 准备验证权限
             boolean isParameterFilter = filter instanceof ParameterFilterMatcher;
-            Matcher matcher = null;
-            Set<String> parameterNames = null;
+            Map<String, String> argumentValues = null;
             if (isParameterFilter) {
-                matcher = ((ParameterFilterMatcher) filter).getMatcher(user.getCode());
-                parameterNames = ((ParameterFilterMatcher) filter).getParameterNames();
+                argumentValues = ((ParameterFilterMatcher) filter).getArgumentValue(user.getCode());
             }
 
             // 判断合法用户
@@ -119,8 +116,6 @@ public interface Interactor extends PluginObject {
                     arguments.add(message);
                 } else if (type.isAssignableFrom(contactClass)) {
                     arguments.add(user.getContact());
-                } else if (isParameterFilter && Matcher.class.isAssignableFrom(type)) {
-                    arguments.add(matcher);
                 } else if (FilterMatcher.class.isAssignableFrom(type)) {
                     arguments.add(filter);
                 } else if (InteractorMethodDetail.class.isAssignableFrom(type)) {
@@ -130,11 +125,8 @@ public interface Interactor extends PluginObject {
                     final FilterParameter filterParameter = parameter.getAnnotation(FilterParameter.class);
                     final String parameterName = filterParameter.value();
                     final String parameterValue;
-                    if (parameterNames.contains(parameterName)) {
-                        parameterValue = matcher.group(parameterName);
-                    } else {
-                        parameterValue = filterParameter.defaultValue();
-                    }
+
+                    parameterValue = argumentValues.getOrDefault(parameterName, filterParameter.defaultValue());
                     final String defaultValue = filterParameter.defaultValue();
                     user.setProperty(parameterName, parameterValue);
 
@@ -183,7 +175,7 @@ public interface Interactor extends PluginObject {
                         return true;
                     }
 
-                    final Account account = user.getOrPutAccount();
+                    final Account account = user.getAccount();
                     final List<CommandRecord> commands = account.getCommands();
                     final int sizeBeforeInteract = commands.size();
 
@@ -281,7 +273,7 @@ public interface Interactor extends PluginObject {
      * @param defaultValue 默认值
      * @return 注入结果。如果为 {@code null} 则注入失败
      */
-    default <T> Object onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
+    default <T> T onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
         Object result = null;
         user.setProperty("string", currentValue);
 
@@ -304,18 +296,18 @@ public interface Interactor extends PluginObject {
             }
         } else if (int.class.isAssignableFrom(clazz) && Objects.equals("index", parameterName)) {
             if (currentValue.matches("\\d+")) {
-                return Integer.parseInt(currentValue);
+                return (T) (Object) Integer.parseInt(currentValue);
             } else {
                 user.sendError("「{index}」并不是一个有效的序号哦");
             }
         } else if (long.class.isAssignableFrom(clazz) && Objects.equals("group", parameterName)) {
             if (currentValue.matches("\\d+")) {
-                return Long.parseLong(currentValue);
+                return (T) (Object) Long.parseLong(currentValue);
             } else {
                 user.sendError("「{group}」并不是一个有效的群号哦");
             }
         }
-        return result;
+        return ((T) result);
     }
 
     default boolean isLegalUser(XiaomingUser user) {

@@ -1,7 +1,7 @@
 package com.chuanwise.xiaoming.api.schedule;
 
+import com.chuanwise.toolkit.preservable.Preservable;
 import com.chuanwise.xiaoming.api.object.ModuleObject;
-import com.chuanwise.xiaoming.api.preserve.Preservable;
 import com.chuanwise.xiaoming.api.schedule.task.PreservableSaveTask;
 import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 

@@ -3,8 +3,6 @@ package com.chuanwise.xiaoming.core.limit;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import com.chuanwise.xiaoming.api.limit.UserCallLimiter;
-import com.chuanwise.xiaoming.api.object.XiaomingObject;
-import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 

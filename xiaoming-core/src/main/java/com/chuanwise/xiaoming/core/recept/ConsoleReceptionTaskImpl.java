@@ -14,23 +14,11 @@ public class ConsoleReceptionTaskImpl extends ReceptionTaskImpl implements Conso
     final ConsoleXiaomingUser user;
     final List<ConsoleMessage> recentMessages;
 
-    protected ConsoleReceptionTaskImpl(ConsoleXiaomingUser user, List<ConsoleMessage> recentMessages) {
-        super(user.getReceptionist(), "reception-task[" + user.getCompleteName() + "]");
+    protected ConsoleReceptionTaskImpl(ConsoleXiaomingUser user, ConsoleMessage message) {
+        super(user.getReceptionist(), "reception-task[console]", message);
         this.user = user;
         user.setReceptionTask(this);
-        this.recentMessages = recentMessages;
-    }
-
-    @Override
-    public void stop() {
-        busy = false;
-        running = false;
-
-        if (thread.isAlive()) {
-            thread.interrupt();
-        }
-
-        unregister();
+        this.recentMessages = user.getRecentMessages();
     }
 
     @Override

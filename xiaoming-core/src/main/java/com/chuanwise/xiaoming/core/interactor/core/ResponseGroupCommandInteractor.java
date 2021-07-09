@@ -5,6 +5,7 @@ import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
+import com.chuanwise.xiaoming.api.util.CollectionUtils;
 import com.chuanwise.xiaoming.api.util.CommandWords;
 import com.chuanwise.xiaoming.api.response.ResponseGroupManager;
 import com.chuanwise.xiaoming.core.interactor.command.CommandInteractorImpl;
@@ -121,7 +122,7 @@ public class ResponseGroupCommandInteractor extends CommandInteractorImpl {
     public void onListGroupTags(GroupXiaomingUser user) {
         final ResponseGroup group = user.getResponseGroup();
         final Set<String> tags = group.getTags();
-        user.sendMessage("{}的所有标记有：{}", getGroupName(group), group.getCode(), tags);
+        user.sendMessage("{}的所有标记有：{}", group.getCompleteName(), CollectionUtils.getSummary(tags, String::toString, "", "", "、"));
     }
 
     @Filter(CommandWords.NEW + CommandWords.GROUP + " {group}")

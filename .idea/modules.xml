@@ -5,8 +5,8 @@
       <module fileurl="file://$PROJECT_DIR$/xiaoming-api/xiaoming-api.iml" filepath="$PROJECT_DIR$/xiaoming-api/xiaoming-api.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/xiaoming-bot.iml" filepath="$PROJECT_DIR$/.idea/xiaoming-bot.iml" />
       <module fileurl="file://$PROJECT_DIR$/xiaoming-core/xiaoming-core.iml" filepath="$PROJECT_DIR$/xiaoming-core/xiaoming-core.iml" />
-      <module fileurl="file://$PROJECT_DIR$/xiaoming-example/xiaoming-example.iml" filepath="$PROJECT_DIR$/xiaoming-example/xiaoming-example.iml" />
-      <module fileurl="file://$PROJECT_DIR$/xiaoming-host/xiaoming-host.iml" filepath="$PROJECT_DIR$/xiaoming-host/xiaoming-host.iml" />
+      <module fileurl="file://$PROJECT_DIR$/xiaoming-host-graphical/xiaoming-gui.iml" filepath="$PROJECT_DIR$/xiaoming-host-graphical/xiaoming-gui.iml" />
+      <module fileurl="file://$PROJECT_DIR$/xiaoming-host-terminal/xiaoming-host.iml" filepath="$PROJECT_DIR$/xiaoming-host-terminal/xiaoming-host.iml" />
     </modules>
   </component>
 </project>

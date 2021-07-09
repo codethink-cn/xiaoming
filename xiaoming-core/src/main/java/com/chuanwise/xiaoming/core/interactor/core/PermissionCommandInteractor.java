@@ -49,10 +49,10 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
     }
 
     @Override
-    public <T> Object onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
+    public <T> T onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
         Object result = super.onParameter(user, clazz, parameterName, currentValue, defaultValue);
         if (Objects.nonNull(result)) {
-            return result;
+            return ((T) result);
         }
 
         if (Objects.equals(parameterName, "permissionGroup") && PermissionGroup.class.isAssignableFrom(clazz)) {
@@ -68,7 +68,7 @@ public class PermissionCommandInteractor extends CommandInteractorImpl {
                 user.sendError("{xiaoming}找不到权限组：{}", currentValue);
             }
         }
-        return result;
+        return ((T) result);
     }
 
     /**

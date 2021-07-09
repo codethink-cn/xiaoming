@@ -3,7 +3,7 @@ package com.chuanwise.xiaoming.api.resource;
 import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.object.ModuleObject;
-import com.chuanwise.xiaoming.api.preserve.Preservable;
+import com.chuanwise.toolkit.preservable.Preservable;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.Image;

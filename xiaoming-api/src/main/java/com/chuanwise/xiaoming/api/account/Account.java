@@ -2,8 +2,7 @@ package com.chuanwise.xiaoming.api.account;
 
 import com.chuanwise.xiaoming.api.account.record.CommandRecord;
 import com.chuanwise.xiaoming.api.account.record.Record;
-import com.chuanwise.xiaoming.api.preserve.Preservable;
-
+import com.chuanwise.toolkit.preservable.Preservable;
 import java.io.File;
 import java.util.List;
 import java.util.Objects;

@@ -1,12 +1,11 @@
 package com.chuanwise.xiaoming.core.plugin;
 
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
+import com.chuanwise.xiaoming.api.classloader.XiaomingClassLoader;
 import com.chuanwise.xiaoming.api.plugin.PluginManager;
 import com.chuanwise.xiaoming.api.plugin.PluginProperty;
 import com.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.api.util.JsonSerializerUtils;
-import com.chuanwise.xiaoming.api.util.PluginLoaderUtils;
 import com.chuanwise.xiaoming.core.report.ReportMessageImpl;
 import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import lombok.Getter;
@@ -18,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Constructor;
-import java.net.URLClassLoader;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.jar.JarFile;
@@ -70,18 +68,20 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
             return false;
         }
 
-        final ClassLoader classLoader = XiaomingBot.class.getClassLoader();
+        final ClassLoader classLoader;
         final Class<?> pluginClass;
 
-        /*
         // 扩展类加载器
         try {
-            classLoader = PluginLoaderUtils.extendURLClassLoader(property.getFile(), (URLClassLoader) );
+            final XiaomingClassLoader xiaomingClassLoader = getXiaomingBot().getXiaomingClassLoader();
+            xiaomingClassLoader.addURL(property.getFile().toURI().toURL());
+            classLoader = xiaomingClassLoader;
         } catch (Exception exception) {
             user.sendError("严重错误：无法扩展类加载器");
             getLog().error("无法扩展类加载器", exception);
             return false;
-        }*/
+        }
+
 
         // 加载插件主类
         try {
@@ -104,7 +104,7 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
         try {
             constructor = pluginClass.getDeclaredConstructor();
         } catch (Exception exception) {
-            user.sendError("构造插件主类时出现异常：{}，请检查{}的默认的无参构造函数", pluginMainClassName, exception);
+            user.sendError("构造插件主类时出现异常：{}，请检查{}是否存在默认的无参构造函数、其访问权限是否为 public 等", pluginMainClassName, exception);
             getLog().error("构造插件主类时出现异常", exception);
             return false;
         }
@@ -127,7 +127,6 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
         }
 
         plugin.setProperty(property);
-        plugin.setClassLoader(classLoader);
         plugin.setXiaomingBot(getXiaomingBot());
         plugin.setDataFolder(new File(directory, plugin.getName()));
         plugin.setLog(LoggerFactory.getLogger(plugin.getName()));
@@ -228,7 +227,7 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
 
         final PluginProperty pluginProperty;
         try (InputStream inputStream = jarFile.getInputStream(entry);) {
-            pluginProperty = JsonSerializerUtils.getINSTANCE().readValue(inputStream, PluginPropertyImpl.class);
+            pluginProperty = getXiaomingBot().getCoreSerializer().deserialize(inputStream, PluginPropertyImpl.class);
         }
         return pluginProperty;
     }

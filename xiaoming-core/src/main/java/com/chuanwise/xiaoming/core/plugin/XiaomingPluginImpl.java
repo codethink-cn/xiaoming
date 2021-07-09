@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 
 @Getter
 public class XiaomingPluginImpl implements XiaomingPlugin {
@@ -34,19 +35,4 @@ public class XiaomingPluginImpl implements XiaomingPlugin {
 
     @Setter
     File dataFolder;
-
-    @Setter
-    ClassLoader classLoader;
-
-    @Override
-    public Language loadLanguage(File file) {
-        language = loadFileAs(LanguageImpl.class, file);
-        return language;
-    }
-
-    @Override
-    public Language loadLanguageOrProduce(File file) {
-        language = loadFileOrProduce(LanguageImpl.class, file, LanguageImpl::new);
-        return language;
-    }
 }

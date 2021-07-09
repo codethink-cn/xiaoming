@@ -1,14 +1,14 @@
 package com.chuanwise.xiaoming.core.language;
 
+import com.chuanwise.toolkit.preservable.file.FilePreservableImpl;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.language.Language;
-import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
 import lombok.Data;
 
 import java.util.*;
 
 @Data
-public class LanguageImpl extends JsonFilePreservable implements Language {
+public class LanguageImpl extends FilePreservableImpl implements Language {
     transient static final Random RANDOM = new Random();
     transient XiaomingBot xiaomingBot;
     Map<String, Object> values = new HashMap<>();
@@ -29,7 +29,7 @@ public class LanguageImpl extends JsonFilePreservable implements Language {
         } else if (object instanceof Collection && !((Collection<?>) object).isEmpty()) {
             try {
                 final Collection<String> collection = (Collection<String>) object;
-                result = collection.toArray(new String[0])[RANDOM.nextInt(collection.size())];
+                result = collection.toArray(new Object[0])[RANDOM.nextInt(collection.size())] + "";
             } catch (ClassCastException ignored) {
             }
         } else if (Objects.nonNull(object)) {

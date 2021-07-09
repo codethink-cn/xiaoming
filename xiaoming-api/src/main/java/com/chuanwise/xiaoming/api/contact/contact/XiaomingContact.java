@@ -7,6 +7,7 @@ import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 import com.chuanwise.xiaoming.api.util.InteractorUtils;
+import com.chuanwise.xiaoming.api.util.MessageChainUtils;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.*;
@@ -34,17 +35,8 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
     String getAvatarUrl();
 
     default M send(String message) {
-        final String content = ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime());
-        MessageChain messageChain = null;
-        try {
-            messageChain = MiraiCode.deserializeMiraiCode(content);
-        } catch (Exception exception) {
-            final PlainText plainText = new PlainText(content);
-            final MessageChainBuilder messages = new MessageChainBuilder();
-            messages.add(plainText);
-            messageChain = messages.asMessageChain();
-        }
-        return send(messageChain);
+        final String replacedMessage = ArgumentUtils.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime());
+        return send(MiraiCode.deserializeMiraiCode(replacedMessage));
     }
 
     M send(MessageChain messages);
@@ -119,14 +111,6 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
 
     default M nextMessage() {
         return nextMessage(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime());
-    }
-
-    default void addRecentMessage(M recentMessage) {
-        final List<M> list = getRecentMessages();
-        synchronized (list) {
-            list.add(recentMessage);
-            list.notifyAll();
-        }
     }
 
     default Image uploadImage(ExternalResource resource) {

@@ -11,4 +11,6 @@ public @interface Filter {
     FilterPattern pattern() default FilterPattern.PARAMETER;
 
     String usage() default "";
+
+    boolean enableUsage() default true;
 }

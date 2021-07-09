@@ -6,6 +6,13 @@
         <option value="$PROJECT_DIR$/pom.xml" />
       </list>
     </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/xiaoming-device-info-collector/pom.xml" />
+        <option value="$PROJECT_DIR$/xiaoming-host-graphical/pom.xml" />
+        <option value="$PROJECT_DIR$/xiaoming-host-terminal/pom.xml" />
+      </set>
+    </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" default="true" project-jdk-name="1.8" project-jdk-type="JavaSDK" />
   <component name="SuppressionsComponent">

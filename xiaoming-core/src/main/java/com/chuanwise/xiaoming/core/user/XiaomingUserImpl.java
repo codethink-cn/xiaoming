@@ -36,6 +36,7 @@ public abstract class XiaomingUserImpl<C extends XiaomingContact<M, ?>, M extend
         super(xiaomingBot);
         setProperty("qq", qq);
         setProperty("at", new At(qq).serializeToMiraiCode());
+        receptionist = getXiaomingBot().getReceptionistManager().forReceptionist(qq);
     }
 
     /**

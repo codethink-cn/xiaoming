@@ -1,6 +1,9 @@
 package com.chuanwise.xiaoming.api.contact;
 
+import com.chuanwise.utility.CollectionUtility;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
+import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
+import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
 import com.chuanwise.xiaoming.api.object.ModuleObject;
 import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
@@ -9,6 +12,8 @@ import com.chuanwise.xiaoming.api.util.InteractorUtils;
 import net.mamoe.mirai.contact.NormalMember;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public interface ContactManager extends ModuleObject {
     void clear();
@@ -23,24 +28,58 @@ public interface ContactManager extends ModuleObject {
 
     MemberContact getMemberContact(GroupContact groupContact, NormalMember normalMember);
 
-    Map<String, List<GroupMessage>> getGroupRecentMessages();
 
-    default GroupMessage nextGroupMessage(String tag, long timeout) {
-        return InteractorUtils.waitLastElement(getOrPutGroupRecentMessages(tag), timeout);
+    /** 私聊最近消息 */
+    Map<String, List<PrivateMessage>> getPrivateRecentMessages();
+
+    default PrivateMessage nextPrivateMessage(String accountTag, long timeout) {
+        return InteractorUtils.waitLastElement(forPrivateMessages(accountTag), timeout);
     }
 
-    default List<GroupMessage> getGroupRecentMessages(String tag) {
-        return getGroupRecentMessages().get(tag);
+    default List<PrivateMessage> forPrivateMessages(String accountTag) {
+        return CollectionUtility.getOrSupplie(getPrivateRecentMessages(), accountTag, LinkedList::new);
     }
 
-    default List<GroupMessage> getOrPutGroupRecentMessages(String tag) {
-        List<GroupMessage> list = getGroupRecentMessages(tag);
-        if (Objects.isNull(list)) {
-            list = new LinkedList<>();
-            getGroupRecentMessages().put(tag, list);
-        }
-        return list;
+
+    /** 群聊最近消息 */
+    default Map<String, List<GroupMessage>> getGroupRecentMessages() {
+        return CollectionUtility.getOrSupplie(getGroupMemberRecentMessages(), "recorded", ConcurrentHashMap::new);
     }
+
+    default GroupMessage nextGroupMessage(String groupTag, long timeout) {
+        return InteractorUtils.waitLastElement(forGroupMessages(groupTag), timeout);
+    }
+
+    default List<GroupMessage> forGroupMessages(String groupTag) {
+        return CollectionUtility.getOrSupplie(getGroupRecentMessages(), groupTag, LinkedList::new);
+    }
+
+
+    /** 成员在群聊中的最近消息 */
+    Map<String, Map<String, List<GroupMessage>>> getGroupMemberRecentMessages();
+
+    default GroupMessage nextGroupMemberMessage(String groupTag, String accountTag, long timeout) {
+        return InteractorUtils.waitLastElement(forGroupMemberMessages(groupTag, accountTag), timeout);
+    }
+
+    default List<GroupMessage> forGroupMemberMessages(String groupTag, String accountTag) {
+        final Map<String, List<GroupMessage>> groupMemberRecentMessages = CollectionUtility.getOrSupplie(getGroupMemberRecentMessages(), groupTag, LinkedHashMap::new);
+        return CollectionUtility.getOrSupplie(groupMemberRecentMessages, accountTag, LinkedList::new);
+    }
+
+
+    /** 成员在群聊临时会话中的最近消息 */
+    Map<String, Map<String, List<MemberMessage>>> getMemberRecentMessages();
+
+    default MemberMessage nextMemberMessage(String groupTag, String accountTag, long timeout) {
+        return InteractorUtils.waitLastElement(forMemberMessages(groupTag, accountTag), timeout);
+    }
+
+    default List<MemberMessage> forMemberMessages(String groupTag, String accountTag) {
+        final Map<String, List<MemberMessage>> groupMemberRecentMessages = CollectionUtility.getOrSupplie(getMemberRecentMessages(), groupTag, LinkedHashMap::new);
+        return CollectionUtility.getOrSupplie(groupMemberRecentMessages, accountTag, LinkedList::new);
+    }
+
 
     default boolean sendGroupMessage(long group, String message) {
         final GroupContact groupContact = getGroupContact(group);

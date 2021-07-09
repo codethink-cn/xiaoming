@@ -17,41 +17,22 @@ public class MemberReceptionTaskImpl extends ReceptionTaskImpl implements Member
     final MemberXiaomingUser user;
     final List<MemberMessage> recentMessages;
 
-    protected MemberReceptionTaskImpl(MemberXiaomingUser user, List<MemberMessage> recentMessages) {
-        super(user.getReceptionist(), "reception-task[" + user.getCompleteName() + "]");
+    protected MemberReceptionTaskImpl(MemberXiaomingUser user, MemberMessage message) {
+        super(user.getReceptionist(), "reception-task[" + user.getCompleteName() + "]", message);
         this.user = user;
         user.setReceptionTask(this);
-        this.recentMessages = recentMessages;
-    }
-
-    @Override
-    public void stop() {
-        busy = false;
-        running = false;
-
-        if (thread.isAlive()) {
-            thread.interrupt();
-        }
-
-        unregister();
+        this.recentMessages = user.getRecentMessages();
     }
 
     @Override
     protected void register() {
         thread = Thread.currentThread();
         thread.setName(identify);
-        receptionist.getMemberTasks().put(getUser().getContact().getGroupContact().getCodeString(), this);
+        receptionist.getMemberTasks().put(getUser().getGroupContact().getCode(), this);
     }
 
     @Override
     protected void unregister() {
-        final GroupContact groupContact = user.getContact().getGroupContact();
-        final String codeTag = groupContact.getCodeString();
-        receptionist.getMemberTasks().remove(codeTag);
-    }
-
-    @Override
-    public void recept(Message message) throws Exception {
-        getXiaomingBot().getInteractorManager().onInput(user, message);
+        receptionist.getMemberTasks().remove(getUser().getGroupContact().getCode());
     }
 }

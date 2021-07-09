@@ -1,5 +1,6 @@
 package com.chuanwise.xiaoming.core.recept;
 
+import com.chuanwise.utility.CollectionUtility;
 import com.chuanwise.xiaoming.api.annotation.EventHandler;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.configuration.Configuration;
@@ -46,32 +47,18 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
      */
     Map<Long, Receptionist> receptionists = new ConcurrentHashMap<>();
     Receptionist botReceptionist;
-    ConsoleReceptionTask botReceptionistTask;
 
     @Override
     public Receptionist getBotReceptionist() {
         if (Objects.isNull(botReceptionist)) {
-            botReceptionist = getOrPutReceptionist(getXiaomingBot().getMiraiBot().getId());
+            botReceptionist = forReceptionist(getXiaomingBot().getMiraiBot().getId());
         }
         return botReceptionist;
     }
 
     @Override
-    public ConsoleReceptionTask getBotReceptionistTask() {
-        if (Objects.isNull(botReceptionistTask)) {
-            botReceptionistTask = new ConsoleReceptionTaskImpl(getXiaomingBot().getConsoleXiaomingUser(), new LinkedList<>());
-        }
-        return botReceptionistTask;
-    }
-
-    @Override
-    public Receptionist getOrPutReceptionist(long qq) {
-        Receptionist receptionist = getReceptionist(qq);
-        if (Objects.isNull(receptionist)) {
-            receptionist = new ReceptionistImpl(getXiaomingBot(), qq);
-            receptionists.put(qq, receptionist);
-        }
-        return receptionist;
+    public Receptionist forReceptionist(long qq) {
+        return CollectionUtility.getOrSupplie(receptionists, qq, () -> new ReceptionistImpl(getXiaomingBot(), qq));
     }
 
     public boolean callable(Contact contact, boolean inGroup) {
@@ -100,7 +87,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
                     );
 
                     limiter.setNoticed(qq);
-                    final Receptionist receptionist = getReceptionist(qq);
+                    final Receptionist receptionist = forReceptionist(qq);
                     if (Objects.nonNull(receptionist)) {
                         receptionist.stop();
                     }
@@ -148,7 +135,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
             return;
         }
 
-        final Receptionist receptionist = getOrPutReceptionist(qq);
+        final Receptionist receptionist = forReceptionist(qq);
 
         final Group group = event.getGroup();
         receptionist.onGroupMessage(getXiaomingBot().getContactManager().getGroupContact(group.getId()), callContent, event.getMessage());
@@ -165,7 +152,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
             return;
         }
 
-        final Receptionist receptionist = getOrPutReceptionist(qq);
+        final Receptionist receptionist = forReceptionist(qq);
         receptionist.onPrivateMessage(getXiaomingBot().getContactManager().getPrivateContact(qq), event.getMessage());
     }
 
@@ -181,7 +168,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
             return;
         }
 
-        final Receptionist receptionist = getOrPutReceptionist(qq);
+        final Receptionist receptionist = forReceptionist(qq);
         receptionist.onMemberMessage(getXiaomingBot().getContactManager().getMemberContact(group.getId(), qq), event.getMessage());
     }
 }

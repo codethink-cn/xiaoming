@@ -1,9 +1,8 @@
 package com.chuanwise.xiaoming.core.resource;
 
+import com.chuanwise.toolkit.preservable.file.FilePreservableImpl;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.resource.ResourceManager;
-import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
 import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +17,7 @@ import java.util.*;
 
 @Data
 @Slf4j
-public class ResourceManagerImpl extends JsonFilePreservable implements ResourceManager {
+public class ResourceManagerImpl extends FilePreservableImpl implements ResourceManager {
     transient File imagesDirectory;
     transient File resourceDirectory;
 

@@ -28,11 +28,11 @@ public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupM
     @Setter
     GroupReceptionTask receptionTask;
 
-    public GroupXiaomingUserImpl(GroupContact contact, MemberContact memberContact, List<GroupMessage> recentMessages) {
-        super(contact.getXiaomingBot(), memberContact.getCode());
-        this.contact = contact;
-        this.memberContact = memberContact;
-        this.recentMessages = recentMessages;
+    public GroupXiaomingUserImpl(MemberContact contact) {
+        super(contact.getXiaomingBot(), contact.getCode());
+        this.contact = contact.getGroupContact();
+        this.memberContact = contact;
+        this.recentMessages = getXiaomingBot().getContactManager().forGroupMemberMessages(getGroupCodeString(), getCodeString());
     }
 
     @Override
@@ -58,16 +58,14 @@ public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupM
         }
 
         for (String tag : getContact().getTags()) {
-            final List<GroupMessage> recentMessages = receptionist.getOrPutGroupRecentMessages(tag);
+            final List<GroupMessage> recentMessages = receptionist.forGroupRecentMessages(tag);
             synchronized (recentMessages) {
                 recentMessages.add(message);
                 recentMessages.notifyAll();
             }
         }
 
-        message.getContact().addRecentMessage(message);
-
-        getOrPutAccount().addCommand(new GroupCommandRecord(getGroupCode(), message.serialize()));
+        getAccount().addCommand(new GroupCommandRecord(getGroupCode(), message.serialize()));
     }
 
     @Override

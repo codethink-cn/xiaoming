@@ -26,10 +26,10 @@ public class MemberXiaomingUserImpl extends XiaomingUserImpl<MemberContact, Memb
     @Setter
     MemberReceptionTask receptionTask;
 
-    public MemberXiaomingUserImpl(MemberContact memberContact, List<MemberMessage> recentMessages) {
+    public MemberXiaomingUserImpl(MemberContact memberContact) {
         super(memberContact.getXiaomingBot(), memberContact.getCode());
         this.contact = memberContact;
-        this.recentMessages = recentMessages;
+        this.recentMessages = getXiaomingBot().getContactManager().forMemberMessages(getGroupCodeString(), getCodeString());
     }
 
     @Override
@@ -56,14 +56,14 @@ public class MemberXiaomingUserImpl extends XiaomingUserImpl<MemberContact, Memb
 
         // 对本人最近输入的追加
         for (String tag : getContact().getGroupContact().getTags()) {
-            final List<MemberMessage> recentMessages = receptionist.getOrPutMemberRecentMessages(tag);
+            final List<MemberMessage> recentMessages = receptionist.forMemberRecentMessages(tag);
             synchronized (recentMessages) {
                 recentMessages.add(message);
                 recentMessages.notifyAll();
             }
         }
 
-        getOrPutAccount().addCommand(new MemberCommandRecord(getGroupCode(), message.serialize()));
+        getAccount().addCommand(new MemberCommandRecord(getGroupCode(), message.serialize()));
     }
 
     @Override

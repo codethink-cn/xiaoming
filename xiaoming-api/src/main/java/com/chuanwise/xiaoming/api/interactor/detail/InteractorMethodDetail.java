@@ -34,12 +34,15 @@ public class InteractorMethodDetail {
         final List<String> usageStrings = new ArrayList<>();
         filterMatchers = ArrayUtils.copyAs(filters, FilterMatcher.class, filter -> {
             final FilterMatcher filterMatcher = FilterMatcher.filterMatcher(filter);
-            String usage = filterMatcher.toString();
-            if (StringUtils.isEmpty(usage)) {
-                usage = filter.toString();
+
+            if (filter.enableUsage()) {
+                String usage = filter.usage();
+                if (StringUtils.isEmpty(usage)) {
+                    usage = filterMatcher.toString();
+                }
+                usageStrings.add(usage);
             }
 
-            usageStrings.add(usage);
             return filterMatcher;
         });
         this.usageStrings = usageStrings.toArray(new String[0]);

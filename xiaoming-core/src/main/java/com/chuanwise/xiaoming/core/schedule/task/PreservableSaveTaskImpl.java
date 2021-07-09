@@ -1,6 +1,6 @@
 package com.chuanwise.xiaoming.core.schedule.task;
 
-import com.chuanwise.xiaoming.api.preserve.Preservable;
+import com.chuanwise.toolkit.preservable.Preservable;
 import com.chuanwise.xiaoming.api.schedule.task.PreservableSaveTask;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;
 import com.chuanwise.xiaoming.api.util.CollectionUtils;
@@ -24,7 +24,7 @@ public class PreservableSaveTaskImpl extends ScheduableTaskImpl<Void> implements
                 return;
             }
             lastSaveTime = System.currentTimeMillis();
-            preservables.removeIf(Preservable::save);
+            preservables.removeIf(Preservable::saveOrFail);
             if (preservables.isEmpty()) {
                 user.sendMessage("成功保存了 {} 个文件 {happy}", needsToSaveFileNumber);
             } else {

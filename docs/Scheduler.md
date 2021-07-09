@@ -7,7 +7,8 @@
 
 > **声明**
 > 
-> 到此你已经阅读结束小明的开发文档有关**调度器**的介绍，赶快去试一试它的功能吧！
+> 到此你已经阅读结束小明的开发文档有关**调度器**的介绍，赶快去试一试它的功能吧！<br>
+> **小明及相关插件的技术交流 / 用户 QQ 群**：`1028959718`
 >
 > 返回[开发文档](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/Development.md)<br>
 > 查看[插件中心](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/PluginCenter.md)<br>

@@ -17,16 +17,9 @@ public interface ReceptionistManager extends ModuleObject, EventListener {
      * @param qq 用户 QQ
      * @return 其接待员。如果无此接待员，返回 {@code null}
      */
-    @Nullable
-    default Receptionist getReceptionist(long qq) {
-        return getReceptionists().get(qq);
-    }
-
-    Receptionist getOrPutReceptionist(long qq);
+    Receptionist forReceptionist(long qq);
 
     Receptionist getBotReceptionist();
-
-    ConsoleReceptionTask getBotReceptionistTask();
 
     /**
      * 取消某个用户的接待员

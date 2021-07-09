@@ -1,7 +1,7 @@
 package com.chuanwise.xiaoming.api.language;
 
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
-import com.chuanwise.xiaoming.api.preserve.Preservable;
+import com.chuanwise.toolkit.preservable.Preservable;
 
 import java.io.File;
 import java.util.Map;

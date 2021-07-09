@@ -6,6 +6,8 @@ import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
 import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
+import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
+import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
 import com.chuanwise.xiaoming.core.contact.contact.*;
 import com.chuanwise.xiaoming.core.object.ModuleObjectImpl;
 import lombok.Getter;
@@ -18,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 public class ContactManagerImpl extends ModuleObjectImpl implements ContactManager {
@@ -27,14 +30,20 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
 
     final Map<Long, GroupContact> groupContacts = new HashMap<>();
 
-    final Map<String, List<GroupMessage>> groupRecentMessages = new HashMap<>();
+    /** 最近临时会话消息 */
+    final Map<String, Map<String, List<MemberMessage>>> memberRecentMessages = new ConcurrentHashMap<>();
+
+    /** 最近群内每个成员的消息 */
+    final Map<String, Map<String, List<GroupMessage>>> groupMemberRecentMessages = new ConcurrentHashMap<>();
+
+    /** 最近私聊消息 */
+    final Map<String, List<PrivateMessage>> privateRecentMessages = new ConcurrentHashMap<>();
 
     @Override
     public void clear() {
         privateContacts.clear();
         memberContacts.clear();
         groupContacts.clear();
-        groupRecentMessages.clear();
     }
 
     public ContactManagerImpl(XiaomingBot xiaomingBot) {

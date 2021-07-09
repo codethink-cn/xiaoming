@@ -276,7 +276,7 @@ public class InteractorUtils extends StaticUtils {
             throw new ReceptCancelledException();
         }
         if (System.currentTimeMillis() < latestTime) {
-            if (sizeBeforeWait + 1 == list.size()) {
+            if (sizeBeforeWait < list.size()) {
                 final T result = list.get(sizeBeforeWait);
                 return result;
             } else {

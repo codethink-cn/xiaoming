@@ -1,10 +1,9 @@
 package com.chuanwise.xiaoming.api.user;
 
+import com.chuanwise.utility.CollectionUtility;
 import com.chuanwise.xiaoming.api.account.Account;
-import com.chuanwise.xiaoming.api.contact.contact.PrivateContact;
 import com.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
 import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
-import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.contact.message.PrivateMessage;
 import com.chuanwise.xiaoming.api.exception.InteractorTimeoutException;
@@ -17,11 +16,8 @@ import com.chuanwise.xiaoming.api.recept.ReceptionTask;
 import com.chuanwise.xiaoming.api.recept.Receptionist;
 import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
-import com.chuanwise.xiaoming.api.util.ArgumentUtils;
+import com.chuanwise.xiaoming.api.util.*;
 
-import com.chuanwise.xiaoming.api.util.CollectionUtils;
-import com.chuanwise.xiaoming.api.util.InteractorUtils;
-import com.chuanwise.xiaoming.api.util.TimeUtils;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.Image;
@@ -55,7 +51,7 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         if (Objects.nonNull(getInteractor()) &&
                 Objects.nonNull(getInteractor().getPlugin()) &&
                 Objects.nonNull(getInteractor().getPlugin().getLanguage()) &&
-                !CollectionUtils.isEmpty(getInteractor().getPlugin().getLanguage().getValues().entrySet())) {
+                !CollectionUtility.isEmpty(getInteractor().getPlugin().getLanguage().getValues().entrySet())) {
             format = ArgumentUtils.replaceArguments(format, getInteractor().getPlugin().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime());
         }
 
@@ -80,6 +76,18 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
      * @return
      */
     void sendMessage(String message, Object... arguments);
+
+    default void sendMessage(MessageChain messages) {
+        sendMessage(messages.serializeToMiraiCode());
+    }
+
+    default void sendError(MessageChain messages) {
+        sendMessage(messages.serializeToMiraiCode());
+    }
+
+    default void sendWarning(MessageChain messages) {
+        sendMessage(messages.serializeToMiraiCode());
+    }
 
     default AsyncResult<Boolean> sendMessageLater(long delay, String message, Object... arguments) {
         final ScheduableTask<Boolean> task = getXiaomingBot().getScheduler().runLater(delay, () -> {
@@ -140,7 +148,6 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     default ScheduableTask<Message> privateReplyLatestLater(long delay, String message) {
         return privateReplyLater(delay, getLatestMessage(), MiraiCode.deserializeMiraiCode(message));
     }
-
 
     default ScheduableTask<Message> sendPrivateMessageLater(long delay, String message, Object... arguments) {
         final ScheduableTask<Message> task = getXiaomingBot().getScheduler().runLater(delay, () -> {
@@ -305,7 +312,7 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     }
 
     default PrivateMessage nextPrivateInput(long timeout, Runnable onTimeout) {
-        return InteractorUtils.waitLastElement(getReceptionist().getPrivateRecentMessages(), timeout, onTimeout);
+        return InteractorUtils.waitLastElement(getReceptionist().forPrivateRecentMessages(), timeout, onTimeout);
     }
 
     default PrivateMessage nextPrivateInput(Runnable onTimeout) {
@@ -325,7 +332,7 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     }
 
     default GroupMessage nextGroupInput(long timeout, String tag, Runnable onTimeout) {
-        return InteractorUtils.waitLastElement(getReceptionist().getOrPutGroupRecentMessages(tag), timeout, onTimeout);
+        return InteractorUtils.waitLastElement(getReceptionist().forGroupRecentMessages(tag), timeout, onTimeout);
     }
 
     default GroupMessage nextGroupInput(String tag, Runnable onTimeout) {
@@ -420,18 +427,10 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
 
     /**
      * 获取用户的账户
-     * @return 如果尚未存储相关信息，返回 {@code null}
+     * @return 如果尚未存储相关信息，则创建，但不一定会立刻写入外存。
      */
     default Account getAccount() {
-        return getXiaomingBot().getAccountManager().getAccount(getCode());
-    }
-
-    /**
-     * 获取或新建用户账户
-     * @return 用户账户，不一定存在于外存
-     */
-    default Account getOrPutAccount() {
-        return getXiaomingBot().getAccountManager().getOrPutAccount(getCode());
+        return getXiaomingBot().getAccountManager().forAccount(getCode());
     }
 
     /**

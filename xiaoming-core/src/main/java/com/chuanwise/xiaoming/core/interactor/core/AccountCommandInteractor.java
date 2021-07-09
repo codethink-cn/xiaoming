@@ -35,7 +35,7 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
     @Filter(HISTORY + " {qq}")
     @Require("account.history")
     public void onLookUserHistory(XiaomingUser user, @FilterParameter("qq") long qq) {
-        final Account account = getXiaomingBot().getAccountManager().getAccount(qq);
+        final Account account = getXiaomingBot().getAccountManager().forAccount(qq);
         final String emptyHistory = "{userHasNoHistory}";
         if (Objects.isNull(account)) {
             user.sendWarning(emptyHistory);
@@ -48,7 +48,7 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
     @Require("account.plugin.unblock")
     public void onUnblockPlugin(XiaomingUser user,
                                 @FilterParameter("plugin") String plugin) {
-        final Account account = accountManager.getOrPutAccount(user.getCode());
+        final Account account = accountManager.forAccount(user.getCode());
         if (account.isBlockPlugin(plugin)) {
             if (getXiaomingBot().getPluginManager().isLoaded(plugin)) {
                 user.sendError("小明没有加载插件：{}", plugin);
@@ -69,7 +69,7 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
     @Require("account.plugin.block")
     public void onBlockPlugin(XiaomingUser user,
                               @FilterParameter("plugin") String plugin) {
-        final Account account = accountManager.getOrPutAccount(user.getCode());
+        final Account account = accountManager.forAccount(user.getCode());
         if (account.isBlockPlugin(plugin)) {
             user.sendError("你已经屏蔽了插件：{}", plugin);
         } else {
@@ -87,7 +87,7 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
     public void onSetUserAlias(XiaomingUser user,
                                @FilterParameter("qq") long qq,
                                @FilterParameter("alias") String alias) {
-        final Account account = accountManager.getOrPutAccount(qq);
+        final Account account = accountManager.forAccount(qq);
         account.setAlias(alias);
         user.sendMessage("成功将该用户的备注设置为{}", alias);
         getXiaomingBot().getScheduler().readySave(account);
@@ -138,10 +138,10 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
     }
 
     @Override
-    public <T> Object onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
+    public <T> T onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
         final Object result = super.onParameter(user, clazz, parameterName, currentValue, defaultValue);
         if (Objects.nonNull(result)) {
-            return result;
+            return ((T) result);
         }
         if (clazz.isAssignableFrom(Account.class) && Objects.equals("qq", currentValue)) {
             final long qq = AtUtils.parseQQ(currentValue);
@@ -149,7 +149,7 @@ public class AccountCommandInteractor extends CommandInteractorImpl {
                 user.sendError("「{qq}」并不是一个合理的 QQ 哦");
                 return null;
             } else {
-                return getXiaomingBot().getAccountManager().getOrPutAccount(qq);
+                return ((T) getXiaomingBot().getAccountManager().forAccount(qq));
             }
         }
         return null;

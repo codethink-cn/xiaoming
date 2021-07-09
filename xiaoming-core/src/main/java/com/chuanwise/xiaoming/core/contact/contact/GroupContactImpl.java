@@ -18,24 +18,12 @@ public class GroupContactImpl extends XiaomingContactImpl<GroupMessage, Group> i
     public GroupContactImpl(XiaomingBot xiaomingBot, Group miraiContact) {
         super(xiaomingBot);
         this.miraiContact = miraiContact;
-        recentMessages = getXiaomingBot().getContactManager().getOrPutGroupRecentMessages(getCodeString());
+        this.recentMessages = getXiaomingBot().getContactManager().forGroupMessages(getCodeString());
     }
 
     @Override
     public GroupMessage send(MessageChain messages) {
-        return new GroupMessageImpl(getXiaomingBot().getReceptionistManager().getBotReceptionist().getOrPutGroupXiaomingUser(this,
-                getMember(getXiaomingBot().getMiraiBot().getId())),
+        return new GroupMessageImpl(getXiaomingBot().getReceptionistManager().getBotReceptionist().forGroup(getCode()),
                 miraiContact.sendMessage(messages).getSource().getOriginalMessage());
-    }
-
-    @Override
-    public void addRecentMessage(GroupMessage recentMessage) {
-        for (String tag : getTags()) {
-            final List<GroupMessage> list = getXiaomingBot().getContactManager().getOrPutGroupRecentMessages(tag);
-            synchronized (list) {
-                list.add(recentMessage);
-                list.notifyAll();
-            }
-        }
     }
 }

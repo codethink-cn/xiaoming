@@ -16,23 +16,11 @@ public class PrivateReceptionTaskImpl extends ReceptionTaskImpl implements Priva
     final PrivateXiaomingUser user;
     final List<PrivateMessage> recentMessages;
 
-    protected PrivateReceptionTaskImpl(PrivateXiaomingUser user, List<PrivateMessage> recentMessages) {
-        super(user.getReceptionist(), "reception-task[" + user.getCompleteName() + "]");
+    protected PrivateReceptionTaskImpl(PrivateXiaomingUser user, PrivateMessage message) {
+        super(user.getReceptionist(), "reception-task[" + user.getCompleteName() + "]", message);
         this.user = user;
         user.setReceptionTask(this);
-        this.recentMessages = recentMessages;
-    }
-
-    @Override
-    public void stop() {
-        busy = false;
-        running = false;
-
-        if (thread.isAlive()) {
-            thread.interrupt();
-        }
-
-        unregister();
+        this.recentMessages = getXiaomingBot().getContactManager().forPrivateMessages(user.getCodeString());
     }
 
     @Override

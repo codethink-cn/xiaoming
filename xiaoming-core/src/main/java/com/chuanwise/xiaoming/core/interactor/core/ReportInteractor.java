@@ -13,8 +13,8 @@ import java.util.Objects;
  */
 public class ReportInteractor extends CommandInteractorImpl {
     @Filter("反馈")
-    public void onMessage(XiaomingUser user) {
-        user.sendMessage("你遇到了什么问题，或有什么建议呢？赶快告诉小明吧 {}，" +
+    public void onReport(XiaomingUser user) {
+        user.sendMessage("你遇到了什么问题，或有什么建议呢？赶快告诉小明吧，" +
                 "当你说完了，告诉我「结束」就可以啦 {happy}");
 
         StringBuilder builder = new StringBuilder();

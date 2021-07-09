@@ -7,8 +7,8 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="xiaoming-example" />
         <module name="xiaoming-host" />
+        <module name="xiaoming-gui" />
         <module name="xiaoming-api" />
         <module name="xiaoming-core" />
       </profile>
@@ -17,8 +17,12 @@
       <module name="xiaoming-api" target="1.8" />
       <module name="xiaoming-bot" target="1.8" />
       <module name="xiaoming-core" target="1.8" />
+      <module name="xiaoming-device-info-collector" target="1.8" />
       <module name="xiaoming-example" target="1.8" />
+      <module name="xiaoming-gui" target="1.8" />
       <module name="xiaoming-host" target="1.8" />
+      <module name="xiaoming-host-graphical" target="1.8" />
+      <module name="xiaoming-host-terminal" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>

@@ -29,10 +29,10 @@ public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, Pr
     @Setter
     PrivateReceptionTask receptionTask;
 
-    public PrivateXiaomingUserImpl(PrivateContact contact, List<PrivateMessage> recentMessages) {
+    public PrivateXiaomingUserImpl(PrivateContact contact) {
         super(contact.getXiaomingBot(), contact.getCode());
         this.contact = contact;
-        this.recentMessages = recentMessages;
+        this.recentMessages = contact.getRecentMessages();
     }
 
     @Override
@@ -51,12 +51,6 @@ public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, Pr
             return;
         }
 
-        final List<PrivateMessage> recentMessages = getContact().getRecentMessages();
-        synchronized (recentMessages) {
-            recentMessages.add(message);
-            recentMessages.notifyAll();
-        }
-
         final Receptionist receptionist = getReceptionist();
         receptionist.setGlobalRecentMessages(list);
         synchronized (this) {
@@ -67,7 +61,7 @@ public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, Pr
             list.notifyAll();
         }
 
-        getOrPutAccount().addCommand(new PrivateCommandRecord(message.serialize()));
+        getAccount().addCommand(new PrivateCommandRecord(message.serialize()));
     }
 
     @Override

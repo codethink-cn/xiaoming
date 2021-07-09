@@ -1,7 +1,7 @@
 package com.chuanwise.xiaoming.api.response;
 
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
-import com.chuanwise.xiaoming.api.preserve.Preservable;
+import com.chuanwise.toolkit.preservable.Preservable;
 import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 import net.mamoe.mirai.contact.Group;
 

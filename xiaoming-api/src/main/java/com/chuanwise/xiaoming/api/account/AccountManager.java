@@ -9,16 +9,14 @@ import java.util.Objects;
 public interface AccountManager extends ModuleObject {
     File accountFile(long qq);
 
-    Account getAccount(long qq);
-
-    Account getOrPutAccount(long qq);
+    Account forAccount(long qq);
 
     File getDirectory();
 
     Map<Long, Account> getLoadedAccounts();
 
     default String getAliasOrCode(long qq) {
-        final Account account = getAccount(qq);
+        final Account account = forAccount(qq);
         if (Objects.isNull(account)) {
             return String.valueOf(qq);
         } else {
@@ -27,7 +25,7 @@ public interface AccountManager extends ModuleObject {
     }
 
     default String getAliasAndCode(long qq) {
-        final Account account = getAccount(qq);
+        final Account account = forAccount(qq);
         if (Objects.isNull(account)) {
             return String.valueOf(qq);
         } else {
@@ -40,7 +38,7 @@ public interface AccountManager extends ModuleObject {
             return true;
         }
 
-        final Account account = getAccount(qq);
+        final Account account = forAccount(qq);
         if (Objects.nonNull(account)) {
             if (Objects.equals("recorded", tag)) {
                 return true;

@@ -1,8 +1,8 @@
 package com.chuanwise.xiaoming.api.configuration;
 
+import com.chuanwise.toolkit.preservable.file.FilePreservable;
 import com.chuanwise.xiaoming.api.limit.CallLimitConfig;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
-import com.chuanwise.xiaoming.api.preserve.Preservable;
 
 import java.io.File;
 import java.util.Set;
@@ -10,7 +10,15 @@ import java.util.Set;
 /**
  * 小明配置文件数据
  */
-public interface Configuration extends Preservable<File>, XiaomingObject {
+public interface Configuration extends FilePreservable, XiaomingObject {
+    void setStorageDelType(DelType delType);
+
+    DelType getStorageDelType();
+
+    String getStorageEncoding();
+
+    void setStorageEncoding(String storageEncoding);
+
     boolean isDebug();
 
     boolean isEnablePreviewFunctions();
@@ -70,4 +78,16 @@ public interface Configuration extends Preservable<File>, XiaomingObject {
     String getClearCallGroupTag();
 
     void setClearCallGroupTag(String tag);
+
+    boolean isAutoAcceptFriendAddRequest();
+
+    void setAutoAcceptFriendAddRequest(boolean autoAcceptFriendAddRequest);
+
+    int getMaxMainThreadPoolSize();
+
+    void setMaxMainThreadPoolSize(int maxMainThreadPoolSize);
+
+    int getMaxReceptionThreadPoolSize();
+
+    void setMaxReceptionThreadPoolSize(int maxReceptionThreadPoolSize);
 }

@@ -1,12 +1,11 @@
 package com.chuanwise.xiaoming.api.contact.contact;
 
 import com.chuanwise.xiaoming.api.account.Account;
-import com.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import com.chuanwise.xiaoming.api.contact.message.MemberMessage;
 import com.chuanwise.xiaoming.api.contact.message.Message;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
-import com.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import com.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
+import com.chuanwise.xiaoming.api.user.MemberXiaomingUser;
 import com.chuanwise.xiaoming.api.util.ArgumentUtils;
 import net.mamoe.mirai.contact.MemberPermission;
 import net.mamoe.mirai.contact.NormalMember;
@@ -19,12 +18,8 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public interface MemberContact extends XiaomingContact<MemberMessage, NormalMember> {
-    default Account getOrPutAccount() {
-        return getXiaomingBot().getAccountManager().getOrPutAccount(getCode());
-    }
-
     default Account getAccount() {
-        return getXiaomingBot().getAccountManager().getAccount(getCode());
+        return getXiaomingBot().getAccountManager().forAccount(getCode());
     }
 
     @Override
@@ -136,5 +131,9 @@ public interface MemberContact extends XiaomingContact<MemberMessage, NormalMemb
 
     default ScheduableTask<MemberMessage> replyGroupLater(long delay, Message quote, MessageChain message) {
         return sendLater(delay, new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(message));
+    }
+
+    default MemberXiaomingUser getUser() {
+        return getXiaomingBot().getReceptionistManager().forReceptionist(getCode()).forMember(getGroupCode());
     }
 }

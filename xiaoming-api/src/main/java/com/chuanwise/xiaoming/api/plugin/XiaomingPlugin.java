@@ -2,9 +2,8 @@ package com.chuanwise.xiaoming.api.plugin;
 
 import com.chuanwise.xiaoming.api.language.Language;
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
-import com.chuanwise.xiaoming.api.preserve.Preservable;
+import com.chuanwise.toolkit.preservable.Preservable;
 import com.chuanwise.xiaoming.api.util.FileUtils;
-import org.jetbrains.annotations.TestOnly;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -86,13 +85,9 @@ public interface XiaomingPlugin extends XiaomingObject {
 
     void setProperty(PluginProperty property);
 
-    void setClassLoader(ClassLoader classLoader);
-
     File getDataFolder();
 
     void setDataFolder(File folder);
-
-    ClassLoader getClassLoader();
 
     default File getConfigurationFile() {
         return new File(getDataFolder(), CONFIGURATION_FILE_NAME);
@@ -102,26 +97,22 @@ public interface XiaomingPlugin extends XiaomingObject {
         if (!to.isFile()) {
             to.createNewFile();
         }
-        return FileUtils.copyResource(getClassLoader(), path, to);
+        return FileUtils.copyResource(getClass().getClassLoader(), path, to);
     }
 
     default boolean copyDefaultConfiguration() throws IOException {
         return copyResourceTo(CONFIGURATION_FILE_NAME, getConfigurationFile());
     }
 
-    Language loadLanguage(File file);
-
-    Language loadLanguageOrProduce(File file);
-
-    default <T extends Preservable<File>> T loadConfigurationAs(Class<T> clazz) {
+    default <T extends Preservable<File>> T loadConfigurationAs(Class<T> clazz) throws IOException {
         return loadFileAs(clazz, getConfigurationFile());
     }
 
-    default <T extends Preservable<File>> T loadFileAs(Class<T> clazz, File file) {
-        return getXiaomingBot().getFilePreservableFactory().load(clazz, file);
+    default <T extends Preservable<File>> T loadFileAs(Class<T> clazz, File file) throws IOException {
+        return getXiaomingBot().getFileLoader().load(clazz, file);
     }
 
-    default <T extends Preservable<File>> T loadFileAs(Class<T> clazz, String fileName) {
+    default <T extends Preservable<File>> T loadFileAs(Class<T> clazz, String fileName) throws IOException {
         return loadFileAs(clazz, new File(getDataFolder(), fileName));
     }
 
@@ -130,7 +121,7 @@ public interface XiaomingPlugin extends XiaomingObject {
     }
 
     default <T extends Preservable<File>> T loadFileOrProduce(Class<T> clazz, File file, Supplier<T> supplier) {
-        return getXiaomingBot().getFilePreservableFactory().loadOrProduce(clazz, file, supplier);
+        return getXiaomingBot().getFileLoader().loadOrSupplie(clazz, file, supplier);
     }
 
     default <T extends Preservable<File>> T loadFileOrProduce(Class<T> clazz, String fileName, Supplier<T> supplier) {

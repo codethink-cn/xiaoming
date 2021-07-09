@@ -21,25 +21,33 @@ public abstract class ReceptionTaskImpl extends ModuleObjectImpl implements Rece
     final Receptionist receptionist;
     final String identify;
 
+    Message message;
+
     Thread thread;
 
     volatile boolean busy = false;
     volatile boolean running = false;
 
-    protected ReceptionTaskImpl(Receptionist receptionist, String identify) {
+    protected ReceptionTaskImpl(Receptionist receptionist, String identify, Message message) {
         super(receptionist.getXiaomingBot());
         this.receptionist = receptionist;
         this.identify = identify;
+        this.message = message;
     }
 
     @Override
     public abstract XiaomingUser getUser();
 
-    public void recept(Message message) throws Exception {
-        getXiaomingBot().getInteractorManager().onInput(getUser(), message);
-    }
+    public void stop() {
+        if (busy && thread.isAlive()) {
+            thread.interrupt();
+        }
 
-    public abstract void stop();
+        busy = false;
+        running = false;
+
+        unregister();
+    }
 
     protected abstract void register();
 
@@ -53,14 +61,8 @@ public abstract class ReceptionTaskImpl extends ModuleObjectImpl implements Rece
 
         try {
             busy = true;
-            final List<? extends Message> list = getRecentMessages();
-            if (list.isEmpty()) {
-                getLog().error("在近期消息为空时启动了接待任务：" + identify);
-            } else {
-                recept(list.get(list.size() - 1));
-            }
-        } catch (ReceptCancelledException | InteractorTimeoutException exception) {
-        } catch (TimeoutCancellationException exception) {
+            getXiaomingBot().getInteractorManager().onInput(getUser(), message);
+        } catch (ReceptCancelledException | InteractorTimeoutException | TimeoutCancellationException exception) {
         } catch (Throwable throwable) {
             getLog().error("和用户" + user.getCompleteName() + "交互时出现异常", throwable);
             user.sendError("{internalError}");

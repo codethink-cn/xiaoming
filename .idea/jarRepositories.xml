@@ -2,9 +2,24 @@
 <project version="4">
   <component name="RemoteRepositoriesConfiguration">
     <remote-repository>
+      <option name="id" value="chuanwise-toolkit-api" />
+      <option name="name" value="chuanwise-toolkit-api" />
+      <option name="url" value="https://github.com/Chuanwise/chuanwise-toolkit" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="central" />
       <option name="name" value="Central Repository" />
       <option name="url" value="https://repo.maven.apache.org/maven2" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="chuanwise-toolkit-implement" />
+      <option name="name" value="chuanwise-toolkit-implement" />
+      <option name="url" value="https://github.com/Chuanwise/chuanwise-toolkit" />
+    </remote-repository>
+    <remote-repository>
+      <option name="id" value="chuanwise-toolkit" />
+      <option name="name" value="chuanwise-toolkit" />
+      <option name="url" value="https://github.com/Chuanwise/chuanwise-toolkit" />
     </remote-repository>
     <remote-repository>
       <option name="id" value="central" />

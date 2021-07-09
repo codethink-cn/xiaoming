@@ -1,8 +1,8 @@
 package com.chuanwise.xiaoming.core.configuration;
 
+import com.chuanwise.toolkit.preservable.file.FilePreservableImpl;
 import com.chuanwise.xiaoming.api.bot.XiaomingBot;
 import com.chuanwise.xiaoming.api.configuration.Statistician;
-import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,7 +12,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class StatisticianImpl extends JsonFilePreservable implements Statistician {
+public class StatisticianImpl extends FilePreservableImpl implements Statistician {
     volatile long callNumber = 0;
 
     List<RunRecord> runRecords = new LinkedList<>();

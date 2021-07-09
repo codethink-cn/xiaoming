@@ -27,16 +27,17 @@ public class SchedulerImpl extends ModuleObjectImpl implements Scheduler {
     Set<ScheduableTask<?>> runningTasks = new CopyOnWriteArraySet<>();
 
     @Getter
-    transient List<Runnable> finalTasks = new LinkedList<>();
+    transient final List<Runnable> finalTasks = new LinkedList<>();
 
     @Getter
-    transient ExecutorService threadPool = Executors.newCachedThreadPool();
+    transient final ExecutorService threadPool;
 
     @Getter
-    transient PreservableSaveTask preservableSaveTask = new PreservableSaveTaskImpl();
+    transient final PreservableSaveTask preservableSaveTask = new PreservableSaveTaskImpl();
 
     public SchedulerImpl(XiaomingBot xiaomingBot) {
         super(xiaomingBot);
+        this.threadPool = Executors.newFixedThreadPool(xiaomingBot.getConfiguration().getMaxMainThreadPoolSize());
     }
 
     protected <T> ScheduableTask<T> runImmediately(ScheduableTask<T> scheduableTask) {

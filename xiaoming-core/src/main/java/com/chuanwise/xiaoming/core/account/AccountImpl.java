@@ -1,17 +1,18 @@
 package com.chuanwise.xiaoming.core.account;
 
+import com.chuanwise.toolkit.preservable.file.FilePreservableImpl;
 import com.chuanwise.xiaoming.api.account.Account;
 import com.chuanwise.xiaoming.api.account.record.CommandRecord;
 import com.chuanwise.xiaoming.api.account.record.Record;
-import com.chuanwise.xiaoming.core.preserve.JsonFilePreservable;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.*;
+import java.util.function.Supplier;
 
 @Data
 @NoArgsConstructor
-public class AccountImpl extends JsonFilePreservable implements Account {
+public class AccountImpl extends FilePreservableImpl implements Account {
     long code;
     String alias;
 

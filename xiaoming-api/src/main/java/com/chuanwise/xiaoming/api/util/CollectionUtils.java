@@ -2,6 +2,7 @@ package com.chuanwise.xiaoming.api.util;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class CollectionUtils extends StaticUtils {
     /**
@@ -83,5 +84,14 @@ public class CollectionUtils extends StaticUtils {
 
     public static <T> Set<T> asSet(T... elements) {
         return addTo(Arrays.asList(elements), new HashSet<>(elements.length), element -> element);
+    }
+
+    public static <K, V> V getOrSupplie(Map<K, V> map, K key, Supplier<V> supplier) {
+        V v = map.get(key);
+        if (Objects.isNull(v)) {
+            v = supplier.get();
+            map.put(key, v);
+        }
+        return v;
     }
 }

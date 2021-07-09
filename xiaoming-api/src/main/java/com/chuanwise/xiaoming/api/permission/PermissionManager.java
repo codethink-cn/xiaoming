@@ -1,7 +1,7 @@
 package com.chuanwise.xiaoming.api.permission;
 
 import com.chuanwise.xiaoming.api.object.XiaomingObject;
-import com.chuanwise.xiaoming.api.preserve.Preservable;
+import com.chuanwise.toolkit.preservable.Preservable;
 import com.chuanwise.xiaoming.api.response.ResponseGroup;
 import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import com.chuanwise.xiaoming.api.user.XiaomingUser;

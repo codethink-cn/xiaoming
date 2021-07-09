@@ -17,34 +17,21 @@ public class GroupReceptionTaskImpl extends ReceptionTaskImpl implements GroupRe
     final GroupXiaomingUser user;
     final List<GroupMessage> recentMessages;
 
-    public GroupReceptionTaskImpl(GroupXiaomingUser user, List<GroupMessage> recentMessages) {
-        super(user.getReceptionist(), "reception-task[" + user.getCompleteName() + "]");
+    public GroupReceptionTaskImpl(GroupXiaomingUser user, GroupMessage message) {
+        super(user.getReceptionist(), "reception-task[" + user.getCompleteName() + "]", message);
         this.user = user;
         user.setReceptionTask(this);
-        this.recentMessages = recentMessages;
+        this.recentMessages = user.getRecentMessages();
     }
-
-    @Override
-    public void stop() {
-        busy = false;
-        running = false;
-
-        if (thread.isAlive()) {
-            thread.interrupt();
-        }
-
-        unregister();
-    }
-
     @Override
     protected void register() {
         thread = Thread.currentThread();
         thread.setName(identify);
-        receptionist.getGroupTasks().put(getUser().getGroupCodeString(), this);
+        receptionist.getGroupTasks().put(getUser().getGroupCode(), this);
     }
 
     @Override
     protected void unregister() {
-        receptionist.getGroupTasks().remove(user.getGroupCodeString());
+        receptionist.getGroupTasks().remove(user.getGroupCode());
     }
 }
