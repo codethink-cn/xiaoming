@@ -39,19 +39,17 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
         // 先和内核交互器交互
         boolean interacted = false;
 
+        // 设置群标记
+        if (user instanceof GroupXiaomingUser) {
+            user.setProperty("group", ((GroupXiaomingUser) user).getGroupCodeString());
+        }
+
         for (Interactor interactor : coreInteractors) {
             // 如果是指令交互器，且成功交互了
             if (interactorClass.isAssignableFrom(interactor.getClass()) &&
                     interactor.willInteract(user) &&
                     interactor.interact(user, message)) {
                 interacted = true;
-            }
-        }
-        // 如果在群里，但是本群没有启动小明，就退出
-        if (user instanceof GroupXiaomingUser) {
-            final ResponseGroup responseGroup = getXiaomingBot().getResponseGroupManager().forCode(((GroupXiaomingUser) user).getGroupCode());
-            if (Objects.isNull(responseGroup) || !responseGroup.hasTag("enable")) {
-                return interacted;
             }
         }
 

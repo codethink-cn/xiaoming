@@ -68,11 +68,11 @@ public abstract class FilterMatcher {
                 return equals(format);
             case ENDS_WITH:
                 return endsWith(format);
-            case ENDS_REGEX:
+            case ENDS_MATCHES:
                 return endsRegex(format);
             case STARTS_WITH:
                 return startsWith(format);
-            case STARTS_REGEX:
+            case STARTS_MATCHES:
                 return startsRegex(format);
             case PARAMETER:
                 return parameter(format);

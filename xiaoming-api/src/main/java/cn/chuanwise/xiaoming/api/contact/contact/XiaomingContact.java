@@ -2,7 +2,7 @@ package cn.chuanwise.xiaoming.api.contact.contact;
 
 import cn.chuanwise.utility.ArgumentUtility;
 import cn.chuanwise.xiaoming.api.object.XiaomingObject;
-import cn.chuanwise.xiaoming.api.utility.InteractorUtils;
+import cn.chuanwise.xiaoming.api.utility.InteractorUtility;
 import cn.chuanwise.xiaoming.api.contact.message.Message;
 import cn.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import net.mamoe.mirai.contact.Contact;
@@ -103,7 +103,7 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
     List<M> getRecentMessages();
 
     default M nextMessage(long timeout) {
-        return InteractorUtils.waitLastElement(getRecentMessages(), timeout);
+        return InteractorUtility.waitLastElement(getRecentMessages(), timeout);
     }
 
     default M nextMessage() {

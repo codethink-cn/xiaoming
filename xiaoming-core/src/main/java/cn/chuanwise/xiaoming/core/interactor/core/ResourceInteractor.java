@@ -7,7 +7,7 @@ import cn.chuanwise.xiaoming.api.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.api.resource.ResourceManager;
 import cn.chuanwise.xiaoming.api.user.XiaomingUser;
 import cn.chuanwise.xiaoming.api.utility.CommandWords;
-import cn.chuanwise.xiaoming.api.utility.InteractorUtils;
+import cn.chuanwise.xiaoming.api.utility.InteractorUtility;
 import cn.chuanwise.xiaoming.core.interactor.InteractorImpl;
 
 import java.util.Map;
@@ -50,7 +50,7 @@ public class ResourceInteractor extends InteractorImpl {
     public void onRemoveBefore(XiaomingUser user) {
         user.sendMessage("要删除多久之前的资源？");
 
-        final long before = TimeUtility.parseTimeLength(InteractorUtils.waitNextLegalInput(user, string -> {
+        final long before = TimeUtility.parseTimeLength(InteractorUtility.waitNextLegalInput(user, string -> {
             return TimeUtility.parseTimeLength(string) != -1;
         }, "「{last}」不是一个合理的时间哦").serialize());
 

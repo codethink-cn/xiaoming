@@ -45,7 +45,7 @@ public abstract class InteractorImpl extends PluginObjectImpl implements Interac
     @Override
     public final void initialize() {
         // 注册指令格式指令
-        if (!StringUtility.isEmpty(usageCommandFormat)) {
+        if (StringUtility.nonEmpty(usageCommandFormat)) {
             try {
                 final String format = usageCommandFormat;
                 register(getClass().getMethod("onUsage", XiaomingUser.class),

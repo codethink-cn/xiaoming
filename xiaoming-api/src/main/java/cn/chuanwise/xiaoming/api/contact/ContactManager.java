@@ -1,7 +1,7 @@
 package cn.chuanwise.xiaoming.api.contact;
 
 import cn.chuanwise.xiaoming.api.object.ModuleObject;
-import cn.chuanwise.xiaoming.api.utility.InteractorUtils;
+import cn.chuanwise.xiaoming.api.utility.InteractorUtility;
 import cn.chuanwise.utility.CollectionUtility;
 import cn.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import cn.chuanwise.xiaoming.api.contact.message.MemberMessage;
@@ -32,7 +32,7 @@ public interface ContactManager extends ModuleObject {
     Map<String, List<PrivateMessage>> getPrivateRecentMessages();
 
     default PrivateMessage nextPrivateMessage(String accountTag, long timeout) {
-        return InteractorUtils.waitLastElement(forPrivateMessages(accountTag), timeout);
+        return InteractorUtility.waitLastElement(forPrivateMessages(accountTag), timeout);
     }
 
     default List<PrivateMessage> forPrivateMessages(String accountTag) {
@@ -46,7 +46,7 @@ public interface ContactManager extends ModuleObject {
     }
 
     default GroupMessage nextGroupMessage(String groupTag, long timeout) {
-        return InteractorUtils.waitLastElement(forGroupMessages(groupTag), timeout);
+        return InteractorUtility.waitLastElement(forGroupMessages(groupTag), timeout);
     }
 
     default List<GroupMessage> forGroupMessages(String groupTag) {
@@ -58,7 +58,7 @@ public interface ContactManager extends ModuleObject {
     Map<String, Map<String, List<GroupMessage>>> getGroupMemberRecentMessages();
 
     default GroupMessage nextGroupMemberMessage(String groupTag, String accountTag, long timeout) {
-        return InteractorUtils.waitLastElement(forGroupMemberMessages(groupTag, accountTag), timeout);
+        return InteractorUtility.waitLastElement(forGroupMemberMessages(groupTag, accountTag), timeout);
     }
 
     default List<GroupMessage> forGroupMemberMessages(String groupTag, String accountTag) {
@@ -71,7 +71,7 @@ public interface ContactManager extends ModuleObject {
     Map<String, Map<String, List<MemberMessage>>> getMemberRecentMessages();
 
     default MemberMessage nextMemberMessage(String groupTag, String accountTag, long timeout) {
-        return InteractorUtils.waitLastElement(forMemberMessages(groupTag, accountTag), timeout);
+        return InteractorUtility.waitLastElement(forMemberMessages(groupTag, accountTag), timeout);
     }
 
     default List<MemberMessage> forMemberMessages(String groupTag, String accountTag) {

@@ -11,7 +11,7 @@ import cn.chuanwise.xiaoming.api.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.api.user.XiaomingUser;
 import cn.chuanwise.xiaoming.api.utility.AtUtils;
 import cn.chuanwise.xiaoming.api.utility.CommandWords;
-import cn.chuanwise.xiaoming.api.utility.InteractorUtils;
+import cn.chuanwise.xiaoming.api.utility.InteractorUtility;
 import cn.chuanwise.xiaoming.core.interactor.InteractorImpl;
 
 import java.util.Arrays;
@@ -41,7 +41,7 @@ public class AccountInteractor extends InteractorImpl {
             user.sendWarning(emptyHistory);
             return;
         }
-        InteractorUtils.showCollection(user, account.getCommands(), Record::getMessage, emptyHistory, 5);
+        InteractorUtility.showCollection(user, account.getCommands(), Record::getMessage, emptyHistory, 5);
     }
 
     @Filter(CommandWords.UNBLOCK + " {plugin}")
@@ -138,8 +138,8 @@ public class AccountInteractor extends InteractorImpl {
     }
 
     @Override
-    public <T> T onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
-        final Object result = super.onParameter(user, clazz, parameterName, currentValue, defaultValue);
+    public <T> T parseParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
+        final Object result = super.parseParameter(user, clazz, parameterName, currentValue, defaultValue);
         if (Objects.nonNull(result)) {
             return ((T) result);
         }

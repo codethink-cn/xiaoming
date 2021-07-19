@@ -22,15 +22,13 @@ import java.util.Objects;
  * @author Chuanwise
  */
 public class GlobalInteractor extends InteractorImpl {
-    public static final String ENABLE_TAG = "enable";
-
     public GlobalInteractor(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
     }
 
     @WhenExternal
     @Filter(CommandWords.USE + CommandWords.XIAOMING)
-    @Permission("enable")
+    @Permission("core.use")
     public void onUseXiaoming(XiaomingUser user) {
         final Configuration config = getXiaomingBot().getConfiguration();
         if (config.isEnableLicense()) {
@@ -93,10 +91,10 @@ public class GlobalInteractor extends InteractorImpl {
             getXiaomingBot().getScheduler().readySave(responseGroupManager);
         }
 
-        if (responseGroup.hasTag(ENABLE_TAG)) {
+        if (responseGroup.hasTag(getXiaomingBot().getConfiguration().getEnableGroupTag())) {
             user.sendWarning("本群已经是小明的响应群了哦");
         } else {
-            responseGroup.addTag(ENABLE_TAG);
+            responseGroup.addTag(getXiaomingBot().getConfiguration().getEnableGroupTag());
             user.sendMessage("成功在本群启用小明 (๑•̀ㅂ•́)و✧");
             getXiaomingBot().getScheduler().readySave(responseGroupManager);
         }
@@ -113,8 +111,8 @@ public class GlobalInteractor extends InteractorImpl {
             user.sendMessage("本群还不是小明的响应群哦");
         }
 
-        if (responseGroup.hasTag(ENABLE_TAG)) {
-            responseGroup.removeTag(ENABLE_TAG);
+        if (responseGroup.hasTag(getXiaomingBot().getConfiguration().getEnableGroupTag())) {
+            responseGroup.removeTag(getXiaomingBot().getConfiguration().getEnableGroupTag());
             user.sendMessage("本群不再是小明的响应群啦。未来希望启动小明输入「本群启动小明」就可以啦。");
         } else {
             user.sendWarning("本群曾是小明的响应群，但是现在还不是哦");

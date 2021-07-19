@@ -1,14 +1,11 @@
 package cn.chuanwise.xiaoming.api.interactor;
 
 import cn.chuanwise.utility.ArgumentUtility;
-import cn.chuanwise.utility.ObjectUtility;
 import cn.chuanwise.xiaoming.api.account.Account;
 import cn.chuanwise.xiaoming.api.account.record.CommandRecord;
 import cn.chuanwise.xiaoming.api.account.record.MemberCommandRecord;
 import cn.chuanwise.xiaoming.api.account.record.PrivateCommandRecord;
-import cn.chuanwise.xiaoming.api.annotation.Filter;
 import cn.chuanwise.xiaoming.api.annotation.FilterParameter;
-import cn.chuanwise.xiaoming.api.annotation.NonNext;
 import cn.chuanwise.xiaoming.api.command.CommandFormat;
 import cn.chuanwise.xiaoming.api.event.InteractorResponseEvent;
 import cn.chuanwise.xiaoming.api.interactor.filter.FilterMatcher;
@@ -100,7 +97,7 @@ public interface Interactor extends PluginObject {
             boolean isParameterFilter = filter instanceof ParameterFilterMatcher;
             Map<String, String> argumentValues = null;
             if (isParameterFilter) {
-                argumentValues = ((ParameterFilterMatcher) filter).getArgumentValue(user.getCode());
+                argumentValues = ((ParameterFilterMatcher) filter).getArgumentValues(user.getCode());
             }
 
             // 判断合法用户
@@ -145,7 +142,7 @@ public interface Interactor extends PluginObject {
                             arguments.add(ArgumentUtility.splitArgs(message.serialize()).toArray(new String[0]));
                             continue;
                         }
-                        final Object argument = onParameter(user, type, parameterName, parameterValue, defaultValue);
+                        final Object argument = parseParameter(user, type, parameterName, parameterValue, defaultValue);
                         if (Objects.nonNull(argument)) {
                             arguments.add(argument);
                         } else {
@@ -153,7 +150,7 @@ public interface Interactor extends PluginObject {
                         }
                     }
                 } else {
-                    final Object argument = onParameter(user, parameter);
+                    final Object argument = parseParameter(user, parameter);
                     if (Objects.nonNull(argument)) {
                         arguments.add(argument);
                     } else {
@@ -224,7 +221,10 @@ public interface Interactor extends PluginObject {
                 } catch (InvocationTargetException exception) {
                     final Throwable cause = exception.getCause();
                     if (Objects.nonNull(cause) && cause instanceof Exception) {
-                        throw (Exception) cause;
+                        final Exception causeException = (Exception) cause;
+                        if (!onThrowable(causeException)) {
+                            throw (Exception) cause;
+                        }
                     } else {
                         exception.printStackTrace();
                     }
@@ -236,8 +236,8 @@ public interface Interactor extends PluginObject {
     }
 
     /**
-     * 注册一个响应方法
-     * @param method 响应方法
+     * 注册一个交互方法
+     * @param method 交互方法
      * @return 是否注册成功
      */
     default void register(Method method) {
@@ -245,10 +245,9 @@ public interface Interactor extends PluginObject {
     }
 
     /**
-     * 注册一个指定权限和过滤器的响应函数
-     * @param method 响应函数
-     * @param permissions 所需权限
-     * @param matchers 过滤器
+     * 注册一个指定权限和过滤器的交互方法
+     * @param method 交互方法
+     * @param commandFormat 交互方法格式
      */
     default void register(Method method, CommandFormat commandFormat) {
         getMethodDetails().add(new InteractorMethodDetail(method, commandFormat));
@@ -260,7 +259,7 @@ public interface Interactor extends PluginObject {
      * @param parameter 无法自动注入的参数
      * @return 注入结果。如果为 {@code null} 则注入失败
      */
-    default Object onParameter(XiaomingUser user, Parameter parameter) {
+    default Object parseParameter(XiaomingUser user, Parameter parameter) {
         return null;
     }
 
@@ -273,7 +272,7 @@ public interface Interactor extends PluginObject {
      * @param defaultValue 默认值
      * @return 注入结果。如果为 {@code null} 则注入失败
      */
-    default <T> T onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
+    default <T> T parseParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
         Object result = null;
         user.setProperty("string", currentValue);
 
@@ -315,6 +314,10 @@ public interface Interactor extends PluginObject {
     }
 
     default void onIllegalUser(XiaomingUser user) {}
+
+    default boolean onThrowable(Throwable throwable) {
+        return false;
+    }
 
     /**
      * 获得用户可用的指令格式

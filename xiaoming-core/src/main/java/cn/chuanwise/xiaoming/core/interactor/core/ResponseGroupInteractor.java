@@ -139,7 +139,7 @@ public class ResponseGroupInteractor extends InteractorImpl {
             return;
         }
         ResponseGroup responseGroup = groupManager.forCode(group);
-        if (Objects.nonNull(responseGroup) && responseGroup.hasTag("enable")) {
+        if (Objects.nonNull(responseGroup) && responseGroup.hasTag(getXiaomingBot().getConfiguration().getEnableGroupTag())) {
             user.sendError("该群已经是小明的响应群了哦");
             return;
         } else if (Objects.isNull(responseGroup)) {
@@ -154,7 +154,7 @@ public class ResponseGroupInteractor extends InteractorImpl {
                 alreadyIn = true;
                 responseGroup = new ResponseGroupImpl(group, miraiBotGroup.getName());
             }
-            responseGroup.addTag("enable");
+            responseGroup.addTag(getXiaomingBot().getConfiguration().getEnableGroupTag());
             groupManager.addGroup(responseGroup);
             if (alreadyIn) {
                 user.sendMessage("成功将该群设置为小明的响应群。");
@@ -163,7 +163,7 @@ public class ResponseGroupInteractor extends InteractorImpl {
                 user.sendMessage("成功将该群设置为小明的响应群，但小明还不在这个群中。");
             }
         } else {
-            responseGroup.addTag("enable");
+            responseGroup.addTag(getXiaomingBot().getConfiguration().getEnableGroupTag());
             user.sendMessage("成功将该群设置为小明的响应群。");
         }
         getXiaomingBot().getScheduler().readySave(groupManager);

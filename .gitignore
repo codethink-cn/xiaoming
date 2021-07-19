@@ -24,7 +24,6 @@ hs_err_pid*
 
 /xiaoming-api/target/
 /xiaoming-core/target/
-/xiaoming-host/target/
 /accounts/
 /cache/
 /configurations/
@@ -34,11 +33,6 @@ hs_err_pid*
 /.idea/
 /xiaoming-api/src/test/
 /xiaoming-core/src/test/
-/xiaoming-host/src/test/
 /texts/
 /resources/
-/xiaoming-example/src/test/
-/xiaoming-example/src/main/resources/
 docs/_backup.md
-/xiaoming-gui/
-/xiaoming-device-info-collector/src/test/

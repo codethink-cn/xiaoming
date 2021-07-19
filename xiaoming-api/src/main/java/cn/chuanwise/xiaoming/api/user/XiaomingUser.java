@@ -15,7 +15,7 @@ import cn.chuanwise.xiaoming.api.permission.PermissionAccessible;
 import cn.chuanwise.xiaoming.api.recept.Receptionist;
 import cn.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import cn.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
-import cn.chuanwise.xiaoming.api.utility.InteractorUtils;
+import cn.chuanwise.xiaoming.api.utility.InteractorUtility;
 import cn.chuanwise.utility.CollectionUtility;
 import cn.chuanwise.utility.TimeUtility;
 import cn.chuanwise.xiaoming.api.recept.ReceptionTask;
@@ -292,7 +292,7 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     }
 
     default M nextInput(long timeout, Runnable onTimeout) {
-        final M lastElement = InteractorUtils.waitLastElement(getRecentMessages(), timeout, onTimeout);
+        final M lastElement = InteractorUtility.waitLastElement(getRecentMessages(), timeout, onTimeout);
         if (Objects.equals(lastElement.serialize(), "退出")) {
             sendMessage("退出成功");
             throw new ReceptCancelledException();
@@ -318,7 +318,7 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     }
 
     default PrivateMessage nextPrivateInput(long timeout, Runnable onTimeout) {
-        return InteractorUtils.waitLastElement(getReceptionist().forPrivateRecentMessages(), timeout, onTimeout);
+        return InteractorUtility.waitLastElement(getReceptionist().forPrivateRecentMessages(), timeout, onTimeout);
     }
 
     default PrivateMessage nextPrivateInput(Runnable onTimeout) {
@@ -338,7 +338,7 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     }
 
     default GroupMessage nextGroupInput(long timeout, String tag, Runnable onTimeout) {
-        return InteractorUtils.waitLastElement(getReceptionist().forGroupRecentMessages(tag), timeout, onTimeout);
+        return InteractorUtility.waitLastElement(getReceptionist().forGroupRecentMessages(tag), timeout, onTimeout);
     }
 
     default GroupMessage nextGroupInput(String tag, Runnable onTimeout) {

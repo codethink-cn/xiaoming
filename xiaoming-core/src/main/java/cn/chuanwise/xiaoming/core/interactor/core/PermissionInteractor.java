@@ -66,8 +66,8 @@ public class PermissionInteractor extends InteractorImpl {
     }
 
     @Override
-    public <T> T onParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
-        Object result = super.onParameter(user, clazz, parameterName, currentValue, defaultValue);
+    public <T> T parseParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, String defaultValue) {
+        Object result = super.parseParameter(user, clazz, parameterName, currentValue, defaultValue);
         if (Objects.nonNull(result)) {
             return ((T) result);
         }

@@ -9,7 +9,7 @@ import cn.chuanwise.xiaoming.api.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.api.configuration.Configuration;
 import cn.chuanwise.xiaoming.api.user.XiaomingUser;
 import cn.chuanwise.xiaoming.api.utility.CommandWords;
-import cn.chuanwise.xiaoming.api.utility.InteractorUtils;
+import cn.chuanwise.xiaoming.api.utility.InteractorUtility;
 import cn.chuanwise.xiaoming.core.interactor.InteractorImpl;
 
 import java.util.Objects;
@@ -58,7 +58,7 @@ public class ConfigurationInteractor extends InteractorImpl {
             user.sendMessage("{clearCallAlreadyEnabled}");
         } else {
             final Set<String> callPrefixs = configuration.getClearCallPrefixes();
-            InteractorUtils.fillStringCollection(user,
+            InteractorUtility.fillStringCollection(user,
                     user.replaceLanguage("theMessageBeginWithWitchElementsShouldBeNoticed"),
                     user.replaceLanguage("clearCallPrefixSet"), callPrefixs, false);
             configuration.setEnableClearCall(true);
@@ -91,7 +91,7 @@ public class ConfigurationInteractor extends InteractorImpl {
     public void onSetClearCallPrefix(XiaomingUser user) {
         final Set<String> clearCallPrefixes = configuration.getClearCallPrefixes();
         clearCallPrefixes.clear();
-        InteractorUtils.fillStringCollection(user, "以什么开头的消息需要被小明注意到呢", "明确调用消息头", clearCallPrefixes, false);
+        InteractorUtility.fillStringCollection(user, "以什么开头的消息需要被小明注意到呢", "明确调用消息头", clearCallPrefixes, false);
 
         getXiaomingBot().getScheduler().readySave(configuration);
         user.sendMessage("成功修改明确调用消息头为：" + CollectionUtility.toString(clearCallPrefixes, "、"));

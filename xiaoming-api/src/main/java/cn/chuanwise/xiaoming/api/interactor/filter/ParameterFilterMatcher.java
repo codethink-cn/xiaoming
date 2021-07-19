@@ -16,8 +16,9 @@ public class ParameterFilterMatcher extends RegexFilterMatcher {
     public static final String REMAIN_VARIABLE_REGEX = "[\\s\\S]+";
     public static final String NULLABLE_REMAIN_VARIABLE_REGEX = "[\\s\\S]*";
     public static final String SPACING = "\\s+";
+
     Set<String> parameterNames;
-    Map<Long, Map<String, String>> argumentValues = new ConcurrentHashMap<>();
+    Map<Long, Map<String, String>> allArgumentValues = new ConcurrentHashMap<>();
 
     public ParameterFilterMatcher(String format) {
         super(null);
@@ -126,20 +127,36 @@ public class ParameterFilterMatcher extends RegexFilterMatcher {
 
     @Override
     public boolean apply(XiaomingUser user, Message message) {
-        final Matcher matcher = pattern.matcher(message.serialize());
-        if (matcher.matches()) {
-            final Map<String, String> argumentValue = new HashMap<>();
-            for (String parameterName : parameterNames) {
-                argumentValue.put(parameterName, matcher.group(parameterName));
-            }
-            argumentValues.put(user.getCode(), argumentValue);
+        final Map<String, String> argumentValues = getArgumentValues(message.serialize());
+        if (Objects.isNull(argumentValues)) {
+            return false;
         }
-        return matcher.matches();
+
+        allArgumentValues.put(user.getCode(), argumentValues);
+        return true;
     }
 
-    public Map<String, String> getArgumentValue(long qq) {
-        final Map<String, String> argumentValue = argumentValues.get(qq);
-        argumentValues.remove(qq);
+    public boolean matches(String input) {
+        return pattern.matcher(input).matches();
+    }
+
+    public Map<String, String> getArgumentValues(String input) {
+        final Matcher matcher = pattern.matcher(input);
+        if (!matcher.matches()) {
+            return null;
+        }
+
+        final Map<String, String> argumentValues = new HashMap<>();
+        for (String parameterName : parameterNames) {
+            argumentValues.put(parameterName, matcher.group(parameterName));
+        }
+
+        return argumentValues;
+    }
+
+    public Map<String, String> getArgumentValues(long qq) {
+        final Map<String, String> argumentValue = allArgumentValues.get(qq);
+        allArgumentValues.remove(qq);
         return argumentValue;
     }
 }
