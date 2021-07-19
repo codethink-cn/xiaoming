@@ -11,6 +11,7 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 
+import java.beans.Transient;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArraySet;
@@ -119,6 +120,7 @@ public class SchedulerImpl extends ModuleObjectImpl implements Scheduler {
         return runLater(delay, task);
     }
 
+    @Transient
     @Override
     public Logger getLog() {
         return log;

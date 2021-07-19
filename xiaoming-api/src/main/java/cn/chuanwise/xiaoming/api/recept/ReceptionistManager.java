@@ -8,6 +8,7 @@ import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.GroupTempMessageEvent;
 import org.slf4j.Logger;
 
+import java.beans.Transient;
 import java.util.Map;
 
 public interface ReceptionistManager extends ModuleObject, EventListener {
@@ -55,6 +56,7 @@ public interface ReceptionistManager extends ModuleObject, EventListener {
      */
     Map<Long, Receptionist> getReceptionists();
 
+    @Transient
     @Override
     Logger getLog();
 

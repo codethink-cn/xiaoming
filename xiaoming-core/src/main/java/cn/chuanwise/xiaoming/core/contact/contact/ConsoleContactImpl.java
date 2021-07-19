@@ -27,6 +27,6 @@ public class ConsoleContactImpl extends XiaomingContactImpl<ConsoleMessage, Frie
     @Override
     public ConsoleMessage send(MessageChain messages) {
         log.info(messages.serializeToMiraiCode());
-        return new ConsoleMessageImpl(getXiaomingBot().getConsoleXiaomingUser(), messages);
+        return getXiaomingBot().getResourceManager().useResources(new ConsoleMessageImpl(getXiaomingBot().getConsoleXiaomingUser(), messages));
     }
 }

@@ -23,6 +23,7 @@ public class PrivateContactImpl extends XiaomingContactImpl<PrivateMessage, Frie
 
     @Override
     public PrivateMessage send(MessageChain messages) {
-        return new PrivateMessageImpl(getXiaomingBot().getReceptionistManager().getBotReceptionist().forPrivate(), miraiContact.sendMessage(messages).getSource().getOriginalMessage());
+        return getXiaomingBot().getResourceManager().useResources(new PrivateMessageImpl(getXiaomingBot().getReceptionistManager().getBotReceptionist().forPrivate(),
+                miraiContact.sendMessage(messages).getSource().getOriginalMessage()));
     }
 }

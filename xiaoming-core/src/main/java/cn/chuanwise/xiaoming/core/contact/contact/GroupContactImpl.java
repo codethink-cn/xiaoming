@@ -23,7 +23,7 @@ public class GroupContactImpl extends XiaomingContactImpl<GroupMessage, Group> i
 
     @Override
     public GroupMessage send(MessageChain messages) {
-        return new GroupMessageImpl(getXiaomingBot().getReceptionistManager().getBotReceptionist().forGroup(getCode()),
-                miraiContact.sendMessage(messages).getSource().getOriginalMessage());
+        return getXiaomingBot().getResourceManager().useResources(new GroupMessageImpl(getXiaomingBot().getReceptionistManager().getBotReceptionist().forGroup(getCode()),
+                miraiContact.sendMessage(messages).getSource().getOriginalMessage()));
     }
 }

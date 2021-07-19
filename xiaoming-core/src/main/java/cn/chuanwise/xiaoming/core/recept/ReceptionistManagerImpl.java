@@ -21,6 +21,7 @@ import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.GroupTempMessageEvent;
 import org.slf4j.Logger;
 
+import java.beans.Transient;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,6 +33,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Getter
 public class ReceptionistManagerImpl extends EventListenerImpl implements ReceptionistManager {
     @Override
+    @Transient
     public Logger getLog() {
         return log;
     }

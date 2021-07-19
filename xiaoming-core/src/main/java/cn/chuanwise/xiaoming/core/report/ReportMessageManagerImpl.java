@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 
+import java.beans.Transient;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -31,6 +32,7 @@ public class ReportMessageManagerImpl extends FilePreservableImpl implements Rep
         return ((List) reportMessages);
     }
 
+    @Transient
     @Override
     public Logger getLog() {
         return log;

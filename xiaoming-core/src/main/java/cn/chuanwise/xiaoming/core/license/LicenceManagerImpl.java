@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 
+import java.beans.Transient;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -18,6 +19,7 @@ import java.util.Map;
 public class LicenceManagerImpl extends FilePreservableImpl implements LicenseManager {
     transient XiaomingBot xiaomingBot;
 
+    @Transient
     @Override
     public Logger getLog() {
         return log;

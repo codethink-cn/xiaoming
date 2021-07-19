@@ -11,6 +11,7 @@ import net.mamoe.mirai.message.data.*;
 import net.mamoe.mirai.utils.ExternalResource;
 import org.slf4j.Logger;
 
+import java.beans.Transient;
 import java.io.*;
 import java.net.URL;
 import java.util.*;
@@ -19,7 +20,19 @@ import java.util.*;
 @Slf4j
 public class ResourceManagerImpl extends FilePreservableImpl implements ResourceManager {
     transient File imagesDirectory;
+
+    @Override
+    @Transient
+    public File getImagesDirectory() {
+        return imagesDirectory;
+    }
+
     transient File resourceDirectory;
+
+    @Transient
+    public File getResourceDirectory() {
+        return resourceDirectory;
+    }
 
     @Setter
     transient XiaomingBot xiaomingBot;
@@ -31,6 +44,7 @@ public class ResourceManagerImpl extends FilePreservableImpl implements Resource
         imagesDirectory.mkdirs();
     }
 
+    @Transient
     @Override
     public Logger getLog() {
         return log;

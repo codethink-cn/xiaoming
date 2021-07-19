@@ -199,7 +199,7 @@ public class XiaomingBotImpl implements XiaomingBot {
 
             if (!file.exists()) {
                 try {
-                    ResourceUtility.copyResource("language.json", file, false);
+                    ResourceUtility.copyResource(xiaomingClassLoader, "language.json", file, false);
                 } catch (IOException exception) {
                     log.error("不存在语言文件，且无法复制默认语言文件");
                 }
