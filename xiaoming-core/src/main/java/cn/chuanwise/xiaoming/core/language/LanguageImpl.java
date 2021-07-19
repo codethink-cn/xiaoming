@@ -15,7 +15,7 @@ public class LanguageImpl extends FilePreservableImpl implements Language {
     {
         values.put("happy", new ArrayList<>(Arrays.asList("(๑•̀ㅂ•́)و✧", "ヾ(^▽^*)))", "ヾ(•ω•`)o")));
 
-        values.put("warning", new ArrayList<>(Arrays.asList()));
+        values.put("warning", new ArrayList<>(Arrays.asList("(ノへ￣、)", "(っ °Д °;)っ", "(ﾟДﾟ*)ﾉ")));
 
         values.put("error", new ArrayList<>(Arrays.asList("(〃＞目＜)", "（＞人＜；）", "ヽ(*。>Д<)o゜", "(ﾟДﾟ*)ﾉ", "(ノ｀Д)ノ", "( ´･･)ﾉ(._.`)", "（；´д｀）ゞ")));
     }

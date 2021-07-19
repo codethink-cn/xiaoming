@@ -66,6 +66,6 @@ public class ReportMessageManagerImpl extends FilePreservableImpl implements Rep
             reportMessage = new ReportMessageImpl(user.getCode(), messages, throwable.toString());
         }
         addMessage(reportMessage);
-        getXiaomingBot().getResponseGroupManager().sendMessageToTaggedGroup("log", "发现一个新的异常报告");
+        getXiaomingBot().getGroupRecordManager().sendMessageToTaggedGroup("log", "发现一个新的异常报告");
     }
 }

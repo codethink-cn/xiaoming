@@ -1,6 +1,6 @@
-package cn.chuanwise.xiaoming.core.response;
+package cn.chuanwise.xiaoming.core.group;
 
-import cn.chuanwise.xiaoming.api.response.ResponseGroup;
+import cn.chuanwise.xiaoming.api.group.GroupRecord;
 import cn.chuanwise.xiaoming.core.object.XiaomingObjectImpl;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,27 +17,20 @@ import java.util.concurrent.CopyOnWriteArraySet;
  */
 @Getter
 @NoArgsConstructor
-public class ResponseGroupImpl extends XiaomingObjectImpl implements ResponseGroup {
+public class GroupRecordImpl extends XiaomingObjectImpl implements GroupRecord {
     long code;
     @Setter
     String alias;
 
-    Set<String> blockedPlugins = new CopyOnWriteArraySet<>();
-
     Set<String> tags = new CopyOnWriteArraySet<>();
 
-    public ResponseGroupImpl(long code, String alias) {
+    public GroupRecordImpl(long code, String alias) {
         this.code = code;
         this.alias = alias;
     }
 
-    public ResponseGroupImpl(long code) {
+    public GroupRecordImpl(long code) {
         this.code = code;
-    }
-
-    @Override
-    public boolean isBlockPlugin(String pluginName) {
-        return blockedPlugins.contains(pluginName);
     }
 
     public void setTags(Set<String> tags) {
@@ -49,17 +42,12 @@ public class ResponseGroupImpl extends XiaomingObjectImpl implements ResponseGro
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ResponseGroupImpl that = (ResponseGroupImpl) o;
+        GroupRecordImpl that = (GroupRecordImpl) o;
         return code == that.code;
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(code);
-    }
-
-    @Override
-    public void blockPlugin(String pluginName) {
-        blockedPlugins.add(pluginName);
     }
 }

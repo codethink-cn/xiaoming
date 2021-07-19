@@ -21,7 +21,7 @@ import cn.chuanwise.xiaoming.api.account.record.GroupCommandRecord;
 import cn.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.api.contact.message.Message;
 import cn.chuanwise.xiaoming.api.interactor.detail.InteractorMethodDetail;
-import cn.chuanwise.xiaoming.api.utility.AtUtils;
+import cn.chuanwise.xiaoming.api.utility.AtUtility;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -50,7 +50,7 @@ public interface Interactor extends PluginObject {
         final XiaomingPlugin plugin = getPlugin();
 
         // 检查是否屏蔽插件
-        return !Objects.nonNull(plugin) || !user.isBlockPlugin(plugin.getName());
+        return !Objects.nonNull(plugin) || !user.hasTag("plugin.block." + plugin.getName());
     }
 
     /**
@@ -79,6 +79,10 @@ public interface Interactor extends PluginObject {
                     filter = filterMatcher;
                     break;
                 }
+            }
+
+            if (Objects.isNull(filter)) {
+                continue;
             }
 
             // 判断是否为同意使用条例
@@ -278,7 +282,7 @@ public interface Interactor extends PluginObject {
 
         // 如果是 long 且为 qq
         if (long.class.isAssignableFrom(clazz) && "qq".equalsIgnoreCase(parameterName)) {
-            final long qq = AtUtils.parseQQ(currentValue);
+            final long qq = AtUtility.parseQQ(currentValue);
             if (qq == -1) {
                 user.sendError("{stringIsNotAIllegalQQ}");
                 result = null;
@@ -304,6 +308,13 @@ public interface Interactor extends PluginObject {
                 return (T) (Object) Long.parseLong(currentValue);
             } else {
                 user.sendError("「{group}」并不是一个有效的群号哦");
+            }
+        } else if (XiaomingPlugin.class.isAssignableFrom(clazz) && Objects.equals("plugin", parameterName)) {
+            final XiaomingPlugin plugin = getXiaomingBot().getPluginManager().getLoadedPlugin(currentValue);
+            if (Objects.isNull(plugin)) {
+                user.sendError("小明并没有加载插件「{plugin}」哦");
+            } else {
+                return ((T) plugin);
             }
         }
         return ((T) result);

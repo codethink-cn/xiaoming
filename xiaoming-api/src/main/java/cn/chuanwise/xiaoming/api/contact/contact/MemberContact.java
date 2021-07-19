@@ -2,7 +2,7 @@ package cn.chuanwise.xiaoming.api.contact.contact;
 
 import cn.chuanwise.utility.ArgumentUtility;
 import cn.chuanwise.xiaoming.api.account.Account;
-import cn.chuanwise.xiaoming.api.response.ResponseGroup;
+import cn.chuanwise.xiaoming.api.group.GroupRecord;
 import cn.chuanwise.xiaoming.api.contact.message.MemberMessage;
 import cn.chuanwise.xiaoming.api.contact.message.Message;
 import cn.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
@@ -55,8 +55,8 @@ public interface MemberContact extends XiaomingContact<MemberMessage, NormalMemb
         return this.getMiraiContact().getPermission();
     }
 
-    default ResponseGroup getResponseGroup() {
-        return getGroupContact().getResponseGroup();
+    default GroupRecord getGroupRecord() {
+        return getGroupContact().getGroupRecord();
     }
 
     default void mute(long timeMillis) {

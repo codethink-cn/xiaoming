@@ -470,26 +470,20 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         }
     }
 
-    /**
-     * 判断用户是否屏蔽了某插件
-     * @param pluginName 插件名
-     * @return 用户是否屏蔽。如果尚未存在该用户，则返回该用户是否有权限启动插件
-     */
-    default boolean isBlockPlugin(String pluginName) {
-        final Account account = getAccount();
-        if (Objects.nonNull(account)) {
-            return account.isBlockPlugin(pluginName);
-        } else {
-            return !hasPermission("enable." + pluginName);
-        }
-    }
-
     default Set<String> getTags() {
         return getXiaomingBot().getAccountManager().getTags(getCode());
     }
 
     default boolean hasTag(String tag) {
         return getXiaomingBot().getAccountManager().hasTag(getCode(), tag);
+    }
+
+    default void addTag(String tag) {
+        getAccount().addTag(tag);
+    }
+
+    default void removeTag(String tag) {
+        getAccount().removeTag(tag);
     }
 
     default String getAliasAndCode() {

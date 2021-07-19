@@ -5,7 +5,6 @@ import cn.chuanwise.xiaoming.api.contact.message.Message;
 import cn.chuanwise.xiaoming.api.interactor.InteractorManager;
 import cn.chuanwise.xiaoming.api.interactor.Interactor;
 import cn.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
-import cn.chuanwise.xiaoming.api.response.ResponseGroup;
 import cn.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.api.user.XiaomingUser;
 import cn.chuanwise.xiaoming.core.object.ModuleObjectImpl;
@@ -53,13 +52,19 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
             }
         }
 
+        // 如果本群没有启动小明就不管了
+        if (user instanceof GroupXiaomingUser && !((GroupXiaomingUser) user).getContact().hasTag(getXiaomingBot().getConfiguration().getEnableGroupTag())) {
+            return interacted;
+        }
+
         for (Map.Entry<XiaomingPlugin, Set<Interactor>> entry : pluginInteractors.entrySet()) {
             final XiaomingPlugin plugin = entry.getKey();
             final Set<Interactor> interactors = entry.getValue();
 
             // 用户没屏蔽，不在群里或者本群也没屏蔽
-            boolean usePlugin = !user.isBlockPlugin(plugin.getName()) &&
-                    (!(user instanceof GroupXiaomingUser) || !getXiaomingBot().getResponseGroupManager().forCode(((GroupXiaomingUser) user).getGroupCode()).isBlockPlugin(plugin.getName()));
+            boolean usePlugin = !user.hasTag("plugin.block." + plugin.getName()) &&
+                    (!(user instanceof GroupXiaomingUser) ||
+                            !getXiaomingBot().getGroupRecordManager().hasTag(((GroupXiaomingUser) user).getGroupCode(), "plugin.block." + plugin.getName()));
 
             if (usePlugin) {
                 for (Interactor interactor : interactors) {

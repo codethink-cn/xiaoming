@@ -4,12 +4,12 @@ import cn.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.api.contact.contact.MemberContact;
 import cn.chuanwise.xiaoming.api.contact.message.MemberMessage;
 import cn.chuanwise.xiaoming.api.recept.MemberReceptionTask;
-import cn.chuanwise.xiaoming.api.response.ResponseGroup;
+import cn.chuanwise.xiaoming.api.group.GroupRecord;
 import net.mamoe.mirai.message.code.MiraiCode;
 
 public interface MemberXiaomingUser extends XiaomingUser<MemberContact, MemberMessage, MemberReceptionTask> {
-    default ResponseGroup getResponseGroup() {
-        return getContact().getResponseGroup();
+    default GroupRecord getGroupRecord() {
+        return getContact().getGroupRecord();
     }
 
     void setReceptionTask(MemberReceptionTask task);

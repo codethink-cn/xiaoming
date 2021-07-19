@@ -13,7 +13,7 @@ import java.net.URLClassLoader;
  * 插件类加载器
  * @author Chuanwise
  */
-public class PluginLoaderUtils extends StaticUtility {
+public class PluginLoaderUtility extends StaticUtility {
     /**
      * 设立某个 jarFile 的 URLClassLoader
      * @param jarFile

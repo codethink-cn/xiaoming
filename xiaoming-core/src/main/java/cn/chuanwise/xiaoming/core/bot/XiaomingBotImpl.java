@@ -19,15 +19,15 @@ import cn.chuanwise.xiaoming.api.exception.XiaomingRuntimeException;
 import cn.chuanwise.xiaoming.api.language.Language;
 import cn.chuanwise.xiaoming.api.license.LicenseManager;
 import cn.chuanwise.xiaoming.api.plugin.XiaomingPlugin;
+import cn.chuanwise.xiaoming.api.group.GroupRecordManager;
 import cn.chuanwise.xiaoming.api.schedule.Scheduler;
 import cn.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import cn.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
-import cn.chuanwise.xiaoming.api.utility.PathUtils;
+import cn.chuanwise.xiaoming.api.utility.PathUtility;
 import cn.chuanwise.xiaoming.api.event.EventManager;
 import cn.chuanwise.xiaoming.api.limit.UserCallLimitManager;
 import cn.chuanwise.xiaoming.api.permission.PermissionManager;
 import cn.chuanwise.xiaoming.api.plugin.PluginManager;
-import cn.chuanwise.xiaoming.api.response.ResponseGroupManager;
 import cn.chuanwise.xiaoming.core.account.AccountManagerImpl;
 import cn.chuanwise.xiaoming.core.contact.ContactManagerImpl;
 import cn.chuanwise.xiaoming.core.contact.contact.ConsoleContactImpl;
@@ -35,7 +35,7 @@ import cn.chuanwise.xiaoming.core.report.ReportMessageManagerImpl;
 import cn.chuanwise.xiaoming.core.interactor.InteractorManagerImpl;
 import cn.chuanwise.xiaoming.core.interactor.core.*;
 import cn.chuanwise.xiaoming.core.license.LicenceManagerImpl;
-import cn.chuanwise.xiaoming.core.response.ResponseGroupManagerImpl;
+import cn.chuanwise.xiaoming.core.group.GroupRecordManagerImpl;
 import cn.chuanwise.xiaoming.core.thread.ConsoleInputThread;
 import cn.chuanwise.xiaoming.core.configuration.ConfigurationImpl;
 import cn.chuanwise.xiaoming.core.configuration.StatisticianImpl;
@@ -222,7 +222,7 @@ public class XiaomingBotImpl implements XiaomingBot {
                             log.info("在语言文件中添加了新的内容：" + key + " => " + value);
                         }
                     });
-                    getScheduler().readySave(language);
+                    language.save();
                 } else {
                     log.error("无法找到用以更新旧语言文件的默认语言文件");
                 }
@@ -260,14 +260,14 @@ public class XiaomingBotImpl implements XiaomingBot {
             accountManager = new AccountManagerImpl(this, accountDirectory);
         });
 
-        initializer.put("responseGroupManager", () -> {
+        initializer.put("groupRecordManager", () -> {
             final File file = new File(configurationDirectory, "groups.json");
             checkIfFileExistAndLog.accept(file, "响应群数据文件");
 
-            responseGroupManager = fileLoader
-                    .loadOrSupplie(ResponseGroupManagerImpl.class, file, ResponseGroupManagerImpl::new);
-            responseGroupManager.setXiaomingBot(this);
-            ((ResponseGroupManagerImpl) responseGroupManager).setGroups(((Set) responseGroupManager.getGroups()));
+            groupRecordManager = fileLoader
+                    .loadOrSupplie(GroupRecordManagerImpl.class, file, GroupRecordManagerImpl::new);
+            groupRecordManager.setXiaomingBot(this);
+            ((GroupRecordManagerImpl) groupRecordManager).setGroups(((Set) groupRecordManager.getGroups()));
         });
 
         initializer.put("receptionistManager", () -> {
@@ -372,7 +372,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         interactorManager.register(new CoreInteractor(this), null);
         interactorManager.register(new ConfigurationInteractor(this), null);
         interactorManager.register(new PermissionInteractor(this), null);
-        interactorManager.register(new ResponseGroupInteractor(this), null);
+        interactorManager.register(new GroupRecordInteractor(this), null);
         interactorManager.register(new LanguageIterator(this), null);
         interactorManager.denyCoreRegister();
 
@@ -431,6 +431,12 @@ public class XiaomingBotImpl implements XiaomingBot {
             throw new NoSuchBotException();
         }
 
+        // 翻译参数
+        final String property = System.getProperty("xiaoming.slider.captcha.supported");
+        if (Objects.nonNull(property)) {
+            System.setProperty("mirai.slider.captcha.supported", "");
+        }
+
         stop = false;
         initialize();
 
@@ -459,7 +465,7 @@ public class XiaomingBotImpl implements XiaomingBot {
      */
     void post() {
         if (configuration.isEnableStartLog()) {
-            responseGroupManager.sendMessageToTaggedGroup("log", "{xiaomingEnabled}");
+            groupRecordManager.sendMessageToTaggedGroup("log", "{xiaomingEnabled}");
         }
     }
 
@@ -467,7 +473,7 @@ public class XiaomingBotImpl implements XiaomingBot {
      * 统一权限管理器
      */
     @Setter
-    File configurationDirectory = PathUtils.CONFIG;
+    File configurationDirectory = PathUtility.CONFIG;
     PermissionManager permissionManager;
 
     Language language;
@@ -478,7 +484,7 @@ public class XiaomingBotImpl implements XiaomingBot {
      * 插件管理器
      */
     @Setter
-    File pluginDirectory = PathUtils.PLUGIN;
+    File pluginDirectory = PathUtility.PLUGIN;
     PluginManager pluginManager;
 
     /**
@@ -521,13 +527,13 @@ public class XiaomingBotImpl implements XiaomingBot {
      * 用户数据管理器
      */
     @Setter
-    File accountDirectory = PathUtils.ACCOUNT;
+    File accountDirectory = PathUtility.ACCOUNT;
     AccountManager accountManager;
 
     /**
      * 响应群管理器
      */
-    ResponseGroupManager responseGroupManager;
+    GroupRecordManager groupRecordManager;
 
     /**
      * 用户交互线程管理器
@@ -542,7 +548,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     /**
      * 本地资源管理器
      */
-    File resourceDirectory = PathUtils.RESOURCES;
+    File resourceDirectory = PathUtility.RESOURCES;
     ResourceManager resourceManager;
 
     /**
@@ -553,7 +559,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     /** 调度器 */
     Scheduler scheduler;
 
-    File logDirectory = PathUtils.LOG;
+    File logDirectory = PathUtility.LOG;
 
     /** 小明类加载器，用于加载插件及其相关配置文件 */
     XiaomingClassLoader xiaomingClassLoader = new XiaomingClassLoader(getClass().getClassLoader());

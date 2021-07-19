@@ -27,6 +27,7 @@ public class CommandWords extends StaticUtility {
             HELP = "(帮助|说明|help)",
             INFO = "(信息|info)",
             GROUP = "(群聊|群|group)",
+            RECORD = "(记录|record)",
             TAG = "(标记|tag)",
             PRIVATE = "(私聊|私|private)",
             INTERACTOR = "(交互器|interactor)",

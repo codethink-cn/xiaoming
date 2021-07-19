@@ -3,12 +3,14 @@ package cn.chuanwise.xiaoming.api.account;
 import cn.chuanwise.xiaoming.api.account.record.CommandRecord;
 import cn.chuanwise.xiaoming.api.account.record.Record;
 import cn.chuanwise.toolkit.preservable.Preservable;
+import cn.chuanwise.xiaoming.api.tag.TagHolder;
+
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public interface Account extends Preservable<File> {
+public interface Account extends Preservable<File>, TagHolder {
     default void addEvent(Record event) {
         getEvents().add(event);
     }
@@ -43,30 +45,4 @@ public interface Account extends Preservable<File> {
     void setCode(long code);
 
     void setAlias(String alias);
-
-    default boolean isBlockPlugin(String pluginName) {
-        return hasTag("plugin.block." + pluginName);
-    }
-
-    default void blockPlugin(String pluginName) {
-        addTag("plugin.block." + pluginName);
-    }
-
-    default void unblockPlugin(String pluginName) {
-        removeTag("plugin.block." + pluginName);
-    }
-
-    Set<String> getTags();
-
-    default void addTag(String tag) {
-        getTags().add(tag);
-    }
-
-    default void removeTag(String tag) {
-        getTags().remove(tag);
-    }
-
-    default boolean hasTag(String tag) {
-        return getTags().contains(tag);
-    }
 }

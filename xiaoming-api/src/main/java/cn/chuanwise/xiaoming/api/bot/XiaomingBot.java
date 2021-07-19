@@ -14,7 +14,7 @@ import cn.chuanwise.xiaoming.api.permission.PermissionManager;
 import cn.chuanwise.xiaoming.api.plugin.PluginManager;
 import cn.chuanwise.xiaoming.api.recept.ReceptionistManager;
 import cn.chuanwise.xiaoming.api.resource.ResourceManager;
-import cn.chuanwise.xiaoming.api.response.ResponseGroupManager;
+import cn.chuanwise.xiaoming.api.group.GroupRecordManager;
 import cn.chuanwise.xiaoming.api.user.ConsoleXiaomingUser;
 import cn.chuanwise.toolkit.preservable.file.FileLoader;
 import cn.chuanwise.toolkit.serialize.serializer.Serializer;
@@ -76,7 +76,7 @@ public interface XiaomingBot {
 
     AccountManager getAccountManager();
 
-    ResponseGroupManager getResponseGroupManager();
+    GroupRecordManager getGroupRecordManager();
 
     ReportMessageManager getReportMessageManager();
 
@@ -97,12 +97,4 @@ public interface XiaomingBot {
     Serializer getCoreSerializer();
 
     Serializer getSerializer();
-
-    File getPluginDirectory();
-
-    File getConfigurationDirectory();
-
-    File getResourceDirectory();
-
-    File getAccountDirectory();
 }

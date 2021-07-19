@@ -7,7 +7,7 @@ import cn.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import cn.chuanwise.xiaoming.api.contact.message.MemberMessage;
 import cn.chuanwise.xiaoming.api.contact.message.Message;
 import cn.chuanwise.xiaoming.api.recept.GroupReceptionTask;
-import cn.chuanwise.xiaoming.api.response.ResponseGroup;
+import cn.chuanwise.xiaoming.api.group.GroupRecord;
 import cn.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
@@ -25,8 +25,8 @@ public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessa
 
     void setReceptionTask(GroupReceptionTask receptionTask);
 
-    default ResponseGroup getResponseGroup() {
-        return getContact().getResponseGroup();
+    default GroupRecord getGroupRecord() {
+        return getContact().getGroupRecord();
     }
 
     default GroupMessage atReply(Message quote, String message) {

@@ -1,7 +1,7 @@
 package cn.chuanwise.xiaoming.api.permission;
 
 import cn.chuanwise.xiaoming.api.object.XiaomingObject;
-import cn.chuanwise.xiaoming.api.response.ResponseGroup;
+import cn.chuanwise.xiaoming.api.group.GroupRecord;
 import cn.chuanwise.toolkit.preservable.Preservable;
 import cn.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.api.user.XiaomingUser;
@@ -156,9 +156,9 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
         return PermissionAccessible.UNKNOWN;
     }
 
-    default PermissionAccessible groupAccessible(ResponseGroup responseGroup, PermissionGroup permissionGroup, String require) {
+    default PermissionAccessible groupAccessible(GroupRecord groupRecord, PermissionGroup permissionGroup, String require) {
         // 先检测是否有专属 tag
-        final String codeTag = String.valueOf(responseGroup.getCode());
+        final String codeTag = String.valueOf(groupRecord.getCode());
         final PermissionAccessible codeTagAccessible = permissionGroupAccessible(permissionGroup, codeTag, require);
         if (codeTagAccessible != PermissionAccessible.UNKNOWN) {
             return codeTagAccessible;
@@ -171,7 +171,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
         }
 
         // 再查查真正的 tag
-        final Set<String> tags = responseGroup.getTags();
+        final Set<String> tags = groupRecord.getTags();
         for (String tag : tags) {
             final PermissionAccessible tagAccessible = permissionGroupAccessible(permissionGroup, tag, require);
             if (tagAccessible != PermissionAccessible.UNKNOWN) {
@@ -187,8 +187,8 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
             return accessible;
         }
 
-        final ResponseGroup responseGroup = getXiaomingBot().getResponseGroupManager().forCode(group);
-        if (Objects.isNull(responseGroup)) {
+        final GroupRecord groupRecord = getXiaomingBot().getGroupRecordManager().forCode(group);
+        if (Objects.isNull(groupRecord)) {
             // 检查 code tag
             final String codeTag = group + "";
             final PermissionAccessible codeTagAccessible = permissionGroupAccessible(permissionGroup, codeTag, require);
@@ -201,7 +201,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
             final PermissionAccessible unrecordedAccessible = permissionGroupAccessible(permissionGroup, unrecordedTag, require);
             return unrecordedAccessible;
         } else {
-            return groupAccessible(responseGroup, permissionGroup, require);
+            return groupAccessible(groupRecord, permissionGroup, require);
         }
     }
 

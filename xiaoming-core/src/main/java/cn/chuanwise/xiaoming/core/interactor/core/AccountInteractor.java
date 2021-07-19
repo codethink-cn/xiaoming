@@ -9,7 +9,7 @@ import cn.chuanwise.xiaoming.api.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.api.annotation.Permission;
 import cn.chuanwise.xiaoming.api.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.api.user.XiaomingUser;
-import cn.chuanwise.xiaoming.api.utility.AtUtils;
+import cn.chuanwise.xiaoming.api.utility.AtUtility;
 import cn.chuanwise.xiaoming.api.utility.CommandWords;
 import cn.chuanwise.xiaoming.api.utility.InteractorUtility;
 import cn.chuanwise.xiaoming.core.interactor.InteractorImpl;
@@ -49,12 +49,12 @@ public class AccountInteractor extends InteractorImpl {
     public void onUnblockPlugin(XiaomingUser user,
                                 @FilterParameter("plugin") String plugin) {
         final Account account = accountManager.forAccount(user.getCode());
-        if (account.isBlockPlugin(plugin)) {
+        if (account.hasTag("plugin.block." + plugin)) {
             if (getXiaomingBot().getPluginManager().isLoaded(plugin)) {
                 user.sendError("小明没有加载插件：{}", plugin);
             }
             if (user.hasPermission("use." + plugin)) {
-                account.unblockPlugin(plugin);
+                account.removeTag("plugin.block." + plugin);
                 getXiaomingBot().getScheduler().readySave(account);
                 user.sendMessage("成功取消屏蔽了插件：{}", plugin);
             } else {
@@ -70,13 +70,13 @@ public class AccountInteractor extends InteractorImpl {
     public void onBlockPlugin(XiaomingUser user,
                               @FilterParameter("plugin") String plugin) {
         final Account account = accountManager.forAccount(user.getCode());
-        if (account.isBlockPlugin(plugin)) {
+        if (account.hasTag("plugin.block." + plugin)) {
             user.sendError("你已经屏蔽了插件：{}", plugin);
         } else {
             if (getXiaomingBot().getPluginManager().isLoaded(plugin)) {
                 user.sendError("小明没有加载插件：{}", plugin);
             }
-            account.blockPlugin(plugin);
+            account.addTag("plugin.block." + plugin);
             user.sendError("成功屏蔽了插件：{}", plugin);
         }
     }
@@ -144,7 +144,7 @@ public class AccountInteractor extends InteractorImpl {
             return ((T) result);
         }
         if (clazz.isAssignableFrom(Account.class) && Objects.equals("qq", currentValue)) {
-            final long qq = AtUtils.parseQQ(currentValue);
+            final long qq = AtUtility.parseQQ(currentValue);
             if (qq == -1) {
                 user.sendError("「{qq}」并不是一个合理的 QQ 哦");
                 return null;

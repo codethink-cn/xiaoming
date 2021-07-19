@@ -1,10 +1,12 @@
 package cn.chuanwise.xiaoming.api.contact.contact;
 
 import cn.chuanwise.utility.ArgumentUtility;
+import cn.chuanwise.utility.CollectionUtility;
 import cn.chuanwise.xiaoming.api.contact.ContactManager;
-import cn.chuanwise.xiaoming.api.response.ResponseGroup;
+import cn.chuanwise.xiaoming.api.group.GroupRecord;
 import cn.chuanwise.xiaoming.api.contact.message.GroupMessage;
 import cn.chuanwise.xiaoming.api.contact.message.Message;
+import cn.chuanwise.xiaoming.api.group.GroupRecordManager;
 import cn.chuanwise.xiaoming.api.schedule.async.AsyncResult;
 import cn.chuanwise.xiaoming.api.schedule.task.ScheduableTask;
 import net.mamoe.mirai.contact.*;
@@ -67,12 +69,13 @@ public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
         return atReplayLater(delay, quote, message.getMessageChain());
     }
 
-    default ResponseGroup getResponseGroup() {
-        return getXiaomingBot().getResponseGroupManager().forCode(getCode());
-    }
-
-    default Set<String> getTags() {
-        return getXiaomingBot().getResponseGroupManager().getTags(getCode());
+    default GroupRecord getGroupRecord() {
+        final GroupRecordManager groupRecordManager = getXiaomingBot().getGroupRecordManager();
+        GroupRecord groupRecord = groupRecordManager.forCode(getCode());
+        if (Objects.isNull(groupRecord)) {
+            groupRecord = groupRecordManager.addGroup(getCode(), getName());
+        }
+        return groupRecord;
     }
 
     @Override
@@ -92,8 +95,8 @@ public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
 
     @Override
     default String getAlias() {
-        final ResponseGroup responseGroup = getResponseGroup();
-        return Objects.nonNull(responseGroup) ? responseGroup.getAlias() : getName();
+        final GroupRecord groupRecord = getGroupRecord();
+        return Objects.nonNull(groupRecord) ? groupRecord.getAlias() : getName();
     }
 
     /**
@@ -137,6 +140,18 @@ public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
     }
 
     default boolean hasTag(String tag) {
-        return getTags().contains(tag);
+        return getXiaomingBot().getGroupRecordManager().hasTag(getCode(), tag);
+    }
+
+    default void addTag(String tag) {
+        getGroupRecord().addTag(tag);
+    }
+
+    default void removeTag(String tag) {
+        getGroupRecord().removeTag(tag);
+    }
+
+    default Set<String> getTags() {
+        return getXiaomingBot().getGroupRecordManager().getTags(getCode());
     }
 }

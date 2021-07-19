@@ -5,7 +5,7 @@ import cn.chuanwise.utility.StaticUtility;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class AtUtils extends StaticUtility {
+public class AtUtility extends StaticUtility {
     private static final Pattern AT_CATCODE_PATTERN = Pattern.compile("\\[mirai:at:(?<qq>\\d+)\\]");
 
     public static long parseQQ(String miraiCode) {

@@ -225,7 +225,7 @@ public class CoreInteractor extends InteractorImpl {
                 final XiaomingPlugin plugin = entry.getKey();
                 final Set<Interactor> interactors = entry.getValue();
 
-                if (!user.isBlockPlugin(plugin.getName())) {
+                if (!user.hasTag("plugin.block." + plugin.getName())) {
                     printWriter.println("\n" + plugin.getAlias() + "：");
 
                     List<String> pluginCommands = new LinkedList<>();

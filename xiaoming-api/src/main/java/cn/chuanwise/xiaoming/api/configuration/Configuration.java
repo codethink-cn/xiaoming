@@ -58,6 +58,10 @@ public interface Configuration extends FilePreservable, XiaomingObject {
 
     void setEnableGroupTag(String enableGroupTag);
 
+    String getBlockPluginTagPrefix();
+
+    void setBlockPluginTagPrefix(String blockPluginTagPrefix);
+
     CallLimitConfig getGroupCallConfig();
 
     CallLimitConfig getPrivateCallConfig();

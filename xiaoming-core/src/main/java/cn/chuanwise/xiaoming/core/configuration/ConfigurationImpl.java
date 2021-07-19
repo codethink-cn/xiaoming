@@ -68,4 +68,6 @@ public class ConfigurationImpl extends FilePreservableImpl implements Configurat
     String enableGroupTag = "enable";
     String quietModeGroupTag = "quiet";
     String clearCallGroupTag = "clear-call";
+
+    String blockPluginTagPrefix = "plugin.block.";
 }

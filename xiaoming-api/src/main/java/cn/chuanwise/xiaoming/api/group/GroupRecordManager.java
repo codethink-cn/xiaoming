@@ -1,4 +1,4 @@
-package cn.chuanwise.xiaoming.api.response;
+package cn.chuanwise.xiaoming.api.group;
 
 import cn.chuanwise.utility.ArgumentUtility;
 import cn.chuanwise.xiaoming.api.object.XiaomingObject;
@@ -14,29 +14,29 @@ import java.util.Set;
 /**
  * 响应群管理器
  */
-public interface ResponseGroupManager extends XiaomingObject, Preservable<File> {
-    default ResponseGroup forCode(long group) {
-        for (ResponseGroup responseGroup : getGroups()) {
-            if (responseGroup.getCode() == group) {
-                return responseGroup;
+public interface GroupRecordManager extends XiaomingObject, Preservable<File> {
+    default GroupRecord forCode(long group) {
+        for (GroupRecord groupRecord : getGroups()) {
+            if (groupRecord.getCode() == group) {
+                return groupRecord;
             }
         }
         return null;
     }
 
-    default ResponseGroup addTag(long group, String alias, String tag) {
-        ResponseGroup responseGroup = forCode(group);
-        if (Objects.isNull(responseGroup)) {
-            responseGroup = addGroup(group, alias);
+    default GroupRecord addTag(long group, String alias, String tag) {
+        GroupRecord groupRecord = forCode(group);
+        if (Objects.isNull(groupRecord)) {
+            groupRecord = addGroup(group, alias);
         }
-        responseGroup.addTag(tag);
-        return responseGroup;
+        groupRecord.addTag(tag);
+        return groupRecord;
     }
 
     default boolean hasTag(long group, String tag) {
-        final ResponseGroup responseGroup = forCode(group);
-        if (Objects.nonNull(responseGroup)) {
-            return responseGroup.hasTag(tag);
+        final GroupRecord groupRecord = forCode(group);
+        if (Objects.nonNull(groupRecord)) {
+            return groupRecord.hasTag(tag);
         } else {
             return Objects.equals(group + "", tag) || Objects.equals(tag, "unrecorded");
         }
@@ -47,9 +47,9 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
      * @param tag 若干个标记
      * @return 群
      */
-    default Set<ResponseGroup> forTag(String tag) {
-        Set<ResponseGroup> result = new HashSet<>();
-        for (ResponseGroup group : getGroups()) {
+    default Set<GroupRecord> forTag(String tag) {
+        Set<GroupRecord> result = new HashSet<>();
+        for (GroupRecord group : getGroups()) {
             if (group.hasTag(tag)) {
                 result.add(group);
             }
@@ -58,9 +58,9 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
     }
 
     default Set<String> getTags(long group) {
-        final ResponseGroup responseGroup = forCode(group);
-        if (Objects.nonNull(responseGroup)) {
-            return responseGroup.getTags();
+        final GroupRecord groupRecord = forCode(group);
+        if (Objects.nonNull(groupRecord)) {
+            return groupRecord.getTags();
         } else {
             Set<String> result = new HashSet<>();
             result.add(String.valueOf(group));
@@ -69,9 +69,9 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
         }
     }
 
-    ResponseGroup addGroup(long group, String alias);
+    GroupRecord addGroup(long group, String alias);
 
-    default ResponseGroup addGroup(ResponseGroup group) {
+    default GroupRecord addGroup(GroupRecord group) {
         getGroups().add(group);
         group.setXiaomingBot(getXiaomingBot());
         group.addTag("recorded");
@@ -79,18 +79,18 @@ public interface ResponseGroupManager extends XiaomingObject, Preservable<File> 
         return group;
     }
 
-    Set<ResponseGroup> getGroups();
+    Set<GroupRecord> getGroups();
 
     default String getAliasAndCode(long group) {
-        final ResponseGroup responseGroup = forCode(group);
-        return Objects.nonNull(responseGroup) ? responseGroup.getAliasAndCode() : String.valueOf(group);
+        final GroupRecord groupRecord = forCode(group);
+        return Objects.nonNull(groupRecord) ? groupRecord.getAliasAndCode() : String.valueOf(group);
     }
 
     default void sendMessageToTaggedGroup(String tag, String message) {
         final Map<String, Object> values = getXiaomingBot().getLanguage().getValues();
         message = ArgumentUtility.replaceArguments(message, values, getXiaomingBot().getConfiguration().getMaxIterateTime());
-        for (ResponseGroup responseGroup : getXiaomingBot().getResponseGroupManager().forTag(tag)) {
-            final Group group = getXiaomingBot().getMiraiBot().getGroup(responseGroup.getCode());
+        for (GroupRecord groupRecord : getXiaomingBot().getGroupRecordManager().forTag(tag)) {
+            final Group group = getXiaomingBot().getMiraiBot().getGroup(groupRecord.getCode());
             if (Objects.nonNull(group)) {
                 group.sendMessage(message);
             }

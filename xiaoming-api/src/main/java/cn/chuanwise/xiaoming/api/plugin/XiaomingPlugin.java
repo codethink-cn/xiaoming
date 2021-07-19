@@ -1,10 +1,10 @@
 package cn.chuanwise.xiaoming.api.plugin;
 
 import cn.chuanwise.exception.UnsupportedOperationVersion;
+import cn.chuanwise.utility.ResourceUtility;
 import cn.chuanwise.xiaoming.api.language.Language;
 import cn.chuanwise.xiaoming.api.object.XiaomingObject;
 import cn.chuanwise.toolkit.preservable.Preservable;
-import cn.chuanwise.xiaoming.api.utility.FileUtils;
 import org.slf4j.Logger;
 
 import java.io.File;
@@ -98,7 +98,7 @@ public interface XiaomingPlugin extends XiaomingObject {
         if (!to.isFile()) {
             to.createNewFile();
         }
-        return FileUtils.copyResource(getClass().getClassLoader(), path, to);
+        return ResourceUtility.copyResource(getClass().getClassLoader(), path, to);
     }
 
     default boolean copyDefaultConfiguration() throws IOException {

@@ -112,7 +112,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
         // 如果本群是启动明确调用的群
         // 检查明确调用
         String callContent = null;
-        if (configuration.isEnableClearCall() && getXiaomingBot().getResponseGroupManager().hasTag(event.getGroup().getId(), configuration.getClearCallGroupTag())) {
+        if (configuration.isEnableClearCall() && getXiaomingBot().getGroupRecordManager().hasTag(event.getGroup().getId(), configuration.getClearCallGroupTag())) {
             for (String prefix : configuration.getClearCallPrefixes()) {
                 if (message.startsWith(prefix) && message.length() > prefix.length()) {
                     callContent = message.substring(prefix.length());

@@ -7,12 +7,12 @@ import cn.chuanwise.xiaoming.api.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.api.configuration.Configuration;
 import cn.chuanwise.xiaoming.api.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.api.license.LicenseManager;
-import cn.chuanwise.xiaoming.api.response.ResponseGroup;
-import cn.chuanwise.xiaoming.api.response.ResponseGroupManager;
+import cn.chuanwise.xiaoming.api.group.GroupRecord;
+import cn.chuanwise.xiaoming.api.group.GroupRecordManager;
 import cn.chuanwise.xiaoming.api.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.api.user.XiaomingUser;
 import cn.chuanwise.xiaoming.api.utility.CommandWords;
-import cn.chuanwise.xiaoming.core.response.ResponseGroupImpl;
+import cn.chuanwise.xiaoming.core.group.GroupRecordImpl;
 import cn.chuanwise.xiaoming.core.interactor.InteractorImpl;
 
 import java.util.Objects;
@@ -82,21 +82,21 @@ public class GlobalInteractor extends InteractorImpl {
     @Permission("group.enable")
     public void onEnableXiaoming(GroupXiaomingUser user) {
         final GroupContact contact = user.getContact();
-        final ResponseGroupManager responseGroupManager = getXiaomingBot().getResponseGroupManager();
+        final GroupRecordManager groupRecordManager = getXiaomingBot().getGroupRecordManager();
 
-        ResponseGroup responseGroup = responseGroupManager.forCode(contact.getCode());
-        if (Objects.isNull(responseGroup)) {
-            responseGroup = new ResponseGroupImpl(contact.getCode(), contact.getName());
-            responseGroupManager.addGroup(responseGroup);
-            getXiaomingBot().getScheduler().readySave(responseGroupManager);
+        GroupRecord groupRecord = groupRecordManager.forCode(contact.getCode());
+        if (Objects.isNull(groupRecord)) {
+            groupRecord = new GroupRecordImpl(contact.getCode(), contact.getName());
+            groupRecordManager.addGroup(groupRecord);
+            getXiaomingBot().getScheduler().readySave(groupRecordManager);
         }
 
-        if (responseGroup.hasTag(getXiaomingBot().getConfiguration().getEnableGroupTag())) {
+        if (groupRecord.hasTag(getXiaomingBot().getConfiguration().getEnableGroupTag())) {
             user.sendWarning("本群已经是小明的响应群了哦");
         } else {
-            responseGroup.addTag(getXiaomingBot().getConfiguration().getEnableGroupTag());
+            groupRecord.addTag(getXiaomingBot().getConfiguration().getEnableGroupTag());
             user.sendMessage("成功在本群启用小明 (๑•̀ㅂ•́)و✧");
-            getXiaomingBot().getScheduler().readySave(responseGroupManager);
+            getXiaomingBot().getScheduler().readySave(groupRecordManager);
         }
     }
 
@@ -104,19 +104,19 @@ public class GlobalInteractor extends InteractorImpl {
     @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.DISABLE + CommandWords.XIAOMING)
     @Permission("group.disable")
     public void onDisableXiaoming(GroupXiaomingUser user) {
-        final ResponseGroupManager responseGroupManager = getXiaomingBot().getResponseGroupManager();
+        final GroupRecordManager groupRecordManager = getXiaomingBot().getGroupRecordManager();
 
-        ResponseGroup responseGroup = user.getResponseGroup();
-        if (Objects.isNull(responseGroup)) {
+        GroupRecord groupRecord = user.getGroupRecord();
+        if (Objects.isNull(groupRecord)) {
             user.sendMessage("本群还不是小明的响应群哦");
         }
 
-        if (responseGroup.hasTag(getXiaomingBot().getConfiguration().getEnableGroupTag())) {
-            responseGroup.removeTag(getXiaomingBot().getConfiguration().getEnableGroupTag());
+        if (groupRecord.hasTag(getXiaomingBot().getConfiguration().getEnableGroupTag())) {
+            groupRecord.removeTag(getXiaomingBot().getConfiguration().getEnableGroupTag());
             user.sendMessage("本群不再是小明的响应群啦。未来希望启动小明输入「本群启动小明」就可以啦。");
         } else {
             user.sendWarning("本群曾是小明的响应群，但是现在还不是哦");
-            getXiaomingBot().getScheduler().readySave(responseGroupManager);
+            getXiaomingBot().getScheduler().readySave(groupRecordManager);
         }
     }
 }

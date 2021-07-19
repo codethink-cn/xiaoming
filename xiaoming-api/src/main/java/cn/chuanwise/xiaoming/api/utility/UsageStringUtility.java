@@ -14,7 +14,7 @@ public class UsageStringUtility extends StaticUtility {
 
     public static String translateUsageRegex(String format) {
         final StringBuilder builder = new StringBuilder(format
-                .replaceAll(Pattern.quote("\\s+"), "  ")
+                .replaceAll("\\s+", "  ")
                 .replaceAll(Pattern.quote("(?"), "")
                 .replaceAll(Pattern.quote(ParameterFilterMatcher.NORMAL_VARIABLE_REGEX + ")"), "")
                 .replaceAll(Pattern.quote(ParameterFilterMatcher.REMAIN_VARIABLE_REGEX + ")"), "")
