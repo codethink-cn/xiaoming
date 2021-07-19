@@ -11,7 +11,7 @@
 
 ## 小明内部的组件
 ### 小明本体
-小明本体的 `API` 为 `com.chuanwise.xiaoming.api.bot.XiaomingBot`。几乎在小明的任何组件处，都能通过 `getXiaomingBot()` 获得该组件所属的机器人。小明本体有许多其他组件的访问器，可由此调用小明的其他组件。
+小明本体的 `API` 为 `XiaomingBot`。几乎在小明的任何组件处，都能通过 `getXiaomingBot()` 获得该组件所属的机器人。小明本体有许多其他组件的访问器，可由此调用小明的其他组件。
 
 除了上述访问其他组件的访问器，还有这些方法：
 |      返回类型       |       方法名       |       说明         |
@@ -53,10 +53,10 @@
 ### 将小明作为组件
 此方式需要通过代码启动小明机器人。请在[这里](https://github.com/Chuanwise/xiaoming-bot/releases)下载最新的小明内核和 `API`，导入项目后通过 `XiaomingBot` 类的 `start()` 方法启动小明：
 ```java
-package com.chuanwise.xiaoming.example;
+package cn.chuanwise.xiaoming.example;
 
-import com.chuanwise.xiaoming.api.bot.XiaomingBot;
-import com.chuanwise.xiaoming.core.bot.XiaomingBotImpl;
+import XiaomingBot;
+import cn.chuanwise.xiaoming.core.bot.XiaomingBotImpl;
 
 /**
  * 程序中调用小明示例

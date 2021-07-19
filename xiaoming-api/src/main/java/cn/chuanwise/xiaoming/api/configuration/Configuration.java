@@ -1,0 +1,100 @@
+package cn.chuanwise.xiaoming.api.configuration;
+
+import cn.chuanwise.xiaoming.api.limit.CallLimitConfig;
+import cn.chuanwise.toolkit.preservable.file.FilePreservable;
+import cn.chuanwise.xiaoming.api.object.XiaomingObject;
+
+import java.util.Set;
+
+/**
+ * 小明配置文件数据
+ */
+public interface Configuration extends FilePreservable, XiaomingObject {
+    void setStorageDelType(DelType delType);
+
+    DelType getStorageDelType();
+
+    String getStorageEncoding();
+
+    void setStorageEncoding(String storageEncoding);
+
+    boolean isDebug();
+
+    boolean isEnablePreviewFunctions();
+
+    void setEnablePreviewFunctions(boolean enablePreviewFunction);
+
+    boolean isEnableStartLog();
+
+    void setEnableStartLog(boolean enableStartLog);
+
+    void setMaxIterateTime(int maxIterateTime);
+
+    int getMaxIterateTime();
+
+    void setDebug(boolean debug);
+
+    long getMaxUserInputWaitTime();
+
+    void setMaxUserInputWaitTime(long time);
+
+    long getMaxUserGlobalInputWaitTime();
+
+    void setMaxUserGlobalInputWaitTime(long time);
+
+    long getMaxUserPrivateInputWaitTime();
+
+    void setMaxUserPrivateInputWaitTime(long time);
+
+    long getMaxUserGroupInputWaitTime();
+
+    void setMaxUserGroupInputWaitTime(long time);
+
+    String getQuietModeGroupTag();
+
+    void setQuietModeGroupTag(String quietModeGroupTag);
+
+    String getEnableGroupTag();
+
+    void setEnableGroupTag(String enableGroupTag);
+
+    CallLimitConfig getGroupCallConfig();
+
+    CallLimitConfig getPrivateCallConfig();
+
+    long getSavePeriod();
+
+    void setSavePeriod(long savePeriod);
+
+    long getOptimizePeriod();
+
+    void setOptimizePeriod(long optimizePeriod);
+
+    boolean isEnableLicense();
+
+    void setEnableLicense(boolean enableLicense);
+
+    boolean isEnableClearCall();
+
+    void setEnableClearCall(boolean enableClearCall);
+
+    Set<String> getClearCallPrefixes();
+
+    void setClearCallPrefixes(Set<String> clearCallPrefixes);
+
+    String getClearCallGroupTag();
+
+    void setClearCallGroupTag(String tag);
+
+    boolean isAutoAcceptFriendAddRequest();
+
+    void setAutoAcceptFriendAddRequest(boolean autoAcceptFriendAddRequest);
+
+    int getMaxMainThreadPoolSize();
+
+    void setMaxMainThreadPoolSize(int maxMainThreadPoolSize);
+
+    int getMaxReceptionThreadPoolSize();
+
+    void setMaxReceptionThreadPoolSize(int maxReceptionThreadPoolSize);
+}

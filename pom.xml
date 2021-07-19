@@ -4,11 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.chuanwise</groupId>
+    <groupId>cn.chuanwise</groupId>
     <artifactId>xiaoming-bot</artifactId>
     <packaging>pom</packaging>
 
-    <version>2.5.2</version>
+    <version>2.6</version>
     <url>https://github.com/Chuanwise/xiaoming-bot</url>
 
     <modules>
@@ -16,11 +16,21 @@
         <module>xiaoming-core</module>
     </modules>
 
+    <properties>
+        <github.global.server>github</github.global.server>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>net.mamoe</groupId>
             <artifactId>mirai-core-jvm</artifactId>
             <version>2.6.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.chuanwise</groupId>
+            <artifactId>chuanwise-toolkit-implement</artifactId>
+            <version>1.0</version>
         </dependency>
 
         <dependency>

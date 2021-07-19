@@ -16,10 +16,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: com.chuanwise:chuanwise-toolkit-implement:1.0" level="project" />
-    <orderEntry type="library" name="Maven: com.chuanwise:chuanwise-toolkit-api:1.0" level="project" />
-    <orderEntry type="library" name="Maven: com.alibaba:fastjson:1.2.75" level="project" />
-    <orderEntry type="library" name="Maven: org.yaml:snakeyaml:1.27" level="project" />
     <orderEntry type="library" name="Maven: net.mamoe:mirai-core-jvm:2.6.2" level="project" />
     <orderEntry type="library" name="Maven: net.mamoe:mirai-core-api-jvm:2.6.2" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-serialization:1.4.30" level="project" />
@@ -65,6 +61,10 @@
     <orderEntry type="library" scope="RUNTIME" name="Maven: net.mamoe:mirai-core-utils-jvm:2.6.2" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.jetbrains.kotlinx:kotlinx-serialization-protobuf-jvm:1.1.0" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlinx:kotlinx-coroutines-io:0.1.16" level="project" />
+    <orderEntry type="library" name="Maven: cn.chuanwise:chuanwise-toolkit-implement:1.0" level="project" />
+    <orderEntry type="library" name="Maven: cn.chuanwise:chuanwise-toolkit-api:1.0" level="project" />
+    <orderEntry type="library" name="Maven: com.alibaba:fastjson:1.2.75" level="project" />
+    <orderEntry type="library" name="Maven: org.yaml:snakeyaml:1.27" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.projectlombok:lombok:1.18.14" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-collections4:4.4" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-log4j12:1.7.25" level="project" />

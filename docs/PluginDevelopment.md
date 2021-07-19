@@ -13,14 +13,14 @@
 ### 插件主类
 |关键类|类名|
 |---|---|
-|小明插件 `API`|`com.chuanwise.xiaoming.api.bot.XiaomingBot`|
-|插件类的内核实现|`com.chuanwise.xiaoming.core.bot.XiaomingBotImpl`|
+|小明插件 `API`|`XiaomingBot`|
+|插件类的内核实现|`cn.chuanwise.xiaoming.core.bot.XiaomingBotImpl`|
 
 只要一个类实现了插件 `API`，都能被小明作为插件启动。你可以通过直接继承内核的相关实现，例如：
 ```java
-package com.chuanwise.xiaoming.example;
+package cn.chuanwise.xiaoming.example;
 
-import com.chuanwise.xiaoming.core.plugin.XiaomingPluginImpl;
+import XiaomingPluginImpl;
 
 /**
  * 插件主类范例
@@ -41,9 +41,9 @@ public class ExamplePlugin extends XiaomingPluginImpl { }
 
 例如这是一个插件启动时就输出一段插件信息的插件：
 ```java
-package com.chuanwise.xiaoming.example;
+package cn.chuanwise.xiaoming.example;
 
-import com.chuanwise.xiaoming.core.plugin.XiaomingPluginImpl;
+import XiaomingPluginImpl;
 
 /**
  * 插件主类范例
@@ -68,7 +68,7 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 ```json
 {
   "name": "example-plugin",
-  "main": "com.chuanwise.xiaoming.example.ExamplePlugin",
+  "main": "cn.chuanwise.xiaoming.example.ExamplePlugin",
   "author": "Chuanwise",
   "version": "1.0.TEST",
   "fronts": [ "java.util.ArrayList", ["lexicons"]]
@@ -99,18 +99,18 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 
 |关键类|类名|
 |---|---|
-|交互器 `API`|`com.chuanwise.xiaoming.api.interactor.Interactor`|
-|交互器的内核实现|`com.chuanwise.xiaoming.core.interactor.InteractorImpl`|
+|交互器 `API`|`Interactor`|
+|交互器的内核实现|`cn.chuanwise.xiaoming.core.interactor.InteractorImpl`|
 
 交互器必须实现 `API`。你可以直接继承其内核实现。
 
 交互器通过过滤器响应消息。例如，下面的交互器响应「你好骚啊」消息（群聊、私聊和临时会话都生效）
 ```java
-package com.chuanwise.xiaoming.example.interactor;
+package cn.chuanwise.xiaoming.example.interactor;
 
-import com.chuanwise.xiaoming.api.annotation.Filter;
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl;
+import Filter;
+import XiaomingUser;
+import cn.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl;
 
 /**
  * 交互器示例
@@ -125,10 +125,10 @@ public class InteractorExample extends MessageInteractorImpl {
 ```
 在插件启动时，你需要注册该交互器的实例，让小明注意到你的交互器。例如：
 ```java
-package com.chuanwise.xiaoming.example;
+package cn.chuanwise.xiaoming.example;
 
-import com.chuanwise.xiaoming.core.plugin.XiaomingPluginImpl;
-import com.chuanwise.xiaoming.example.interactor.InteractorExample;
+import XiaomingPluginImpl;
+import cn.chuanwise.xiaoming.example.interactor.InteractorExample;
 
 /**
  * 插件主类范例
@@ -177,12 +177,12 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 
 例如：
 ```java
-package com.chuanwise.xiaoming.example.interactor;
+package cn.chuanwise.xiaoming.example.interactor;
 
-import com.chuanwise.xiaoming.api.annotation.Filter;
-import com.chuanwise.xiaoming.api.annotation.FilterParameter;
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl;
+import Filter;
+import FilterParameter;
+import XiaomingUser;
+import cn.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl;
 
 /**
  * 交互器示例
@@ -203,15 +203,15 @@ public class InteractorExample extends MessageInteractorImpl {
 
 例如：
 ```java
-package com.chuanwise.xiaoming.example.interactor;
+package cn.chuanwise.xiaoming.example.interactor;
 
-import com.chuanwise.xiaoming.api.annotation.Filter;
-import com.chuanwise.xiaoming.api.annotation.FilterParameter;
-import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
-import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
-import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl;
+import Filter;
+import FilterParameter;
+import GroupContact;
+import MemberContact;
+import GroupXiaomingUser;
+import XiaomingUser;
+import cn.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -283,15 +283,15 @@ public class InteractorExample extends MessageInteractorImpl {
 `String defaultValue`|参数在 `@FilterParameter(...)` 中的默认值
 
 ```java
-package com.chuanwise.xiaoming.example.interactor;
+package cn.chuanwise.xiaoming.example.interactor;
 
-import com.chuanwise.xiaoming.api.annotation.Filter;
-import com.chuanwise.xiaoming.api.annotation.FilterParameter;
-import com.chuanwise.xiaoming.api.contact.contact.GroupContact;
-import com.chuanwise.xiaoming.api.contact.contact.MemberContact;
-import com.chuanwise.xiaoming.api.user.GroupXiaomingUser;
-import com.chuanwise.xiaoming.api.user.XiaomingUser;
-import com.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl;
+import Filter;
+import FilterParameter;
+import GroupContact;
+import MemberContact;
+import GroupXiaomingUser;
+import XiaomingUser;
+import cn.chuanwise.xiaoming.core.interactor.message.MessageInteractorImpl;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
