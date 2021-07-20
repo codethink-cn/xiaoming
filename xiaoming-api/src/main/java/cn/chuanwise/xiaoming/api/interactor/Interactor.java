@@ -224,9 +224,8 @@ public interface Interactor extends PluginObject {
                     }
                 } catch (InvocationTargetException exception) {
                     final Throwable cause = exception.getCause();
-                    if (Objects.nonNull(cause) && cause instanceof Exception) {
-                        final Exception causeException = (Exception) cause;
-                        if (!onThrowable(causeException)) {
+                    if (Objects.nonNull(cause)) {
+                        if (!onThrowable(user, message, argumentValues, method, arguments, commandFormat, cause)) {
                             throw (Exception) cause;
                         }
                     } else {
@@ -298,7 +297,8 @@ public interface Interactor extends PluginObject {
                 result = time;
             }
         } else if (int.class.isAssignableFrom(clazz) && Objects.equals("index", parameterName)) {
-            if (currentValue.matches("\\d+")) {
+            boolean isLegal = currentValue.matches("\\d+") && Integer.parseInt(currentValue) >= 0;
+            if (isLegal) {
                 return (T) (Object) Integer.parseInt(currentValue);
             } else {
                 user.sendError("「{index}」并不是一个有效的序号哦");
@@ -326,7 +326,7 @@ public interface Interactor extends PluginObject {
 
     default void onIllegalUser(XiaomingUser user) {}
 
-    default boolean onThrowable(Throwable throwable) {
+    default boolean onThrowable(XiaomingUser user, Message message, Map<String, String> argumentValues, Method method, List<Object> finalArguments, CommandFormat commandFormat, Throwable throwable) {
         return false;
     }
 

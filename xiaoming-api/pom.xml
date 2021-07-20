@@ -11,10 +11,10 @@
 
     <artifactId>xiaoming-api</artifactId>
 
-<!--    <repositories>-->
-<!--        <repository>-->
-<!--            <id>chuanwise-toolkit-implement</id>-->
-<!--            <url>https://github.com/Chuanwise/chuanwise-toolkit</url>-->
-<!--        </repository>-->
-<!--    </repositories>-->
+    <repositories>
+        <repository>
+            <id>chuanwise-toolkit-implement</id>
+            <url>https://github.com/Chuanwise/chuanwise-toolkit</url>
+        </repository>
+    </repositories>
 </project>

@@ -291,6 +291,7 @@ public class XiaomingBotImpl implements XiaomingBot {
                     .loadOrSupplie(ResourceManagerImpl.class, file, ResourceManagerImpl::new);
             resourceManager.setXiaomingBot(this);
             resourceManager.setResourceDirectory(resourceDirectory);
+            resourceManager.flushBotReference(this);
         });
 
         initializer.put("licenseManager", () -> {

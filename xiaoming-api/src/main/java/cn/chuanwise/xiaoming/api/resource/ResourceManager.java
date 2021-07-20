@@ -1,5 +1,6 @@
 package cn.chuanwise.xiaoming.api.resource;
 
+import cn.chuanwise.xiaoming.api.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.api.object.ModuleObject;
 import cn.chuanwise.xiaoming.api.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.api.contact.message.Message;
@@ -75,5 +76,23 @@ public interface ResourceManager extends ModuleObject, Preservable<File> {
             return shouldRemove && getImage(id).delete();
         });
         return sizeBeforeRemove - getImageLastVisitTimes().size();
+    }
+
+    @Override
+    default void flushBotReference(XiaomingBot xiaomingBot) {
+        final File imagesDirectory = getImagesDirectory();
+        imagesDirectory.mkdirs();
+        boolean added = false;
+        for (File file : imagesDirectory.listFiles()) {
+            if (file.isFile()) {
+                if (Objects.isNull(getImageLastVisitTime(file.getName()))) {
+                    getImageLastVisitTimes().put(file.getName(), file.lastModified());
+                    added = true;
+                }
+            }
+        }
+        if (added) {
+            getXiaomingBot().getScheduler().readySave(this);
+        }
     }
 }
