@@ -10,6 +10,7 @@
 |中文名|英文名|作者|适用内核|概括|相关页面|
 |---|---|---|---|---|---|
 |词库|lexicons|Chuanwise|`2.0` 及以上|提供自定义关键字随机回复等功能|[项目地址](https://github.com/Chuanwise/xiaoming-lexicons)|
+|词库（专业版）|lexicons-pro|Chuanwise|`3.0` 及以上|提供多种匹配模式的自定义关键字随机回复等功能|[项目地址](https://github.com/Chuanwise/lexicons-pro)|
 |小明MC|xiaoming-minecraft|Chuanwise|`2.5.1` 及以上|让你的小明和服务器互通|[项目地址](https://github.com/Chuanwise/xiaoming-minecraft)|
 
 ## 发布插件指南
