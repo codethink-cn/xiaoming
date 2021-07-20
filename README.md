@@ -22,6 +22,7 @@
 小明尚处在非常初级的发展阶段，欢迎你加入我们和我们一起助力小明的发展。
 * 使用文档：[MANUAL](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/Manual.md)
 * 开发文档：[DEVELOPMENT](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/Development.md)
+* 插件开发文档：[DEVELOPMENT](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/PluginDevelopment.md)
 * 插件中心：[PLUGINS](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/PluginCenter.md)
 * 发布版本：[RELEASE](https://github.com/Chuanwise/xiaoming-bot/releases/)
 * 开发者交流 `QQ` 群：[1028959718](https://jq.qq.com/?_wv=1027&k=sjBXo6xh)
