@@ -56,7 +56,7 @@
 package cn.chuanwise.xiaoming.example;
 
 import XiaomingBot;
-import cn.chuanwise.xiaoming.core.bot.XiaomingBotImpl;
+import XiaomingBotImpl;
 
 /**
  * 程序中调用小明示例

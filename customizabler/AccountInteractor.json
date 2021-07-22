@@ -1,0 +1,117 @@
+{
+    "methodInformation": {
+        "@class": "java.util.HashMap",
+        "onSetUserAlias": {
+            "formats": [
+                "(别名|昵称|绰号|备注|alias) {qq} {alias}",
+                "(设置|set)(别名|昵称|绰号|备注|alias) {qq} {alias}"
+            ],
+            "permissions": [
+                "account.user.alias"
+            ],
+            "usages": [
+                "别名  {qq}  {alias}",
+                "设置别名  {qq}  {alias}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onLookUserHistory": {
+            "formats": [
+                "(历史|history) {qq}"
+            ],
+            "permissions": [
+                "account.history"
+            ],
+            "usages": [
+                "历史  {qq}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onRemoveUserTag": {
+            "formats": [
+                "(标记|tag) {qq}"
+            ],
+            "permissions": [
+                "account.user.tag.add"
+            ],
+            "usages": [
+                "标记  {qq}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddUserTag": {
+            "formats": [
+                "(标记|tag) {qq} {tag}"
+            ],
+            "permissions": [
+                "account.user.tag.add"
+            ],
+            "usages": [
+                "标记  {qq}  {tag}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onUnblockPlugin": {
+            "formats": [
+                "(取消|撤回|cancel|un)(屏蔽|block) {plugin}"
+            ],
+            "permissions": [
+                "account.plugin.unblock"
+            ],
+            "usages": [
+                "取消屏蔽  {plugin}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onUsage": {
+            "formats": [
+                "(账户|account)(帮助|说明|help)"
+            ],
+            "permissions": [],
+            "usages": [
+                "账户帮助"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onBlockPlugin": {
+            "formats": [
+                "(屏蔽|block) {plugin}"
+            ],
+            "permissions": [
+                "account.plugin.block"
+            ],
+            "usages": [
+                "屏蔽  {plugin}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        }
+    }
+}

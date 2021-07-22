@@ -1,0 +1,669 @@
+{
+    "methodInformation": {
+        "@class": "java.util.HashMap",
+        "onListPersonalEntry": {
+            "formats": [
+                "(我的|我|私人|私有|用户|me|my|personal|private)(词条|entry)"
+            ],
+            "permissions": [
+                "lexicons.personal.list"
+            ],
+            "usages": [
+                "我的词条"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGlobalEndEqualEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(全局|公共|global)(结尾|尾|end)(相等|equals|equal)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(全局|公共|global)(结尾|尾|end)(相等|equals|equal)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.global.add"
+            ],
+            "usages": [
+                "添加全局结尾相等词条  {key}  {remain}",
+                "创建全局结尾相等词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddPersonalStartEqualEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(我的|我|私人|私有|用户|me|my|personal|private)(开头|首|头|start|head)(相等|equals|equal)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(我的|我|私人|私有|用户|me|my|personal|private)(开头|首|头|start|head)(相等|equals|equal)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.personal.add"
+            ],
+            "usages": [
+                "添加我的开头相等词条  {key}  {remain}",
+                "创建我的开头相等词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onMatchType": {
+            "formats": [
+                "(词条|entry)(规则|rule)"
+            ],
+            "permissions": [
+                "lexicons.matchType"
+            ],
+            "usages": [
+                "词条规则"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddPersonalContainEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(我的|我|私人|私有|用户|me|my|personal|private)(包含|含有|有|contain|contains)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(我的|我|私人|私有|用户|me|my|personal|private)(包含|含有|有|contain|contains)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.personal.add"
+            ],
+            "usages": [
+                "添加我的包含词条  {key}  {remain}",
+                "创建我的包含词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddPersonalEqualEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(我的|我|私人|私有|用户|me|my|personal|private)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(我的|我|私人|私有|用户|me|my|personal|private)(词条|entry) {key} {remain}",
+                "(添加|增加|增添|add)(我的|我|私人|私有|用户|me|my|personal|private)(相等|equals|equal)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(我的|我|私人|私有|用户|me|my|personal|private)(相等|equals|equal)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.personal.add"
+            ],
+            "usages": [
+                "添加我的词条  {key}  {remain}",
+                "创建我的词条  {key}  {remain}",
+                "添加我的相等词条  {key}  {remain}",
+                "创建我的相等词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGlobalEqualEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(全局|公共|global)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(全局|公共|global)(词条|entry) {key} {remain}",
+                "(添加|增加|增添|add)(全局|公共|global)(相等|equals|equal)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(全局|公共|global)(相等|equals|equal)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.global.add"
+            ],
+            "usages": [
+                "添加全局词条  {key}  {remain}",
+                "创建全局词条  {key}  {remain}",
+                "添加全局相等词条  {key}  {remain}",
+                "创建全局相等词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onRemovePersonalEntry": {
+            "formats": [
+                "(删除|删掉|卸载|删|取消|移除|去除|减少|remove|delete)(我的|我|私人|私有|用户|me|my|personal|private)(词条|entry) {personalEntry}"
+            ],
+            "permissions": [
+                "lexicons.personal.list"
+            ],
+            "usages": [
+                "删除我的词条  {personalEntry}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGlobalStartMatchEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(全局|公共|global)(开头|首|头|start|head)(匹配|matches|match)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(全局|公共|global)(开头|首|头|start|head)(匹配|matches|match)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.global.add"
+            ],
+            "usages": [
+                "添加全局开头匹配词条  {key}  {remain}",
+                "创建全局开头匹配词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onRemoveGroupEntryRule": {
+            "formats": [
+                "(删除|删掉|卸载|删|取消|移除|去除|减少|remove|delete)(群聊|群|group)(词条|entry)(规则|rule) {groupTag} {groupEntry}"
+            ],
+            "permissions": [
+                "lexicons.group.{groupTag}.list"
+            ],
+            "usages": [
+                "删除群聊词条规则  {groupTag}  {groupEntry}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGroupEndMatchEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(群聊|群|group)(结尾|尾|end)(匹配|matches|match)(词条|entry) {groupTag} {key} {remain}",
+                "(创建|新增|新建|新|new)(群聊|群|group)(结尾|尾|end)(匹配|matches|match)(词条|entry) {groupTag} {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.group.{groupTag}.add"
+            ],
+            "usages": [
+                "添加群聊结尾匹配词条  {groupTag}  {key}  {remain}",
+                "创建群聊结尾匹配词条  {groupTag}  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGlobalContainEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(全局|公共|global)(包含|含有|有|contain|contains)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(全局|公共|global)(包含|含有|有|contain|contains)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.global.add"
+            ],
+            "usages": [
+                "添加全局包含词条  {key}  {remain}",
+                "创建全局包含词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddPersonalStartMatchEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(我的|我|私人|私有|用户|me|my|personal|private)(开头|首|头|start|head)(匹配|matches|match)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(我的|我|私人|私有|用户|me|my|personal|private)(开头|首|头|start|head)(匹配|matches|match)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.personal.add"
+            ],
+            "usages": [
+                "添加我的开头匹配词条  {key}  {remain}",
+                "创建我的开头匹配词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGroupContainEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(群聊|群|group)(包含|含有|有|contain|contains)(词条|entry) {groupTag} {key} {remain}",
+                "(创建|新增|新建|新|new)(群聊|群|group)(包含|含有|有|contain|contains)(词条|entry) {groupTag} {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.group.{groupTag}.add"
+            ],
+            "usages": [
+                "添加群聊包含词条  {groupTag}  {key}  {remain}",
+                "创建群聊包含词条  {groupTag}  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGlobalEndMatchEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(全局|公共|global)(结尾|尾|end)(匹配|matches|match)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(全局|公共|global)(结尾|尾|end)(匹配|matches|match)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.global.add"
+            ],
+            "usages": [
+                "添加全局结尾匹配词条  {key}  {remain}",
+                "创建全局结尾匹配词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onLookGlobalEntry": {
+            "formats": [
+                "(全局|公共|global)(词条|entry) {globalEntry}"
+            ],
+            "permissions": [
+                "lexicons.global.look"
+            ],
+            "usages": [
+                "全局词条  {globalEntry}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddPersonalEndEqualEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(我的|我|私人|私有|用户|me|my|personal|private)(结尾|尾|end)(相等|equals|equal)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(我的|我|私人|私有|用户|me|my|personal|private)(结尾|尾|end)(相等|equals|equal)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.personal.add"
+            ],
+            "usages": [
+                "添加我的结尾相等词条  {key}  {remain}",
+                "创建我的结尾相等词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGroupParameterEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(群聊|群|group)(参数|parameter|argument)(词条|entry) {groupTag} {key} {remain}",
+                "(创建|新增|新建|新|new)(群聊|群|group)(参数|parameter|argument)(词条|entry) {groupTag} {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.group.{groupTag}.add"
+            ],
+            "usages": [
+                "添加群聊参数词条  {groupTag}  {key}  {remain}",
+                "创建群聊参数词条  {groupTag}  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGroupEndEqualEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(当前|本|this)(群聊|群|group)(结尾|尾|end)(相等|equals|equal)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(当前|本|this)(群聊|群|group)(结尾|尾|end)(相等|equals|equal)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.group.{group}.add"
+            ],
+            "usages": [
+                "添加当前群聊结尾相等词条  {key}  {remain}",
+                "创建当前群聊结尾相等词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGroupMatchEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(当前|本|this)(群聊|群|group)(匹配|matches|match) {key} {remain}",
+                "(创建|新增|新建|新|new)(当前|本|this)(群聊|群|group)(匹配|matches|match) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.group.{group}.add"
+            ],
+            "usages": [
+                "添加当前群聊匹配  {key}  {remain}",
+                "创建当前群聊匹配  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGlobalParameterEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(全局|公共|global)(参数|parameter|argument)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(全局|公共|global)(参数|parameter|argument)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.global.add"
+            ],
+            "usages": [
+                "添加全局参数词条  {key}  {remain}",
+                "创建全局参数词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGlobalStartEqualEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(全局|公共|global)(开头|首|头|start|head)(相等|equals|equal)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(全局|公共|global)(开头|首|头|start|head)(相等|equals|equal)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.global.add"
+            ],
+            "usages": [
+                "添加全局开头相等词条  {key}  {remain}",
+                "创建全局开头相等词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onRemoveGlobalEntryRule": {
+            "formats": [
+                "(删除|删掉|卸载|删|取消|移除|去除|减少|remove|delete)(全局|公共|global)(词条|entry)(规则|rule) {globalEntry}"
+            ],
+            "permissions": [
+                "lexicons.global.list"
+            ],
+            "usages": [
+                "删除全局词条规则  {globalEntry}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGroupStartEqualEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(群聊|群|group)(开头|首|头|start|head)(相等|equals|equal)(词条|entry) {groupTag} {key} {remain}",
+                "(创建|新增|新建|新|new)(群聊|群|group)(开头|首|头|start|head)(相等|equals|equal)(词条|entry) {groupTag} {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.group.{groupTag}.add"
+            ],
+            "usages": [
+                "添加群聊开头相等词条  {groupTag}  {key}  {remain}",
+                "创建群聊开头相等词条  {groupTag}  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onRemoveGroupEntry": {
+            "formats": [
+                "(删除|删掉|卸载|删|取消|移除|去除|减少|remove|delete)(群聊|群|group)(词条|entry) {groupTag} {groupEntry}"
+            ],
+            "permissions": [
+                "lexicons.group.{groupTag}.list"
+            ],
+            "usages": [
+                "删除群聊词条  {groupTag}  {groupEntry}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGroupStartMatchEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(当前|本|this)(群聊|群|group)(开头|首|头|start|head)(匹配|matches|match)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(当前|本|this)(群聊|群|group)(开头|首|头|start|head)(匹配|matches|match)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.group.{group}.add"
+            ],
+            "usages": [
+                "添加当前群聊开头匹配词条  {key}  {remain}",
+                "创建当前群聊开头匹配词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onListGlobalEntry": {
+            "formats": [
+                "(全局|公共|global)(词条|entry)"
+            ],
+            "permissions": [
+                "lexicons.global.list"
+            ],
+            "usages": [
+                "全局词条"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddPersonalMatchEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(我的|我|私人|私有|用户|me|my|personal|private)(匹配|matches|match) {key} {remain}",
+                "(创建|新增|新建|新|new)(我的|我|私人|私有|用户|me|my|personal|private)(匹配|matches|match) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.personal.add"
+            ],
+            "usages": [
+                "添加我的匹配  {key}  {remain}",
+                "创建我的匹配  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onRemoveGlobalEntry": {
+            "formats": [
+                "(删除|删掉|卸载|删|取消|移除|去除|减少|remove|delete)(全局|公共|global)(词条|entry) {globalEntry}"
+            ],
+            "permissions": [
+                "lexicons.global.list"
+            ],
+            "usages": [
+                "删除全局词条  {globalEntry}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onListGroupEntry": {
+            "formats": [
+                "(当前|本|this)(群聊|群|group)(词条|entry)"
+            ],
+            "permissions": [
+                "lexicons.group.{group}.list"
+            ],
+            "usages": [
+                "当前群聊词条"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onRemovePersonalEntryRule": {
+            "formats": [
+                "(删除|删掉|卸载|删|取消|移除|去除|减少|remove|delete)(我的|我|私人|私有|用户|me|my|personal|private)(词条|entry)(规则|rule) {personalEntry}"
+            ],
+            "permissions": [
+                "lexicons.personal.list"
+            ],
+            "usages": [
+                "删除我的词条规则  {personalEntry}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onLookGroupEntry": {
+            "formats": [
+                "(群聊|群|group)(词条|entry) {groupTag} {groupEntry}"
+            ],
+            "permissions": [
+                "lexicons.group.{groupTag}.look"
+            ],
+            "usages": [
+                "群聊词条  {groupTag}  {groupEntry}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onLookPersonalEntry": {
+            "formats": [
+                "(我的|我|私人|私有|用户|me|my|personal|private)(词条|entry) {personalEntry}"
+            ],
+            "permissions": [
+                "lexicons.personal.look"
+            ],
+            "usages": [
+                "我的词条  {personalEntry}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddPersonalParameterEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(我的|我|私人|私有|用户|me|my|personal|private)(参数|parameter|argument)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(我的|我|私人|私有|用户|me|my|personal|private)(参数|parameter|argument)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.personal.add"
+            ],
+            "usages": [
+                "添加我的参数词条  {key}  {remain}",
+                "创建我的参数词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddPersonalEndMatchEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(我的|我|私人|私有|用户|me|my|personal|private)(结尾|尾|end)(匹配|matches|match)(词条|entry) {key} {remain}",
+                "(创建|新增|新建|新|new)(我的|我|私人|私有|用户|me|my|personal|private)(结尾|尾|end)(匹配|matches|match)(词条|entry) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.personal.add"
+            ],
+            "usages": [
+                "添加我的结尾匹配词条  {key}  {remain}",
+                "创建我的结尾匹配词条  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onMessage": {
+            "formats": [
+                ""
+            ],
+            "permissions": [],
+            "usages": [],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": true,
+            "quietUsable": true,
+            "nonNext": false
+        },
+        "onAddGlobalMatchEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(全局|公共|global)(匹配|matches|match) {key} {remain}",
+                "(创建|新增|新建|新|new)(全局|公共|global)(匹配|matches|match) {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.global.add"
+            ],
+            "usages": [
+                "添加全局匹配  {key}  {remain}",
+                "创建全局匹配  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        },
+        "onAddGroupEqualEntry": {
+            "formats": [
+                "(添加|增加|增添|add)(群聊|群|group)(词条|entry) {groupTag} {key} {remain}",
+                "(创建|新增|新建|新|new)(群聊|群|group)(词条|entry) {groupTag} {key} {remain}",
+                "(添加|增加|增添|add)(群聊|群|group)(相等|equals|equal)(词条|entry) {groupTag} {key} {remain}",
+                "(创建|新增|新建|新|new)(群聊|群|group)(相等|equals|equal)(词条|entry) {groupTag} {key} {remain}"
+            ],
+            "permissions": [
+                "lexicons.group.{groupTag}.add"
+            ],
+            "usages": [
+                "添加群聊词条  {groupTag}  {key}  {remain}",
+                "创建群聊词条  {groupTag}  {key}  {remain}",
+                "添加群聊相等词条  {groupTag}  {key}  {remain}",
+                "创建群聊相等词条  {groupTag}  {key}  {remain}"
+            ],
+            "requireGroupTags": [],
+            "requireAccountTags": [],
+            "externalUsable": false,
+            "quietUsable": false,
+            "nonNext": false
+        }
+    }
+}

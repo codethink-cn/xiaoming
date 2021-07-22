@@ -19,14 +19,14 @@
 ### 插件主类
 |关键类|类名|
 |---|---|
-|小明插件 `API`|`cn.chuanwise.xiaoming.api.bot.XiaomingBot`|
-|插件类的内核实现|`cn.chuanwise.xiaoming.core.bot.XiaomingBotImpl`|
+|小明插件 `API`|`XiaomingBot`|
+|插件类的内核实现|`XiaomingBotImpl`|
 
 只要一个类实现了插件 `API`，都能被小明作为插件启动。你可以直接继承内核的相关实现省去类内细节，例如：
 ```java
 package cn.chuanwise.xiaoming.example;
 
-import cn.chuanwise.xiaoming.core.plugin.XiaomingPluginImpl;
+import XiaomingPluginImpl;
 import cn.chuanwise.xiaoming.example.interactor.MessageInteractorTest;
 
 /**
@@ -50,7 +50,7 @@ public class ExamplePlugin extends XiaomingPluginImpl {}
 ```java
 package cn.chuanwise.xiaoming.example;
 
-import cn.chuanwise.xiaoming.core.plugin.XiaomingPluginImpl;
+import XiaomingPluginImpl;
 
 /**
  * 插件主类示例
@@ -100,8 +100,8 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 
 |关键类|类名|
 |---|---|
-|交互器 `API`|`cn.chuanwise.xiaoming.api.interactor.Interactor`|
-|交互器的内核实现|`cn.chuanwise.xiaoming.core.interactor.InteractorImpl`|
+|交互器 `API`|`Interactor`|
+|交互器的内核实现|`InteractorImpl`|
 
 交互器必须实现 `API`。你可以直接继承其内核实现。
 
@@ -109,9 +109,9 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 ```java
 package cn.chuanwise.xiaoming.example.interactor;
 
-import cn.chuanwise.xiaoming.api.annotation.Filter;
-import cn.chuanwise.xiaoming.api.user.XiaomingUser;
-import cn.chuanwise.xiaoming.core.interactor.InteractorImpl;
+import Filter;
+import XiaomingUser;
+import InteractorImpl;
 
 /**
  * 消息交互器示例
@@ -128,7 +128,7 @@ public class MessageInteractorTest extends InteractorImpl {
 ```java
 package cn.chuanwise.xiaoming.example;
 
-import cn.chuanwise.xiaoming.core.plugin.XiaomingPluginImpl;
+import XiaomingPluginImpl;
 import cn.chuanwise.xiaoming.example.interactor.MessageInteractorTest;
 
 /**
@@ -174,9 +174,9 @@ public class ExamplePlugin extends XiaomingPluginImpl {
 ```java
 package cn.chuanwise.xiaoming.example.interactor;
 
-import cn.chuanwise.xiaoming.api.annotation.Filter;
-import cn.chuanwise.xiaoming.api.user.XiaomingUser;
-import cn.chuanwise.xiaoming.core.interactor.InteractorImpl;
+import Filter;
+import XiaomingUser;
+import InteractorImpl;
 
 /**
  * 消息交互器示例
@@ -197,10 +197,10 @@ public class MessageInteractorTest extends InteractorImpl {
 ```java
 package cn.chuanwise.xiaoming.example.interactor;
 
-import cn.chuanwise.xiaoming.api.annotation.Filter;
-import cn.chuanwise.xiaoming.api.annotation.FilterParameter;
-import cn.chuanwise.xiaoming.api.user.XiaomingUser;
-import cn.chuanwise.xiaoming.core.interactor.InteractorImpl;
+import Filter;
+import FilterParameter;
+import XiaomingUser;
+import InteractorImpl;
 
 /**
  * 消息交互器示例
@@ -226,13 +226,13 @@ public class MessageInteractorTest extends InteractorImpl {
 ```java
 package cn.chuanwise.xiaoming.example.interactor;
 
-import cn.chuanwise.xiaoming.api.annotation.Filter;
-import cn.chuanwise.xiaoming.api.annotation.FilterParameter;
-import cn.chuanwise.xiaoming.api.contact.contact.GroupContact;
-import cn.chuanwise.xiaoming.api.contact.contact.MemberContact;
-import cn.chuanwise.xiaoming.api.user.GroupXiaomingUser;
-import cn.chuanwise.xiaoming.api.user.XiaomingUser;
-import cn.chuanwise.xiaoming.core.interactor.InteractorImpl;
+import Filter;
+import FilterParameter;
+import GroupContact;
+import MemberContact;
+import GroupXiaomingUser;
+import XiaomingUser;
+import InteractorImpl;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
@@ -310,10 +310,10 @@ public class MessageInteractorTest extends InteractorImpl {
 ```java
 package cn.chuanwise.xiaoming.example.interactor;
 
-import cn.chuanwise.xiaoming.api.annotation.Filter;
-import cn.chuanwise.xiaoming.api.annotation.FilterParameter;
-import cn.chuanwise.xiaoming.api.user.XiaomingUser;
-import cn.chuanwise.xiaoming.core.interactor.InteractorImpl;
+import Filter;
+import FilterParameter;
+import XiaomingUser;
+import InteractorImpl;
 
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;

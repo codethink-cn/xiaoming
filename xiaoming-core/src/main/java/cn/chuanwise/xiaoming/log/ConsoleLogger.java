@@ -1,0 +1,21 @@
+package cn.chuanwise.xiaoming.log;
+
+import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
+import cn.chuanwise.xiaoming.account.record.CommandRecord;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.LinkedList;
+import java.util.List;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+public class ConsoleLogger extends FilePreservableImpl {
+    List<CommandRecord> commands = new LinkedList<>();
+
+    public void addCommand(CommandRecord record) {
+        commands.add(record);
+    }
+}

@@ -1,0 +1,413 @@
+package cn.chuanwise.xiaoming.interactor.core;
+
+import cn.chuanwise.toolkit.preservable.Preservable;
+import cn.chuanwise.toolkit.preservable.file.FilePreservable;
+import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.utility.StringUtility;
+import cn.chuanwise.utility.TimeUtility;
+import cn.chuanwise.xiaoming.annotation.Filter;
+import cn.chuanwise.xiaoming.annotation.FilterParameter;
+import cn.chuanwise.xiaoming.annotation.Permission;
+import cn.chuanwise.xiaoming.bot.XiaomingBot;
+import cn.chuanwise.xiaoming.configuration.Statistician;
+import cn.chuanwise.xiaoming.contact.message.Message;
+import cn.chuanwise.xiaoming.interactor.InteractorManager;
+import cn.chuanwise.xiaoming.interactor.Interactor;
+import cn.chuanwise.xiaoming.plugin.XiaomingPlugin;
+import cn.chuanwise.xiaoming.recept.ReceptionTask;
+import cn.chuanwise.xiaoming.schedule.FileSaver;
+import cn.chuanwise.xiaoming.recept.Receptionist;
+import cn.chuanwise.xiaoming.recept.ReceptionistManager;
+import cn.chuanwise.xiaoming.user.XiaomingUser;
+import cn.chuanwise.xiaoming.utility.CommandWords;
+import cn.chuanwise.xiaoming.interactor.InteractorImpl;
+import net.mamoe.mirai.message.code.MiraiCode;
+import net.mamoe.mirai.message.data.MessageChain;
+
+import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.*;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.regex.Pattern;
+
+public class CoreInteractor extends InteractorImpl {
+    public static final String BATCH = "(批处理|bat)";
+
+    public String getInteractorString() {
+        final InteractorManager interactorManager = getXiaomingBot().getInteractorManager();
+        StringBuilder builder = new StringBuilder("交互器：\n");
+
+        builder.append("内核注册：");
+        final Set<Interactor> coreInteractors = interactorManager.getCoreInteractors();
+        if (coreInteractors.isEmpty()) {
+            builder.append("（无）");
+        } else {
+            for (Interactor interactor : coreInteractors) {
+                builder.append("\n")
+                        .append("# ").append(interactor.getClass().getName());
+            }
+        }
+        builder.append("\n");
+
+        builder.append("插件注册：");
+        final Map<XiaomingPlugin, Set<Interactor>> pluginInteractors = interactorManager.getPluginInteractors();
+        if (pluginInteractors.isEmpty()) {
+            builder.append("（无）");
+        } else {
+            for (Map.Entry<XiaomingPlugin, Set<Interactor>> entry : pluginInteractors.entrySet()) {
+                builder.append("\n")
+                        .append("> 由").append(entry.getKey().getCompleteName()).append("注册：");
+                for (Interactor interactor : entry.getValue()) {
+                    builder.append("\n")
+                            .append(">> ").append(interactor.getClass().getName());
+                }
+            }
+        }
+        return builder.toString();
+    }
+
+    public CoreInteractor(XiaomingBot xiaomingBot) {
+        setXiaomingBot(xiaomingBot);
+    }
+
+    @Filter(CommandWords.INTERACTOR)
+    @Permission("core.interactor.list")
+    public void onInteractorStatus(XiaomingUser user) {
+        user.sendMessage(getInteractorString());
+    }
+
+    @Filter(CommandWords.CALL)
+    @Permission("core.statistics.call")
+    public void onCallCounter(XiaomingUser user) {
+        user.setProperty("counter", getXiaomingBot().getStatistician().getCallNumber());
+        user.sendMessage("{callCounterIs}");
+    }
+
+//    @Filter(CommandWords.TASK + "(队列|queue)")
+//    @Permission("core.scheduler.list")
+//    public void onListScheduler(XiaomingUser user) {
+//
+//    }
+
+    /**
+     * 批处理指令
+     * @param user 指令执行者
+     * @param remain 指令
+     */
+    @Filter("#" + BATCH + "#" + "{remain}")
+    public void onMultipleCommands(XiaomingUser user,
+                                   @FilterParameter("remain") String remain,
+                                   Message message) {
+        final String[] subCommands = remain.split(Pattern.quote("\\n"), 0);
+        final long maxJoinTime = TimeUnit.SECONDS.toMillis(1);
+
+        user.enablePrintWriter();
+        try {
+            Future<Boolean> task = null;
+            for (int i = 1; i < subCommands.length; i++) {
+                String command = subCommands[i];
+                if (command.isEmpty()) {
+                    continue;
+                }
+
+                if (Objects.isNull(task) || task.isDone()) {
+                    int finalI = i;
+                    task = getXiaomingBot().getScheduler().run(() -> {
+                        final Message clonedMessage = message.clone();
+                        final MessageChain messageChain = MiraiCode.deserializeMiraiCode(subCommands[finalI]);
+                        clonedMessage.setMessageChain(messageChain);
+                        clonedMessage.setOriginalMessageChain(messageChain);
+
+                        return getXiaomingBot().getInteractorManager().onInput(user, clonedMessage);
+                    });
+                    if (!task.get()) {
+                        user.setProperty("command", command);
+                        user.sendError("{illegalCommandInterruptBatchTask}");
+                        break;
+                    }
+                } else {
+                    user.onNextInput(command);
+                }
+            }
+            if (Objects.nonNull(task) && !task.isDone()) {
+                task.get();
+            }
+        } catch (Exception exception) {
+            user.sendError("{exceptionInterruptBatchTask}");
+            exception.printStackTrace();
+        }
+        final String buffer = user.getBufferAndClose();
+        user.sendMessage(StringUtility.isEmpty(buffer) ? "指令没有任何输出" : buffer);
+    }
+
+    @Filter(CommandWords.OPTIMIZE)
+    public void onOptimize(XiaomingUser user) {
+        getXiaomingBot().getOptimizer().optimize();
+        user.sendMessage("{optimizedSuccessfully}");
+    }
+
+    @Filter(CommandWords.SAVE)
+    @Permission("core.save.do")
+    public void onSave(XiaomingUser user) {
+        final FileSaver fileSaver = getXiaomingBot().getFileSaver();
+        final List<Preservable<File>> preservables = fileSaver.getPreservables();
+        final int sizeBeforeSave = preservables.size();
+
+        if (sizeBeforeSave == 0) {
+            user.sendMessage("{noFileNeedToSave}");
+        } else {
+            fileSaver.save();
+            if (preservables.isEmpty()) {
+                user.sendMessage("成功保存了 " + sizeBeforeSave + " 个文件");
+            } else if (sizeBeforeSave == preservables.size()) {
+                user.sendWarning("没有成功保存任何文件。" +
+                        "小明将在下一个保存周期，" +
+                        "即 " + TimeUtility.after(getXiaomingBot().getConfiguration().getSavePeriod()) +
+                        "再次尝试保存这 " + sizeBeforeSave + " 个文件：\n" +
+                        CollectionUtility.toString(preservables, preservable -> preservable.getMedium().getAbsolutePath()));
+            }
+        }
+    }
+
+    @Filter(CommandWords.CANCEL + CommandWords.SAVE)
+    @Permission("core.save.cancel")
+    public void onCancelSave(XiaomingUser user) {
+        final FileSaver task = getXiaomingBot().getFileSaver();
+        final List<Preservable<File>> preservables = task.getPreservables();
+
+        if (preservables.isEmpty()) {
+            user.sendMessage("没有任何等待保存的文件");
+        } else {
+            user.sendWarning("真的要取消保存 " + preservables.size() + " 个文件吗？这可能导致部分数据丢失！如果确定，请在一分钟之内回复「确定」");
+            if (Objects.equals(user.nextInput().serialize(), "确定")) {
+                preservables.clear();
+                user.sendMessage("成功取消保存待保存的文件队列");
+            } else {
+                user.sendMessage("已取消取消保存");
+            }
+        }
+    }
+
+    @Filter(CommandWords.ECHO + " {remain}")
+    @Permission("core.echo")
+    public void onEcho(XiaomingUser user, @FilterParameter("remain") String remain) {
+        user.sendMessage(remain);
+    }
+
+    @Filter("(指令格式|格式|usage|format)")
+    public void onGlobalUsage(XiaomingUser user) {
+        StringWriter stringWriter = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+
+        final InteractorManager interactorManager = getXiaomingBot().getInteractorManager();
+
+        // 获取内核帮助
+        final Set<Interactor> coreInteractors = interactorManager.getCoreInteractors();
+        if (coreInteractors.isEmpty()) {
+            printWriter.println("内核指令：（无）");
+        } else {
+            printWriter.println("内核指令：");
+            List<String> coreCommands = new LinkedList<>();
+            for (Interactor interactor : coreInteractors) {
+                coreCommands.addAll(Arrays.asList(interactor.getUsageStrings(user).toArray(new String[0])));
+            }
+
+            Collections.sort(coreCommands);
+            for (String command : coreCommands) {
+                printWriter.println(command);
+            }
+        }
+
+        // 获取插件帮助
+        printWriter.println();
+        final Map<XiaomingPlugin, Set<Interactor>> pluginInteractors = interactorManager.getPluginInteractors();
+        if (pluginInteractors.isEmpty()) {
+            printWriter.println("插件指令：（无）");
+        } else {
+            printWriter.println("插件指令：");
+
+            for (Map.Entry<XiaomingPlugin, Set<Interactor>> entry : pluginInteractors.entrySet()) {
+                final XiaomingPlugin plugin = entry.getKey();
+                final Set<Interactor> interactors = entry.getValue();
+
+                if (!user.hasTag("plugin.block." + plugin.getName())) {
+                    printWriter.println("\n" + plugin.getAlias() + "：");
+
+                    List<String> pluginCommands = new LinkedList<>();
+                    for (Interactor interactor : interactors) {
+                        pluginCommands.addAll(Arrays.asList(interactor.getUsageStrings(user).toArray(new String[0])));
+                    }
+
+                    Collections.sort(pluginCommands);
+                    for (String pluginCommand : pluginCommands) {
+                        printWriter.println(pluginCommand);
+                    }
+                }
+            }
+        }
+
+        user.sendPrivateMessage(stringWriter.toString().trim());
+    }
+
+    @Filter(CommandWords.HELP)
+    @Permission("core.help")
+    public void onGlobalHelp(XiaomingUser user) {
+        user.sendMessage("欢迎使用小明！\n" +
+                "你可用的所有指令可以通过「指令格式」查询 {happy}");
+
+        user.sendMessage("如果你觉得小明很不错，欢迎到 " + XiaomingBot.GITHUB + " 给我们点亮一颗星星\n" +
+                "小明用户交流群：" + XiaomingBot.GROUP +  "\n" +
+                "如果你想要编写小明的功能，欢迎阅读开发文档：" + XiaomingBot.DEVELOPMENT_DOCUMENT);
+    }
+
+    @Filter(CommandWords.DISABLE + CommandWords.XIAOMING)
+    @Permission("core.stop")
+    public void onCloseXiaoming(XiaomingUser user) {
+        user.sendMessage("{doYouReallyWantToCloseXiaoming}");
+        Runnable onCancel = () -> {
+            user.sendError("{closeXiaomingPlanWasCancelled}");
+        };
+
+        if (Objects.equals(user.nextInput(TimeUnit.MINUTES.toMillis(1), onCancel).serialize(), "确定")) {
+            final long delay = TimeUnit.SECONDS.toMillis(10);
+            final String delayString = TimeUtility.toTimeLength(delay);
+
+            getXiaomingBot().getScheduler().runLater(delay, () -> {
+                getXiaomingBot().stop();
+            });
+
+            user.setProperty("delay", delayString);
+            user.sendMessage("{xiaomingWillBeCloseLater}");
+        } else {
+            onCancel.run();
+        }
+    }
+
+    @Filter(CommandWords.RECEPTION)
+    @Permission("core.receptionist.list")
+    public void onReceptionist(XiaomingUser user) {
+        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
+        final Collection<Receptionist> receptionists = receptionistManager.getReceptionists().values();
+
+        if (receptionists.isEmpty()) {
+            user.sendMessage("{thereIsNoAnyReceptionist}");
+        } else {
+            user.sendMessage("当前共有 {} 个{receptionist}：{}",
+                    receptionists.size(),
+                    CollectionUtility.toString(receptionists, receptionist -> {
+                        return receptionist.getCode() + "：" + (receptionist.isBusy() ? "忙碌" : "空闲");
+                    }, "\n"));
+        }
+    }
+
+    @Filter(CommandWords.RECEPTION + " {qq}")
+    @Permission("core.receptionist.look")
+    public void onReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
+        final Receptionist receptionist = receptionistManager.forReceptionist(qq);
+
+        if (Objects.isNull(receptionist)) {
+            user.sendMessage("{thisUserHasNotReceptionist}");
+        } else {
+            final StringBuilder builder = new StringBuilder();
+
+            Function<ReceptionTask, String> singleTaskStatusFormatter = task -> {
+                if (Objects.isNull(task)) {
+                    return "（无）";
+                } else if (task.isBusy()) {
+                    return "忙碌";
+                } else {
+                    return "空闲";
+                }
+            };
+
+            builder.append("私聊接待任务：")
+                    .append(singleTaskStatusFormatter.apply(receptionist.getPrivateTask()))
+                    .append("\n");
+
+            Function<Map.Entry<Long, ? extends ReceptionTask>, String> groupOrMemberTaskStatusFormatter = entry -> {
+                return entry.getKey() + "：" + (entry.getValue().isBusy() ? "忙碌" : "空闲");
+            };
+            builder.append("群接待任务：")
+                    .append(CollectionUtility.toString(receptionist.getGroupTasks().entrySet(), groupOrMemberTaskStatusFormatter::apply))
+                    .append("\n")
+                    .append("临时会话接待任务：")
+                    .append(CollectionUtility.toString(receptionist.getMemberTasks().entrySet(), groupOrMemberTaskStatusFormatter::apply));
+            user.sendMessage(builder.toString());
+        }
+    }
+
+    @Filter(CommandWords.DISABLE + CommandWords.RECEPTION + " {qq}")
+    @Permission("core.receptionist.disable")
+    public void onDisableReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
+        final Receptionist receptionist = receptionistManager.forReceptionist(qq);
+
+        if (Objects.isNull(receptionist)) {
+            user.sendMessage("{thisUserHasNotReceptionist}");
+        } else {
+            if (receptionist.isBusy()) {
+                receptionist.optimize();
+                user.sendMessage("{tryOptimizedReceptionist}");
+            } else {
+                receptionist.stop();
+                user.sendMessage("{receptionistClosedSuccessfully}");
+            }
+        }
+    }
+
+    @Filter(CommandWords.OPTIMIZE + CommandWords.RECEPTION + " {qq}")
+    @Permission("core.receptionist.optimize")
+    public void onOptimizeReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
+        final Receptionist receptionist = receptionistManager.forReceptionist(qq);
+
+        if (Objects.isNull(receptionist)) {
+            user.sendMessage("{thereIsNoAnyReceptionist}");
+        } else {
+            receptionist.optimize();
+            user.sendMessage("{optimizedReceptionistSuccessfully}");
+        }
+    }
+
+    @Filter(CommandWords.OPTIMIZE + CommandWords.RECEPTION)
+    @Permission("core.receptionist.optimize")
+    public void onOptimizeReceptionist(XiaomingUser user) {
+        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
+
+        receptionistManager.optimize();
+        user.sendMessage("{optimizedAllReceptionistSuccessfully}");
+    }
+
+    @Filter("(强制|force)" + CommandWords.DISABLE + CommandWords.RECEPTION + " {qq}")
+    @Permission("core.receptionist.disable")
+    public void onForceDisableReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
+        final Receptionist receptionist = receptionistManager.forReceptionist(qq);
+
+        if (Objects.isNull(receptionist)) {
+            user.sendMessage("{thereIsNoAnyReceptionist}");
+        } else {
+            receptionist.stop();
+            receptionistManager.getReceptionists().remove(qq);
+            user.sendMessage("{receptionistClosedSuccessfully}");
+        }
+    }
+
+    @Filter(CommandWords.XIAOMING + CommandWords.STATUS)
+    @Permission("core.status")
+    public void onStatus(XiaomingUser user) {
+        final Statistician statistician = getXiaomingBot().getStatistician();
+
+        user.sendMessage( "{xiaoming}启动于：" + TimeUtility.format(statistician.getBeginTime()) + "\n" +
+                 "已运行：" + TimeUtility.toTimeLength(System.currentTimeMillis() - statistician.getBeginTime()) + "\n" +
+                 "内核版本：" + XiaomingBot.VERSION + "\n" +
+                 "上次文件保存时间：" + TimeUtility.format(getXiaomingBot().getFileSaver().getLastSaveTime()) + "\n" +
+                 "上次有效文件保存时间：" + TimeUtility.format(getXiaomingBot().getFileSaver().getLastValidSaveTime()) + "\n" +
+                 "仍待保存文件数：" + getXiaomingBot().getFileSaver().getPreservables().size() + "\n" +
+                 "内存使用率：" + String.format("%.2f%%", 100 - ((double) 100 * Runtime.getRuntime().freeMemory() / Runtime.getRuntime().maxMemory())));
+    }
+}
