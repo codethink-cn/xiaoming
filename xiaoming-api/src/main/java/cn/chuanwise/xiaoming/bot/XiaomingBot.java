@@ -34,7 +34,7 @@ import java.io.File;
  * @author Chuanwise
  */
 public interface XiaomingBot {
-    String VERSION = "3.1.4-RELEASE";
+    String VERSION = "3.1.5";
     String SPONSOR = "Chuanwise";
     String GITHUB = "https://github.com/Chuanwise/xiaoming-bot";
     String GROUP = "1028959718";
