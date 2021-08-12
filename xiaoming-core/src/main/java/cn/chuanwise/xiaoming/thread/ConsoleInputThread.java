@@ -41,7 +41,7 @@ public class ConsoleInputThread extends ModuleObjectImpl implements Runnable {
     public ConsoleLogger getConsoleLogger() {
         if (Objects.isNull(consoleLogger)) {
             consoleLogger = getXiaomingBot().getFileLoader()
-                    .loadOrSupplie(ConsoleLogger.class, new File(getXiaomingBot().getLogDirectory(), "console.json"), ConsoleLogger::new);
+                    .loadOrSupply(ConsoleLogger.class, new File(getXiaomingBot().getLogDirectory(), "console.json"), ConsoleLogger::new);
         }
         return consoleLogger;
     }

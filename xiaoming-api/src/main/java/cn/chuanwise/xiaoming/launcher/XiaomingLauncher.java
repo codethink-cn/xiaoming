@@ -19,7 +19,7 @@ public interface XiaomingLauncher {
             setShutdownHook();
             return true;
         } catch (Exception exception) {
-            getLog().error("启动小明时出现异常：", exception);
+            getLogger().error("启动小明时出现异常：", exception);
             return false;
         }
     }
@@ -40,5 +40,5 @@ public interface XiaomingLauncher {
 
     XiaomingBot getXiaomingBot();
 
-    Logger getLog();
+    Logger getLogger();
 }

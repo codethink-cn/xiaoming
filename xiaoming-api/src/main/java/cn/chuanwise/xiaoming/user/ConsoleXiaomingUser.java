@@ -21,19 +21,19 @@ public interface ConsoleXiaomingUser extends ModuleObject, XiaomingUser<ConsoleC
     @Override
     default void sendMessage(String message, Object... arguments) {
         final String replacedMessage = replaceArguments(message, arguments);
-        getLog().info(replacedMessage);
+        getLogger().info(replacedMessage);
     }
 
     @Override
     default void sendError(String message, Object... arguments) {
         final String replacedMessage = replaceArguments(message, arguments);
-        getLog().error(replacedMessage);
+        getLogger().error(replacedMessage);
     }
 
     @Override
     default void sendWarning(String message, Object... arguments) {
         final String replacedMessage = replaceArguments(message, arguments);
-        getLog().warn(replacedMessage);
+        getLogger().warn(replacedMessage);
     }
 
     @Override

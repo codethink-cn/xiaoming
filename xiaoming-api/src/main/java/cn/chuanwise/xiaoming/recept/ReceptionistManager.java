@@ -15,19 +15,19 @@ import java.util.Map;
 public interface ReceptionistManager extends ModuleObject, EventListener, Optimizable {
     /**
      * 获得某用户的接待员
-     * @param qq 用户 QQ
+     * @param code 用户 QQ
      * @return 其接待员。如果无此接待员，返回 {@code null}
      */
-    Receptionist forReceptionist(long qq);
+    Receptionist forReceptionist(long code);
 
     Receptionist getBotReceptionist();
 
     /**
      * 取消某个用户的接待员
-     * @param qq 该用户
+     * @param code 该用户
      */
-    default void removeReceptionist(long qq) {
-        getReceptionists().remove(qq);
+    default void removeReceptionist(long code) {
+        getReceptionists().remove(code);
     }
 
     /**
@@ -59,7 +59,7 @@ public interface ReceptionistManager extends ModuleObject, EventListener, Optimi
 
     @Transient
     @Override
-    Logger getLog();
+    Logger getLogger();
 
     @Override
     default void optimize() {

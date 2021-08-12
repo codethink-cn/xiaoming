@@ -1,6 +1,7 @@
 package cn.chuanwise.xiaoming.contact.contact;
 
 import cn.chuanwise.utility.ArgumentUtility;
+import cn.chuanwise.xiaoming.language.Sentence;
 import cn.chuanwise.xiaoming.object.XiaomingObject;
 import cn.chuanwise.xiaoming.utility.InteractorUtility;
 import cn.chuanwise.xiaoming.contact.message.Message;
@@ -11,11 +12,16 @@ import net.mamoe.mirai.message.data.*;
 import net.mamoe.mirai.utils.ExternalResource;
 
 import java.util.List;
+import java.util.function.Function;
 
 public interface XiaomingContact<M extends Message, MC extends Contact> extends XiaomingObject {
     String getCompleteName();
 
     MC getMiraiContact();
+
+    default String getAliasAndCode() {
+        return getAlias() + "（" + getCodeString() + "）";
+    }
 
     default long getCode() {
         return getMiraiContact().getId();
@@ -32,7 +38,7 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
     String getAvatarUrl();
 
     default M send(String message) {
-        final String replacedMessage = ArgumentUtility.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime());
+        final String replacedMessage = getXiaomingBot().getLanguageManager().render(message);
         return send(MiraiCode.deserializeMiraiCode(replacedMessage));
     }
 
@@ -41,6 +47,14 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
     default M send(M messages) {
         messages.setOriginalMessageChain(getMiraiContact().sendMessage(messages.getMessageChain()).getSource().getOriginalMessage());
         return messages;
+    }
+
+    default M send(Sentence sentence, Function<String, Object> externalGetter, Object... arguments) {
+        return send(getXiaomingBot().getLanguageManager().render(sentence, externalGetter, arguments));
+    }
+
+    default ScheduledFuture<M> sendLater(long delay, Sentence sentence, Function<String, Object> externalGetter, Object... arguments) {
+        return getXiaomingBot().getScheduler().runLater(delay, () -> send(getXiaomingBot().getLanguageManager().render(sentence, externalGetter, arguments)));
     }
 
     default ScheduledFuture<M> sendLater(long delay, String message) {
@@ -64,7 +78,7 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
     }
 
     default M reply(Message quote, String message) {
-        return reply(quote, MiraiCode.deserializeMiraiCode(ArgumentUtility.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
+        return reply(quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
     }
 
     default ScheduledFuture<M> replyLater(long delay, Message quote, MessageChain messages) {
@@ -72,7 +86,7 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
     }
 
     default ScheduledFuture<M> replyLater(long delay, Message quote, String message) {
-        return replyLater(delay, quote, MiraiCode.deserializeMiraiCode(ArgumentUtility.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
+        return replyLater(delay, quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
     }
 
     default ScheduledFuture<M> replyLater(long delay, Message quote, M message) {

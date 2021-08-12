@@ -5,6 +5,7 @@ import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.interactor.Interactor;
+import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.recept.ReceptionTask;
 import cn.chuanwise.xiaoming.recept.Receptionist;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
@@ -35,10 +36,9 @@ public abstract class XiaomingUserImpl<C extends XiaomingContact<M, ?>, M extend
     public XiaomingUserImpl(XiaomingBot xiaomingBot, long qq) {
         super(xiaomingBot);
         this.receptionist = getXiaomingBot().getReceptionistManager().forReceptionist(qq);
-        this.properties = new SizedResidentConcurrentHashMap<>(xiaomingBot.getConfiguration().getMaxUserPropertyQuantity());
 
-        setProperty("qq", qq);
-        setProperty("at", new At(qq).serializeToMiraiCode());
+        setProperty(PropertyType.QQ, qq);
+        setProperty(PropertyType.AT, new At(qq).serializeToMiraiCode());
     }
 
     /**
@@ -101,11 +101,15 @@ public abstract class XiaomingUserImpl<C extends XiaomingContact<M, ?>, M extend
         return string;
     }
 
-    @Getter
-    final Map<String, Object> properties;
+    @Override
+    public Map<PropertyType, Object> getProperties() {
+        return getReceptionist().getProperties();
+    }
 
-    @Getter
-    Map<String, Set<Thread>> propertyWaiters = new ConcurrentHashMap<>();
+    @Override
+    public Map<PropertyType, Object> getPropertyConditionalVariables() {
+        return getReceptionist().getPropertyConditionalVariables();
+    }
 
     @Getter
     Set<Thread> globalMessageWaiter = new CopyOnWriteArraySet<>();

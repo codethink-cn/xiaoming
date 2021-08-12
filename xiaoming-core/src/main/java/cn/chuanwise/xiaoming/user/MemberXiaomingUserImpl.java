@@ -35,7 +35,7 @@ public class MemberXiaomingUserImpl extends XiaomingUserImpl<MemberContact, Memb
     @Override
     public void onNextInput(MemberMessage message) {
         final List<MemberMessage> list = getRecentMessages();
-        setProperty("last", message.serialize());
+//        setProperty("last", message.serialize());
 
         final MemberReceptionTask receptionTask = getReceptionTask();
         if (Objects.isNull(receptionTask)) {
@@ -45,8 +45,8 @@ public class MemberXiaomingUserImpl extends XiaomingUserImpl<MemberContact, Memb
 
         final Receptionist receptionist = getReceptionist();
         receptionist.setGlobalRecentMessages(list);
-        synchronized (this) {
-            this.notifyAll();
+        synchronized (receptionist) {
+            receptionist.notifyAll();
         }
 
         // 对本人最近输入的追加

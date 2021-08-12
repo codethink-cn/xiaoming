@@ -2,7 +2,6 @@ package cn.chuanwise.xiaoming.license;
 
 import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
-import cn.chuanwise.xiaoming.license.LicenseManager;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -19,30 +18,32 @@ import java.util.Map;
 public class LicenceManagerImpl extends FilePreservableImpl implements LicenseManager {
     transient XiaomingBot xiaomingBot;
 
+    String license;
+
     @Transient
     @Override
-    public Logger getLog() {
+    public Logger getLogger() {
         return log;
     }
 
-    Map<Long, Long> agreements = new HashMap<>();
+    Map<Long, Long> agreementRecords = new HashMap<>();
 
-    public void setAgreements(Map<Long, Long> agreements) {
-        this.agreements = agreements;
+    public void setAgreementRecords(Map<Long, Long> agreementRecords) {
+        this.agreementRecords = agreementRecords;
     }
 
     @Override
     public boolean isAgreed(long qq) {
-        return agreements.containsKey(qq) || getXiaomingBot().getMiraiBot().getId() == qq;
+        return agreementRecords.containsKey(qq) || getXiaomingBot().getMiraiBot().getId() == qq;
     }
 
     @Override
     public void agree(long qq) {
-        agreements.put(qq, System.currentTimeMillis());
+        agreementRecords.put(qq, System.currentTimeMillis());
     }
 
     @Override
     public void remove(long qq) {
-        agreements.remove(qq);
+        agreementRecords.remove(qq);
     }
 }

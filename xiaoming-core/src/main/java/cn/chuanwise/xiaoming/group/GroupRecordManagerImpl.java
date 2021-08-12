@@ -3,6 +3,7 @@ package cn.chuanwise.xiaoming.group;
 import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Set;
@@ -12,16 +13,12 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * 响应群管理器
  */
 @Getter
+@NoArgsConstructor
 public class GroupRecordManagerImpl extends FilePreservableImpl implements GroupRecordManager {
-    Set<GroupRecordImpl> groups = new CopyOnWriteArraySet<>();
+    Set<GroupRecord> groups = new CopyOnWriteArraySet<>();
 
     @Setter
     transient XiaomingBot xiaomingBot;
-
-    @Override
-    public Set<GroupRecord> getGroups() {
-        return (Set) groups;
-    }
 
     @Override
     public GroupRecord addGroup(long group, String alias) {
@@ -29,14 +26,12 @@ public class GroupRecordManagerImpl extends FilePreservableImpl implements Group
         return addGroup(groupRecord);
     }
 
-    public void setGroups(Set<GroupRecordImpl> groups) {
+    public void setGroups(Set<GroupRecord> groups) {
         this.groups = groups;
-        for (GroupRecordImpl group : groups) {
+        for (GroupRecord group : groups) {
             group.setXiaomingBot(getXiaomingBot());
             group.addTag("recorded");
-            group.addTag(String.valueOf(group.code));
+            group.addTag(String.valueOf(group.getCode()));
         }
     }
-
-    public GroupRecordManagerImpl() {}
 }

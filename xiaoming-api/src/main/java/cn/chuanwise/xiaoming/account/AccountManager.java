@@ -2,6 +2,7 @@ package cn.chuanwise.xiaoming.account;
 
 import cn.chuanwise.utility.CollectionUtility;
 import cn.chuanwise.xiaoming.object.ModuleObject;
+import cn.chuanwise.xiaoming.tag.TagHolder;
 
 import java.io.File;
 import java.util.Map;
@@ -9,42 +10,42 @@ import java.util.Objects;
 import java.util.Set;
 
 public interface AccountManager extends ModuleObject {
-    File accountFile(long qq);
+    File accountFile(long code);
 
-    Account forAccount(long qq);
+    Account forAccount(long code);
 
     File getDirectory();
 
     Map<Long, Account> getLoadedAccounts();
 
-    default String getAliasOrCode(long qq) {
-        final Account account = forAccount(qq);
+    default String getAliasOrCode(long code) {
+        final Account account = forAccount(code);
         if (Objects.isNull(account)) {
-            return String.valueOf(qq);
+            return String.valueOf(code);
         } else {
-            return account.getAlias();
+            return account.getAliasOrCode();
         }
     }
 
-    default String getAliasAndCode(long qq) {
-        final Account account = forAccount(qq);
+    default String getAliasAndCode(long code) {
+        final Account account = forAccount(code);
         if (Objects.isNull(account)) {
-            return String.valueOf(qq);
+            return String.valueOf(code);
         } else {
-            return account.getCompleteName();
+            return account.getAliasAndCode();
         }
     }
 
-    default Set<String> getTags(long qq) {
-        final Account account = forAccount(qq);
+    default Set<String> getTags(long code) {
+        final Account account = forAccount(code);
         if (Objects.isNull(account)) {
-            return CollectionUtility.asSet("recorded", String.valueOf(qq));
+            return CollectionUtility.asSet(TagHolder.RECORDED, String.valueOf(code));
         } else {
             return account.getTags();
         }
     }
 
-    default boolean hasTag(long qq, String tag) {
-        return getTags(qq).contains(tag);
+    default boolean hasTag(long code, String tag) {
+        return getTags(code).contains(tag);
     }
 }

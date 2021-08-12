@@ -2,6 +2,8 @@ package cn.chuanwise.xiaoming.interactor;
 
 import cn.chuanwise.utility.StringUtility;
 import cn.chuanwise.xiaoming.annotation.Filter;
+import cn.chuanwise.xiaoming.interactor.customizer.Customizer;
+import cn.chuanwise.xiaoming.interactor.information.InteractorMethodInformation;
 import cn.chuanwise.xiaoming.object.PluginObjectImpl;
 import cn.chuanwise.xiaoming.plugin.XiaomingPlugin;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
@@ -9,6 +11,7 @@ import lombok.Data;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 交互器标准实现
@@ -18,9 +21,9 @@ import java.util.*;
 public abstract class InteractorImpl extends PluginObjectImpl implements Interactor {
     String usageCommandFormat = null;
 
-    Set<InteractorMethodInformation> interactorMethodInformation = new HashSet<>();
+    Map<String, InteractorMethodInformation> methodInformation = new ConcurrentHashMap<>();
 
-    Map<String, InteractorMethodInformation> customizer;
+    Customizer customizer;
 
     @Override
     public boolean equals(Object obj) {
@@ -41,11 +44,10 @@ public abstract class InteractorImpl extends PluginObjectImpl implements Interac
         // 注册指令格式指令
         if (StringUtility.nonEmpty(usageCommandFormat)) {
             try {
-                final String format = usageCommandFormat;
                 register(getClass().getMethod("onUsage", XiaomingUser.class),
-                        new InteractorMethodInformation(new String[]{usageCommandFormat}, new String[0], new String[0], new String[0], false, false, false));
+                        new InteractorMethodInformation("usage", new String[]{usageCommandFormat}, new String[0], new String[0], new String[0], false, false, false));
             } catch (NoSuchMethodException exception) {
-                getLog().error("没有找到交互方法：onUsage", exception);
+                getLogger().error("没有找到交互方法：onUsage", exception);
             }
         }
 

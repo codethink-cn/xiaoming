@@ -1,7 +1,12 @@
 package cn.chuanwise.xiaoming.configuration;
 
+import cn.chuanwise.annotation.Experimental;
+import cn.chuanwise.annotation.Incomplete;
 import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
+import cn.chuanwise.toolkit.serialize.serializer.configuration.SerializerConfiguration;
+import cn.chuanwise.toolkit.serialize.serializer.json.configuration.JsonSerializerConfiguration;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
+import cn.chuanwise.xiaoming.limit.CallLimitConfiguration;
 import cn.chuanwise.xiaoming.limit.CallLimitConfigurationImpl;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,8 +23,8 @@ public class ConfigurationImpl extends FilePreservableImpl implements Configurat
     boolean debug = false;
     boolean enablePreviewFunctions = false;
 
-    CallLimitConfigurationImpl groupCallConfig = new CallLimitConfigurationImpl();
-    CallLimitConfigurationImpl privateCallConfig = new CallLimitConfigurationImpl();
+    CallLimitConfiguration groupCallConfig = new CallLimitConfigurationImpl();
+    CallLimitConfiguration privateCallConfig = new CallLimitConfigurationImpl();
 
     int maxIterateTime = 20;
 
@@ -27,13 +32,17 @@ public class ConfigurationImpl extends FilePreservableImpl implements Configurat
      * 存储使用的数据交换语言类型。可选 JSON、YAML 和 XML
      * 这个配置项只能修改自定义的部分，核心配置仍然是 JSON。
      */
+    @Experimental
+    @Incomplete
     DelType storageDelType = DelType.JSON;
 
     /** 存储数据所用编码类型 */
     String storageEncoding = "UTF-8";
+    String storageDecoding = "UTF-8";
 
-    /** 自动同意添加好友申请 */
+    /** 自动同意添加好友、加群申请 */
     boolean autoAcceptFriendAddRequest = true;
+    boolean autoAcceptGroupInvite = false;
 
     /** 主线程池最大容量 */
     int maxMainThreadPoolSize = 5;
@@ -44,11 +53,16 @@ public class ConfigurationImpl extends FilePreservableImpl implements Configurat
     /** 启动用户使用验证 */
     boolean enableLicense = false;
 
+    /** 序列化设置 */
+    SerializerConfiguration serializerConfiguration = new JsonSerializerConfiguration();
+
     /** 启动时在日志群发消息 */
     boolean enableStartLog = false;
 
     /** 启动明确调用 */
     boolean enableClearCall = false;
+
+    boolean saveFileDirectly = true;
 
     /** 合规明确调用头 */
     Set<String> clearCallPrefixes = new LinkedHashSet<>();
@@ -79,5 +93,5 @@ public class ConfigurationImpl extends FilePreservableImpl implements Configurat
     int maxMemberUserQuantityInReceptionist = 5;
     int maxUserPropertyQuantity = 20;
     int maxRecentPrivateMessageBufferSize = 10;
-    int maxReceptionistQuantity = 10;
+    int maxReceptionistQuantity = 50;
 }

@@ -2,6 +2,7 @@ package cn.chuanwise.xiaoming.account;
 
 import cn.chuanwise.toolkit.sized.SizedResidentConcurrentHashMap;
 import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.utility.MapUtility;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import lombok.Getter;
@@ -23,17 +24,17 @@ public class AccountManagerImpl extends ModuleObjectImpl implements AccountManag
     }
 
     @Override
-    public File accountFile(long qq) {
-        return new File(directory, qq + ".json");
+    public File accountFile(long code) {
+        return new File(directory, code + ".json");
     }
 
     @Override
-    public Account forAccount(long qq) {
-        return CollectionUtility.getOrPutSupplie(loadedAccounts, qq,
-                () -> getXiaomingBot().getFileLoader().loadOrSupplie(AccountImpl.class, accountFile(qq),
+    public Account forAccount(long code) {
+        return MapUtility.getOrPutSupply(loadedAccounts, code,
+                () -> getXiaomingBot().getFileLoader().loadOrSupply(AccountImpl.class, accountFile(code),
                         () -> {
                             final AccountImpl account = new AccountImpl();
-                            account.setCode(qq);
+                            account.setCode(code);
                             return account;
                         }));
     }

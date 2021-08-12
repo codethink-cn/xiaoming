@@ -3,6 +3,7 @@ package cn.chuanwise.xiaoming.interactor;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.plugin.XiaomingPlugin;
+import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
@@ -38,7 +39,7 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
 
         // 设置群标记
         if (user instanceof GroupXiaomingUser) {
-            user.setProperty("group", ((GroupXiaomingUser) user).getGroupCodeString());
+            user.setProperty(PropertyType.GROUP, ((GroupXiaomingUser) user).getContact());
         }
 
         for (Interactor interactor : coreInteractors) {

@@ -32,7 +32,7 @@ public class EventListenerImpl extends PluginObjectImpl implements EventListener
     }
 
     @Override
-    public boolean onEvent(Event event) throws Exception {
+    public final boolean onEvent(Event event) throws Exception {
         final Class<? extends Event> eventClass = event.getClass();
         for (Method method : handlerMethods) {
             final Parameter[] parameters = method.getParameters();

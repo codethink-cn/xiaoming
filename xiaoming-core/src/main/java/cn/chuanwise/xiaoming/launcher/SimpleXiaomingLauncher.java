@@ -25,7 +25,7 @@ public class SimpleXiaomingLauncher implements XiaomingLauncher {
     }
 
     @Override
-    public Logger getLog() {
+    public Logger getLogger() {
         return log;
     }
 
@@ -43,7 +43,7 @@ public class SimpleXiaomingLauncher implements XiaomingLauncher {
             return;
         }
 
-        final String password = ArgumentUtility.getReaminArgs(args, 1);
+        final String password = ArgumentUtility.getRemainArguments(args, 1);
         final SimpleXiaomingLauncher launcher = new SimpleXiaomingLauncher(new XiaomingBotImpl(qq, password));
 
         launcher.launch();

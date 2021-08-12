@@ -35,7 +35,7 @@ public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, Pr
     @Override
     public void onNextInput(PrivateMessage message) {
         final List<PrivateMessage> list = getRecentMessages();
-        setProperty("last", message.serialize());
+//        setProperty("last", message.serialize());
 
         final PrivateReceptionTask receptionTask = getReceptionTask();
         if (Objects.isNull(receptionTask)) {
@@ -45,8 +45,8 @@ public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, Pr
 
         final Receptionist receptionist = getReceptionist();
         receptionist.setGlobalRecentMessages(list);
-        synchronized (this) {
-            this.notifyAll();
+        synchronized (receptionist) {
+            receptionist.notifyAll();
         }
         synchronized (list) {
             list.add(message);

@@ -1,10 +1,7 @@
 package cn.chuanwise.xiaoming.recept;
 
 import cn.chuanwise.toolkit.sized.SizedResidentConcurrentHashMap;
-import cn.chuanwise.utility.ArgumentUtility;
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.StringUtility;
-import cn.chuanwise.utility.TimeUtility;
+import cn.chuanwise.utility.*;
 import cn.chuanwise.xiaoming.annotation.EventHandler;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.configuration.Configuration;
@@ -32,7 +29,7 @@ import java.util.Objects;
 public class ReceptionistManagerImpl extends EventListenerImpl implements ReceptionistManager {
     @Override
     @Transient
-    public Logger getLog() {
+    public Logger getLogger() {
         return log;
     }
 
@@ -56,8 +53,8 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
     }
 
     @Override
-    public Receptionist forReceptionist(long qq) {
-        return CollectionUtility.getOrPutSupplie(receptionists, qq, () -> new ReceptionistImpl(getXiaomingBot(), qq));
+    public Receptionist forReceptionist(long code) {
+        return MapUtility.getOrPutSupply(receptionists, code, () -> new ReceptionistImpl(getXiaomingBot(), code));
     }
 
     public boolean callable(Contact contact, boolean inGroup) {
@@ -74,14 +71,14 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
                     final CallLimitConfiguration config = limiter.getConfiguration();
                     final String sceneName = inGroup ? "群聊" : "私聊";
                     contact.sendMessage(
-                            ArgumentUtility.replaceArguments("你在{}{}内召唤了{}次小明啦，好好休息一下，等{}咱们再一起在{}玩吧 {}",
+                            ArgumentUtility.render("你在{}{}内召唤了{}次小明啦，好好休息一下，等{}咱们再一起在{}玩吧 {}",
                                     new Object[]{
                                             sceneName,
                                             TimeUtility.toTimeLength(config.getPeriod()),
                                             config.getTop(),
                                             TimeUtility.after(config.getPeriod()),
                                             sceneName,
-                                            getXiaomingBot().getLanguage().get("happy")
+//                                            getXiaomingBot().getLanguage().get("happy")
                                     })
                     );
 
@@ -130,7 +127,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
         }
 
         if (!callable(member, true)) {
-            getLog().warn("小明收到了来自 " + qq + " 的群聊消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
+            getLogger().warn("小明收到了来自 " + qq + " 的群聊消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
             return;
         }
 
@@ -147,7 +144,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
 
         final long qq = friend.getId();
         if (!callable(friend, false)) {
-            getLog().warn("小明收到了来自 " + qq + " 的私聊消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
+            getLogger().warn("小明收到了来自 " + qq + " 的私聊消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
             return;
         }
 
@@ -163,7 +160,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
 
         final long qq = member.getId();
         if (!callable(member, false)) {
-            getLog().warn("小明收到了来自 " + qq + " 的临时会话消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
+            getLogger().warn("小明收到了来自 " + qq + " 的临时会话消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
             return;
         }
 

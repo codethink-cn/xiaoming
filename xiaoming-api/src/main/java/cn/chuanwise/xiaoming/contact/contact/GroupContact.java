@@ -19,33 +19,34 @@ import java.util.Objects;
 import java.util.Set;
 
 public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
-    default GroupMessage atSend(long qq, String message) {
-        return atSend(qq, MiraiCode.deserializeMiraiCode(ArgumentUtility.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
+    default GroupMessage atSend(long code, String message) {
+        return atSend(code, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
     }
 
-    default GroupMessage atSend(long qq, MessageChain messages) {
-        return send(new At(qq).plus(" ").plus(messages));
+    default GroupMessage atSend(long code, MessageChain messages) {
+        return send(new At(code).plus(" ").plus(messages));
     }
 
-    default GroupMessage atSend(long qq, Message messages) {
-        return atSend(qq, messages.getMessageChain());
+    default GroupMessage atSend(long code, Message messages) {
+        return atSend(code, messages.getMessageChain());
     }
 
-    default ScheduledFuture<GroupMessage> atSendLater(long delay, long qq, String message) {
+    default ScheduledFuture<GroupMessage> atSendLater(long delay, long code, String message) {
         return getXiaomingBot().getScheduler().runLater(delay, () -> send(message));
     }
 
-    default ScheduledFuture<GroupMessage> atSendLater(long delay, long qq, MessageChain messages) {
-        messages.add(0, new At(qq));
+    default ScheduledFuture<GroupMessage> atSendLater(long delay, long code, MessageChain messages) {
+        messages.add(0, new At(code));
         return sendLater(delay, messages);
     }
 
-    default ScheduledFuture<GroupMessage> atSendLater(long delay, long qq, Message messages) {
-        return atSendLater(delay, qq, messages.getMessageChain());
+    default ScheduledFuture<GroupMessage> atSendLater(long delay, long code, Message messages) {
+        return atSendLater(delay, code, messages.getMessageChain());
     }
 
     default GroupMessage atReply(Message quote, String message) {
-        return atReply(quote, MiraiCode.deserializeMiraiCode(ArgumentUtility.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
+//        return atReply(quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)))
+        return null;
     }
 
     default GroupMessage atReply(Message quote, MessageChain message) {
@@ -61,7 +62,7 @@ public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
     }
 
     default ScheduledFuture<GroupMessage> atReplayLater(long delay, Message quote, String message) {
-        return atReplayLater(delay, quote, MiraiCode.deserializeMiraiCode(ArgumentUtility.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
+        return atReplayLater(delay, quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
     }
 
     default ScheduledFuture<GroupMessage> atReplayLater(long delay, Message quote, GroupMessage message) {

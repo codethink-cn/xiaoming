@@ -60,7 +60,7 @@ public interface MemberContact extends XiaomingContact<MemberMessage, NormalMemb
     }
 
     default void mute(long timeMillis) {
-        this.getMiraiContact().mute(((int) TimeUnit.MILLISECONDS.toSeconds(timeMillis)));
+        getMiraiContact().mute(((int) TimeUnit.MILLISECONDS.toSeconds(timeMillis)));
     }
 
     default void lift() {
@@ -118,7 +118,7 @@ public interface MemberContact extends XiaomingContact<MemberMessage, NormalMemb
     }
 
     default MemberMessage replyGroup(Message quote, String message) {
-        return replyGroup(quote, MiraiCode.deserializeMiraiCode(ArgumentUtility.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
+        return replyGroup(quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
     }
 
     default MemberMessage replyGroup(Message quote, MessageChain message) {
@@ -126,7 +126,7 @@ public interface MemberContact extends XiaomingContact<MemberMessage, NormalMemb
     }
 
     default ScheduledFuture<MemberMessage> replyGroupLater(long delay, Message quote, String message) {
-        return replyGroupLater(delay, quote, MiraiCode.deserializeMiraiCode(ArgumentUtility.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
+        return replyGroupLater(delay, quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
     }
 
     default ScheduledFuture<MemberMessage> replyGroupLater(long delay, Message quote, MessageChain message) {

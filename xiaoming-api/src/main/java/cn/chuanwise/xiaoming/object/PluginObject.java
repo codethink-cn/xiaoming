@@ -16,10 +16,10 @@ public interface PluginObject extends XiaomingObject {
 
     void setPlugin(XiaomingPlugin plugin);
 
-    default Logger getLog() {
+    default Logger getLogger() {
         final XiaomingPlugin plugin = getPlugin();
         if (Objects.nonNull(plugin)) {
-            return plugin.getLog();
+            return plugin.getLogger();
         } else {
             return LoggerFactory.getLogger(getClass());
         }

@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.interactor.core;
 
-import cn.chuanwise.utility.TimeUtility;
+import cn.chuanwise.xiaoming.annotation.Customizable;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.annotation.Permission;
@@ -21,6 +21,10 @@ public class CallLimitInteractor extends InteractorImpl {
     final UserCallLimitManager callLimitManager;
     final CallLimitConfiguration groupCallConfig, privateCallConfig;
 
+    static final String TOP = "(上限|top)";
+    static final String PERIOD = "(周期|period)";
+    static final String COOLDOWN = "(冷却|冷却时间|cooldown)";
+
     public CallLimitInteractor(XiaomingBot xiaomingBot) {
         setXiaomingBot(xiaomingBot);
         callLimitManager = getXiaomingBot().getUserCallLimitManager();
@@ -28,133 +32,134 @@ public class CallLimitInteractor extends InteractorImpl {
         privateCallConfig = getXiaomingBot().getConfiguration().getPrivateCallConfig();
     }
 
+    /** 群聊调用相关 */
+    @Customizable("clearGroupCallRecord")
+    @Filter(CommandWords.CLEAR + CommandWords.GROUP + CommandWords.CALL + CommandWords.RECORD)
+    @Permission("limit.group.clear")
+    public void onClearGroupCallRecord(XiaomingUser user) {
+        callLimitManager.getGroupCallLimiter().getCallRecords().clear();
+        user.sendMessage("{lang.groupCallRecordCleared}");
+    }
+
+    @Customizable("lookGroupCallLimit")
     @Filter(CommandWords.GROUP + CommandWords.CALL + CommandWords.LIMIT)
     @Permission("limit.group.look")
     public void onLookGroupCallLimit(XiaomingUser user) {
-        StringBuilder builder = new StringBuilder()
-                .append("群内").append(TimeUtility.toTimeLength(groupCallConfig.getPeriod())).append("内可以召唤")
-                .append(groupCallConfig.getTop()).append("次小明，召唤技能冷却时间为")
-                .append(TimeUtility.toTimeLength(groupCallConfig.getCoolDown())).append("。").append("\n");
-
+        user.sendMessage("{lang.groupCallLimit}");
         if (user.hasPermission("limit.group.bypass")) {
-            builder.append("但是你不受召唤限制哦");
-            user.sendMessage(builder.toString());
+            user.sendMessage("{lang.butItIsNotWorkForYou}");
+        }
+    }
+
+    @Customizable("setGroupCallPeriod")
+    @Filter(CommandWords.SET + CommandWords.GROUP + CommandWords.CALL + PERIOD + " {period}")
+    @Permission("limit.group.period")
+    public void onSetGroupCallPeriod(XiaomingUser user,
+                                     @FilterParameter("period") long period) {
+        final CallLimitConfiguration configuration = callLimitManager.getGroupCallLimiter().getConfiguration();
+        configuration.setPeriod(period);
+        getXiaomingBot().getFileSaver().readyToSave(getXiaomingBot().getConfiguration());
+        user.sendMessage("{lang.setGroupCallLimitPeriod}");
+    }
+
+    @Customizable("setGroupCallTop")
+    @Filter(CommandWords.SET + CommandWords.GROUP + CommandWords.CALL + TOP + " {top}")
+    @Permission("limit.group.top")
+    public void onSetGroupCallTop(XiaomingUser user,
+                                  @FilterParameter("top") int top) {
+        if (top <= 0) {
+            user.sendError("{lang.illegalGroupCallLimitTop}", top);
             return;
         }
-        user.sendMessage(builder.toString());
-    }
-
-    @Filter(CommandWords.GROUP + CommandWords.CALL + CommandWords.LIMIT + " (周期|period) {time}")
-    @Permission("limit.group.period")
-    public void onSetGroupPeriod(XiaomingUser user,
-                                 @FilterParameter("time") final String timeString) {
-        final long time = TimeUtility.parseTimeLength(timeString);
-        if (time == -1) {
-            user.sendMessage("{}并不是一个合理的时间哦", timeString);
-        } else {
-            final CallLimitConfiguration groupCallLimitConfiguration = callLimitManager.getGroupCallLimiter().getConfiguration();
-            groupCallLimitConfiguration.setPeriod(time);
-            getXiaomingBot().getFileSaver().readySave(getXiaomingBot().getConfiguration());
-            user.sendMessage("成功设置群内召唤周期为{}，在这段时间内最多召唤{}次小明",
-                    TimeUtility.toTimeLength(time),
-                    groupCallLimitConfiguration.getTop());
+        if (top < 5) {
+            user.sendWarning("{lang.groupCallLimitTopTooSmall}", top);
+            return;
         }
-    }
-
-    @Filter(CommandWords.GROUP + CommandWords.CALL + CommandWords.LIMIT + " (上限|top) {time}")
-    @Permission("limit.group.top")
-    public void onSetGroupTop(XiaomingUser user,
-                              @FilterParameter("time") final String timeString) {
-        if (!timeString.matches("\\d+")) {
-            user.sendError("{}并不是一个合理的数字哦", timeString);
-        }
-        final CallLimitConfiguration groupCallLimitConfiguration = callLimitManager.getGroupCallLimiter().getConfiguration();
-        int time = Integer.parseInt(timeString);
-        groupCallLimitConfiguration.setTop(time);
-        getXiaomingBot().getFileSaver().readySave(getXiaomingBot().getConfiguration());
+        final CallLimitConfiguration configuration = callLimitManager.getGroupCallLimiter().getConfiguration();
+        configuration.setTop(top);
+        getXiaomingBot().getFileSaver().readyToSave(getXiaomingBot().getConfiguration());
         callLimitManager.getGroupCallLimiter().getCallRecords().clear();
-        user.sendMessage("成功设置群内召唤上限为{}次，已清空所有纪录。未来每{}内最多召唤这么多次小明",
-                time,
-                TimeUtility.toTimeLength(groupCallLimitConfiguration.getPeriod()));
+        user.sendMessage("{lang.setGroupCallLimitTop}");
     }
 
-    @Filter(CommandWords.GROUP + CommandWords.CALL + CommandWords.LIMIT + " (冷却时间|冷却|cooldown) {time}")
+    @Customizable("setGroupCallCooldown")
+    @Filter(CommandWords.SET + CommandWords.GROUP + CommandWords.CALL + COOLDOWN + " {time}")
     @Permission("limit.group.cooldown")
-    public void onSetGroupCoolDown(XiaomingUser user,
-                                   @FilterParameter("time") final String timeString) {
-        if (!timeString.matches("\\d+")) {
-            user.sendError("{}并不是一个合理的数字哦", timeString);
+    public void onSetGroupCallCoolDown(XiaomingUser user,
+                                       @FilterParameter("time") long cooldown) {
+        if (cooldown > TimeUnit.SECONDS.toMillis(30)) {
+            user.sendError("{lang.groupCallLimitCooldownTooLong}", cooldown);
+            return;
         }
-        int time = Integer.parseInt(timeString);
-        if (time > TimeUnit.SECONDS.toMillis(30)) {
-            user.sendError("过长的召唤冷却时间会影响使用体验");
-        }
-        final CallLimitConfiguration config = callLimitManager.getGroupCallLimiter().getConfiguration();
-        config.setCoolDown(time);
-        getXiaomingBot().getFileSaver().readySave(getXiaomingBot().getConfiguration());
-        user.sendMessage("成功设置小明的召唤冷却时间为{}", TimeUtility.toTimeLength(config.getPeriod()));
+        final CallLimitConfiguration configuration = callLimitManager.getGroupCallLimiter().getConfiguration();
+        configuration.setCoolDown(cooldown);
+        getXiaomingBot().getFileSaver().readyToSave(getXiaomingBot().getConfiguration());
+        user.sendMessage("{lang.setGroupCallLimitCooldown}");
     }
 
+
+    /** 私聊调用相关 */
+    @Customizable("clearPrivateCallRecord")
+    @Filter(CommandWords.CLEAR + CommandWords.PRIVATE + CommandWords.CALL + CommandWords.RECORD)
+    @Permission("limit.private.clear")
+    public void onClearPrivateCallRecord(XiaomingUser user) {
+        callLimitManager.getPrivateCallLimiter().getCallRecords().clear();
+        user.sendMessage("{lang.privateCallRecordCleared}");
+    }
+
+    @Customizable("lookPrivateCallLimit")
     @Filter(CommandWords.PRIVATE + CommandWords.CALL + CommandWords.LIMIT)
     @Permission("limit.private.look")
     public void onLookPrivateCallLimit(XiaomingUser user) {
-        StringBuilder builder = new StringBuilder()
-                .append("私聊").append(TimeUtility.toTimeLength(privateCallConfig.getPeriod())).append("内可以召唤")
-                .append(privateCallConfig.getTop()).append("次小明，召唤技能冷却时间为")
-                .append(TimeUtility.toTimeLength(privateCallConfig.getCoolDown())).append("。").append("\n");
-
-
+        user.sendMessage("{lang.privateCallLimit}");
         if (user.hasPermission("limit.private.bypass")) {
-            builder.append("但是你不受召唤限制哦");
-            user.sendMessage(builder.toString());
+            user.sendMessage("{lang.butItIsNotWorkForYou}");
+        }
+    }
+
+    @Customizable("setPrivateCallPeriod")
+    @Filter(CommandWords.SET + CommandWords.PRIVATE + CommandWords.CALL + PERIOD + " {period}")
+    @Permission("limit.private.period")
+    public void onSetPrivateCallPeriod(XiaomingUser user,
+                                       @FilterParameter("period") long period) {
+        final CallLimitConfiguration configuration = callLimitManager.getPrivateCallLimiter().getConfiguration();
+        configuration.setPeriod(period);
+        getXiaomingBot().getFileSaver().readyToSave(getXiaomingBot().getConfiguration());
+        user.sendMessage("{lang.setPrivateCallLimitPeriod}");
+    }
+
+    @Customizable("setPrivateCallTop")
+    @Filter(CommandWords.SET + CommandWords.PRIVATE + CommandWords.CALL + TOP + " {top}")
+    @Permission("limit.private.top")
+    public void onSetPrivateCallTop(XiaomingUser user,
+                                    @FilterParameter("top") int top) {
+        if (top <= 0) {
+            user.sendError("{lang.illegalPrivateCallLimitTop}", top);
             return;
         }
-        user.sendMessage(builder.toString());
-    }
-
-    @Filter(CommandWords.PRIVATE + CommandWords.CALL + CommandWords.LIMIT + " (周期|period) {time}")
-    @Permission("limit.private.period")
-    public void onSetPrivatePeriod(XiaomingUser user,
-                                 @FilterParameter("time") long time) {
-        final CallLimitConfiguration config = callLimitManager.getPrivateCallLimiter().getConfiguration();
-        config.setPeriod(time);
-        getXiaomingBot().getFileSaver().readySave(getXiaomingBot().getConfiguration());
-        user.sendMessage("成功设置私聊召唤周期为{}，在这段时间内最多召唤{}次小明",
-                TimeUtility.toTimeLength(time),
-                config.getTop());
-    }
-
-    @Filter(CommandWords.PRIVATE + CommandWords.CALL + CommandWords.LIMIT + " (上限|top) {time}")
-    @Permission("limit.private.top")
-    public void onSetPrivateTop(XiaomingUser user,
-                              @FilterParameter("time") final String timeString) {
-        if (!timeString.matches("\\d+")) {
-            user.sendError("{}并不是一个合理的数字哦", timeString);
+        if (top < 5) {
+            user.sendWarning("{lang.privateCallLimitTopTooSmall}", top);
+            return;
         }
-        final CallLimitConfiguration config = callLimitManager.getPrivateCallLimiter().getConfiguration();
-        int time = Integer.parseInt(timeString);
-        config.setTop(time);
-        getXiaomingBot().getFileSaver().readySave(getXiaomingBot().getConfiguration());
+        final CallLimitConfiguration configuration = callLimitManager.getPrivateCallLimiter().getConfiguration();
+        configuration.setTop(top);
+        getXiaomingBot().getFileSaver().readyToSave(getXiaomingBot().getConfiguration());
         callLimitManager.getPrivateCallLimiter().getCallRecords().clear();
-        user.sendMessage("成功设置私聊召唤上限为{}次，已清空所有纪录。未来每{}内最多召唤这么多次小明",
-                time,
-                TimeUtility.toTimeLength(config.getPeriod()));
+        user.sendMessage("{lang.setPrivateCallLimitTop}");
     }
 
-    @Filter(CommandWords.PRIVATE + CommandWords.CALL + CommandWords.LIMIT + " (冷却时间|冷却|cooldown) {time}")
+    @Customizable("setPrivateCallCoolDown")
+    @Filter(CommandWords.SET + CommandWords.PRIVATE + CommandWords.CALL + COOLDOWN + " {time}")
     @Permission("limit.private.cooldown")
-    public void onSetPrivateCoolDown(XiaomingUser user,
-                                   @FilterParameter("time") final String timeString) {
-        if (!timeString.matches("\\d+")) {
-            user.sendError("{}并不是一个合理的数字哦", timeString);
+    public void onSetPrivateCallCoolDown(XiaomingUser user,
+                                         @FilterParameter("time") long cooldown) {
+        if (cooldown > TimeUnit.SECONDS.toMillis(30)) {
+            user.sendError("{lang.privateCallLimitCooldownTooLong}", cooldown);
+            return;
         }
-        int time = Integer.parseInt(timeString);
-        if (time > TimeUnit.SECONDS.toMillis(30)) {
-            user.sendError("过长的召唤冷却时间会影响使用体验");
-        }
-        final CallLimitConfiguration config = callLimitManager.getPrivateCallLimiter().getConfiguration();
-        config.setCoolDown(time);
-        getXiaomingBot().getFileSaver().readySave(getXiaomingBot().getConfiguration());
-        user.sendMessage("成功设置小明的私聊召唤冷却时间为{}", TimeUtility.toTimeLength(config.getPeriod()));
+        final CallLimitConfiguration configuration = callLimitManager.getPrivateCallLimiter().getConfiguration();
+        configuration.setCoolDown(cooldown);
+        getXiaomingBot().getFileSaver().readyToSave(getXiaomingBot().getConfiguration());
+        user.sendMessage("{lang.setPrivateCallLimitCooldown}");
     }
 }

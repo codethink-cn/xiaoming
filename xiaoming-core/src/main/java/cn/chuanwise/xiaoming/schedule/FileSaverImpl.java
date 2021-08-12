@@ -1,20 +1,25 @@
 package cn.chuanwise.xiaoming.schedule;
 
 import cn.chuanwise.toolkit.preservable.Preservable;
-import cn.chuanwise.toolkit.preservable.file.FilePreservable;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
+import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-@Getter
+@Data
 public class FileSaverImpl extends ModuleObjectImpl implements FileSaver {
-    final List<Preservable<File>> preservables = new CopyOnWriteArrayList<>();
+    Charset encodeCharset = Charset.defaultCharset();
+
+    final Map<File, Preservable<File>> preservables = new ConcurrentHashMap<>();
     final AtomicLong lastSaveTime = new AtomicLong(System.currentTimeMillis());
     final AtomicLong lastValidSaveTime = new AtomicLong(System.currentTimeMillis());
 
@@ -32,21 +37,30 @@ public class FileSaverImpl extends ModuleObjectImpl implements FileSaver {
         }
 
         lastValidSaveTime.set(timeMillis);
-        final List<Preservable<File>> failures = new ArrayList<>();
 
-        for (Preservable<File> preservable : getPreservables()) {
-            if (!preservable.saveOrFail()) {
-                failures.add(preservable);
+        for (Map.Entry<File, Preservable<File>> entry : getPreservables().entrySet()) {
+            final File file = entry.getKey();
+            final Preservable<File> preservable = entry.getValue();
+
+            if (Objects.isNull(preservable.getMedium())) {
+                preservable.setMedium(file);
+            }
+
+            if (saveOrFail(preservable)) {
+                getLogger().info("成功保存文件：" + file.getAbsolutePath());
+                preservables.remove(file);
+            } else {
+                getLogger().error("保存文件失败：" + file.getAbsolutePath());
             }
         }
-
-        getPreservables().addAll(failures);
     }
 
+    @Override
     public long getLastSaveTime() {
         return lastSaveTime.get();
     }
 
+    @Override
     public long getLastValidSaveTime() {
         return lastValidSaveTime.get();
     }

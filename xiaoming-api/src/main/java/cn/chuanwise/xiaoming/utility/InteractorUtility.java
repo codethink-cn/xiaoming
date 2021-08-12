@@ -1,11 +1,17 @@
 package cn.chuanwise.xiaoming.utility;
 
+import cn.chuanwise.exception.UnsupportedVersionException;
+import cn.chuanwise.utility.ObjectUtility;
 import cn.chuanwise.utility.StaticUtility;
+import cn.chuanwise.utility.StringUtility;
+import cn.chuanwise.xiaoming.exception.InteractorTimeoutException;
 import cn.chuanwise.xiaoming.exception.ReceptCancelledException;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
@@ -17,7 +23,7 @@ import java.util.regex.Pattern;
 public class InteractorUtility extends StaticUtility {
     static final Pattern PAGE = Pattern.compile("(第|P|p)\\s*(?<page>\\d+)\\s*页");
 
-    public static <T> void showCollection(XiaomingUser user, Collection<T> collection, Function<T, String> summarizer, String empty, int pageElemNumber) {
+    public static <T> void showCollection(XiaomingUser user, Collection<T> collection, Function<T, String> summarizer, String empty, int elementNumberPerPage) {
         if (collection.isEmpty()) {
             user.sendMessage(empty);
             return;
@@ -25,7 +31,7 @@ public class InteractorUtility extends StaticUtility {
 
         List<String> strings = new ArrayList<>(collection.size());
         collection.forEach(t -> strings.add(summarizer.apply(t)));
-        if (collection.size() < pageElemNumber) {
+        if (collection.size() < elementNumberPerPage) {
             StringBuilder builder = new StringBuilder(1 + "、" + strings.get(0));
             for (int i = 1; i < collection.size(); i++) {
                 builder.append("\n").append((i + 1) + "、" + strings.get(i));
@@ -33,7 +39,7 @@ public class InteractorUtility extends StaticUtility {
             user.sendMessage(builder.toString());
         } else {
             int pageNumber = 0;
-            final int totalPageNumber = strings.size() / pageElemNumber + (strings.size() % pageElemNumber == 0 ? 0 : 1);
+            final int totalPageNumber = strings.size() / elementNumberPerPage + (strings.size() % elementNumberPerPage == 0 ? 0 : 1);
 
             // 生成每一页的信息
             List<String> pageInfo = new ArrayList<>(totalPageNumber);
@@ -41,8 +47,8 @@ public class InteractorUtility extends StaticUtility {
                 final StringBuilder builder = new StringBuilder();
 
                 builder.append("第 ").append(i + 1).append(" 页，共 ").append(totalPageNumber).append(" 页");
-                int pageFrontIndex = pageElemNumber * i;
-                int pageEndIndex = Math.min(pageFrontIndex + pageElemNumber, strings.size());
+                int pageFrontIndex = elementNumberPerPage * i;
+                int pageEndIndex = Math.min(pageFrontIndex + elementNumberPerPage, strings.size());
                 for (int j = pageFrontIndex; j < pageEndIndex; j++) {
                     builder.append("\n").append(j + 1).append("、").append(strings.get(j));
                 }
@@ -84,7 +90,7 @@ public class InteractorUtility extends StaticUtility {
                         user.sendError("序号应该在 {} 到 {} 之间", 1, collection.size());
                         showPageInfo = false;
                     } else {
-                        final int switchTo = index / pageElemNumber;
+                        final int switchTo = index / elementNumberPerPage;
                         if (switchTo + 1 == pageNumber) {
                             user.sendMessage("当前这一页有第 {last} 个项目哦");
                             showPageInfo = false;
@@ -127,6 +133,10 @@ public class InteractorUtility extends StaticUtility {
                 }
             }
         }
+    }
+
+    public static <T> void showCollection(XiaomingUser user, Collection<T> collection, Function<T, String> summarizer, int elementNumberPerPage) {
+        showCollection(user, collection, summarizer, "（空）", elementNumberPerPage);
     }
 
     public static <T> T indexChooser(XiaomingUser user, List<T> collection, int pageElemNumber) {
@@ -262,99 +272,106 @@ public class InteractorUtility extends StaticUtility {
         return null;
     }
 
-    public static <T> T waitLastElement(List<T> list, long timeout, Runnable onTimeout) {
-        final long latestTime = System.currentTimeMillis() + timeout;
-        final int sizeBeforeWait = list.size();
-        try {
-            synchronized (list) {
-                list.wait(timeout);
-            }
-        } catch (InterruptedException exception) {
-            throw new ReceptCancelledException();
-        }
-        if (System.currentTimeMillis() < latestTime) {
-            if (sizeBeforeWait < list.size()) {
-                final T result = list.get(sizeBeforeWait);
-                return result;
-            } else {
-                throw new ReceptCancelledException();
-            }
-        } else {
-            onTimeout.run();
-            return null;
-        }
-    }
-
     public static <T> T waitLastElement(List<T> list, long timeout) {
-        return waitLastElement(list, timeout, () -> {});
-    }
-
-    public static <T, C extends Collection<T>> C fillCollection(XiaomingUser user,
-                                                                String beforeInput,
-                                                                C collection, Predicate<String> isLegal, Function<String, T> translator, String illegalNotice,
-                                                                String endWord,
-                                                                boolean emptyable, String emptyNotice) {
-        user.sendMessage(beforeInput + "，使用「" + endWord + "」结束");
-        Message message = user.nextInput();
-        while (true) {
-            final String serializedMessage = message.serialize();
-            if (Objects.equals(serializedMessage, endWord)) {
-                if (!emptyable && collection.isEmpty()) {
-                    user.sendMessage(emptyNotice);
-                } else {
-                    return collection;
-                }
-            } else {
-                if (isLegal.test(serializedMessage)) {
-                    collection.add(translator.apply(serializedMessage));
-                } else {
-                    user.reply(message, illegalNotice);
-                }
-            }
-            message = user.nextInput();
+        switch (ObjectUtility.wait(list, timeout)) {
+            case NOTIFY:
+                return list.get(list.size() - 1);
+            case TIMEOUT:
+                throw new InteractorTimeoutException();
+            case INTERRUPT:
+                throw new ReceptCancelledException();
+            default:
+                throw new UnsupportedVersionException();
         }
     }
 
+    /**
+     * 将用户的输入填充到集合中
+     * @param user 输入值
+     * @param collection 集合
+     * @param translator 翻译器，将消息翻译为集合中的元素。如果返回 null，则该元素不会被加入集合中。
+     *                   本方法没有非法输入警告功能，这个功能需要自己在翻译器里实现
+     * @param stopPredicate 判断当前输入是否是结尾，如果返回 true 则会停止收集
+     * @param onEmptyStop 如果非空，则在集合为空前执行并且不停止收集。否则直接返回
+     * @param <T> 集合中的元素类型
+     * @param <C> 集合类型
+     * @return 收集后的集合
+     */
     public static <T, C extends Collection<T>> C fillCollection(XiaomingUser user,
-                                                                String questionWithoutAsk,
-                                                                String what,
-                                                                C collection, Predicate<String> isLegal, Function<String, T> translator,
-                                                                boolean emptyable) {
-        user.setProperty("question", questionWithoutAsk);
-        user.setProperty("what", what);
+                                                                C collection,
+                                                                Function<Message, T> translator,
+                                                                Predicate<Message> stopPredicate,
+                                                                BiConsumer<XiaomingUser, Message> onEmptyStop) {
+        Message message = null;
+        while (true) {
+            message = user.nextInput();
 
-        final String endWord = "结束";
-        user.setProperty("endWord", endWord);
-
-        return fillCollection(user,
-                user.replaceLanguage("inputItOneByOne"),
-                collection, isLegal, translator,
-                user.replaceLanguage("illegalInput"), endWord,
-                emptyable, user.replaceLanguage("unemptyableNotice"));
+            final boolean shouldStop = stopPredicate.test(message);
+            if (shouldStop) {
+                if (Objects.isNull(onEmptyStop) || !collection.isEmpty()) {
+                    return collection;
+                } else {
+                    onEmptyStop.accept(user, message);
+                }
+            } else {
+                // 用翻译器获得集合元素，随后判空。如果是空则不加入集合，否则继续加入
+                final T element = translator.apply(message);
+                if (Objects.nonNull(element)) {
+                    collection.add(element);
+                }
+            }
+        }
     }
 
-    public static <C extends Collection<String>> C fillStringCollection(XiaomingUser user,
-                                                                        String questionWithoutAsk,
-                                                                        String what,
-                                                                        C collection,
-                                                                        boolean emptyable) {
-        return fillCollection(user, questionWithoutAsk, what, collection, string -> true, String::toString, emptyable);
+    /**
+     * 填充简单的字符串集合
+     * 如果 onEmptyStop 为 null，表示集合可空，否则会执行该方法
+     */
+    public static <T, C extends Collection<String>> C fillStringCollection(XiaomingUser user,
+                                                                           C collection,
+                                                                           String stopSign,
+                                                                           String emptyNotice) {
+        final BiConsumer<XiaomingUser, Message> onEmptyStop;
+        if (StringUtility.nonEmpty(emptyNotice)) {
+            onEmptyStop = (u, m) -> u.reply(m, emptyNotice);
+        } else {
+            onEmptyStop = null;
+        }
+        return fillCollection(user, collection, Message::serialize, message -> Objects.equals(message.serialize(), stopSign), onEmptyStop);
+    }
+
+    /**
+     * 将使用 {lang.canNotBeEmpty} 显示错误信息
+     */
+    public static <T, C extends Collection<String>> C fillStringCollection(XiaomingUser user,
+                                                                           C collection,
+                                                                           String what) {
+        final String emptyNotice;
+        if (Objects.isNull(what)) {
+            emptyNotice = null;
+        } else {
+            emptyNotice = user.replaceLanguage("{lang.canNotBeEmpty}", what);
+        }
+        return fillStringCollection(user, collection, "结束", emptyNotice);
+    }
+
+    public static Message waitNextLegalInput(XiaomingUser user, Predicate<Message> judger, Consumer<Message> onIllegalInput) {
+        while (true) {
+            final Message message = user.nextInput();
+
+            if (judger.test(message)) {
+                return message;
+            } else {
+                onIllegalInput.accept(message);
+            }
+        }
     }
 
     public static Message waitNextLegalInput(XiaomingUser user, Predicate<String> judger, String illegalInput) {
-        while (true) {
-            final Message message = user.nextInput();
-            final String serializedMessage = message.serialize();
-
-            if (judger.test(serializedMessage)) {
-                return message;
-            } else {
-                user.sendError(illegalInput);
-            }
-        }
+        return waitNextLegalInput(user, message -> judger.test(message.serialize()), message -> user.reply(message, illegalInput));
     }
 
-    public static Message waitNextInputIn(XiaomingUser user, Collection<String> definations, String illegalInput) {
-        return waitNextLegalInput(user, definations::contains, illegalInput);
+    public static Message waitNextInputIn(XiaomingUser user, Collection<String> defintions, String illegalInput) {
+        return waitNextLegalInput(user, defintions::contains, illegalInput);
     }
 }

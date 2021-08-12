@@ -1,5 +1,6 @@
 package cn.chuanwise.xiaoming.interactor.filter;
 
+import cn.chuanwise.utility.UsageStringUtility;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.exception.XiaomingRuntimeException;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
@@ -12,11 +13,6 @@ import java.util.regex.Pattern;
 
 @Getter
 public class ParameterFilterMatcher extends RegexFilterMatcher {
-    public static final String NORMAL_VARIABLE_REGEX = "\\S+?";
-    public static final String REMAIN_VARIABLE_REGEX = "[\\s\\S]+";
-    public static final String NULLABLE_REMAIN_VARIABLE_REGEX = "[\\s\\S]*";
-    public static final String SPACING = "\\s+";
-
     Set<String> parameterNames;
     Map<Long, Map<String, String>> allArgumentValues = new ConcurrentHashMap<>();
 
@@ -51,7 +47,7 @@ public class ParameterFilterMatcher extends RegexFilterMatcher {
                     }
                     if (spaceChar) {
                         if (!currentSpaceReplaced) {
-                            patternBuilder.append(SPACING);
+                            patternBuilder.append(UsageStringUtility.SPACING);
                             currentSpaceReplaced = true;
                         }
                     } else {
@@ -71,13 +67,13 @@ public class ParameterFilterMatcher extends RegexFilterMatcher {
                             variableNames.add(variableName);
                             switch (variableName) {
                                 case "remain":
-                                    patternBuilder.append("(?<remain>" + REMAIN_VARIABLE_REGEX + ")");
+                                    patternBuilder.append("(?<remain>" + UsageStringUtility.REMAIN_VARIABLE_REGEX + ")");
                                     break;
                                 case "nullableRemain":
-                                    patternBuilder.append("(?<nullableRemain>" + NULLABLE_REMAIN_VARIABLE_REGEX + ")");
+                                    patternBuilder.append("(?<nullableRemain>" + UsageStringUtility.NULLABLE_REMAIN_VARIABLE_REGEX + ")");
                                     break;
                                 default:
-                                    patternBuilder.append("(?<" + variableName + ">" + NORMAL_VARIABLE_REGEX + ")");
+                                    patternBuilder.append("(?<" + variableName + ">" + UsageStringUtility.NORMAL_VARIABLE_REGEX + ")");
                             }
                             variableNameBuilder.setLength(0);
                             state = 0;

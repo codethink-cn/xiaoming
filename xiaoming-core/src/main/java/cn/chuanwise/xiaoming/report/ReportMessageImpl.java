@@ -1,6 +1,5 @@
 package cn.chuanwise.xiaoming.report;
 
-import cn.chuanwise.xiaoming.report.ReportMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,26 +11,26 @@ import java.util.List;
 @NoArgsConstructor
 public class ReportMessageImpl implements ReportMessage {
     long time = System.currentTimeMillis();
-    long qq;
+    long code;
     long group;
     List<String> lastInputs;
     String message;
 
-    public ReportMessageImpl(long group, long qq, List<String> lastInputs, String message) {
-        setQq(qq);
+    public ReportMessageImpl(long group, long code, List<String> lastInputs, String message) {
+        this.setCode(code);
         setGroup(group);
         setLastInputs(lastInputs);
         setMessage(message);
     }
 
-    public ReportMessageImpl(long qq, List<String> lastInputs, String message) {
-        setQq(qq);
+    public ReportMessageImpl(long code, List<String> lastInputs, String message) {
+        this.setCode(code);
         setLastInputs(lastInputs);
         setMessage(message);
     }
 
-    public ReportMessageImpl(long qq, String message) {
-        setQq(qq);
+    public ReportMessageImpl(long code, String message) {
+        this.setCode(code);
         setMessage(message);
     }
 

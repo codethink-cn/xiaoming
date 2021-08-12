@@ -7,6 +7,7 @@ import cn.chuanwise.xiaoming.annotation.NonNext;
 import cn.chuanwise.xiaoming.annotation.Permission;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
+import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.utility.CommandWords;
 import cn.chuanwise.xiaoming.interactor.InteractorImpl;
@@ -30,16 +31,9 @@ public class PreviewFunctionInteractor extends InteractorImpl {
     static final String DOWNLOAD = "(获取|下载|download|get)";
     static final String UPLOAD = "(上传|上载|upload|give)";
 
-    static final String CURRENT_CONTENT_PROPERTY = "file-current-content";
+    static final PropertyType<File> CURRENT_CONTENT_PROPERTY = new PropertyType<>();
     protected File getCurrentPath(XiaomingUser user) {
-        Object property = user.getProperty(CURRENT_CONTENT_PROPERTY);
-        if (property instanceof File) {
-            return ((File) property);
-        } else {
-            final File content = new File(new File("").getAbsolutePath());
-            user.setProperty(CURRENT_CONTENT_PROPERTY, content);
-            return content;
-        }
+        return user.getProperty(CURRENT_CONTENT_PROPERTY);
     }
 
     protected void setCurrentPath(XiaomingUser user, File currentPath) {

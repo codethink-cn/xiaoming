@@ -34,7 +34,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
     }
 
     default PermissionAccessible userAccessible(long qq, long group, String require) {
-        final PermissionUserNode userNode = getUserNode(qq);
+        final PermissionUserNode userNode = forUserNode(qq);
         if (Objects.isNull(userNode)) {
             return groupAccessible(group, getDefaultGroup(), require);
         } else {
@@ -46,13 +46,13 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
             }
 
             final String groupName = userNode.getGroup();
-            final PermissionGroup permissionGroup = getPermissionGroup(groupName);
+            final PermissionGroup permissionGroup = forPermissionGroup(groupName);
             return groupAccessible(group, Objects.nonNull(permissionGroup) ? permissionGroup : getDefaultGroup(), require);
         }
     }
 
     default PermissionAccessible userAccessible(long qq, String tag, String require) {
-        final PermissionUserNode userNode = getUserNode(qq);
+        final PermissionUserNode userNode = forUserNode(qq);
         if (Objects.isNull(userNode)) {
             return permissionGroupAccessible(getDefaultGroup(), tag, require);
         } else {
@@ -65,7 +65,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
 
             final String groupName = userNode.getGroup();
             if (Objects.nonNull(groupName)) {
-                final PermissionGroup permissionGroup = getPermissionGroup(groupName);
+                final PermissionGroup permissionGroup = forPermissionGroup(groupName);
                 if (Objects.nonNull(permissionGroup)) {
                     return permissionGroupAccessible(permissionGroup, tag, require);
                 }
@@ -75,7 +75,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
     }
 
     default PermissionAccessible userAccessible(long qq, String require) {
-        final PermissionUserNode userNode = getUserNode(qq);
+        final PermissionUserNode userNode = forUserNode(qq);
         if (Objects.isNull(userNode)) {
             return permissionGroupAccessible(getDefaultGroup(), require);
         } else {
@@ -88,7 +88,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
 
             final String groupName = userNode.getGroup();
             if (Objects.nonNull(groupName)) {
-                final PermissionGroup permissionGroup = getPermissionGroup(groupName);
+                final PermissionGroup permissionGroup = forPermissionGroup(groupName);
                 if (Objects.nonNull(permissionGroup)) {
                     return permissionGroupAccessible(permissionGroup, require);
                 }
@@ -97,7 +97,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
         }
     }
 
-    default PermissionGroup getPermissionGroup(String groupName) {
+    default PermissionGroup forPermissionGroup(String groupName) {
         return getGroups().get(groupName);
     }
 
@@ -114,7 +114,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
         if (specialAccessible == PermissionAccessible.UNKNOWN && !superGroups.isEmpty()) {
             for (String superGroupName : superGroups) {
                 // 先找到该组
-                final PermissionGroup superGroup = getPermissionGroup(superGroupName);
+                final PermissionGroup superGroup = forPermissionGroup(superGroupName);
 
                 // 查询其权限状况
                 final PermissionAccessible superStatus = Objects.nonNull(superGroup) ? permissionGroupAccessible(superGroup, require) : PermissionAccessible.UNKNOWN;
@@ -144,7 +144,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
         final List<String> superGroups = permissionGroup.getSuperGroups();
         for (String superGroupName : superGroups) {
             // 先找到该组
-            final PermissionGroup superGroup = getPermissionGroup(superGroupName);
+            final PermissionGroup superGroup = forPermissionGroup(superGroupName);
 
             // 查询其权限状况
             final PermissionAccessible superStatus = Objects.nonNull(superGroup) ? permissionGroupAccessible(superGroup, tag, require) : PermissionAccessible.UNKNOWN;
@@ -211,7 +211,7 @@ public interface PermissionManager extends XiaomingObject, Preservable<File> {
 
     boolean removeUserPermission(long qq, String node);
 
-    default PermissionUserNode getUserNode(long qq) {
+    default PermissionUserNode forUserNode(long qq) {
         return getUsers().get(qq);
     }
 

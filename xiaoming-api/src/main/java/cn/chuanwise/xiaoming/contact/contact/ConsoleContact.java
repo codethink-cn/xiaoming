@@ -36,7 +36,8 @@ public interface ConsoleContact extends XiaomingContact<ConsoleMessage, Friend> 
     }
 
     default ConsoleMessage atReply(Message quote, String message) {
-        return atReply(quote, MiraiCode.deserializeMiraiCode(ArgumentUtility.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
+//        return atReply(quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
+        return null;
     }
 
     default ConsoleMessage atReply(Message quote, MessageChain message) {
@@ -48,7 +49,8 @@ public interface ConsoleContact extends XiaomingContact<ConsoleMessage, Friend> 
     }
 
     default ScheduledFuture<ConsoleMessage> atReplyLater(long delay, Message quote, String message) {
-        return atReplyLater(delay, quote, MiraiCode.deserializeMiraiCode(ArgumentUtility.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
+//        return atReplyLater(delay, quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
+        return null;
     }
 
     default ScheduledFuture<ConsoleMessage> atReplyLater(long delay, Message quote, MessageChain message) {

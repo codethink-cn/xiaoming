@@ -73,19 +73,19 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
     }
 
     @Override
-    public PrivateContact getPrivateContact(long qq) {
-        PrivateContact privateContact = privateContacts.get(qq);
-        Friend friend = getXiaomingBot().getMiraiBot().getFriend(qq);
+    public PrivateContact getPrivateContact(long code) {
+        PrivateContact privateContact = privateContacts.get(code);
+        Friend friend = getXiaomingBot().getMiraiBot().getFriend(code);
 
         // 没有记录过，就创建新的记录
         if (Objects.isNull(privateContact) && Objects.nonNull(friend)) {
             privateContact = new PrivateContactImpl(getXiaomingBot(), friend);
-            privateContacts.put(qq, privateContact);
+            privateContacts.put(code, privateContact);
         }
 
         // 记录过但是本次 get 不到，说明人没了
         if (Objects.isNull(friend) && Objects.nonNull(privateContact)) {
-            privateContacts.remove(qq);
+            privateContacts.remove(code);
             privateContact = null;
         }
 
@@ -113,13 +113,13 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
     }
 
     @Override
-    public MemberContact getMemberContact(long code, long qq) {
-        final GroupContact groupContact = getGroupContact(code);
+    public MemberContact getMemberContact(long group, long code) {
+        final GroupContact groupContact = getGroupContact(group);
         if (Objects.isNull(groupContact)) {
             return null;
         }
 
-        final NormalMember member = groupContact.getMiraiContact().get(qq);
+        final NormalMember member = groupContact.getMiraiContact().get(code);
         return Objects.nonNull(member) ? getMemberContact(groupContact, member) : null;
     }
 

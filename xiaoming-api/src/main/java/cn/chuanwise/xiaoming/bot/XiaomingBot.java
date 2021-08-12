@@ -5,6 +5,7 @@ import cn.chuanwise.xiaoming.classloader.XiaomingClassLoader;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.configuration.Statistician;
 import cn.chuanwise.xiaoming.contact.ContactManager;
+import cn.chuanwise.xiaoming.language.LanguageManager;
 import cn.chuanwise.xiaoming.report.ReportMessageManager;
 import cn.chuanwise.xiaoming.event.EventManager;
 import cn.chuanwise.xiaoming.schedule.FileSaver;
@@ -33,7 +34,7 @@ import java.io.File;
  * @author Chuanwise
  */
 public interface XiaomingBot {
-    String VERSION = "3.0-EXPERIMENTIAL";
+    String VERSION = "3.1.4-RELEASE";
     String SPONSOR = "Chuanwise";
     String GITHUB = "https://github.com/Chuanwise/xiaoming-bot";
     String GROUP = "1028959718";
@@ -51,9 +52,9 @@ public interface XiaomingBot {
 
     void setPermissionManager(PermissionManager permissionManager);
 
-    Language getLanguage();
+    LanguageManager getLanguageManager();
 
-    void setLanguage(Language language);
+    void setLanguageManager(LanguageManager languageManager);
 
     ContactManager getContactManager();
 
@@ -117,7 +118,7 @@ public interface XiaomingBot {
 
     void setReceptionistManager(ReceptionistManager receptionistManager);
 
-    Logger getLog();
+    Logger getLogger();
 
     LicenseManager getLicenseManager();
 
@@ -140,6 +141,8 @@ public interface XiaomingBot {
     Serializer getSerializer();
 
     void setSerializer(Serializer serializer);
+
+    FileLoader getCoreFileLoader();
 
     FileSaver getFileSaver();
 

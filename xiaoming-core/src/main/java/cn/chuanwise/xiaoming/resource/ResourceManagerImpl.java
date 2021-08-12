@@ -2,7 +2,6 @@ package cn.chuanwise.xiaoming.resource;
 
 import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
-import cn.chuanwise.xiaoming.resource.ResourceManager;
 import lombok.Data;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +45,7 @@ public class ResourceManagerImpl extends FilePreservableImpl implements Resource
 
     @Transient
     @Override
-    public Logger getLog() {
+    public Logger getLogger() {
         return log;
     }
 
@@ -98,7 +97,7 @@ public class ResourceManagerImpl extends FilePreservableImpl implements Resource
         inputStream.close();
 
         imageLastVisitTimes.put(image.getImageId(), System.currentTimeMillis());
-        getXiaomingBot().getFileSaver().readySave(this);
+        getXiaomingBot().getFileSaver().readyToSave(this);
         return imageFile;
     }
 
@@ -107,7 +106,7 @@ public class ResourceManagerImpl extends FilePreservableImpl implements Resource
         final File file = new File(imagesDirectory, id);
         if (file.exists()) {
             imageLastVisitTimes.put(id, System.currentTimeMillis());
-            getXiaomingBot().getFileSaver().readySave(this);
+            getXiaomingBot().getFileSaver().readyToSave(this);
             return file;
         } else {
             return null;

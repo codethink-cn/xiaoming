@@ -1,5 +1,7 @@
 package cn.chuanwise.xiaoming.permission;
 
+import cn.chuanwise.utility.StringUtility;
+
 import java.util.List;
 import java.util.Map;
 
@@ -29,6 +31,14 @@ public interface PermissionGroup {
     List<String> getSuperGroups();
 
     String getAlias();
+
+    default String getAliasAndName() {
+        if (StringUtility.nonEmpty(getAlias())) {
+            return getAlias() + "（" + getName() + "）";
+        } else {
+            return getName();
+        }
+    }
 
     List<String> getPermissions();
 

@@ -10,6 +10,7 @@ import cn.chuanwise.utility.CollectionUtility;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.contact.contact.PrivateContact;
 import cn.chuanwise.xiaoming.contact.contact.MemberContact;
+import cn.chuanwise.xiaoming.property.PropertyHolder;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.PrivateXiaomingUser;
 import cn.chuanwise.xiaoming.user.MemberXiaomingUser;
@@ -27,7 +28,7 @@ import java.util.function.Consumer;
 /**
  * 小明接待员
  */
-public interface Receptionist extends ModuleObject {
+public interface Receptionist extends ModuleObject, PropertyHolder {
     At getAt();
 
     long getCode();
@@ -65,8 +66,6 @@ public interface Receptionist extends ModuleObject {
         };
         notifyer.accept(this);
 
-        getGroupRecentMessages().values().forEach(notifyer);
-        getMemberRecentMessages().values().forEach(notifyer);
         if (Objects.nonNull(getPrivateTask())) {
             notifyer.accept(getPrivateTask().getRecentMessages());
         }
@@ -116,10 +115,6 @@ public interface Receptionist extends ModuleObject {
 
     List<? extends Message> getGlobalRecentMessages();
 
-    Map<String, List<MemberMessage>> getMemberRecentMessages();
-
-    Map<String, List<GroupMessage>> getGroupRecentMessages();
-
     Map<Long, GroupXiaomingUser> getGroupXiaomingUsers();
 
     Map<Long, MemberXiaomingUser> getMemberXiaomingUsers();
@@ -133,11 +128,11 @@ public interface Receptionist extends ModuleObject {
     List<PrivateMessage> forPrivateRecentMessages();
 
     default List<GroupMessage> forGroupRecentMessages(String groupTag) {
-        return CollectionUtility.getOrPutSupplie(getGroupRecentMessages(), groupTag, () -> new SizedCopyOnWriteArrayList<>(getXiaomingBot().getConfiguration().getMaxRecentMessageBufferSize()));
+        return getXiaomingBot().getContactManager().forGroupMemberMessages(groupTag, getCodeString());
     }
 
     default List<MemberMessage> forMemberRecentMessages(String groupTag) {
-        return CollectionUtility.getOrPutSupplie(getMemberRecentMessages(), groupTag, () -> new SizedCopyOnWriteArrayList<>(getXiaomingBot().getConfiguration().getMaxRecentMessageBufferSize()));
+        return getXiaomingBot().getContactManager().forMemberMessages(groupTag, getCodeString());
     }
 
     void setGlobalRecentMessages(List<? extends Message> list);

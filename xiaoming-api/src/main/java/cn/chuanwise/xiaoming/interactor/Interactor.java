@@ -1,16 +1,19 @@
 package cn.chuanwise.xiaoming.interactor;
 
 import cn.chuanwise.utility.ArgumentUtility;
+import cn.chuanwise.utility.StringUtility;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.account.record.CommandRecord;
 import cn.chuanwise.xiaoming.account.record.MemberCommandRecord;
 import cn.chuanwise.xiaoming.account.record.PrivateCommandRecord;
 import cn.chuanwise.xiaoming.annotation.Customizable;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
-import cn.chuanwise.xiaoming.event.InteractorResponseEvent;
+import cn.chuanwise.xiaoming.interactor.customizer.Customizer;
 import cn.chuanwise.xiaoming.interactor.filter.FilterMatcher;
 import cn.chuanwise.xiaoming.interactor.filter.ParameterFilterMatcher;
+import cn.chuanwise.xiaoming.interactor.information.InteractorMethodInformation;
 import cn.chuanwise.xiaoming.object.PluginObject;
+import cn.chuanwise.xiaoming.permission.PermissionGroup;
 import cn.chuanwise.xiaoming.plugin.XiaomingPlugin;
 import cn.chuanwise.xiaoming.user.ConsoleXiaomingUser;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
@@ -21,6 +24,8 @@ import cn.chuanwise.xiaoming.account.record.GroupCommandRecord;
 import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.utility.AtUtility;
+import cn.chuanwise.xiaoming.utility.MiraiCodeUtility;
+import net.mamoe.mirai.message.data.MessageChain;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -65,7 +70,7 @@ public interface Interactor extends PluginObject {
 
         user.setInteractor(this);
 
-        for (InteractorMethodInformation interactorMethodInformation : getInteractorMethodInformation()) {
+        for (InteractorMethodInformation interactorMethodInformation : getMethodInformation().values()) {
             // 验证响应条件
             if (!interactorMethodInformation.willInteract(user)) {
                 continue;
@@ -86,7 +91,7 @@ public interface Interactor extends PluginObject {
 
             // 判断是否为同意使用条例
             if (!isAgreed && !interactorMethodInformation.isExternalUsable()) {
-                user.sendError("{pleaseAgreeLicense}");
+                user.sendError("{lang.pleaseAgreeLicense}");
                 user.setInteractor(null);
                 return false;
             }
@@ -134,7 +139,7 @@ public interface Interactor extends PluginObject {
 
                     parameterValue = argumentValues.getOrDefault(parameterName, filterParameter.defaultValue());
                     final String defaultValue = filterParameter.defaultValue();
-                    user.setProperty(parameterName, parameterValue);
+//                    user.setProperty(parameterName, parameterValue);
 
                     // 如果是 String，就直接填充，否则交给 onParameter
                     if (String.class.isAssignableFrom(type)) {
@@ -144,7 +149,7 @@ public interface Interactor extends PluginObject {
                             arguments.add(ArgumentUtility.splitArgs(message.serialize()).toArray(new String[0]));
                             continue;
                         }
-                        final Object argument = parseParameter(user, type, parameterName, parameterValue, argumentValues, defaultValue);
+                        final Object argument = parseParameter(user, new InteractorArgumentInformation<>(type, parameterName, parameterValue, defaultValue, interactorMethodInformation), argumentValues);
                         if (Objects.nonNull(argument)) {
                             arguments.add(argument);
                         } else {
@@ -169,7 +174,7 @@ public interface Interactor extends PluginObject {
                     // 验证权限
                     final String[] permissions = interactorMethodInformation.getPermissions();
                     for (String permission : permissions) {
-                        String replacedPermission = user.replaceArguments(permission);
+                        String replacedPermission = ArgumentUtility.render(permission, getXiaomingBot().getConfiguration().getMaxIterateTime(), argumentValues);
                         if (!user.requirePermission(replacedPermission)) {
                             callable = false;
                             break;
@@ -206,13 +211,12 @@ public interface Interactor extends PluginObject {
                         }
 
                         commands.add(sizeBeforeInteract, record);
-                        getXiaomingBot().getFileSaver().readySave(account);
+                        getXiaomingBot().getFileSaver().readyToSave(account);
                     }
 
                     // 增加调用统计次数
                     if (interacted) {
                         getXiaomingBot().getStatistician().increaseCallCounter();
-                        getXiaomingBot().getEventManager().callAsync(new InteractorResponseEvent(this, interactorMethodInformation, user));
 
                         // 查看是否需要阻塞
                         if (interactorMethodInformation.isNonNext()) {
@@ -224,7 +228,11 @@ public interface Interactor extends PluginObject {
                     final Throwable cause = exception.getCause();
                     if (Objects.nonNull(cause)) {
                         if (!onThrowable(user, message, argumentValues, method, arguments, interactorMethodInformation, cause)) {
-                            throw (Exception) cause;
+                            if (cause instanceof Exception) {
+                                throw (Exception) cause;
+                            } else {
+                                cause.printStackTrace();
+                            }
                         }
                     } else {
                         exception.printStackTrace();
@@ -242,23 +250,23 @@ public interface Interactor extends PluginObject {
      * @return 是否注册成功
      */
     default void register(Method method) {
-        InteractorMethodInformation interactorMethodInformation = null;
+        InteractorMethodInformation interactorMethodInformation = new InteractorMethodInformation(method);
 
-        final Customizable[] customizables = method.getAnnotationsByType(Customizable.class);
-        if (customizables.length != 0) {
-            interactorMethodInformation = getCustomizer().get(customizables[0]);
-        }
-
-        if (Objects.isNull(interactorMethodInformation)) {
-            interactorMethodInformation = new InteractorMethodInformation(method);
+        // 尝试使用自定义设置
+        final Customizable[] customInformation = method.getAnnotationsByType(Customizable.class);
+        if (Objects.nonNull(getCustomizer()) && customInformation.length != 0) {
+            final InteractorMethodInformation savedInformation = getCustomizer().forName(customInformation[0].value());
+            if (Objects.nonNull(savedInformation)) {
+                interactorMethodInformation = savedInformation;
+            }
         }
 
         register(method, interactorMethodInformation);
     }
 
-    void setCustomizer(Map<String, InteractorMethodInformation> customizabler);
+    void setCustomizer(Customizer customizer);
 
-    Map<String, InteractorMethodInformation> getCustomizer();
+    Customizer getCustomizer();
 
     /**
      * 注册一个指定权限和过滤器的交互方法
@@ -275,7 +283,7 @@ public interface Interactor extends PluginObject {
      * @param interactorMethodInformation 交互方法格式
      */
     default void register(InteractorMethodInformation interactorMethodInformation) {
-        getInteractorMethodInformation().add(interactorMethodInformation);
+        getMethodInformation().put(interactorMethodInformation.getName(), interactorMethodInformation);
     }
 
     /**
@@ -291,52 +299,78 @@ public interface Interactor extends PluginObject {
     /**
      * 解析未知的使用 @FilterParameter 注解的参数
      * @param user 当前用户
-     * @param clazz 形参类型
-     * @param parameterName 参数名
-     * @param currentValue 当前值
-     * @param defaultValue 默认值
+     * @param information 交互信息
      * @return 注入结果。如果为 {@code null} 则注入失败
      */
-    default <T> T parseParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, Map<String, String> argumentValues, String defaultValue) {
+    default <T> T parseParameter(XiaomingUser user, InteractorArgumentInformation<T> information, Map<String, String> argumentValues) {
+        Class<T> clazz = information.clazz;
+        String currentValue = information.currentValue;
+        String parameterName = information.parameterName;
+
         Object result = null;
-        user.setProperty("string", currentValue);
 
         // 如果是 long 且为 qq
         if (long.class.isAssignableFrom(clazz) && "qq".equalsIgnoreCase(parameterName)) {
-            final long qq = AtUtility.parseQQ(currentValue);
+            final long qq = AtUtility.parseAt(currentValue);
             if (qq == -1) {
-                user.sendError("{stringIsNotAIllegalQQ}");
+                user.sendError("{lang.illegalQQ}", currentValue);
                 result = null;
             } else {
                 result = qq;
             }
+        } else if (clazz.isAssignableFrom(Account.class) && (Objects.equals("account", parameterName) || Objects.equals("qq", parameterName))) {
+            final long qq = AtUtility.parseAt(currentValue);
+            if (qq == -1) {
+                user.sendError("{lang.illegalQQ}", currentValue);
+                result = null;
+            } else {
+                result = getXiaomingBot().getAccountManager().forAccount(qq);
+            }
         } else if (long.class.isAssignableFrom(clazz) && (Objects.equals("time", parameterName) || Objects.equals("period", parameterName))) {
             final long time = TimeUtility.parseTimeLength(currentValue);
             if (time == -1) {
-                user.sendError("{stringIsNotAIllegalPeriod}");
+                user.sendError("{lang.illegalPeriod}", currentValue);
                 result = null;
             } else {
                 result = time;
             }
-        } else if (int.class.isAssignableFrom(clazz) && Objects.equals("index", parameterName)) {
-            boolean isLegal = currentValue.matches("\\d+") && Integer.parseInt(currentValue) >= 0;
-            if (isLegal) {
-                return (T) (Object) Integer.parseInt(currentValue);
+        } else if (int.class.isAssignableFrom(clazz)) {
+            if (Objects.equals(parameterName, "index")) {
+                if (currentValue.matches("\\d+")) {
+                    return (T) (Object) Integer.parseInt(currentValue);
+                } else {
+                    user.sendError("{lang.illegalIndex}", currentValue);
+                }
             } else {
-                user.sendError("「{index}」并不是一个有效的序号哦");
+                if (currentValue.matches("[+-]?\\d+")) {
+                    return (T) (Object) Integer.parseInt(currentValue);
+                } else {
+                    user.sendError("{lang.illegalInteger}", currentValue);
+                }
             }
         } else if (long.class.isAssignableFrom(clazz) && Objects.equals("group", parameterName)) {
             if (currentValue.matches("\\d+")) {
                 return (T) (Object) Long.parseLong(currentValue);
             } else {
-                user.sendError("「{group}」并不是一个有效的群号哦");
+                user.sendError("{lang.illegalGroupCode}", currentValue);
             }
-        } else if (XiaomingPlugin.class.isAssignableFrom(clazz) && Objects.equals("plugin", parameterName)) {
+        } else if (XiaomingPlugin.class.isAssignableFrom(clazz)) {
             final XiaomingPlugin plugin = getXiaomingBot().getPluginManager().getLoadedPlugin(currentValue);
             if (Objects.isNull(plugin)) {
-                user.sendError("小明并没有加载插件「{plugin}」哦");
+                user.sendError("{lang.pluginHadNotLoad}", currentValue);
             } else {
                 return ((T) plugin);
+            }
+        } else if (Objects.equals(parameterName, "permissionGroup") && PermissionGroup.class.isAssignableFrom(clazz)) {
+            if (StringUtility.isEmpty(currentValue)) {
+                user.sendMessage("{lang.queryPermissionGroupName}");
+                currentValue = user.nextInput().serialize();
+            }
+            final PermissionGroup permissionGroup = getXiaomingBot().getPermissionManager().forPermissionGroup(currentValue);
+            if (Objects.nonNull(permissionGroup)) {
+                result = permissionGroup;
+            } else {
+                user.sendError("{lang.noSuchPermissionGroup}", currentValue);
             }
         }
         return ((T) result);
@@ -359,7 +393,7 @@ public interface Interactor extends PluginObject {
      */
     default Set<String> getUsageStrings(XiaomingUser user) {
         Set<String> usages = new HashSet<>();
-        for (InteractorMethodInformation interactorMethodInformation : getInteractorMethodInformation()) {
+        for (InteractorMethodInformation interactorMethodInformation : getMethodInformation().values()) {
             if (user.hasPermission(interactorMethodInformation.getPermissions())) {
                 usages.addAll(Arrays.asList(interactorMethodInformation.getUsages()));
             }
@@ -381,11 +415,16 @@ public interface Interactor extends PluginObject {
             for (String s : strings) {
                 builder.append("\n").append(s);
             }
-            user.sendPrivateMessage(builder.toString());
+            final MessageChain messageChain = MiraiCodeUtility.asMessageChain(builder.toString());
+            user.sendPrivateMessage(messageChain);
         }
     }
 
-    Set<InteractorMethodInformation> getInteractorMethodInformation();
+    Map<String, InteractorMethodInformation> getMethodInformation();
+
+    default InteractorMethodInformation forMethodInformation(String name) {
+        return getMethodInformation().get(name);
+    }
 
     void setUsageCommandFormat(String usageCommandFormat);
 

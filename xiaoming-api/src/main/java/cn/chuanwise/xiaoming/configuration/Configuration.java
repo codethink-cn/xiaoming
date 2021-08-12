@@ -1,5 +1,6 @@
 package cn.chuanwise.xiaoming.configuration;
 
+import cn.chuanwise.toolkit.serialize.serializer.configuration.SerializerConfiguration;
 import cn.chuanwise.xiaoming.limit.CallLimitConfiguration;
 import cn.chuanwise.toolkit.preservable.file.FilePreservable;
 import cn.chuanwise.xiaoming.object.XiaomingObject;
@@ -17,6 +18,10 @@ public interface Configuration extends FilePreservable, XiaomingObject {
     String getStorageEncoding();
 
     void setStorageEncoding(String storageEncoding);
+
+    String getStorageDecoding();
+
+    void setStorageDecoding(String storageEncoding);
 
     boolean isDebug();
 
@@ -43,10 +48,6 @@ public interface Configuration extends FilePreservable, XiaomingObject {
     int getMaxLoadedAccountQuantity();
 
     void setMaxLoadedAccountQuantity(int maxLoadedAccountQuantity);
-
-    int getMaxUserRecentGroupMessageBufferQuantity();
-
-    void setMaxUserRecentGroupMessageBufferQuantity(int maxUserRecentGroupMessageBufferQuantity);
 
     int getMaxRecentGroupMemberMessageBufferQuantity();
 
@@ -134,9 +135,17 @@ public interface Configuration extends FilePreservable, XiaomingObject {
 
     void setClearCallGroupTag(String tag);
 
+    boolean isSaveFileDirectly();
+
+    void setSaveFileDirectly(boolean saveFileDirectly);
+
     boolean isAutoAcceptFriendAddRequest();
 
     void setAutoAcceptFriendAddRequest(boolean autoAcceptFriendAddRequest);
+
+    boolean isAutoAcceptGroupInvite();
+
+    void setAutoAcceptGroupInvite(boolean autoAcceptGroupInvite);
 
     int getMaxMainThreadPoolSize();
 
@@ -145,4 +154,8 @@ public interface Configuration extends FilePreservable, XiaomingObject {
     int getMaxReceptionThreadPoolSize();
 
     void setMaxReceptionThreadPoolSize(int maxReceptionThreadPoolSize);
+
+    SerializerConfiguration getSerializerConfiguration();
+
+    void setSerializerConfiguration(SerializerConfiguration serializerConfiguration);
 }

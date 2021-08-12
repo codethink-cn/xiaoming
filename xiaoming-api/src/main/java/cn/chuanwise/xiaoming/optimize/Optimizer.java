@@ -2,6 +2,7 @@ package cn.chuanwise.xiaoming.optimize;
 
 import cn.chuanwise.utility.CheckUtility;
 import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.utility.MapUtility;
 import cn.chuanwise.xiaoming.plugin.XiaomingPlugin;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public interface Optimizer {
     }
 
     default void runWhileOptimize(Runnable runnable, XiaomingPlugin plugin) {
-        CollectionUtility.getOrPutSupplie(getPluginOptimizeTasks(), plugin, CopyOnWriteArrayList::new).add(runnable);
+        MapUtility.getOrPutSupply(getPluginOptimizeTasks(), plugin, CopyOnWriteArrayList::new).add(runnable);
     }
 
     /***

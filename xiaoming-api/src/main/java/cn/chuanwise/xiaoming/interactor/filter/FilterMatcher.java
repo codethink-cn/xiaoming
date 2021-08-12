@@ -1,5 +1,6 @@
 package cn.chuanwise.xiaoming.interactor.filter;
 
+import cn.chuanwise.exception.UnsupportedVersionException;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterPattern;
 import cn.chuanwise.xiaoming.contact.message.Message;
@@ -16,31 +17,39 @@ public abstract class FilterMatcher {
     protected FilterMatcher() {}
 
     public static FilterMatcher equals(String format) {
-        return new EqualsFiliterMatcher(format);
+        return new EqualFiliterMatcher(format);
     }
 
     public static FilterMatcher match(String format) {
         return new MatchFilterMatcher(Pattern.compile(format));
     }
 
-    public static FilterMatcher endsRegex(String format) {
-        return new EndsRegexFilterMatcher(Pattern.compile(format));
+    public static FilterMatcher endMatch(String format) {
+        return new EndMatchFilterMatcher(Pattern.compile(format));
     }
 
-    public static FilterMatcher startsRegex(String format) {
-        return new StartsRegexFilterMatcher(Pattern.compile(format));
+    public static FilterMatcher startMatch(String format) {
+        return new StartMatchFilterMatcher(Pattern.compile(format));
     }
 
-    public static FilterMatcher endsWith(String format) {
-        return new EndsWithFilterMatcher(format);
+    public static FilterMatcher containEqual(String string) {
+        return new ContainEqualFilterMatcher(string);
     }
 
-    public static FilterMatcher startsWith(String format) {
-        return new StartsWithFilterMatcher(format);
+    public static FilterMatcher endEqual(String format) {
+        return new EndEqualFilterMatcher(format);
+    }
+
+    public static FilterMatcher startEqual(String format) {
+        return new StartEqualFilterMatcher(format);
     }
 
     public static FilterMatcher equalsIgnoreCase(String format) {
-        return new EqualsIgnoreCaseFilterMatcher(format);
+        return new EqualIgnoreCaseFilterMatcher(format);
+    }
+
+    public static FilterMatcher containMatch(String format) {
+        return new ContainMatchFilterMatcher(Pattern.compile(format));
     }
 
     public static FilterMatcher parameter(String format) {
@@ -62,24 +71,28 @@ public abstract class FilterMatcher {
      */
     public static FilterMatcher filterMatcher(String format, FilterPattern pattern) {
         switch (pattern){
-            case MATCHES:
+            case MATCH:
                 return match(format);
-            case EQUALS:
+            case EQUAL:
                 return equals(format);
-            case ENDS_WITH:
-                return endsWith(format);
-            case ENDS_MATCHES:
-                return endsRegex(format);
-            case STARTS_WITH:
-                return startsWith(format);
-            case STARTS_MATCHES:
-                return startsRegex(format);
+            case CONTAIN_EQUAL:
+                return containEqual(format);
+            case CONTAIN_MATCH:
+                return containMatch(format);
+            case END_EQUAL:
+                return endEqual(format);
+            case END_MATCH:
+                return endMatch(format);
+            case START_EQUAL:
+                return startEqual(format);
+            case START_MATCH:
+                return startMatch(format);
             case PARAMETER:
                 return parameter(format);
-            case EQUALS_IGNORE_CASE:
+            case EQUAL_IGNORE_CASE:
                 return equalsIgnoreCase(format);
             default:
-                throw new XiaomingRuntimeException("illegal filter pattern: " + pattern);
+                throw new UnsupportedVersionException("illegal filter matcher type: " + pattern);
         }
     }
 

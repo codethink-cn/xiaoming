@@ -22,19 +22,19 @@ public interface Scheduler extends ModuleObject {
         return getThreadPool().schedule(runnable, delay, TimeUnit.MILLISECONDS);
     }
 
-    default ScheduledFuture<?> periodicRunAtFixedRate(long period, Runnable runnable) {
-        return periodicRunAtFixedRateLater(period, 0, runnable);
+    default ScheduledFuture<?> runAtFixedRate(long period, Runnable runnable) {
+        return runAtFixedRateLater(period, 0, runnable);
     }
 
-    default ScheduledFuture<?> periodicRunAtFixedRateLater(long period, long delay, Runnable runnable) {
+    default ScheduledFuture<?> runAtFixedRateLater(long period, long delay, Runnable runnable) {
         return getThreadPool().scheduleAtFixedRate(runnable, delay, period, TimeUnit.MILLISECONDS);
     }
 
-    default ScheduledFuture<?> periodicRunWithFixedDelay(long period, Runnable runnable) {
-        return periodicRunWithFixedDelayLater(period, 0, runnable);
+    default ScheduledFuture<?> runWithFixedDelay(long period, Runnable runnable) {
+        return runWithFixedDelayLater(period, 0, runnable);
     }
 
-    default ScheduledFuture<?> periodicRunWithFixedDelayLater(long period, long delay, Runnable runnable) {
+    default ScheduledFuture<?> runWithFixedDelayLater(long period, long delay, Runnable runnable) {
         return getThreadPool().scheduleWithFixedDelay(runnable, delay, period, TimeUnit.MILLISECONDS);
     }
 

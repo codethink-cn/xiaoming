@@ -17,4 +17,11 @@
             <url>https://github.com/Chuanwise/chuanwise-toolkit</url>
         </repository>
     </repositories>
+    <dependencies>
+        <dependency>
+            <groupId>cn.chuanwise</groupId>
+            <artifactId>chuanwise-toolkit-api</artifactId>
+            <version>1.0</version>
+        </dependency>
+    </dependencies>
 </project>

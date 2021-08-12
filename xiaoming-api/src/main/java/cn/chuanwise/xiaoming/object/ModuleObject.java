@@ -14,7 +14,7 @@ public interface ModuleObject extends XiaomingObject {
      * @return 日志对象
      */
     @Transient
-    Logger getLog();
+    Logger getLogger();
 
     default void flushBotReference(XiaomingBot xiaomingBot) {}
 }

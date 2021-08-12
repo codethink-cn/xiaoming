@@ -75,7 +75,7 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
             classLoader = xiaomingClassLoader;
         } catch (Exception exception) {
             user.sendError("严重错误：无法扩展类加载器");
-            getLog().error("无法扩展类加载器", exception);
+            this.getLogger().error("无法扩展类加载器", exception);
             return false;
         }
 
@@ -102,13 +102,13 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
             constructor = pluginClass.getDeclaredConstructor();
         } catch (Exception exception) {
             user.sendError("构造插件主类时出现异常：{}，请检查{}是否存在默认的无参构造函数、其访问权限是否为 public 等", pluginMainClassName, exception);
-            getLog().error("构造插件主类时出现异常", exception);
+            this.getLogger().error("构造插件主类时出现异常", exception);
             return false;
         }
 
         if (Objects.isNull(constructor)) {
             user.sendError("没有找到插件主类 {} 的默认无参构造函数", pluginMainClassName);
-            getLog().error("没有找到插件主类 {} 的默认无参构造函数", pluginMainClassName);
+            this.getLogger().error("没有找到插件主类 {} 的默认无参构造函数", pluginMainClassName);
             return false;
         }
 
@@ -119,14 +119,14 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
             return false;
         } catch (Exception exception) {
             user.sendError("构造插件主类时出现异常：{}", pluginMainClassName, exception);
-            getLog().error("构造插件主类时出现异常", exception);
+            this.getLogger().error("构造插件主类时出现异常", exception);
             return false;
         }
 
         plugin.setProperty(property);
         plugin.setXiaomingBot(getXiaomingBot());
         plugin.setDataFolder(new File(directory, plugin.getName()));
-        plugin.setLog(LoggerFactory.getLogger(plugin.getName()));
+        plugin.setLogger(LoggerFactory.getLogger(plugin.getName()));
 
         return loadPlugin(user, plugin);
     }
@@ -206,10 +206,10 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
                         existingPlugins.put(property.getName(), property);
                     }
                 } catch (IOException exception) {
-                    getLog().error("插件属性文件错误", exception);
+                    this.getLogger().error("插件属性文件错误", exception);
                 }
             } else if (pluginFile.isFile()) {
-                getLog().error("插件文件夹：" + directory.getAbsolutePath() + " 中出现了非 jar 类型的文件：" + pluginFile.getName());
+                this.getLogger().error("插件文件夹：" + directory.getAbsolutePath() + " 中出现了非 jar 类型的文件：" + pluginFile.getName());
             }
         }
     }
@@ -224,7 +224,7 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
 
         final PluginProperty pluginProperty;
         try (InputStream inputStream = jarFile.getInputStream(entry);) {
-            pluginProperty = getXiaomingBot().getCoreSerializer().deserialize(inputStream, PluginPropertyImpl.class);
+            pluginProperty = getXiaomingBot().getCoreSerializer().deserialize(inputStream, "UTF-8", PluginPropertyImpl.class);
         }
         return pluginProperty;
     }

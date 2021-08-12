@@ -3,7 +3,7 @@ package cn.chuanwise.xiaoming.report;
 public interface ReportMessage {
     long getTime();
 
-    long getQq();
+    long getCode();
 
     long getGroup();
 
@@ -13,7 +13,7 @@ public interface ReportMessage {
 
     void setTime(long time);
 
-    void setQq(long qq);
+    void setCode(long code);
 
     void setGroup(long group);
 

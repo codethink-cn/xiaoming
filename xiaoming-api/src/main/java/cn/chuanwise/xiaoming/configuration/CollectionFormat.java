@@ -1,23 +1,27 @@
 package cn.chuanwise.xiaoming.configuration;
 
-public interface CollectionFormat {
-    default String getPrefix() {
-        return "";
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class CollectionFormat {
+    String prefix = "", suffix = "", content, splitter = "\n", nullObject = "null";
+
+    public CollectionFormat(String content, String splitter) {
+        this.content = content;
+        this.splitter = splitter;
     }
 
-    default String getSuffix() {
-        return "";
+    public CollectionFormat(String prefix, String content, String splitter) {
+        this.prefix = prefix;
+        this.content = content;
+        this.splitter = splitter;
     }
 
-    default String getNull() {
-        return "null";
+    public CollectionFormat(String content) {
+        this.content = content;
     }
-
-    default String getIndex() {
-        return "";
-    }
-
-    String getContent();
-
-    String getSplitter();
 }

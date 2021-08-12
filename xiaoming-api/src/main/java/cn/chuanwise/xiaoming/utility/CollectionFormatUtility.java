@@ -1,8 +1,6 @@
 package cn.chuanwise.xiaoming.utility;
 
-import cn.chuanwise.utility.ArgumentUtility;
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.StaticUtility;
+import cn.chuanwise.utility.*;
 import cn.chuanwise.xiaoming.configuration.CollectionFormat;
 
 import java.util.Collection;
@@ -16,19 +14,21 @@ public class CollectionFormatUtility extends StaticUtility {
     public static <T> String format(CollectionFormat format, Collection<T> collection, Function<T, Map<String, ? extends Object>> environmentBuilder, int maxIteration) {
         Map<String, Object> commonEnvironment = new HashMap<>();
         commonEnvironment.put("size", collection.size());
+        commonEnvironment.put("index", 0);
 
-        return format.getPrefix() + CollectionUtility.toIndexString(collection, (index, element) -> {
-            index++;
-            return format.getIndex().replaceAll(Pattern.quote("{index}"), String.valueOf(index));
+        return ArgumentUtility.render(ObjectUtility.firstNonNull(format.getPrefix(), "") + CollectionUtility.toIndexString(collection, (index, element) -> {
+            commonEnvironment.put("index", index + 1);
+            return "";
         }, element -> {
             if (Objects.isNull(element)) {
-                return format.getNull();
+                return format.getNullObject();
             }
 
             final Map<String, ? extends Object> specialEnvironment = environmentBuilder.apply(element);
-            final String content = ArgumentUtility.replaceArguments(format.getContent(), specialEnvironment, maxIteration);
+            final String content = ArgumentUtility.render(format.getContent(), maxIteration, specialEnvironment);
 
-            return ArgumentUtility.replaceArguments(content, commonEnvironment, maxIteration);
-        }, format.getSplitter()) + format.getSuffix();
+            return ArgumentUtility.render(content, maxIteration, commonEnvironment);
+        }, ObjectUtility.firstNonNull(format.getSplitter(), "")) +
+                ObjectUtility.firstNonNull(format.getSuffix(), ""), maxIteration, commonEnvironment);
     }
 }

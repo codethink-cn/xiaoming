@@ -1,6 +1,8 @@
 package cn.chuanwise.xiaoming.user;
 
+import cn.chuanwise.exception.UnsupportedVersionException;
 import cn.chuanwise.utility.ArgumentUtility;
+import cn.chuanwise.utility.ObjectUtility;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.contact.message.GroupMessage;
@@ -9,15 +11,18 @@ import cn.chuanwise.xiaoming.contact.message.PrivateMessage;
 import cn.chuanwise.xiaoming.exception.InteractorTimeoutException;
 import cn.chuanwise.xiaoming.exception.ReceptCancelledException;
 import cn.chuanwise.xiaoming.interactor.Interactor;
+import cn.chuanwise.xiaoming.language.LanguageManager;
+import cn.chuanwise.xiaoming.language.Sentence;
 import cn.chuanwise.xiaoming.object.ModuleObject;
-import cn.chuanwise.xiaoming.object.PropertyHolder;
+import cn.chuanwise.xiaoming.property.PropertyHolder;
 import cn.chuanwise.xiaoming.permission.PermissionAccessible;
 import cn.chuanwise.xiaoming.recept.Receptionist;
+import cn.chuanwise.xiaoming.tag.PluginBlockable;
+import cn.chuanwise.xiaoming.tag.TagHolder;
 import cn.chuanwise.xiaoming.utility.InteractorUtility;
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.TimeUtility;
 import cn.chuanwise.xiaoming.recept.ReceptionTask;
 
+import cn.chuanwise.xiaoming.utility.MiraiCodeUtility;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.Image;
@@ -32,7 +37,7 @@ import java.util.concurrent.ScheduledFuture;
 /**
  * @author Chuanwise
  */
-public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message, R extends ReceptionTask> extends ModuleObject, PropertyHolder {
+public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message, R extends ReceptionTask> extends ModuleObject, PropertyHolder, TagHolder, PluginBlockable {
     void setReceptionist(Receptionist receptionist);
 
     void setInteractor(Interactor interactor);
@@ -44,28 +49,37 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
      * @return 替换后的字符串
      */
     default String replaceArguments(String format, Object... arguments) {
-        // 消息中所有的变量都会被替换。
-        // 最先替换当前变量
-        format = ArgumentUtility.replaceArguments(format, arguments);
-
-        // 如果正在用插件，且插件的语言非空，也替换插件的语言
-        if (Objects.nonNull(getInteractor()) &&
-                Objects.nonNull(getInteractor().getPlugin()) &&
-                Objects.nonNull(getInteractor().getPlugin().getLanguage()) &&
-                !CollectionUtility.isEmpty(getInteractor().getPlugin().getLanguage().getValues().entrySet())) {
-            format = ArgumentUtility.replaceArguments(format, getInteractor().getPlugin().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime());
-        }
+        final LanguageManager languageManager = getXiaomingBot().getLanguageManager();
 
         // 替换 Language 中的字句
-        format = ArgumentUtility.replaceArguments(format, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime());
-
-        // 再替换用户属性中的值
-        format = ArgumentUtility.replaceArguments(format, getProperties(), getXiaomingBot().getConfiguration().getMaxIterateTime());
-        return format;
+        return languageManager.render(format, variable -> {
+            if (Objects.equals(variable, "user")) {
+                return this;
+            } else {
+                return null;
+            }
+        }, arguments);
     }
 
-    default String replaceLanguage(String language, Object... arguments) {
-        return replaceArguments(getXiaomingBot().getLanguage().getString(language), arguments);
+    default String replaceLanguage(String sentenceName, Object... arguments) {
+        final LanguageManager languageManager = getXiaomingBot().getLanguageManager();
+        final Sentence sentence = languageManager.getSentence(sentenceName);
+        if (Objects.isNull(sentence)) {
+            return sentenceName;
+        } else {
+            return replaceLanguage(sentence, arguments);
+        }
+    }
+
+    default String replaceLanguage(Sentence sentence, Object... arguments) {
+        final LanguageManager languageManager = getXiaomingBot().getLanguageManager();
+        return languageManager.render(sentence, variable -> {
+            if (Objects.equals(variable, "user")) {
+                return this;
+            } else {
+                return null;
+            }
+        }, arguments);
     }
 
     default boolean isBot() {
@@ -82,6 +96,10 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
      */
     void sendMessage(String message, Object... arguments);
 
+    default void sendMessage(Sentence sentence, Object... arguments) {
+        sendMessage(replaceLanguage(sentence, arguments));
+    }
+
     default void sendMessage(MessageChain messages) {
         sendMessage(messages.serializeToMiraiCode());
     }
@@ -90,8 +108,16 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         sendMessage(messages.serializeToMiraiCode());
     }
 
+    default void sendError(Sentence sentence, Object... arguments) {
+        sendError(replaceLanguage(sentence, arguments));
+    }
+
     default void sendWarning(MessageChain messages) {
         sendMessage(messages.serializeToMiraiCode());
+    }
+
+    default void sendWarning(Sentence sentence, Object... arguments) {
+        sendWarning(replaceLanguage(sentence, arguments));
     }
 
     default ScheduledFuture<Boolean> sendMessageLater(long delay, String message, Object... arguments) {
@@ -102,6 +128,10 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     }
 
     Message sendPrivateMessage(String message, Object... arguments);
+
+    default Message sendPrivateMessage(MessageChain messages) {
+        return sendPrivateMessage(messages.serializeToMiraiCode());
+    }
 
     default Message privateReply(Message quote, String message) {
         return privateReply(quote, MiraiCode.deserializeMiraiCode(message));
@@ -156,39 +186,38 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     }
 
     default void sendError(String message, Object... arguments) {
-        sendMessage(getXiaomingBot().getLanguage().getString("error") + " " + message, arguments);
+        sendMessage(getXiaomingBot().getLanguageManager().getSentenceValue("error") + " " + message, arguments);
     }
 
     default void sendWarning(String message, Object... arguments) {
-        sendMessage(getXiaomingBot().getLanguage().getString("warning") + " " + message, arguments);
+        sendMessage(getXiaomingBot().getLanguageManager().getSentenceValue("warning") + " " + message, arguments);
     }
 
     default void sendPrivateError(String message, Object... arguments) {
-        sendPrivateMessage(getXiaomingBot().getLanguage().getString("error") + " " + message, arguments);
+        sendPrivateMessage(getXiaomingBot().getLanguageManager().getSentenceValue("error") + " " + message, arguments);
     }
 
     default void sendPrivateWarning(String message, Object... arguments) {
-        sendPrivateMessage(getXiaomingBot().getLanguage().getString("warning") + " " + message, arguments);
+        sendPrivateMessage(getXiaomingBot().getLanguageManager().getSentenceValue("warning") + " " + message, arguments);
     }
 
     default void sendErrorLater(long delay, String message, Object... arguments) {
-        sendMessageLater(delay, getXiaomingBot().getLanguage().getString("error") + " " + message, arguments);
+        sendMessageLater(delay, getXiaomingBot().getLanguageManager().getSentenceValue("error") + " " + message, arguments);
     }
 
     default void sendWarningLater(long delay, String message, Object... arguments) {
-        sendMessageLater(delay, getXiaomingBot().getLanguage().getString("warning") + " " + message, arguments);
+        sendMessageLater(delay, getXiaomingBot().getLanguageManager().getSentenceValue("warning") + " " + message, arguments);
     }
 
     default void sendPrivateErrorLater(long delay, String message, Object... arguments) {
-        sendPrivateMessageLater(delay, getXiaomingBot().getLanguage().getString("error") + " " + message, arguments);
+        sendPrivateMessageLater(delay, getXiaomingBot().getLanguageManager().getSentenceValue("error") + " " + message, arguments);
     }
 
     default void sendPrivateWarningLater(long delay, String message, Object... arguments) {
-        sendPrivateMessageLater(delay, getXiaomingBot().getLanguage().getString("warning") + " " + message, arguments);
+        sendPrivateMessageLater(delay, getXiaomingBot().getLanguageManager().getSentenceValue("warning") + " " + message, arguments);
     }
 
     default boolean hasPermission(String require) {
-        setProperty("permission", require);
         return getXiaomingBot().getPermissionManager().userAccessible(this, require) == PermissionAccessible.ACCESSABLE;
     }
 
@@ -205,7 +234,7 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
         if (hasPermission(require)) {
             return true;
         } else {
-            sendError("{lackPermission}");
+            sendError("{lang.lackPermission}", require);
             return false;
         }
     }
@@ -280,110 +309,80 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
     void onNextInput(MessageChain messages);
 
     default void onNextInput(String message) {
-        onNextInput(MiraiCode.deserializeMiraiCode(ArgumentUtility.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
-    }
-
-    default M nextInput(long timeout, Runnable onTimeout) {
-        final M lastElement = InteractorUtility.waitLastElement(getRecentMessages(), timeout, onTimeout);
-        if (Objects.equals(lastElement.serialize(), "退出")) {
-            sendMessage("退出成功");
-            throw new ReceptCancelledException();
-        } else {
-            return lastElement;
-        }
-    }
-
-    default M nextInput(Runnable onTimeout) {
-        return nextInput(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime(), onTimeout);
+        onNextInput(MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
     }
 
     default M nextInput(long timeout) {
-        return nextInput(timeout, () -> {
-            setProperty("time", TimeUtility.toTimeLength(timeout));
-            sendError("{userNextInputTimeOut}");
-            throw new InteractorTimeoutException(getInteractor(), this);
-        });
+        try {
+            final M receive = InteractorUtility.waitLastElement(getRecentMessages(), timeout);
+            if (Objects.equals(receive.serialize(), "退出")) {
+                sendMessage("退出成功");
+                throw new ReceptCancelledException();
+            } else {
+                return receive;
+            }
+        } catch (InteractorTimeoutException exception) {
+            sendError("{lang.userNextInputTimeout}", timeout);
+            throw exception;
+        }
     }
 
     default M nextInput() {
         return nextInput(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime());
     }
 
-    default PrivateMessage nextPrivateInput(long timeout, Runnable onTimeout) {
-        return InteractorUtility.waitLastElement(getReceptionist().forPrivateRecentMessages(), timeout, onTimeout);
-    }
-
-    default PrivateMessage nextPrivateInput(Runnable onTimeout) {
-        return nextPrivateInput(getXiaomingBot().getConfiguration().getMaxUserPrivateInputWaitTime(), onTimeout);
-    }
-
     default PrivateMessage nextPrivateInput(long timeout) {
-        return nextPrivateInput(timeout, () -> {
-            setProperty("time", TimeUtility.toTimeLength(timeout));
-            sendError("{userNextPrivateInputTimeOut}");
-            throw new InteractorTimeoutException(getInteractor(), this);
-        });
+        try {
+            final PrivateMessage receive = InteractorUtility.waitLastElement(getReceptionist().forPrivateRecentMessages(), timeout);
+            if (Objects.equals(receive.serialize(), "退出")) {
+                sendMessage("退出成功");
+                throw new ReceptCancelledException();
+            } else {
+                return receive;
+            }
+        } catch (InteractorTimeoutException exception) {
+            sendError("{lang.userNextInputTimeout}", timeout);
+            throw exception;
+        }
     }
 
     default PrivateMessage nextPrivateInput() {
         return nextPrivateInput(getXiaomingBot().getConfiguration().getMaxUserPrivateInputWaitTime());
     }
 
-    default GroupMessage nextGroupInput(long timeout, String tag, Runnable onTimeout) {
-        return InteractorUtility.waitLastElement(getReceptionist().forGroupRecentMessages(tag), timeout, onTimeout);
-    }
-
-    default GroupMessage nextGroupInput(String tag, Runnable onTimeout) {
-        return nextGroupInput(getXiaomingBot().getConfiguration().getMaxUserGroupInputWaitTime(), tag, onTimeout);
-    }
-
-    default GroupMessage nextGroupInput(long timeout, String tag) {
-        return nextGroupInput(timeout, tag, () -> {
-            setProperty("time", TimeUtility.toTimeLength(timeout));
-            setProperty("tag", tag);
-            sendError("{userNextGroupInputTimeOut}");
-            throw new InteractorTimeoutException(getInteractor(), this);
-        });
+    default GroupMessage nextGroupInput(String tag, long timeout) {
+        try {
+            final GroupMessage receive = InteractorUtility.waitLastElement(getReceptionist().forGroupRecentMessages(tag), timeout);
+            if (Objects.equals(receive.serialize(), "退出")) {
+                sendMessage("退出成功");
+                throw new ReceptCancelledException();
+            } else {
+                return receive;
+            }
+        } catch (InteractorTimeoutException exception) {
+            sendError("{lang.userNextInputTimeout}", timeout);
+            throw exception;
+        }
     }
 
     default GroupMessage nextGroupInput(String tag) {
-        return nextGroupInput(getXiaomingBot().getConfiguration().getMaxUserGroupInputWaitTime(), tag);
-    }
-
-    default Message nextGlobalInput(long timeout, Runnable onTimeout) {
-        // 在用户上等待下一次输入
-        final long latestTime = System.currentTimeMillis() + timeout;
-        final Receptionist receptionist = getReceptionist();
-
-        try {
-            synchronized (receptionist) {
-                receptionist.wait(timeout);
-            }
-        } catch (InterruptedException ignored) {
-        }
-        if (System.currentTimeMillis() < latestTime) {
-            final List<? extends Message> list = receptionist.getGlobalRecentMessages();
-            if (Objects.nonNull(list)) {
-                return list.get(list.size() - 1);
-            } else {
-                throw new ReceptCancelledException();
-            }
-        } else {
-            onTimeout.run();
-            return null;
-        }
-    }
-
-    default Message nextGlobalInput(Runnable onTimeout) {
-        return nextGlobalInput(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime(), onTimeout);
+        return nextGroupInput(tag, getXiaomingBot().getConfiguration().getMaxUserGroupInputWaitTime());
     }
 
     default Message nextGlobalInput(long timeout) {
-        return nextGlobalInput(timeout, () -> {
-            setProperty("time", TimeUtility.toTimeLength(timeout));
-            sendError("{userGlobalNextInputTimeOut}");
-            throw new InteractorTimeoutException(getInteractor(), this);
-        });
+        final Receptionist receptionist = getReceptionist();
+
+        switch (ObjectUtility.wait(receptionist, timeout)) {
+            case NOTIFY:
+                return receptionist.getGlobalRecentMessages().get(receptionist.getGlobalRecentMessages().size() - 1);
+            case TIMEOUT:
+                sendError("{lang.userNextInputTimeout}", timeout);
+                throw new InteractorTimeoutException(getInteractor(), this);
+            case INTERRUPT:
+                throw new ReceptCancelledException();
+            default:
+                throw new UnsupportedVersionException();
+        }
     }
 
     default Message nextGlobalInput() {
@@ -428,7 +427,11 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
      * @return 如果尚未存储相关信息，则创建，但不一定会立刻写入外存。
      */
     default Account getAccount() {
-        return getXiaomingBot().getAccountManager().forAccount(getCode());
+        final Account account = getXiaomingBot().getAccountManager().forAccount(getCode());
+        if (Objects.isNull(account)) {
+            account.setAlias(getAlias());
+        }
+        return account;
     }
 
     /**
@@ -455,7 +458,10 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
 
     default String getAlias() {
         final Account account = getAccount();
-        if (Objects.nonNull(account) && Objects.nonNull(account.getAlias())) {
+        if (Objects.nonNull(account)) {
+            if (Objects.isNull(account.getAlias())) {
+                account.setAlias(getName());
+            }
             return account.getAlias();
         } else {
             return getName();
@@ -464,18 +470,6 @@ public interface XiaomingUser<C extends XiaomingContact<M, ?>, M extends Message
 
     default Set<String> getTags() {
         return getXiaomingBot().getAccountManager().getTags(getCode());
-    }
-
-    default boolean hasTag(String tag) {
-        return getXiaomingBot().getAccountManager().hasTag(getCode(), tag);
-    }
-
-    default void addTag(String tag) {
-        getAccount().addTag(tag);
-    }
-
-    default void removeTag(String tag) {
-        getAccount().removeTag(tag);
     }
 
     default String getAliasAndCode() {

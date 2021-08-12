@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.event;
 
-import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.utility.MapUtility;
 import cn.chuanwise.xiaoming.object.ModuleObject;
 import cn.chuanwise.xiaoming.plugin.XiaomingPlugin;
 import net.mamoe.mirai.event.Event;
@@ -19,18 +19,16 @@ public interface EventManager extends ModuleObject {
      * 由调用线程立即响应一个事件
      * @param event 目标事件
      */
-    default void call(Event event) {
+    default void callEvent(Event event) {
         final boolean debug = getXiaomingBot().getConfiguration().isDebug();
         final Consumer<EventListener> handlerCaller = listener -> {
             try {
                 if (debug) {
-                    getLog().info("触发事件：" + event);
+                    getLogger().info("call: " + event);
                 }
-                if (listener.onEvent(event)) {
-                    callAsync(new ListenerResponseEvent(listener, event));
-                }
+                listener.onEvent(event);
             } catch (Exception exception) {
-                getLog().error(exception.getMessage(), exception);
+                getLogger().error(exception.getMessage(), exception);
             }
         };
 
@@ -42,10 +40,12 @@ public interface EventManager extends ModuleObject {
      * 让监听器专门开一个线程响应一个事件
      * @param event 目标事件
      */
-    default void callAsync(Event event) {
-        getXiaomingBot().getScheduler().run(() -> {
-            call(event);
-        });
+    default void callEventAsync(Event event) {
+        if (!getXiaomingBot().isStop()) {
+            getXiaomingBot().getScheduler().run(() -> {
+                callEvent(event);
+            });
+        }
     }
 
     /**
@@ -55,7 +55,7 @@ public interface EventManager extends ModuleObject {
      */
     default void register(EventListener listener, XiaomingPlugin plugin) {
         if (Objects.nonNull(plugin)) {
-            CollectionUtility.getOrPutSupplie(getPluginListeners(), plugin, CopyOnWriteArraySet::new).add(listener);
+            MapUtility.getOrPutSupply(getPluginListeners(), plugin, CopyOnWriteArraySet::new).add(listener);
             listener.setPlugin(plugin);
         } else {
             getCoreListeners().add(listener);

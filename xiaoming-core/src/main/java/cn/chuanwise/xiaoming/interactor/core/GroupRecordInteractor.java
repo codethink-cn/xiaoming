@@ -11,7 +11,9 @@ import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.group.GroupRecord;
 import cn.chuanwise.xiaoming.group.GroupRecordImpl;
 import cn.chuanwise.xiaoming.group.GroupRecordManager;
+import cn.chuanwise.xiaoming.interactor.InteractorArgumentInformation;
 import cn.chuanwise.xiaoming.plugin.XiaomingPlugin;
+import cn.chuanwise.xiaoming.tag.TagHolder;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.utility.CommandWords;
@@ -37,7 +39,7 @@ public class GroupRecordInteractor extends InteractorImpl {
         setUsageCommandFormat(CommandWords.GROUP + CommandWords.HELP);
     }
 
-    static final String TAG_REGEX = "(标记|标注|tag)";
+    static final String TAG = "(标记|标注|tag)";
 
     public String getGroupName(GroupRecord group) {
         if (Objects.isNull(group.getAlias())) {
@@ -50,10 +52,10 @@ public class GroupRecordInteractor extends InteractorImpl {
     public String getSummary(GroupRecord group) {
         return "备注：" + ObjectUtility.getOrDefault(group, "（无）") + "\n" +
                 "群号：" + group.getCodeString() + "\n" +
-                "标记：" + StringUtility.chooseFirstNonEmpty(CollectionUtility.toIndexString(group.getTags()), "（无）");
+                "标记：" + StringUtility.firstNonEmpty(CollectionUtility.toIndexString(group.getTags()), "（无）");
     }
 
-    @Filter(CommandWords.GROUP)
+    @Filter(CommandWords.GROUP + CommandWords.RECORD)
     @Permission("group.list")
     public void onListGroups(XiaomingUser user) {
         final Set<GroupRecord> groups = groupManager.getGroups();
@@ -76,7 +78,7 @@ public class GroupRecordInteractor extends InteractorImpl {
     public void onRemoveGroup(XiaomingUser user, @FilterParameter("group") GroupRecord group) {
         user.sendMessage("成功移除小明的群记录：" + group.getAliasAndCode());
         groupManager.getGroups().remove(group);
-        getXiaomingBot().getFileSaver().readySave(groupManager);
+        getXiaomingBot().getFileSaver().readyToSave(groupManager);
     }
 
     @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.INFO)
@@ -120,7 +122,7 @@ public class GroupRecordInteractor extends InteractorImpl {
             groupManager.addGroup(groupRecord);
             if (alreadyIn) {
                 user.sendMessage("成功将该群设置为小明的响应群。");
-                user.getXiaomingBot().getContactManager().sendGroupMessage(group, getXiaomingBot().getLanguage().getString("new-response-group"));
+                user.getXiaomingBot().getContactManager().sendGroupMessage(group, getXiaomingBot().getLanguageManager().getSentenceValue("new-response-group"));
             } else {
                 user.sendMessage("成功将该群设置为小明的响应群，但小明还不在这个群中。");
             }
@@ -128,10 +130,10 @@ public class GroupRecordInteractor extends InteractorImpl {
             groupRecord.addTag(getXiaomingBot().getConfiguration().getEnableGroupTag());
             user.sendMessage("成功将该群设置为小明的响应群。");
         }
-        getXiaomingBot().getFileSaver().readySave(groupManager);
+        getXiaomingBot().getFileSaver().readyToSave(groupManager);
     }
 
-    @Filter(TAG_REGEX + CommandWords.GROUP + " {group} {tag}")
+    @Filter(TAG + CommandWords.GROUP + " {group} {tag}")
     @Permission("group.tag.add")
     public void onAddGroupTag(XiaomingUser user,
                               @FilterParameter("group") GroupRecord groupRecord,
@@ -140,37 +142,37 @@ public class GroupRecordInteractor extends InteractorImpl {
             user.sendError(groupRecord.getAliasAndCode() + "已经有这个标记了哦");
         } else {
             groupRecord.addTag(tag);
-            getXiaomingBot().getFileSaver().readySave(groupManager);
+            getXiaomingBot().getFileSaver().readyToSave(groupManager);
             user.sendMessage("成功为" + groupRecord.getAliasAndCode() + "添加了新的标记「{tag}」");
         }
     }
 
-    @Filter(CommandWords.REMOVE + CommandWords.GROUP + TAG_REGEX + " {group} {tag}")
+    @Filter(CommandWords.REMOVE + CommandWords.GROUP + TAG + " {group} {tag}")
     @Permission("group.tag.remove")
     public void onRemoveGroupTag(XiaomingUser user,
                                  @FilterParameter("group") GroupRecord groupRecord,
                                  @FilterParameter("tag") String tag) {
-        if (Arrays.asList("recorded", groupRecord.getCodeString()).contains(tag)) {
-            user.sendError("「」是群聊的原生标记，不可以删除");
+        if (Arrays.asList(TagHolder.RECORDED, groupRecord.getCodeString()).contains(tag)) {
+            user.sendError("「{tag}」是群聊的原生标记，不可以删除");
             return;
         }
 
         if (groupRecord.hasTag(tag)) {
             groupRecord.removeTag(tag);
             user.sendMessage("成功移除了该群上的标记「{tag}」");
-            getXiaomingBot().getFileSaver().readySave(groupManager);
+            getXiaomingBot().getFileSaver().readyToSave(groupManager);
         } else {
             user.sendMessage("该群并没有标记「{tag}」");
         }
     }
 
     @WhenQuiet
-    @Filter(CommandWords.REMOVE + CommandWords.THIS + CommandWords.GROUP + TAG_REGEX + " {tag}")
+    @Filter(CommandWords.REMOVE + CommandWords.THIS + CommandWords.GROUP + TAG + " {tag}")
     @Permission("group.tag.remove")
     public void onRemoveGroupTag(GroupXiaomingUser user,
                                  @FilterParameter("tag") String tag) {
         final GroupRecord groupRecord = user.getGroupRecord();
-        if (Arrays.asList("recorded", groupRecord.getCodeString()).contains(tag)) {
+        if (Arrays.asList(TagHolder.RECORDED, groupRecord.getCodeString()).contains(tag)) {
             user.sendError("「」是群聊的原生标记，不可以删除");
             return;
         }
@@ -178,14 +180,14 @@ public class GroupRecordInteractor extends InteractorImpl {
         if (groupRecord.hasTag(tag)) {
             groupRecord.removeTag(tag);
             user.sendMessage("成功移除本群的标记「{tag}」");
-            getXiaomingBot().getFileSaver().readySave(groupManager);
+            getXiaomingBot().getFileSaver().readyToSave(groupManager);
         } else {
             user.sendMessage("本群并没有标记「{tag}」");
         }
     }
 
     @WhenQuiet
-    @Filter(TAG_REGEX + CommandWords.THIS + CommandWords.GROUP + " {tag}")
+    @Filter(CommandWords.TAG + CommandWords.THIS + CommandWords.GROUP + " {tag}")
     @Permission("group.tag.add")
     public void onAddGroupTag(GroupXiaomingUser user,
                               @FilterParameter("tag") String tag) {
@@ -194,7 +196,7 @@ public class GroupRecordInteractor extends InteractorImpl {
             user.sendError("本群已经有这个标记了");
         } else {
             group.addTag(tag);
-            getXiaomingBot().getFileSaver().readySave(groupManager);
+            getXiaomingBot().getFileSaver().readyToSave(groupManager);
             user.sendMessage("成功为本群添加了新的标记「{tag}」");
         }
     }
@@ -208,7 +210,7 @@ public class GroupRecordInteractor extends InteractorImpl {
             user.sendError("本群已经屏蔽了插件「{plugin}」");
         } else {
             group.blockPlugin(plugin);
-            getXiaomingBot().getFileSaver().readySave(groupManager);
+            getXiaomingBot().getFileSaver().readyToSave(groupManager);
             user.sendMessage("成功在本群屏蔽了插件「{plugin}」");
         }
     }
@@ -220,7 +222,7 @@ public class GroupRecordInteractor extends InteractorImpl {
         final GroupRecord groupRecord = user.getContact().getGroupRecord();
         if (groupRecord.isBlockPlugin(plugin)) {
             groupRecord.unblockPlugin(plugin);
-            getXiaomingBot().getFileSaver().readySave(groupManager);
+            getXiaomingBot().getFileSaver().readyToSave(groupManager);
             user.sendMessage("成功在本群取消屏蔽插件「{plugin}」");
         } else {
             user.sendError("本群还没有屏蔽插件「plugin」");
@@ -228,8 +230,13 @@ public class GroupRecordInteractor extends InteractorImpl {
     }
 
     @Override
-    public <T> T parseParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, Map<String, String> argumentValues, String defaultValue) {
-        final T t = super.parseParameter(user, clazz, parameterName, currentValue, argumentValues, defaultValue);
+    public <T> T parseParameter(XiaomingUser user, InteractorArgumentInformation<T> information, Map<String, String> argumentValues) {
+        Class<T> clazz = information.getClazz();
+        String currentValue = information.getCurrentValue();
+        String parameterName = information.getParameterName();
+        String defaultValue = information.getDefaultValue();
+
+        T t = super.parseParameter(user, information, argumentValues);
         if (Objects.nonNull(t)) {
             return t;
         }

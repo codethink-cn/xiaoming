@@ -5,8 +5,6 @@ import cn.chuanwise.xiaoming.annotation.Permission;
 import cn.chuanwise.xiaoming.annotation.WhenExternal;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.configuration.Configuration;
-import cn.chuanwise.xiaoming.contact.contact.GroupContact;
-import cn.chuanwise.xiaoming.group.GroupRecordImpl;
 import cn.chuanwise.xiaoming.license.LicenseManager;
 import cn.chuanwise.xiaoming.group.GroupRecord;
 import cn.chuanwise.xiaoming.group.GroupRecordManager;
@@ -35,25 +33,21 @@ public class GlobalInteractor extends InteractorImpl {
             final LicenseManager licenceManager = getXiaomingBot().getLicenseManager();
             final long qq = user.getCode();
             if (licenceManager.isAgreed(qq)) {
-                user.sendMessage("你此前已经同意了小明使用协议");
+                user.sendMessage("{lang.licenseAlreadyAgreed}");
             } else {
-                /*
-                user.sendPrivateMessage(getXiaomingBot().getLanguage().loadOrFail(config.getLicenseName()));
-                user.sendPrivateMessage("如果你同意上述协议，请告诉我「同意」");
+                user.sendPrivateMessage(licenceManager.getLicense());
+                user.sendPrivateMessage("{lang.enterAgreeIfYouAgree}");
 
-                final String nextInput = user.nextGlobalInput();
-                if (Objects.equals(nextInput, "同意")) {
-                    user.sendMessage("你已经可以使用小明了，未来记得遵守我们的约定");
+                if (Objects.equals(user.nextInput().serialize(), "同意")) {
+                    user.sendMessage("{lang.licenseAgreed}");
                     licenceManager.agree(qq);
                 } else {
-                    user.sendMessage("如果未来希望使用小明，仍然可以告诉我「使用小明」");
+                    user.sendMessage("{lang.licenseDisgreed}");
                 }
-                getXiaomingBot().getFileSaver().readySave(licenceManager);
-
-                 */
+                getXiaomingBot().getFileSaver().readyToSave(licenceManager);
             }
         } else {
-            user.sendMessage("不需要专门启动小明哦，小明为人民服务 {happy}");
+            user.sendMessage("{lang.licenseNotNeedToAgree}");
         }
     }
 
@@ -67,13 +61,13 @@ public class GlobalInteractor extends InteractorImpl {
             final long qq = user.getCode();
             if (licenceManager.isAgreed(qq)) {
                 licenceManager.remove(qq);
-                user.sendMessage("已取消使用小明。如果未来希望使用小明，仍然可以告诉我「使用小明」");
-                getXiaomingBot().getFileSaver().readySave(licenceManager);
+                user.sendMessage("{lang.licenseCancelled}");
+                getXiaomingBot().getFileSaver().readyToSave(licenceManager);
             } else {
-                user.sendMessage("此前你并未同意《小明使用须知》");
+                user.sendMessage("{lang.youHadNotAgreeLicense}");
             }
         } else {
-            user.sendMessage("不需要专门取消小明哦，小明为人民服务 {happy}");
+            user.sendMessage("{lang.licenseNotNeedToAgree}");
         }
     }
 
@@ -81,22 +75,15 @@ public class GlobalInteractor extends InteractorImpl {
     @Filter(CommandWords.THIS + CommandWords.GROUP + CommandWords.ENABLE + CommandWords.XIAOMING)
     @Permission("group.enable")
     public void onEnableXiaoming(GroupXiaomingUser user) {
-        final GroupContact contact = user.getContact();
         final GroupRecordManager groupRecordManager = getXiaomingBot().getGroupRecordManager();
-
-        GroupRecord groupRecord = groupRecordManager.forCode(contact.getCode());
-        if (Objects.isNull(groupRecord)) {
-            groupRecord = new GroupRecordImpl(contact.getCode(), contact.getName());
-            groupRecordManager.addGroup(groupRecord);
-            getXiaomingBot().getFileSaver().readySave(groupRecordManager);
-        }
+        final GroupRecord groupRecord = user.getGroupRecord();
 
         if (groupRecord.hasTag(getXiaomingBot().getConfiguration().getEnableGroupTag())) {
-            user.sendWarning("本群已经是小明的响应群了哦");
+            user.sendWarning("{lang.xiaomingAlreadyEnabledInThisGroup}");
         } else {
             groupRecord.addTag(getXiaomingBot().getConfiguration().getEnableGroupTag());
-            user.sendMessage("成功在本群启用小明 (๑•̀ㅂ•́)و✧");
-            getXiaomingBot().getFileSaver().readySave(groupRecordManager);
+            user.sendMessage("{lang.xiaomingEnabledInThisGroup}");
+            getXiaomingBot().getFileSaver().readyToSave(groupRecordManager);
         }
     }
 
@@ -105,18 +92,14 @@ public class GlobalInteractor extends InteractorImpl {
     @Permission("group.disable")
     public void onDisableXiaoming(GroupXiaomingUser user) {
         final GroupRecordManager groupRecordManager = getXiaomingBot().getGroupRecordManager();
-
-        GroupRecord groupRecord = user.getGroupRecord();
-        if (Objects.isNull(groupRecord)) {
-            user.sendMessage("本群还不是小明的响应群哦");
-        }
+        final GroupRecord groupRecord = user.getGroupRecord();
 
         if (groupRecord.hasTag(getXiaomingBot().getConfiguration().getEnableGroupTag())) {
             groupRecord.removeTag(getXiaomingBot().getConfiguration().getEnableGroupTag());
-            user.sendMessage("本群不再是小明的响应群啦。未来希望启动小明输入「本群启动小明」就可以啦。");
+            user.sendMessage("{lang.xiaomingDisabledInThisGroup}");
         } else {
-            user.sendWarning("本群曾是小明的响应群，但是现在还不是哦");
-            getXiaomingBot().getFileSaver().readySave(groupRecordManager);
+            user.sendWarning("{lang.xiaomingHadNotEnableInThisGroup}");
+            getXiaomingBot().getFileSaver().readyToSave(groupRecordManager);
         }
     }
 }

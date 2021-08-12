@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.plugin;
 
-import cn.chuanwise.exception.UnsupportedOperationVersion;
+import cn.chuanwise.exception.UnsupportedVersionException;
 import cn.chuanwise.utility.ResourceUtility;
 import cn.chuanwise.xiaoming.language.Language;
 import cn.chuanwise.xiaoming.object.XiaomingObject;
@@ -14,10 +14,10 @@ import java.util.function.Supplier;
 
 /**
  * 小明插件主类
- * 插件主类是小明加载插件的唯一入口。通过 {@code XiaomingClassLoader} 加载插件类后，会检查该类是否是
- * 本接口的实现。如果是，才会继续通过多态性调用本接口的 {@code onLoad()} 和 {@code onEnable()} 以
+ * 插件主类是小明加载插件的唯一入口。通过 {@link cn.chuanwise.xiaoming.classloader.XiaomingClassLoader} 加载插件类后，会检查该类是否是
+ * 本接口的实现。如果是，才会继续通过多态性调用本接口的 {@link XiaomingPlugin#onLoad()} 和 {@link XiaomingPlugin#onEnable()} 以
  * 启动插件。
- * {@code onLoad()} 的执行顺序是随机的，但 {@code onEnable()} 的执行顺序必然是一个前置插件关系的拓
+ * {@link XiaomingPlugin#onLoad()} 的执行顺序是随机的，但 {@link XiaomingPlugin#onEnable()} 的执行顺序必然是一个前置插件关系的拓
  * 扑序列。
  *
  * @see PluginManager
@@ -48,15 +48,6 @@ public interface XiaomingPlugin extends XiaomingObject {
         return getName();
     }
 
-    /** 获得插件语言包 */
-    Language getLanguage();
-
-    /**
-     * 设置插件语言包。此方法不要轻易调用，建议使用 {@code loadLanguageAs(...)}
-     * @param language 语言包信息
-     */
-    void setLanguage(Language language);
-
     /** 获取插件版本号 */
     default String getVersion() {
         return getProperty().getVersion();
@@ -80,9 +71,9 @@ public interface XiaomingPlugin extends XiaomingObject {
 
     PluginProperty getProperty();
 
-    Logger getLog();
+    Logger getLogger();
 
-    void setLog(Logger log);
+    void setLogger(Logger logger);
 
     void setProperty(PluginProperty property);
 
@@ -94,15 +85,12 @@ public interface XiaomingPlugin extends XiaomingObject {
         return new File(getDataFolder(), CONFIGURATION_FILE_NAME);
     }
 
-    default boolean copyResourceTo(String path, File to) throws IOException {
-        if (!to.isFile()) {
-            to.createNewFile();
-        }
-        return ResourceUtility.copyResource(getClass().getClassLoader(), path, to);
+    default boolean copyResource(String path, File to, boolean replace) throws IOException {
+        return ResourceUtility.copyResource(getClass().getClassLoader(), path, to, replace);
     }
 
-    default boolean copyDefaultConfiguration() throws IOException {
-        return copyResourceTo(CONFIGURATION_FILE_NAME, getConfigurationFile());
+    default boolean copyDefaultConfiguration(boolean replace) throws IOException {
+        return copyResource(CONFIGURATION_FILE_NAME, getConfigurationFile(), replace);
     }
 
     default <T extends Preservable<File>> T loadConfigurationAs(Class<T> clazz) throws IOException {
@@ -117,26 +105,26 @@ public interface XiaomingPlugin extends XiaomingObject {
         return loadFileAs(clazz, new File(getDataFolder(), fileName));
     }
 
-    default <T extends Preservable<File>> T loadConfigurationOrSupplie(Class<T> clazz, Supplier<T> supplier) {
-        return loadFileOrSupplie(clazz, getConfigurationFile(), supplier);
+    default <T extends Preservable<File>> T loadConfigurationOrSupply(Class<T> clazz, Supplier<T> supplier) {
+        return loadFileOrSupply(clazz, getConfigurationFile(), supplier);
     }
 
-    default <T extends Preservable<File>> T loadFileOrSupplie(Class<T> clazz, File file, Supplier<T> supplier) {
-        return getXiaomingBot().getFileLoader().loadOrSupplie(clazz, file, supplier);
+    default <T extends Preservable<File>> T loadFileOrSupply(Class<T> clazz, File file, Supplier<T> supplier) {
+        return getXiaomingBot().getFileLoader().loadOrSupply(clazz, file, supplier);
     }
 
-    default <T extends Preservable<File>> T loadFileOrSupplie(Class<T> clazz, String fileName, Supplier<T> supplier) {
-        return loadFileOrSupplie(clazz, new File(getDataFolder(), fileName), supplier);
+    default <T extends Preservable<File>> T loadFileOrSupply(Class<T> clazz, String fileName, Supplier<T> supplier) {
+        return loadFileOrSupply(clazz, new File(getDataFolder(), fileName), supplier);
     }
 
-    default void throwUnsupportedOperationVersion(String message) {
-        throw new UnsupportedOperationVersion(message +
+    default void throwUnsupportedVersionException(String message) {
+        throw new UnsupportedVersionException(message +
                 "(in plugin: " + getCompleteName() + "," +
                 "version: " + getVersion() + ")");
     }
 
-    default void throwUnsupportedOperationVersion(String message, String requireVersion) {
-        throw new UnsupportedOperationVersion(message +
+    default void throwUnsupportedVersionException(String message, String requireVersion) {
+        throw new UnsupportedVersionException(message +
                 "(in plugin: " + getCompleteName() + "," +
                 "version: " + getVersion() + ", " +
                 "requireVersion: " + requireVersion + ")");

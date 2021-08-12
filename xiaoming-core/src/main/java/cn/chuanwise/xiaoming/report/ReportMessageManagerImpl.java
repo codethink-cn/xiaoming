@@ -23,16 +23,11 @@ import java.util.Objects;
 public class ReportMessageManagerImpl extends FilePreservableImpl implements ReportMessageManager {
     transient XiaomingBot xiaomingBot;
 
-    List<ReportMessageImpl> reportMessages = new ArrayList<>();
-
-    @Override
-    public List<ReportMessage> getReportMessages() {
-        return ((List) reportMessages);
-    }
+    List<ReportMessage> reportMessages = new ArrayList<>();
 
     @Transient
     @Override
-    public Logger getLog() {
+    public Logger getLogger() {
         return log;
     }
 

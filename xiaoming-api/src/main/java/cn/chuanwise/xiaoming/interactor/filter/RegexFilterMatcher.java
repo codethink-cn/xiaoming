@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.interactor.filter;
 
-import cn.chuanwise.xiaoming.utility.UsageStringUtility;
+import cn.chuanwise.utility.UsageStringUtility;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 

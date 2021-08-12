@@ -4,20 +4,19 @@ import cn.chuanwise.utility.CollectionUtility;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.account.AccountManager;
 import cn.chuanwise.xiaoming.account.record.Record;
+import cn.chuanwise.xiaoming.annotation.Customizable;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.annotation.Permission;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
+import cn.chuanwise.xiaoming.plugin.XiaomingPlugin;
+import cn.chuanwise.xiaoming.tag.TagHolder;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.AtUtility;
 import cn.chuanwise.xiaoming.utility.CommandWords;
 import cn.chuanwise.xiaoming.utility.InteractorUtility;
 import cn.chuanwise.xiaoming.interactor.InteractorImpl;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 和用户账号相关的指令处理器
@@ -33,126 +32,115 @@ public class AccountInteractor extends InteractorImpl {
         setUsageCommandFormat(CommandWords.ACCOUNT + CommandWords.HELP);
     }
 
+    @Customizable("listHistory")
     @Filter(HISTORY + " {qq}")
     @Permission("account.history")
-    public void onLookUserHistory(XiaomingUser user, @FilterParameter("qq") long qq) {
-        final Account account = getXiaomingBot().getAccountManager().forAccount(qq);
-        final String emptyHistory = "{userHasNoHistory}";
-        if (Objects.isNull(account)) {
-            user.sendWarning(emptyHistory);
-            return;
+    public void onListUserHistory(XiaomingUser user,
+                                  @FilterParameter("qq") long qq) {
+        final Account account = user.getAccount();
+        final List<Record> histories = account.getHistories();
+        if (CollectionUtility.isEmpty(histories)) {
+            user.sendWarning("{lang.userHasNoHistory}");
+        } else {
+            InteractorUtility.showCollection(user, account.getCommands(), Record::getMessage, 5);
         }
-        InteractorUtility.showCollection(user, account.getCommands(), Record::getMessage, emptyHistory, 5);
     }
 
+    @Customizable("unblockPlugin")
     @Filter(CommandWords.UNBLOCK + " {plugin}")
     @Permission("account.plugin.unblock")
     public void onUnblockPlugin(XiaomingUser user,
-                                @FilterParameter("plugin") String plugin) {
-        final Account account = accountManager.forAccount(user.getCode());
-        if (account.hasTag("plugin.block." + plugin)) {
-            if (getXiaomingBot().getPluginManager().isLoaded(plugin)) {
-                user.sendError("小明没有加载插件：{}", plugin);
-            }
+                                @FilterParameter("plugin") XiaomingPlugin plugin) {
+        final Account account = user.getAccount();
+        if (account.isBlockPlugin(plugin)) {
             if (user.hasPermission("use." + plugin)) {
-                account.removeTag("plugin.block." + plugin);
-                getXiaomingBot().getFileSaver().readySave(account);
-                user.sendMessage("成功取消屏蔽了插件：{}", plugin);
+                account.unblockPlugin(plugin);
+                getXiaomingBot().getFileSaver().readyToSave(account);
+                user.sendMessage("{lang.userUnblockPluginSuccessfully}", plugin);
             } else {
-                user.sendError("你不能使用插件：{}", plugin);
+                user.sendError("{lang.userCanNotUsePlugin}", plugin);
             }
         } else {
-            user.sendError("你还没有屏蔽插件：{}", plugin);
+            user.sendError("{lang.userHadNotEnablePlugin}", plugin);
         }
     }
 
+    @Customizable("blockPlugin")
     @Filter(CommandWords.BLOCK + " {plugin}")
     @Permission("account.plugin.block")
     public void onBlockPlugin(XiaomingUser user,
-                              @FilterParameter("plugin") String plugin) {
+                              @FilterParameter("plugin") XiaomingPlugin plugin) {
         final Account account = accountManager.forAccount(user.getCode());
-        if (account.hasTag("plugin.block." + plugin)) {
-            user.sendError("你已经屏蔽了插件：{}", plugin);
+        if (account.isBlockPlugin(plugin)) {
+            user.sendError("{lang.userHadBlockedThePlugin}", plugin);
         } else {
-            if (getXiaomingBot().getPluginManager().isLoaded(plugin)) {
-                user.sendError("小明没有加载插件：{}", plugin);
-            }
-            account.addTag("plugin.block." + plugin);
-            user.sendError("成功屏蔽了插件：{}", plugin);
+            account.blockPlugin(plugin);
+            getXiaomingBot().getFileSaver().readyToSave(account);
+            user.sendMessage("{lang.userBlockPluginSuccessfully}", plugin);
         }
     }
 
-    @Filter(CommandWords.ALIAS + " {qq} {alias}")
-    @Filter(CommandWords.SET + CommandWords.ALIAS + " {qq} {alias}")
-    @Permission("account.user.alias")
+    @Customizable("setUserAlias")
+    @Filter(CommandWords.ALIAS + " {qq} {remain}")
+    @Filter(CommandWords.SET + CommandWords.ALIAS + " {qq} {remain}")
+    @Permission("account.user.alias.set")
     public void onSetUserAlias(XiaomingUser user,
                                @FilterParameter("qq") long qq,
-                               @FilterParameter("alias") String alias) {
+                               @FilterParameter("remain") String alias) {
         final Account account = accountManager.forAccount(qq);
         account.setAlias(alias);
-        user.sendMessage("成功将该用户的备注设置为{}", alias);
-        getXiaomingBot().getFileSaver().readySave(account);
+        user.sendMessage("{lang.aliasSetSuccessfully}", alias);
+        getXiaomingBot().getFileSaver().readyToSave(account);
     }
 
+    @Customizable("lookUserAlias")
+    @Filter(CommandWords.ALIAS + " {qq}")
+    @Permission("account.user.alias.look")
+    public void onSetUserAlias(XiaomingUser user,
+                               @FilterParameter("qq") long qq) {
+        user.sendMessage("{lang.aliasIs}", qq);
+    }
+
+    @Customizable("addUserTag")
     @Filter(CommandWords.TAG + " {qq} {tag}")
     @Permission("account.user.tag.add")
     public void onAddUserTag(XiaomingUser user,
-                               @FilterParameter("qq") Account account,
-                               @FilterParameter("tag") String tag) {
+                             @FilterParameter("qq") Account account,
+                             @FilterParameter("tag") String tag) {
         if (account.hasTag(tag)) {
-            user.sendError("该用户已经有这个标记了");
+            user.sendError("{lang.userAlreadyHasTag}", tag);
         } else {
             account.addTag(tag);
-            user.sendMessage("成功为该用户添加了标记「{tag}」");
-            getXiaomingBot().getFileSaver().readySave(account);
+            user.sendMessage("{lang.userTagAddSuccessfully}", tag);
+            getXiaomingBot().getFileSaver().readyToSave(account);
         }
     }
 
+    @Customizable("removeUserTag")
     @Filter(CommandWords.REMOVE + CommandWords.TAG + " {qq} {tag}")
     @Permission("account.user.tag.add")
     public void onRemoveUserTag(XiaomingUser user,
-                               @FilterParameter("qq") Account account,
-                               @FilterParameter("tag") String tag) {
-        if (Arrays.asList("recorded", user.getCodeString()).contains(tag)) {
-            user.sendError("「{tag}」是原生标记，不可以删除");
+                                @FilterParameter("qq") Account account,
+                                @FilterParameter("tag") String tag) {
+        if (Arrays.asList(TagHolder.RECORDED, user.getCodeString()).contains(tag)) {
+            user.sendError("{lang.canNotRemoveOriginalTag}", tag);
             return;
         }
         if (account.hasTag(tag)) {
             account.removeTag(tag);
-            user.sendMessage("成功删除了该用户的标记「{tag}」");
-            getXiaomingBot().getFileSaver().readySave(account);
+            user.sendMessage("{lang.userTagRemoveSuccessfully}", tag);
+            getXiaomingBot().getFileSaver().readyToSave(account);
         } else {
-            user.sendError("该用户并没有这个 tag 哦");
+            user.sendError("{lang.userHadNotTheTag}", tag);
         }
     }
 
+    @Customizable("listUserTag")
     @Filter(CommandWords.TAG + " {qq}")
-    @Permission("account.user.tag.add")
-    public void onRemoveUserTag(XiaomingUser user,
-                               @FilterParameter("qq") Account account) {
-        final Set<String> tags = account.getTags();
-        if (tags.isEmpty()) {
-            user.sendError("该用户没有任何标记");
-        } else {
-            user.sendMessage("该用户的标记有：" + CollectionUtility.toString(tags, "、"));
-        }
-    }
-
-    @Override
-    public <T> T parseParameter(XiaomingUser user, Class<T> clazz, String parameterName, String currentValue, Map<String, String> argumentValues, String defaultValue) {
-        final T result = super.parseParameter(user, clazz, parameterName, currentValue, argumentValues, defaultValue);
-        if (Objects.nonNull(result)) {
-            return result;
-        }
-        if (clazz.isAssignableFrom(Account.class) && Objects.equals("qq", currentValue)) {
-            final long qq = AtUtility.parseQQ(currentValue);
-            if (qq == -1) {
-                user.sendError("「{qq}」并不是一个合理的 QQ 哦");
-                return null;
-            } else {
-                return ((T) getXiaomingBot().getAccountManager().forAccount(qq));
-            }
-        }
-        return null;
+    @Permission("account.user.tag.list")
+    public void onListUserTag(XiaomingUser user,
+                              @FilterParameter("qq") long qq) {
+        final Set<String> tags = getXiaomingBot().getAccountManager().getTags(qq);
+        user.sendMessage("{lang.userTagsAreAsFollows}");
     }
 }

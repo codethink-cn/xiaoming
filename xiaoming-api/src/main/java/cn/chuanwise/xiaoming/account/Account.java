@@ -1,16 +1,18 @@
 package cn.chuanwise.xiaoming.account;
 
 import cn.chuanwise.toolkit.preservable.file.FilePreservable;
+import cn.chuanwise.utility.StringUtility;
 import cn.chuanwise.xiaoming.account.record.CommandRecord;
 import cn.chuanwise.xiaoming.account.record.Record;
 import cn.chuanwise.toolkit.preservable.Preservable;
+import cn.chuanwise.xiaoming.tag.PluginBlockable;
 import cn.chuanwise.xiaoming.tag.TagHolder;
 
 import java.io.File;
 import java.util.List;
 import java.util.Objects;
 
-public interface Account extends Preservable<File>, TagHolder {
+public interface Account extends Preservable<File>, PluginBlockable {
     default void addEvent(Record event) {
         getEvents().add(event);
     }
@@ -29,9 +31,13 @@ public interface Account extends Preservable<File>, TagHolder {
         return String.valueOf(getCode());
     }
 
-    default String getCompleteName() {
+    default String getAliasAndCode() {
         final String alias = getAlias();
         return Objects.nonNull(alias) ? (alias + "（" + getCodeString() + "）") : getCodeString();
+    }
+
+    default String getAliasOrCode() {
+        return StringUtility.firstNonEmpty(getAlias(), getCodeString());
     }
 
     String getAlias();
@@ -45,4 +51,8 @@ public interface Account extends Preservable<File>, TagHolder {
     void setCode(long code);
 
     void setAlias(String alias);
+
+    default String getName() {
+        return getCodeString();
+    }
 }

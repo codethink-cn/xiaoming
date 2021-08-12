@@ -3,6 +3,7 @@ package cn.chuanwise.xiaoming.user;
 import cn.chuanwise.toolkit.sized.SizedCopyOnWriteArrayList;
 import cn.chuanwise.xiaoming.contact.contact.ConsoleContact;
 import cn.chuanwise.xiaoming.contact.message.ConsoleMessage;
+import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.recept.ConsoleReceptionTask;
 import cn.chuanwise.xiaoming.recept.Receptionist;
 import cn.chuanwise.xiaoming.contact.message.ConsoleMessageImpl;
@@ -46,7 +47,7 @@ public class ConsoleXiaomingUserImpl extends XiaomingUserImpl<ConsoleContact, Co
     @Override
     public void onNextInput(ConsoleMessage message) {
         final List<ConsoleMessage> list = getRecentMessages();
-        setProperty("last", message.serialize());
+        setProperty(PropertyType.LAST, message);
         list.add(message);
 
         final Receptionist receptionist = getReceptionist();
@@ -55,8 +56,8 @@ public class ConsoleXiaomingUserImpl extends XiaomingUserImpl<ConsoleContact, Co
         synchronized (list) {
             list.notifyAll();
         }
-        synchronized (this) {
-            this.notifyAll();
+        synchronized (receptionist) {
+            receptionist.notifyAll();
         }
     }
 

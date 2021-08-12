@@ -4,13 +4,18 @@ import cn.chuanwise.xiaoming.object.ModuleObject;
 import cn.chuanwise.toolkit.preservable.Preservable;
 
 import java.io.File;
+import java.util.Map;
 
 public interface LicenseManager extends Preservable<File>, ModuleObject {
-    boolean isAgreed(long qq);
+    String getLicense();
 
-    void agree(long qq);
+    void setLicense(String license);
 
-    void remove(long qq);
+    boolean isAgreed(long code);
 
-    java.util.Map<Long, Long> getAgreements();
+    void agree(long code);
+
+    void remove(long code);
+
+    Map<Long, Long> getAgreementRecords();
 }

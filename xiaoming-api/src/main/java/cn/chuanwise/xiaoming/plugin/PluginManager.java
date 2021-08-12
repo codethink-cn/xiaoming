@@ -122,9 +122,9 @@ public interface PluginManager extends XiaomingObject, ModuleObject {
             getLoadedPlugins().add(plugin);
             user.sendMessage("插件 {} 加载成功", plugin.getCompleteName());
             return true;
-        } catch (Exception exception) {
-            user.sendError("加载插件时出现异常：{}", exception);
-            getLog().error("加载插件时出现异常", exception);
+        } catch (Throwable throwable) {
+            user.sendError("加载插件时出现异常：{}", throwable);
+            getLogger().error("加载插件时出现异常", throwable);
             return false;
         }
     }
@@ -191,7 +191,7 @@ public interface PluginManager extends XiaomingObject, ModuleObject {
             return true;
         } catch (Exception exception) {
             user.sendError("启动插件时出现异常：{}", exception);
-            getLog().error("启动插件时出现异常", exception);
+            getLogger().error("启动插件时出现异常", exception);
             return false;
         }
     }
@@ -222,7 +222,7 @@ public interface PluginManager extends XiaomingObject, ModuleObject {
             return true;
         } catch (Exception exception) {
             user.sendError("关闭插件时出现异常：{}", exception);
-            getLog().error("关闭插件时出现异常", exception);
+            getLogger().error("关闭插件时出现异常", exception);
             return false;
         }
     }
@@ -268,7 +268,7 @@ public interface PluginManager extends XiaomingObject, ModuleObject {
             return true;
         } catch (Exception exception) {
             user.sendError("卸载插件时出现异常：{}", exception);
-            getLog().error("卸载插件时出现异常", exception);
+            getLogger().error("卸载插件时出现异常", exception);
             return false;
         }
     }

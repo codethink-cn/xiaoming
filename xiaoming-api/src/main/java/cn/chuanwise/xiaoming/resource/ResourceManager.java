@@ -92,7 +92,7 @@ public interface ResourceManager extends ModuleObject, Preservable<File> {
             }
         }
         if (added) {
-            getXiaomingBot().getFileSaver().readySave(this);
+            getXiaomingBot().getFileSaver().readyToSave(this);
         }
     }
 }

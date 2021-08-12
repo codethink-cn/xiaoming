@@ -35,4 +35,12 @@ public interface MemberXiaomingUser extends XiaomingUser<MemberContact, MemberMe
     default GroupContact getGroupContact() {
         return getContact().getGroupContact();
     }
+
+    default String getNick() {
+        return getContact().getNick();
+    }
+
+    default String getNameCard() {
+        return getContact().getNameCard();
+    }
 }

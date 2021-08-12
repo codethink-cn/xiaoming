@@ -16,6 +16,18 @@ import net.mamoe.mirai.message.data.MessageChain;
 public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessage, GroupReceptionTask> {
     MemberContact getMemberContact();
 
+    default String getNick() {
+        return getMemberContact().getNick();
+    }
+
+    default String getNameCard() {
+        return getMemberContact().getNameCard();
+    }
+
+    default void setNameCard(String nameCard) {
+        getMemberContact().setNameCard(nameCard);
+    }
+
     default long getGroupCode() {
         return getContact().getCode();
     }
@@ -51,7 +63,7 @@ public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessa
     }
 
     default GroupMessage sendGroupMessage(String message) {
-        return sendGroupMessage(MiraiCode.deserializeMiraiCode(ArgumentUtility.replaceArguments(message, getXiaomingBot().getLanguage().getValues(), getXiaomingBot().getConfiguration().getMaxIterateTime())));
+        return sendGroupMessage(MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
     }
 
     default ScheduledFuture<GroupMessage> atReplyLater(long delay, Message quote, MessageChain message) {

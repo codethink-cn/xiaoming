@@ -2,7 +2,6 @@ package cn.chuanwise.xiaoming.configuration;
 
 import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
-import cn.chuanwise.xiaoming.configuration.Statistician;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -28,6 +27,6 @@ public class StatisticianImpl extends FilePreservableImpl implements Statisticia
     @Override
     public void increaseCallCounter() {
         callNumber++;
-        getXiaomingBot().getFileSaver().readySave(this);
+        getXiaomingBot().getFileSaver().readyToSave(this);
     }
 }

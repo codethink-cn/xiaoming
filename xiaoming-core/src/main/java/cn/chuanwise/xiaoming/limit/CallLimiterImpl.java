@@ -1,6 +1,7 @@
 package cn.chuanwise.xiaoming.limit;
 
 import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.utility.MapUtility;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -32,11 +33,11 @@ public class CallLimiterImpl implements CallLimiter {
 
     @Override
     public void addCallRecord(long key) {
-        CollectionUtility.getOrPutSupplie(getCallRecords(), key, CallRecordImpl::new).addNewCall(configuration);
+        MapUtility.getOrPutSupply(getCallRecords(), key, CallRecordImpl::new).addNewCall(configuration);
     }
 
     @Override
     public void setNoticed(long code) {
-        CollectionUtility.getOrPutSupplie(getCallRecords(), code, CallRecordImpl::new).updateLastNoticeTime();
+        MapUtility.getOrPutSupply(getCallRecords(), code, CallRecordImpl::new).updateLastNoticeTime();
     }
 }

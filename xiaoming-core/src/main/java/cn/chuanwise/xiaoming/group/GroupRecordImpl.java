@@ -34,7 +34,7 @@ public class GroupRecordImpl extends XiaomingObjectImpl implements GroupRecord {
 
     public void setTags(Set<String> tags) {
         this.tags = tags;
-        tags.addAll(Arrays.asList("recorded", String.valueOf(code)));
+        tags.addAll(Arrays.asList(RECORDED, String.valueOf(code)));
     }
 
     @Override

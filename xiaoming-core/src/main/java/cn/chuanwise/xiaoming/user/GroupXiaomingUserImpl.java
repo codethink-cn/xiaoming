@@ -41,7 +41,7 @@ public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupM
     @Override
     public void onNextInput(GroupMessage message) {
         final List<GroupMessage> list = getRecentMessages();
-        setProperty("last", message.serialize());
+//        setProperty("last", message.serialize());
 
         final GroupReceptionTask receptionTask = getReceptionTask();
         if (Objects.isNull(receptionTask)) {
@@ -51,15 +51,23 @@ public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupM
 
         final Receptionist receptionist = getReceptionist();
         receptionist.setGlobalRecentMessages(list);
-        synchronized (this) {
-            this.notifyAll();
+        synchronized (receptionist) {
+            receptionist.notifyAll();
         }
 
         for (String tag : getContact().getTags()) {
+            // 该成员在所有群中的消息
             final List<GroupMessage> recentMessages = receptionist.forGroupRecentMessages(tag);
+            recentMessages.add(message);
             synchronized (recentMessages) {
-                recentMessages.add(message);
                 recentMessages.notifyAll();
+            }
+
+            // 群聊所有消息
+            final List<GroupMessage> groupMessages = getXiaomingBot().getContactManager().forGroupMessages(tag);
+            groupMessages.add(message);
+            synchronized (groupMessages) {
+                groupMessages.notifyAll();
             }
         }
 

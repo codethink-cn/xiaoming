@@ -25,7 +25,7 @@ public class SchedulerImpl extends ModuleObjectImpl implements Scheduler {
 
     @Transient
     @Override
-    public Logger getLog() {
+    public Logger getLogger() {
         return log;
     }
 

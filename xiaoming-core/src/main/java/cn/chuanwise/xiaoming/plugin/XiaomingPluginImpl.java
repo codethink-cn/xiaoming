@@ -29,7 +29,7 @@ public class XiaomingPluginImpl implements XiaomingPlugin {
     }
 
     @Setter
-    Logger log = LoggerFactory.getLogger(getClass());
+    Logger logger = LoggerFactory.getLogger(getClass());
 
     @Setter
     File dataFolder;

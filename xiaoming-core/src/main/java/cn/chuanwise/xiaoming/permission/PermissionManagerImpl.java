@@ -3,7 +3,6 @@ package cn.chuanwise.xiaoming.permission;
 import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -13,29 +12,27 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Chuanwise 
  */
 @Data
-@NoArgsConstructor
 public class PermissionManagerImpl extends FilePreservableImpl implements PermissionManager {
-    Map<String, PermissionGroupImpl> groups = new ConcurrentHashMap<>();
-    Map<Long, PermissionUserNodeImpl> users = new ConcurrentHashMap<>();
+    Map<String, PermissionGroup> groups = new ConcurrentHashMap<>();
+    Map<Long, PermissionUserNode> users = new ConcurrentHashMap<>();
     transient PermissionGroup defaultGroup;
 
     transient XiaomingBot xiaomingBot;
 
+    public PermissionManagerImpl() {
+        this(null);
+    }
+
+    // 无论如何，确保存在一个默认组
     public PermissionManagerImpl(XiaomingBot xiaomingBot) {
         this.xiaomingBot = xiaomingBot;
+
+        defaultGroup = new PermissionGroupImpl();
+        defaultGroup.setAlias("默认组");
+        addGroup(DEFAULT_PERMISSION_GROUP, defaultGroup);
     }
 
-    @Override
-    public Map<Long, PermissionUserNode> getUsers() {
-        return ((Map) users);
-    }
-
-    @Override
-    public Map<String, PermissionGroup> getGroups() {
-        return (Map) groups;
-    }
-
-    public void setGroups(Map<String, PermissionGroupImpl> groups) {
+    public void setGroups(Map<String, PermissionGroup> groups) {
         this.groups = groups;
         PermissionGroup defaultGroup = groups.get(DEFAULT_PERMISSION_GROUP);
         if (Objects.nonNull(defaultGroup)) {
@@ -43,8 +40,11 @@ public class PermissionManagerImpl extends FilePreservableImpl implements Permis
         } else {
             defaultGroup = new PermissionGroupImpl();
             defaultGroup.setAlias("默认组");
-            this.defaultGroup = defaultGroup;
             addGroup(DEFAULT_PERMISSION_GROUP, defaultGroup);
+        }
+        // 刷新权限组名
+        for (Map.Entry<String, PermissionGroup> entry : groups.entrySet()) {
+            entry.getValue().setName(entry.getKey());
         }
     }
 
@@ -53,7 +53,8 @@ public class PermissionManagerImpl extends FilePreservableImpl implements Permis
         if (Objects.equals(groupName, DEFAULT_PERMISSION_GROUP)) {
             this.defaultGroup = group;
         }
-        groups.put(groupName, ((PermissionGroupImpl) group));
+        group.setName(groupName);
+        groups.put(groupName, group);
     }
 
     @Override
@@ -82,7 +83,7 @@ public class PermissionManagerImpl extends FilePreservableImpl implements Permis
 
     @Override
     public PermissionUserNode getOrPutUserNode(long qq) {
-        PermissionUserNode userNode = getUserNode(qq);
+        PermissionUserNode userNode = forUserNode(qq);
         if (Objects.isNull(userNode)) {
             userNode = new PermissionUserNodeImpl();
             userNode.setGroup(PermissionManager.DEFAULT_PERMISSION_GROUP);
@@ -93,8 +94,8 @@ public class PermissionManagerImpl extends FilePreservableImpl implements Permis
 
     @Override
     public boolean isSuper(String superName, String sonName) {
-        final PermissionGroup sonGroup = getPermissionGroup(sonName);
-        final PermissionGroup superGroup = getPermissionGroup(superName);
+        final PermissionGroup sonGroup = forPermissionGroup(sonName);
+        final PermissionGroup superGroup = forPermissionGroup(superName);
 
         if (Objects.isNull(sonGroup) || Objects.isNull(superGroup)) {
             return false;

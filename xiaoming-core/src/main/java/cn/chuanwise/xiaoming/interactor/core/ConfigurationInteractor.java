@@ -1,18 +1,19 @@
 package cn.chuanwise.xiaoming.interactor.core;
 
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.TimeUtility;
+import cn.chuanwise.utility.StringUtility;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.annotation.Permission;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.configuration.Configuration;
+import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.utility.CommandWords;
 import cn.chuanwise.xiaoming.utility.InteractorUtility;
 import cn.chuanwise.xiaoming.interactor.InteractorImpl;
+import net.mamoe.mirai.contact.Group;
+import net.mamoe.mirai.contact.NormalMember;
 
-import java.util.Objects;
 import java.util.Set;
 
 public class ConfigurationInteractor extends InteractorImpl {
@@ -24,48 +25,50 @@ public class ConfigurationInteractor extends InteractorImpl {
     }
 
     final static String CLEAR = "(明确|clear)";
-    final static String DEBUG = "(维护|调试|debug)";
-    final static String LICENSE = "(协议|license)";
 
-    @Filter(CommandWords.ENABLE + DEBUG)
+    /** 调试模式开关 */
+    @Filter(CommandWords.ENABLE + CommandWords.DEBUG)
     @Permission("debug.enable")
     public void onEnableDebug(XiaomingUser user) {
         if (configuration.isDebug()) {
-            user.sendMessage("{debugModeAlreadyEnabled}");
+            user.sendError("{lang.debugModeAlreadyEnabled}");
         } else {
             configuration.setDebug(true);
-            getXiaomingBot().getFileSaver().readySave(configuration);
-            user.sendMessage("{debugModeEnabledSuccessfully}");
+            getXiaomingBot().getFileSaver().readyToSave(configuration);
+            user.sendMessage("{lang.debugModeEnabledSuccessfully}");
         }
     }
 
-    @Filter(CommandWords.DISABLE + DEBUG)
+    @Filter(CommandWords.DISABLE + CommandWords.DEBUG)
     @Permission("debug.enable")
     public void onDisableDebug(XiaomingUser user) {
         if (configuration.isDebug()) {
             configuration.setDebug(false);
-            getXiaomingBot().getFileSaver().readySave(configuration);
-            user.sendMessage("{debugModeDisabledSuccessfully}");
+            getXiaomingBot().getFileSaver().readyToSave(configuration);
+            user.sendMessage("{lang.debugModeDisabledSuccessfully}");
         } else {
-            user.sendMessage("{debugModeHasNotBeenEnabled}");
+            user.sendMessage("{lang.debugModeAlreadyDisabled}");
         }
     }
 
+
+    /** 明确调用 */
     @Filter(CommandWords.ENABLE + CLEAR + CommandWords.CALL)
     @Permission("config.clearcall.enable")
     public void onEnableClearCall(XiaomingUser user) {
         if (configuration.isEnableClearCall()) {
-            user.sendMessage("{clearCallAlreadyEnabled}");
+            user.sendMessage("{lang.clearCallAlreadyEnabled}");
         } else {
-            final Set<String> callPrefixs = configuration.getClearCallPrefixes();
-            InteractorUtility.fillStringCollection(user,
-                    user.replaceLanguage("theMessageBeginWithWitchElementsShouldBeNoticed"),
-                    user.replaceLanguage("clearCallPrefixSet"), callPrefixs, false);
+            final Set<String> callPrefixes = configuration.getClearCallPrefixes();
+            if (callPrefixes.isEmpty()) {
+                user.sendMessage("{lang.queryClearCallPrefixes}");
+                InteractorUtility.fillStringCollection(user,
+                        callPrefixes,
+                        user.replaceLanguage("clearCallPrefixes"));
+            }
             configuration.setEnableClearCall(true);
-
-            user.setProperty("set", callPrefixs);
-            user.sendMessage("{iWillOnlyMentionMessageStartsWithTheElementInThisSet}");
-            getXiaomingBot().getFileSaver().readySave(getXiaomingBot().getConfiguration());
+            user.sendMessage("{lang.clearCallEnabled}");
+            getXiaomingBot().getFileSaver().readyToSave(getXiaomingBot().getConfiguration());
         }
     }
 
@@ -73,15 +76,9 @@ public class ConfigurationInteractor extends InteractorImpl {
     @Permission("config.clearcall.look")
     public void onListClearCallPrefix(XiaomingUser user) {
         if (configuration.isEnableClearCall()) {
-            final Set<String> clearCallPrefixes = configuration.getClearCallPrefixes();
-            if (clearCallPrefixes.isEmpty()) {
-                user.sendMessage("当前具备 " + configuration.getClearCallGroupTag() + " 标记的群内启动了明确调用，但还没有设置任何消息开头的格式");
-            } else {
-                user.sendMessage("当前具备 " + configuration.getClearCallGroupTag() + " 标记的群内启动了明确调用，消息开头必须为 " +
-                        CollectionUtility.toString(clearCallPrefixes, "、") + " 当中的一个");
-            }
+            user.sendMessage("{lang.clearCallDetail}");
         } else {
-            user.sendMessage("{clearCallHasNotBeenEnabled}");
+            user.sendMessage("{lang.clearCallHadNotEnabled}");
         }
     }
 
@@ -89,12 +86,20 @@ public class ConfigurationInteractor extends InteractorImpl {
     @Filter(CommandWords.EDIT + CLEAR + CommandWords.CALL + CommandWords.MESSAGE + CommandWords.HEAD)
     @Permission("config.clearcall.head.set")
     public void onSetClearCallPrefix(XiaomingUser user) {
-        final Set<String> clearCallPrefixes = configuration.getClearCallPrefixes();
-        clearCallPrefixes.clear();
-        InteractorUtility.fillStringCollection(user, "以什么开头的消息需要被小明注意到呢", "明确调用消息头", clearCallPrefixes, false);
+        final Set<String> callPrefixes = configuration.getClearCallPrefixes();
+        callPrefixes.clear();
+        user.sendMessage("{lang.queryClearCallPrefixes}");
+        InteractorUtility.fillStringCollection(user,
+                callPrefixes,
+                user.replaceLanguage("clearCallPrefixes"));
+        configuration.setEnableClearCall(true);
 
-        getXiaomingBot().getFileSaver().readySave(configuration);
-        user.sendMessage("成功修改明确调用消息头为：" + CollectionUtility.toString(clearCallPrefixes, "、"));
+        getXiaomingBot().getFileSaver().readyToSave(configuration);
+        if (configuration.isEnableClearCall()) {
+            user.sendMessage("{lang.clearCallPrefixesSetAndEnabled}");
+        } else {
+            user.sendMessage("{lang.clearCallPrefixesSetButNotEnabled}");
+        }
     }
 
     @Filter(CommandWords.DISABLE + CLEAR + CommandWords.CALL)
@@ -102,83 +107,82 @@ public class ConfigurationInteractor extends InteractorImpl {
     public void onDisableClearCall(XiaomingUser user) {
         if (configuration.isEnableClearCall()) {
             configuration.setEnableClearCall(false);
-            getXiaomingBot().getFileSaver().readySave(configuration);
-            user.sendMessage("{clearCallDisabledSuccessfully}");
+            getXiaomingBot().getFileSaver().readyToSave(configuration);
+            user.sendMessage("{lang.clearCallDisabled}");
         } else {
-            user.sendMessage("{clearCallHasNotBeenEnabled}");
+            user.sendMessage("{lang.clearCallHadNotEnabled}");
         }
     }
 
-    @Filter(CommandWords.ENABLE + CommandWords.USE + LICENSE)
+    /** 使用小明验证 */
+    @Filter(CommandWords.ENABLE + CommandWords.USE + CommandWords.LICENSE)
     @Permission("config.license.enable")
-    public void onEnableCompulsoryAgreement(XiaomingUser user) {
-        final Configuration config = getXiaomingBot().getConfiguration();
-        if (config.isEnableLicense()) {
-            user.sendMessage("{compulsoryAgreementAlreadyEnabled}");
+    public void onEnableLicense(XiaomingUser user) {
+        if (configuration.isEnableLicense()) {
+            user.sendMessage("{lang.licenseAlreadyEnabled}");
         } else {
-            String license = getXiaomingBot().getLanguage().getStringOrDefault("license", null);
-            if (Objects.isNull(license)) {
-                user.sendMessage("{inputLicense}");
-                license = user.nextInput().serialize();
-                getXiaomingBot().getLanguage().put("license", license);
+            final String agreement = getXiaomingBot().getLicenseManager().getLicense();
+            if (StringUtility.isEmpty(agreement)) {
+                user.sendMessage("{lang.pleaseEnterLicense}");
+                getXiaomingBot().getLicenseManager().setLicense(user.nextInput().serialize());
+                user.sendMessage("{lang.licenseEnabled}");
+            } else {
+                user.sendMessage("{lang.licenseEnabledWithElderLicense}");
             }
-            config.setEnableLicense(true);
-            user.sendMessage("enableCompulsoryAgreementSuccessfully");
-            getXiaomingBot().getFileSaver().readySave(config);
+            configuration.setEnableLicense(true);
+            getXiaomingBot().getFileSaver().readyToSave(configuration);
         }
     }
 
-    @Filter(CommandWords.USE + LICENSE)
+    @Filter(CommandWords.USE + CommandWords.LICENSE)
+    @Filter(CommandWords.USE + CommandWords.XIAOMING + CommandWords.LICENSE)
     @Permission("config.license.look")
-    public void onLookCompulsoryAgreement(XiaomingUser user) {
-        final Configuration config = getXiaomingBot().getConfiguration();
-        if (config.isEnableLicense()) {
-            user.sendMessage(getXiaomingBot().getLanguage().getString("license"));
+    public void onLookLicense(XiaomingUser user) {
+        if (configuration.isEnableLicense()) {
+            user.sendMessage("{bot.licenseManager.license}");
         } else {
-            user.sendMessage("{compulsoryAgreementHasNotBeenEnabled}");
+            user.sendMessage("{lang.licenseHadNotEnabled}");
         }
     }
 
-    @Filter(CommandWords.DISABLE + CommandWords.USE + LICENSE)
+    @Filter(CommandWords.DISABLE + CommandWords.USE + CommandWords.LICENSE)
     @Permission("config.license.disable")
-    public void onDisableCompulsoryAgreement(XiaomingUser user) {
-        final Configuration config = getXiaomingBot().getConfiguration();
-        if (config.isEnableLicense()) {
-            config.setEnableLicense(false);
-            getXiaomingBot().getFileSaver().readySave(config);
-            user.sendMessage("{disableCompulsoryAgreementSuccessfully}");
+    public void onDisableLicense(XiaomingUser user) {
+        if (configuration.isEnableLicense()) {
+            configuration.setEnableLicense(false);
+            getXiaomingBot().getFileSaver().readyToSave(configuration);
+            user.sendMessage("{lang.licenseDisabled}");
         } else {
-            user.sendMessage("{compulsoryAgreementHasNotBeenEnabled}");
+            user.sendMessage("{lang.licenseHadNotEnabled}");
         }
     }
 
-    @Filter(CommandWords.SAVE + CommandWords.PERIOD)
-    @Permission("config.save.period.look")
-    public void onLookSavePeriod(XiaomingUser user) {
-        user.setProperty("period", TimeUtility.toTimeLength(configuration.getSavePeriod()));
-        user.sendMessage("{autoSavePeriodIs}");
-    }
-
+    /** 保存文件周期等 */
     @Filter(CommandWords.SET + CommandWords.SAVE + CommandWords.PERIOD + " {period}")
     @Permission("config.save.period.set")
-    public void onSetSavePeriod(XiaomingUser user, @FilterParameter("period") long savePeriod) {
-        configuration.setSavePeriod(savePeriod);
-        getXiaomingBot().getFileSaver().readySave(configuration);
-        user.sendMessage("{autoSavePeriodSetSuccessfully}");
-    }
+    public void onSetSavePeriod(XiaomingUser user, @FilterParameter("period") long saveperiod) {
+        configuration.setSavePeriod(saveperiod);
+        getXiaomingBot().getFileSaver().readyToSave(configuration);
 
-    @Filter(CommandWords.AUTO + CommandWords.OPTIMIZE + CommandWords.PERIOD)
-    @Permission("config.optimize.period.look")
-    public void onLookOptimizePeriod(XiaomingUser user) {
-        user.setProperty("period", TimeUtility.toTimeLength(configuration.getOptimizePeriod()));
-        user.sendMessage("{autoOptimizePeriodIs}");
+        if (configuration.isSaveFileDirectly()) {
+            user.sendWarning("{lang.savePeriodSetButSaveFileDirectlyEnabled}");
+        } else {
+            user.sendMessage("{lang.savePeriodSet}");
+        }
     }
 
     @Filter(CommandWords.SET + CommandWords.AUTO + CommandWords.OPTIMIZE + CommandWords.PERIOD + " {period}")
     @Permission("config.optimize.period.set")
     public void onSetOptimizePeriod(XiaomingUser user, @FilterParameter("period") long savePeriod) {
         configuration.setOptimizePeriod(savePeriod);
-        getXiaomingBot().getFileSaver().readySave(configuration);
-        user.sendMessage("{autoOptimizePeriodSetSuccessfully}");
+        getXiaomingBot().getFileSaver().readyToSave(configuration);
+        user.sendMessage("{lang.optimizePeriodSet}");
+    }
+
+    /** 查看设置 */
+    @Filter(CommandWords.LOOK + CommandWords.XIAOMING + CommandWords.CONFIGURE)
+    @Permission("config.list")
+    public void onListConfiguration(XiaomingUser user) {
+        user.sendPrivateMessage("{lang.listConfiguration}");
     }
 }
