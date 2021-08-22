@@ -6,10 +6,11 @@ import cn.chuanwise.xiaoming.user.PrivateXiaomingUser;
 import net.mamoe.mirai.contact.Friend;
 
 import java.util.Objects;
+import java.util.Set;
 
 public interface PrivateContact extends XiaomingContact<PrivateMessage, Friend> {
     default Account getAccount() {
-        return getXiaomingBot().getAccountManager().forAccount(getCode());
+        return getXiaomingBot().getAccountManager().getAccount(getCode());
     }
 
     @Override
@@ -46,6 +47,11 @@ public interface PrivateContact extends XiaomingContact<PrivateMessage, Friend> 
     }
 
     default PrivateXiaomingUser getUser() {
-        return getXiaomingBot().getReceptionistManager().forReceptionist(getCode()).forPrivate();
+        return getXiaomingBot().getReceptionistManager().getReceptionist(getCode()).forPrivate();
+    }
+
+    @Override
+    default Set<String> getTags() {
+        return getXiaomingBot().getAccountManager().getTags(getCode());
     }
 }

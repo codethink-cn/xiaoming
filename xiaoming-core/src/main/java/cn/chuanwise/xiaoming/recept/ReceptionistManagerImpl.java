@@ -5,10 +5,11 @@ import cn.chuanwise.utility.*;
 import cn.chuanwise.xiaoming.annotation.EventHandler;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.configuration.Configuration;
+import cn.chuanwise.xiaoming.event.Listeners;
 import cn.chuanwise.xiaoming.limit.CallLimitConfiguration;
 import cn.chuanwise.xiaoming.limit.CallLimiter;
+import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import cn.chuanwise.xiaoming.permission.PermissionAccessible;
-import cn.chuanwise.xiaoming.event.EventListenerImpl;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.mamoe.mirai.contact.*;
@@ -26,7 +27,7 @@ import java.util.Objects;
  */
 @Slf4j
 @Getter
-public class ReceptionistManagerImpl extends EventListenerImpl implements ReceptionistManager {
+public class ReceptionistManagerImpl extends ModuleObjectImpl implements ReceptionistManager, Listeners {
     @Override
     @Transient
     public Logger getLogger() {
@@ -34,7 +35,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
     }
 
     public ReceptionistManagerImpl(XiaomingBot xiaomingBot) {
-        setXiaomingBot(xiaomingBot);
+        super(xiaomingBot);
         this.receptionists = new SizedResidentConcurrentHashMap<>(xiaomingBot.getConfiguration().getMaxReceptionistQuantity());
     }
 
@@ -47,13 +48,13 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
     @Override
     public Receptionist getBotReceptionist() {
         if (Objects.isNull(botReceptionist)) {
-            botReceptionist = forReceptionist(getXiaomingBot().getMiraiBot().getId());
+            botReceptionist = getReceptionist(getXiaomingBot().getMiraiBot().getId());
         }
         return botReceptionist;
     }
 
     @Override
-    public Receptionist forReceptionist(long code) {
+    public Receptionist getReceptionist(long code) {
         return MapUtility.getOrPutSupply(receptionists, code, () -> new ReceptionistImpl(getXiaomingBot(), code));
     }
 
@@ -71,7 +72,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
                     final CallLimitConfiguration config = limiter.getConfiguration();
                     final String sceneName = inGroup ? "群聊" : "私聊";
                     contact.sendMessage(
-                            ArgumentUtility.render("你在{}{}内召唤了{}次小明啦，好好休息一下，等{}咱们再一起在{}玩吧 {}",
+                            ArgumentUtility.format("你在{}{}内召唤了{}次小明啦，好好休息一下，等{}咱们再一起在{}玩吧 {}",
                                     new Object[]{
                                             sceneName,
                                             TimeUtility.toTimeLength(config.getPeriod()),
@@ -83,7 +84,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
                     );
 
                     limiter.setNoticed(qq);
-                    final Receptionist receptionist = forReceptionist(qq);
+                    final Receptionist receptionist = getReceptionist(qq);
                     if (Objects.nonNull(receptionist)) {
                         receptionist.stop();
                     }
@@ -131,7 +132,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
             return;
         }
 
-        final Receptionist receptionist = forReceptionist(qq);
+        final Receptionist receptionist = getReceptionist(qq);
 
         final Group group = event.getGroup();
         receptionist.onGroupMessage(getXiaomingBot().getContactManager().getGroupContact(group.getId()), callContent, event.getMessage());
@@ -148,7 +149,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
             return;
         }
 
-        final Receptionist receptionist = forReceptionist(qq);
+        final Receptionist receptionist = getReceptionist(qq);
         receptionist.onPrivateMessage(getXiaomingBot().getContactManager().getPrivateContact(qq), event.getMessage());
     }
 
@@ -164,7 +165,7 @@ public class ReceptionistManagerImpl extends EventListenerImpl implements Recept
             return;
         }
 
-        final Receptionist receptionist = forReceptionist(qq);
+        final Receptionist receptionist = getReceptionist(qq);
         receptionist.onMemberMessage(getXiaomingBot().getContactManager().getMemberContact(group.getId(), qq), event.getMessage());
     }
 }

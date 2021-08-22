@@ -6,7 +6,8 @@ import cn.chuanwise.utility.StaticUtility;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.language.Language;
 import cn.chuanwise.xiaoming.language.LanguageImpl;
-import cn.chuanwise.xiaoming.language.Sentence;
+import cn.chuanwise.xiaoming.language.LanguageManagerImpl;
+import cn.chuanwise.xiaoming.language.sentence.Sentence;
 import cn.chuanwise.xiaoming.schedule.FileSaver;
 
 import java.io.File;
@@ -38,7 +39,7 @@ public class LanguageUtility extends StaticUtility {
             final Sentence value = entry.getValue();
 
             // 找到存储的语句，如果存储了，则设置默认值，否则将其添加
-            final Sentence sentence = savedLanguage.forSentence(key);
+            final Sentence sentence = savedLanguage.getSentence(key);
             if (Objects.isNull(sentence)) {
                 savedLanguage.addSentence(key, value);
                 modified = true;

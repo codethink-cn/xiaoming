@@ -26,7 +26,7 @@ public interface Statistician extends Preservable<File>, XiaomingObject {
 
     default void onClose() {
         getRunRecords().add(new RunRecord(getBeginTime(), System.currentTimeMillis()));
-        getXiaomingBot().getFileSaver().readyToSave(this);
+        getXiaomingBot().getFileSaver().saveOrFail(this);
     }
 
     default RunRecord getLastRecord() {

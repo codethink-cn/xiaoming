@@ -1,0 +1,23 @@
+package cn.chuanwise.xiaoming.interactor;
+
+import lombok.AllArgsConstructor;
+
+public enum InteractResult {
+    INTERACTED,
+    INTERACTED_BUT_FALSE,
+    ERROR,
+    LACK_PERMISSIONS,
+    LACK_GROUP_TAGS,
+    TIMEOUT_CANCELLED,
+    EVENT_CANCELLED,
+    LACK_ACCOUNT_TAGS,
+    ILLEGAL_FORMAT,
+    PARSE_FAILED,
+    ILLEGAL_TYPE,
+    ILLEGAL_PARAMETER,
+    QUITE_MODE_DENIED,
+    NOT_ENABLE_YET,
+    GROUP_BLOCK_PLUGIN,
+    ACCOUNT_BLOCK_PLUGIN,
+    LICENSE_DENIED,
+}

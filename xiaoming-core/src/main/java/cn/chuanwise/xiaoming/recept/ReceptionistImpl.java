@@ -1,7 +1,6 @@
 package cn.chuanwise.xiaoming.recept;
 
 import cn.chuanwise.toolkit.sized.SizedResidentConcurrentHashMap;
-import cn.chuanwise.utility.CollectionUtility;
 import cn.chuanwise.utility.MapUtility;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.configuration.Configuration;
@@ -12,7 +11,7 @@ import cn.chuanwise.xiaoming.contact.message.GroupMessage;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.contact.message.PrivateMessage;
 import cn.chuanwise.xiaoming.contact.message.MemberMessage;
-import cn.chuanwise.xiaoming.property.PropertyType;
+import cn.chuanwise.xiaoming.attribute.AttributeType;
 import cn.chuanwise.xiaoming.user.*;
 import cn.chuanwise.xiaoming.contact.message.GroupMessageImpl;
 import cn.chuanwise.xiaoming.contact.message.PrivateMessageImpl;
@@ -50,7 +49,7 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
         this.threadPool = Executors.newFixedThreadPool(configuration.getMaxReceptionThreadPoolSize());
         this.groupXiaomingUsers = new SizedResidentConcurrentHashMap<>(configuration.getMaxGroupUserQuantityInReceptionist());
         this.memberXiaomingUsers = new SizedResidentConcurrentHashMap<>(configuration.getMaxMemberUserQuantityInReceptionist());
-        this.properties = new SizedResidentConcurrentHashMap<>(xiaomingBot.getConfiguration().getMaxUserPropertyQuantity());
+        this.attributes = new SizedResidentConcurrentHashMap<>(xiaomingBot.getConfiguration().getMaxUserPropertyQuantity());
     }
 
     /** 群接待任务 */
@@ -76,27 +75,36 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
     final ExecutorService threadPool;
 
     @Getter
-    final Map<PropertyType, Object> properties;
+    final Map<AttributeType, Object> attributes;
 
     @Getter
-    Map<PropertyType, Object> propertyConditionalVariables = new ConcurrentHashMap<>();
+    Map<AttributeType, Object> attributeConditionalVariables = new ConcurrentHashMap<>();
 
     @Override
     public GroupXiaomingUser forGroup(long groupCode) {
         return MapUtility.getOrPutSupply(groupXiaomingUsers, groupCode,
-                () -> new GroupXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code)));
+                () -> {
+                    final GroupXiaomingUserImpl groupXiaomingUser = new GroupXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code));
+                    groupXiaomingUser.setReceptionist(ReceptionistImpl.this);
+                    return groupXiaomingUser;
+                });
     }
 
     @Override
     public MemberXiaomingUser forMember(long groupCode) {
         return MapUtility.getOrPutSupply(memberXiaomingUsers, groupCode,
-                () -> new MemberXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code)));
+                () -> {
+                    final MemberXiaomingUserImpl memberXiaomingUser = new MemberXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code));
+                    memberXiaomingUser.setReceptionist(ReceptionistImpl.this);
+                    return memberXiaomingUser;
+                });
     }
 
     @Override
     public PrivateXiaomingUser forPrivate() {
         if (Objects.isNull(privateXiaomingUser)) {
             privateXiaomingUser = new PrivateXiaomingUserImpl(getXiaomingBot().getContactManager().getPrivateContact(getCode()));
+            privateXiaomingUser.setReceptionist(ReceptionistImpl.this);
         }
         return privateXiaomingUser;
     }

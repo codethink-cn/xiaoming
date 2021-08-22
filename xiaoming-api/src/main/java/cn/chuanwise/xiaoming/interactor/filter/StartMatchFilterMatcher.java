@@ -12,7 +12,7 @@ public class StartMatchFilterMatcher extends RegexFilterMatcher {
     }
 
     @Override
-    public boolean apply(XiaomingUser user, Message message) {
+    public <M extends Message> boolean apply(XiaomingUser<?, M, ?> user, M message) {
         final Matcher matcher = pattern.matcher(message.serialize());
         return matcher.find() && matcher.start() == 0;
     }

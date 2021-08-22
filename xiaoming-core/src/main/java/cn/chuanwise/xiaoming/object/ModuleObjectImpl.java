@@ -12,7 +12,7 @@ public class ModuleObjectImpl extends XiaomingObjectImpl implements ModuleObject
         super(xiaomingBot);
     }
 
-    transient Logger logger = LoggerFactory.getLogger(getClass());
+    transient Logger logger = LoggerFactory.getLogger(getClass().getSimpleName());
 
     @Transient
     @Override

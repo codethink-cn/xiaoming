@@ -1,17 +1,11 @@
 package cn.chuanwise.xiaoming.interactor.customizer;
 
-import cn.chuanwise.xiaoming.interactor.information.InteractorMethodInformation;
+import cn.chuanwise.xiaoming.interactor.handler.InteractorHandler;
 
 import java.util.Map;
 
+/** 交互器自定义器 */
+@FunctionalInterface
 public interface Customizer {
-    InteractorMethodInformation forName(String methodName);
-
-    void addInformation(InteractorMethodInformation information);
-
-    void removeInformation(String methodName);
-
-    Map<String, InteractorMethodInformation> getMethodInformation();
-
-    void setMethodInformation(Map<String, InteractorMethodInformation> methodInformation);
+    InteractorHandler forName(String interactorName);
 }

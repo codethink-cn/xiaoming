@@ -2,7 +2,7 @@ package cn.chuanwise.xiaoming.optimize;
 
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
-import cn.chuanwise.xiaoming.plugin.XiaomingPlugin;
+import cn.chuanwise.xiaoming.plugin.Plugin;
 import lombok.Getter;
 
 import java.util.*;
@@ -11,7 +11,7 @@ import java.util.*;
 public class OptimizerImpl extends ModuleObjectImpl implements Optimizer {
     List<Runnable> coreOptimizeTasks = new ArrayList<>();
 
-    Map<XiaomingPlugin, List<Runnable>> pluginOptimizeTasks = new HashMap<>();
+    Map<Plugin, List<Runnable>> pluginOptimizeTasks = new HashMap<>();
 
     public OptimizerImpl(XiaomingBot xiaomingBot) {
         super(xiaomingBot);

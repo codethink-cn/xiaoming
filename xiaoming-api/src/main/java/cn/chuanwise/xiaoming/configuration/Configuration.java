@@ -103,6 +103,10 @@ public interface Configuration extends FilePreservable, XiaomingObject {
 
     void setEnableGroupTag(String enableGroupTag);
 
+    String getQuietModeBypassPermission();
+
+    void setQuietModeBypassPermission(String quietModeBypassPermission);
+
     String getBlockPluginTagPrefix();
 
     void setBlockPluginTagPrefix(String blockPluginTagPrefix);
@@ -110,6 +114,14 @@ public interface Configuration extends FilePreservable, XiaomingObject {
     CallLimitConfiguration getGroupCallConfig();
 
     CallLimitConfiguration getPrivateCallConfig();
+
+    int getMaxVerifyCodeLength();
+
+    void setMaxVerifyCodeLength(int maxVerifyCodeLength);
+
+    Set<String> getVerifyCodeCharacters();
+
+    void setVerifyCodeCharacters(Set<String> verifyCodeCharacters);
 
     long getSavePeriod();
 

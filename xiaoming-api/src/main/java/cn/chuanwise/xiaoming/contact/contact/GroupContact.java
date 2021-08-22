@@ -1,6 +1,5 @@
 package cn.chuanwise.xiaoming.contact.contact;
 
-import cn.chuanwise.utility.ArgumentUtility;
 import cn.chuanwise.xiaoming.contact.ContactManager;
 import cn.chuanwise.xiaoming.group.GroupRecord;
 import cn.chuanwise.xiaoming.contact.message.GroupMessage;
@@ -20,7 +19,7 @@ import java.util.Set;
 
 public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
     default GroupMessage atSend(long code, String message) {
-        return atSend(code, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
+        return atSend(code, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
     }
 
     default GroupMessage atSend(long code, MessageChain messages) {
@@ -62,7 +61,7 @@ public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
     }
 
     default ScheduledFuture<GroupMessage> atReplayLater(long delay, Message quote, String message) {
-        return atReplayLater(delay, quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
+        return atReplayLater(delay, quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
     }
 
     default ScheduledFuture<GroupMessage> atReplayLater(long delay, Message quote, GroupMessage message) {
@@ -139,18 +138,7 @@ public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
         return getMiraiContact().getSettings();
     }
 
-    default boolean hasTag(String tag) {
-        return getXiaomingBot().getGroupRecordManager().hasTag(getCode(), tag);
-    }
-
-    default void addTag(String tag) {
-        getGroupRecord().addTag(tag);
-    }
-
-    default void removeTag(String tag) {
-        getGroupRecord().removeTag(tag);
-    }
-
+    @Override
     default Set<String> getTags() {
         return getXiaomingBot().getGroupRecordManager().getTags(getCode());
     }

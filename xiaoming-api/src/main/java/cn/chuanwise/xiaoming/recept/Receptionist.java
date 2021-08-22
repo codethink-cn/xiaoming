@@ -1,16 +1,14 @@
 package cn.chuanwise.xiaoming.recept;
 
-import cn.chuanwise.toolkit.sized.SizedCopyOnWriteArrayList;
 import cn.chuanwise.xiaoming.contact.message.GroupMessage;
 import cn.chuanwise.xiaoming.contact.message.MemberMessage;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.contact.message.PrivateMessage;
 import cn.chuanwise.xiaoming.object.ModuleObject;
-import cn.chuanwise.utility.CollectionUtility;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.contact.contact.PrivateContact;
 import cn.chuanwise.xiaoming.contact.contact.MemberContact;
-import cn.chuanwise.xiaoming.property.PropertyHolder;
+import cn.chuanwise.xiaoming.attribute.AttributeHolder;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.PrivateXiaomingUser;
 import cn.chuanwise.xiaoming.user.MemberXiaomingUser;
@@ -18,7 +16,6 @@ import cn.chuanwise.xiaoming.utility.InteractorUtility;
 import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.MessageChain;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,7 +25,7 @@ import java.util.function.Consumer;
 /**
  * 小明接待员
  */
-public interface Receptionist extends ModuleObject, PropertyHolder {
+public interface Receptionist extends ModuleObject, AttributeHolder {
     At getAt();
 
     long getCode();

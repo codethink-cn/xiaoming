@@ -5,7 +5,7 @@ import cn.chuanwise.toolkit.sized.SizedResidentConcurrentHashMap;
 import cn.chuanwise.utility.FunctionalUtility;
 import cn.chuanwise.utility.MapUtility;
 import cn.chuanwise.xiaoming.group.GroupRecord;
-import cn.chuanwise.xiaoming.language.Sentence;
+import cn.chuanwise.xiaoming.language.sentence.Sentence;
 import cn.chuanwise.xiaoming.object.ModuleObject;
 import cn.chuanwise.xiaoming.utility.InteractorUtility;
 import cn.chuanwise.xiaoming.contact.message.GroupMessage;
@@ -90,7 +90,7 @@ public interface ContactManager extends ModuleObject {
     }
 
     default boolean sendGroupMessage(long group, String message, Object... arguments) {
-        message = getXiaomingBot().getLanguageManager().render(message, variable -> null, arguments);
+        message = getXiaomingBot().getLanguageManager().formatAdditional(message, variable -> null, arguments);
         final GroupContact groupContact = getGroupContact(group);
         if (Objects.nonNull(groupContact)) {
             groupContact.send(message);
@@ -111,7 +111,7 @@ public interface ContactManager extends ModuleObject {
     }
 
     default boolean sendGroupMessage(String tag, String message, Object... arguments) {
-        message = getXiaomingBot().getLanguageManager().render(message, variable -> null, arguments);
+        message = getXiaomingBot().getLanguageManager().formatAdditional(message, variable -> null, arguments);
         final Set<GroupRecord> groupRecords = getXiaomingBot().getGroupRecordManager().forTag(tag);
         if (groupRecords.isEmpty()) {
             return false;
@@ -134,7 +134,7 @@ public interface ContactManager extends ModuleObject {
             for (GroupRecord groupRecord : groupRecords) {
                 final GroupContact contact = groupRecord.getContact();
                 if (Objects.nonNull(contact)) {
-                    contact.send(sentence, externalGetter, arguments);
+                    contact.send(getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
                 }
             }
             return true;
@@ -157,7 +157,7 @@ public interface ContactManager extends ModuleObject {
     }
 
     default boolean sendPrivateMessage(long code, String message, Object... arguments) {
-        message = getXiaomingBot().getLanguageManager().render(message, variable -> null, arguments);
+        message = getXiaomingBot().getLanguageManager().formatAdditional(message, variable -> null, arguments);
         final PrivateContact privateContact = getPrivateContact(code);
         if (Objects.nonNull(privateContact)) {
             privateContact.send(message);
@@ -170,7 +170,7 @@ public interface ContactManager extends ModuleObject {
     default boolean sendPrivateMessage(long code, Sentence sentence, Function<String, Object> externalGetter, Object... arguments) {
         final PrivateContact privateContact = getPrivateContact(code);
         if (Objects.nonNull(privateContact)) {
-            privateContact.send(sentence, externalGetter, arguments);
+            privateContact.send(getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
             return true;
         } else {
             return false;
@@ -188,7 +188,7 @@ public interface ContactManager extends ModuleObject {
     }
 
     default boolean sendMemberMessage(long group, long code, String message, Object... arguments) {
-        message = getXiaomingBot().getLanguageManager().render(message, variable -> null, arguments);
+        message = getXiaomingBot().getLanguageManager().formatAdditional(message, variable -> null, arguments);
         final GroupContact groupContact = getGroupContact(group);
         if (Objects.nonNull(groupContact)) {
             final MemberContact member = groupContact.getMember(code);
@@ -205,7 +205,7 @@ public interface ContactManager extends ModuleObject {
         if (Objects.nonNull(groupContact)) {
             final MemberContact member = groupContact.getMember(code);
             if (Objects.nonNull(member)) {
-                member.send(sentence, externalGetter, arguments);
+                member.send(getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
                 return true;
             }
         }

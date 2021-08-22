@@ -1,9 +1,10 @@
 package cn.chuanwise.xiaoming.user;
 
 import cn.chuanwise.toolkit.sized.SizedCopyOnWriteArrayList;
+import cn.chuanwise.xiaoming.account.record.CommandRecord;
 import cn.chuanwise.xiaoming.contact.contact.ConsoleContact;
 import cn.chuanwise.xiaoming.contact.message.ConsoleMessage;
-import cn.chuanwise.xiaoming.property.PropertyType;
+import cn.chuanwise.xiaoming.attribute.AttributeType;
 import cn.chuanwise.xiaoming.recept.ConsoleReceptionTask;
 import cn.chuanwise.xiaoming.recept.Receptionist;
 import cn.chuanwise.xiaoming.contact.message.ConsoleMessageImpl;
@@ -11,7 +12,6 @@ import lombok.Data;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -30,6 +30,11 @@ public class ConsoleXiaomingUserImpl extends XiaomingUserImpl<ConsoleContact, Co
         this.recentMessages = new SizedCopyOnWriteArrayList<>(getXiaomingBot().getConfiguration().getMaxRecentMessageBufferSize());
     }
 
+    @Override
+    public ConsoleMessage buildMessage(MessageChain messages) {
+        return new ConsoleMessageImpl(this, messages);
+    }
+
     public void setCode(long code) {
         this.code = code;
     }
@@ -40,14 +45,9 @@ public class ConsoleXiaomingUserImpl extends XiaomingUserImpl<ConsoleContact, Co
     }
 
     @Override
-    public void onNextInput(MessageChain messages) {
-        onNextInput(new ConsoleMessageImpl(this, messages));
-    }
-
-    @Override
     public void onNextInput(ConsoleMessage message) {
         final List<ConsoleMessage> list = getRecentMessages();
-        setProperty(PropertyType.LAST, message);
+        setAttribute(AttributeType.LAST, message);
         list.add(message);
 
         final Receptionist receptionist = getReceptionist();
@@ -64,7 +64,7 @@ public class ConsoleXiaomingUserImpl extends XiaomingUserImpl<ConsoleContact, Co
     @Override
     public ConsoleMessage sendPrivateMessage(String message, Object... arguments) {
         sendMessage(message, arguments);
-        final MessageChain messages = MiraiCode.deserializeMiraiCode(replaceArguments(message, arguments));
+        final MessageChain messages = MiraiCode.deserializeMiraiCode(format(message, arguments));
         return new ConsoleMessageImpl(this, messages);
     }
 }

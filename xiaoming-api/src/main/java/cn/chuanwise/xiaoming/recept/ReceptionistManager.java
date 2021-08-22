@@ -1,7 +1,7 @@
 package cn.chuanwise.xiaoming.recept;
 
 import cn.chuanwise.xiaoming.annotation.EventHandler;
-import cn.chuanwise.xiaoming.event.EventListener;
+import cn.chuanwise.xiaoming.event.Listeners;
 import cn.chuanwise.xiaoming.object.ModuleObject;
 import cn.chuanwise.xiaoming.optimize.Optimizable;
 import net.mamoe.mirai.event.events.FriendMessageEvent;
@@ -12,13 +12,13 @@ import org.slf4j.Logger;
 import java.beans.Transient;
 import java.util.Map;
 
-public interface ReceptionistManager extends ModuleObject, EventListener, Optimizable {
+public interface ReceptionistManager extends ModuleObject, Listeners, Optimizable {
     /**
      * 获得某用户的接待员
      * @param code 用户 QQ
      * @return 其接待员。如果无此接待员，返回 {@code null}
      */
-    Receptionist forReceptionist(long code);
+    Receptionist getReceptionist(long code);
 
     Receptionist getBotReceptionist();
 
@@ -64,10 +64,5 @@ public interface ReceptionistManager extends ModuleObject, EventListener, Optimi
     @Override
     default void optimize() {
         getReceptionists().values().forEach(Receptionist::optimize);
-    }
-
-    default void close() {
-        optimize();
-        getReceptionists().values().forEach(Receptionist::stop);
     }
 }

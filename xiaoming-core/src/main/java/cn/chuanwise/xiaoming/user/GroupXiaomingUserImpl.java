@@ -1,6 +1,7 @@
 package cn.chuanwise.xiaoming.user;
 
 import cn.chuanwise.xiaoming.account.record.GroupCommandRecord;
+import cn.chuanwise.xiaoming.client.CenterClientManager;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.contact.contact.MemberContact;
 import cn.chuanwise.xiaoming.recept.Receptionist;
@@ -34,8 +35,8 @@ public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupM
     }
 
     @Override
-    public void onNextInput(MessageChain messages) {
-        onNextInput(new GroupMessageImpl(this, messages));
+    public GroupMessage buildMessage(MessageChain messages) {
+        return new GroupMessageImpl(this, messages);
     }
 
     @Override
@@ -70,8 +71,6 @@ public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupM
                 groupMessages.notifyAll();
             }
         }
-
-        getAccount().addCommand(new GroupCommandRecord(getGroupCode(), message.serialize()));
     }
 
     @Override
@@ -81,7 +80,7 @@ public class GroupXiaomingUserImpl extends XiaomingUserImpl<GroupContact, GroupM
 
     @Override
     public void sendMessage(String message, Object... arguments) {
-        final String replacedMessage = replaceArguments(message, arguments);
+        final String replacedMessage = format(message, arguments);
         if (isUsingBuffer()) {
             appendBuffer(replacedMessage);
         } else {

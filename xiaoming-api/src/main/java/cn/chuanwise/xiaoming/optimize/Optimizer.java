@@ -3,7 +3,7 @@ package cn.chuanwise.xiaoming.optimize;
 import cn.chuanwise.utility.CheckUtility;
 import cn.chuanwise.utility.CollectionUtility;
 import cn.chuanwise.utility.MapUtility;
-import cn.chuanwise.xiaoming.plugin.XiaomingPlugin;
+import cn.chuanwise.xiaoming.plugin.Plugin;
 
 import java.util.List;
 import java.util.Map;
@@ -13,7 +13,7 @@ import java.util.function.Consumer;
 public interface Optimizer {
     List<Runnable> getCoreOptimizeTasks();
 
-    Map<XiaomingPlugin, List<Runnable>> getPluginOptimizeTasks();
+    Map<Plugin, List<Runnable>> getPluginOptimizeTasks();
 
     default void optimize() {
         Consumer<Runnable> taskRunner = runnable -> {
@@ -28,7 +28,7 @@ public interface Optimizer {
         getPluginOptimizeTasks().values().forEach(list -> list.forEach(taskRunner));
     }
 
-    default void runWhileOptimize(Runnable runnable, XiaomingPlugin plugin) {
+    default void runWhileOptimize(Runnable runnable, Plugin plugin) {
         MapUtility.getOrPutSupply(getPluginOptimizeTasks(), plugin, CopyOnWriteArrayList::new).add(runnable);
     }
 
@@ -37,7 +37,7 @@ public interface Optimizer {
      * @param runnable 优化操作
      * @param plugin 提交该操作的插件
      */
-    default void runOnNextOptimize(Runnable runnable, XiaomingPlugin plugin) {
+    default void runOnNextOptimize(Runnable runnable, Plugin plugin) {
         CheckUtility.nonNull(plugin, "plugin submitted optimize tasks");
         runWhileOptimize(new Runnable() {
             @Override
@@ -64,13 +64,13 @@ public interface Optimizer {
      * @param <T> 优化操作的返回值
      * @return 获取返回值使用的 {@link Future}
      */
-    default <T> Future<T> runOnNextOptimize(Callable<T> callable, XiaomingPlugin plugin) {
+    default <T> Future<T> runOnNextOptimize(Callable<T> callable, Plugin plugin) {
         final FutureTask<T> futureTask = new FutureTask<>(callable);
         runOnNextOptimize(futureTask, plugin);
         return futureTask;
     }
 
-    default void cancelOptimizeTask(Runnable runnable, XiaomingPlugin plugin) {
+    default void cancelOptimizeTask(Runnable runnable, Plugin plugin) {
         final List<Runnable> runnables = getPluginOptimizeTasks().get(plugin);
         if (CollectionUtility.isEmpty(runnables)) {
             return;

@@ -1,6 +1,7 @@
 package cn.chuanwise.xiaoming.account;
 
 import cn.chuanwise.toolkit.preservable.file.FilePreservable;
+import cn.chuanwise.utility.CollectionUtility;
 import cn.chuanwise.utility.StringUtility;
 import cn.chuanwise.xiaoming.account.record.CommandRecord;
 import cn.chuanwise.xiaoming.account.record.Record;
@@ -9,8 +10,10 @@ import cn.chuanwise.xiaoming.tag.PluginBlockable;
 import cn.chuanwise.xiaoming.tag.TagHolder;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public interface Account extends Preservable<File>, PluginBlockable {
     default void addEvent(Record event) {
@@ -52,7 +55,8 @@ public interface Account extends Preservable<File>, PluginBlockable {
 
     void setAlias(String alias);
 
-    default String getName() {
-        return getCodeString();
+    @Override
+    default Set<String> buildOriginalTags() {
+        return CollectionUtility.asSet(getCodeString(), RECORDED);
     }
 }

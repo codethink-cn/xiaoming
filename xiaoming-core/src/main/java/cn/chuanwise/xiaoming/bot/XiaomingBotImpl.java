@@ -1,17 +1,17 @@
 package cn.chuanwise.xiaoming.bot;
 
+import cn.chuanwise.exception.UnsupportedVersionException;
 import cn.chuanwise.toolkit.preservable.Preservable;
 import cn.chuanwise.toolkit.preservable.file.FileLoader;
 import cn.chuanwise.toolkit.preservable.file.loader.JsonFileLoader;
 import cn.chuanwise.toolkit.serialize.serializer.Serializer;
-import cn.chuanwise.toolkit.serialize.serializer.json.JackJsonSerializer;
 import cn.chuanwise.toolkit.serialize.serializer.json.JsonSerializer;
 import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.FileUtility;
-import cn.chuanwise.utility.ResourceUtility;
+import cn.chuanwise.utility.ObjectUtility;
 import cn.chuanwise.utility.StreamUtility;
 import cn.chuanwise.xiaoming.account.AccountManager;
 import cn.chuanwise.xiaoming.classloader.XiaomingClassLoader;
+import cn.chuanwise.xiaoming.client.CenterClientManager;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.configuration.Statistician;
 import cn.chuanwise.xiaoming.contact.ContactManager;
@@ -19,6 +19,7 @@ import cn.chuanwise.xiaoming.interactor.core.*;
 import cn.chuanwise.xiaoming.language.LanguageManager;
 import cn.chuanwise.xiaoming.language.LanguageManagerImpl;
 import cn.chuanwise.xiaoming.listener.CoreListener;
+import cn.chuanwise.xiaoming.listener.EventManager;
 import cn.chuanwise.xiaoming.optimize.Optimizer;
 import cn.chuanwise.xiaoming.optimize.OptimizerImpl;
 import cn.chuanwise.xiaoming.report.ReportMessageManager;
@@ -27,16 +28,12 @@ import cn.chuanwise.xiaoming.exception.XiaomingInitializeException;
 import cn.chuanwise.xiaoming.exception.XiaomingRuntimeException;
 import cn.chuanwise.xiaoming.language.Language;
 import cn.chuanwise.xiaoming.license.LicenseManager;
-import cn.chuanwise.xiaoming.plugin.XiaomingPlugin;
 import cn.chuanwise.xiaoming.group.GroupRecordManager;
 import cn.chuanwise.xiaoming.schedule.FileSaver;
 import cn.chuanwise.xiaoming.schedule.Scheduler;
 import cn.chuanwise.xiaoming.recept.ReceptionistManager;
 import cn.chuanwise.xiaoming.schedule.SchedulerImpl;
 import cn.chuanwise.xiaoming.user.ConsoleXiaomingUser;
-import cn.chuanwise.xiaoming.utility.LanguageUtility;
-import cn.chuanwise.xiaoming.utility.PathUtility;
-import cn.chuanwise.xiaoming.event.EventManager;
 import cn.chuanwise.xiaoming.limit.UserCallLimitManager;
 import cn.chuanwise.xiaoming.permission.PermissionManager;
 import cn.chuanwise.xiaoming.plugin.PluginManager;
@@ -56,16 +53,13 @@ import cn.chuanwise.xiaoming.resource.ResourceManager;
 import cn.chuanwise.xiaoming.resource.ResourceManagerImpl;
 import cn.chuanwise.xiaoming.user.ConsoleXiaomingUserImpl;
 import cn.chuanwise.xiaoming.language.LanguageImpl;
-import cn.chuanwise.xiaoming.event.EventManagerImpl;
+import cn.chuanwise.xiaoming.listener.EventManagerImpl;
 import cn.chuanwise.xiaoming.interactor.InteractorManager;
 import cn.chuanwise.xiaoming.limit.UserCallLimitManagerImpl;
 import cn.chuanwise.xiaoming.permission.PermissionManagerImpl;
 import cn.chuanwise.xiaoming.plugin.PluginManagerImpl;
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import cn.chuanwise.xiaoming.utility.LanguageUtility;
+import cn.chuanwise.xiaoming.utility.SerializerUtility;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -82,13 +76,12 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
 
@@ -100,11 +93,27 @@ import java.util.regex.Pattern;
 @Getter
 @Setter
 public class XiaomingBotImpl implements XiaomingBot {
-    Logger logger = LoggerFactory.getLogger(getClass());
+    private static final String LOGGER_NAME = "xiaoming-core";
+    Logger logger = LoggerFactory.getLogger(LOGGER_NAME);
 
-    /**
-     * mirai 机器人引用
-     */
+    Status status = Status.DISABLED;
+    Object statusConditionalVariable = new Object();
+
+    @Override
+    public Status nextStatus(long timeout) throws InterruptedException {
+        switch (ObjectUtility.wait(statusConditionalVariable, timeout)) {
+            case INTERRUPT:
+                throw new InterruptedException();
+            case TIMEOUT:
+                return null;
+            case NOTIFY:
+                return status;
+            default:
+                throw new UnsupportedVersionException();
+        }
+    }
+
+    /** mirai 机器人引用 */
     Bot miraiBot;
 
     public XiaomingBotImpl(Bot miraiBot) {
@@ -135,7 +144,17 @@ public class XiaomingBotImpl implements XiaomingBot {
 
     @Override
     public void load() {
-        initializer.values().forEach(Runnable::run);
+        final List<Future<?>> futures = new ArrayList<>(initializer.size());
+        initializer.values().forEach(runnable -> futures.add(scheduler.run(runnable, null)));
+        for (Future<?> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException exception) {
+                exception.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -179,7 +198,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         scheduler.runAtFixedRateLater(configuration.getOptimizePeriod(), configuration.getOptimizePeriod(), () -> getOptimizer().optimize());
         scheduler.runAtFixedRateLater(configuration.getSavePeriod(), configuration.getSavePeriod(), () -> getFileSaver().save());
 
-        scheduler.runFinally(() -> {
+        scheduler.runFinally("保存文件", () -> {
             final Map<File, Preservable<File>> preservables = getFileSaver().getPreservables();
             if (preservables.isEmpty()) {
                 logger.info("没有任何需要保存的文件");
@@ -240,8 +259,10 @@ public class XiaomingBotImpl implements XiaomingBot {
                     "configuration\n" +
                     "core\n" +
                     "group\n" +
+                    "interact\n" +
                     "license\n" +
                     "permission\n" +
+                    "plugin\n" +
                     "resource").split(Pattern.quote("\n"));
 
             for (String languageFileName : languageFileNames) {
@@ -250,7 +271,11 @@ public class XiaomingBotImpl implements XiaomingBot {
 
                 try {
                     logger.info("正在检查更新语言文件：" + languageFile);
-                    LanguageUtility.loadOrCopy(this, languageFile, xiaomingClassLoader, resourcePath);
+                    if (Objects.nonNull(xiaomingClassLoader.getResourceAsStream(resourcePath))) {
+                        LanguageUtility.loadOrCopy(this, languageFile, xiaomingClassLoader, resourcePath);
+                    } else {
+                        logger.error("无法找到语言资源文件：" + resourcePath + "（如果正在使用小明调试器，请忽略此提示）");
+                    }
                 } catch (IOException exception) {
                     logger.info("更新语言文件 " + languageFileName + " 时出现异常", exception);
                 }
@@ -268,6 +293,10 @@ public class XiaomingBotImpl implements XiaomingBot {
 
             languageManager.setXiaomingBot(this);
             languageManager.registerLanguage(fileLoader.loadOrSupply(LanguageImpl.class, directory, LanguageImpl::new), null);
+        });
+
+        initializer.put("centerClientManager", () -> {
+            centerClientManager = new CenterClientManager(this);
         });
 
         initializer.put("permissionManager", () -> {
@@ -347,7 +376,7 @@ public class XiaomingBotImpl implements XiaomingBot {
             consoleXiaomingUser = new ConsoleXiaomingUserImpl(new ConsoleContactImpl(this, consoleInputThread));
 
             consoleXiaomingUser.setReceptionist(receptionistManager.getBotReceptionist());
-            consoleInputThread.setConsoleUser(consoleXiaomingUser);
+            consoleInputThread.setUser(consoleXiaomingUser);
 
             scheduler.run(consoleInputThread);
         });
@@ -357,6 +386,12 @@ public class XiaomingBotImpl implements XiaomingBot {
      * 创建一些小明必要的的文件夹
      */
     void makeDirectories() {
+        accountDirectory = new File(workingDirectory, "accounts");
+        configurationDirectory = new File(workingDirectory, "configurations");
+        pluginDirectory = new File(workingDirectory, "plugins");
+        logDirectory = new File(workingDirectory, "logs");
+        resourceDirectory = new File(workingDirectory, "resources");
+
         if (!accountDirectory.isDirectory() && !accountDirectory.mkdirs()) {
             final String message = "无法创建账户文件夹：" + accountDirectory.getAbsolutePath();
             throw new XiaomingInitializeException(message);
@@ -389,40 +424,39 @@ public class XiaomingBotImpl implements XiaomingBot {
     void registerCoreModules() {
         // 注册内核指令处理器
         // 全局交互器
-        interactorManager.register(new GlobalInteractor(this), null);
+        interactorManager.registerInteractors(new GlobalInteractors(), null);
 
         if (configuration.isEnablePreviewFunctions()) {
-            interactorManager.register(new PreviewFunctionInteractor(this), null);
+            interactorManager.registerInteractors(new PreviewFunctionInteractors(), null);
         }
 
-        if (configuration.isDebug()) {
-            interactorManager.register(new DebugInteractor(this), null);
-        }
+//        if (configuration.isDebug()) {
+            interactorManager.registerInteractors(new DebugInteractors(), null);
+//        }
 
         // 注册内核交互器
-        interactorManager.register(new PluginInteractor(this), null);
-        interactorManager.register(new ResourceInteractor(this), null);
-        interactorManager.register(new AccountInteractor(this), null);
-        interactorManager.register(new ReportInteractor(this), null);
-        interactorManager.register(new CallLimitInteractor(this), null);
-        interactorManager.register(new CoreInteractor(this), null);
-        interactorManager.register(new ConfigurationInteractor(this), null);
-        interactorManager.register(new PermissionInteractor(this), null);
-        interactorManager.register(new GroupRecordInteractor(this), null);
-        interactorManager.register(new LanguageIterator(this), null);
-        interactorManager.denyCoreRegister();
+        interactorManager.registerInteractors(new PluginInteractors(), null);
+        interactorManager.registerInteractors(new ResourceInteractors(), null);
+        interactorManager.registerInteractors(new AccountInteractors(), null);
+        interactorManager.registerInteractors(new ReportInteractors(), null);
+        interactorManager.registerInteractors(new CallLimitInteractors(), null);
+        interactorManager.registerInteractors(new CoreInteractors(), null);
+        interactorManager.registerInteractors(new ConfigurationInteractors(), null);
+        interactorManager.registerInteractors(new PermissionInteractors(), null);
+        interactorManager.registerInteractors(new GroupRecordInteractors(), null);
+        interactorManager.registerInteractors(new LanguageIterator(), null);
+        interactorManager.registerInteractors(new ApplyInteractors(), null);
 
         // 注册内核监听器
-        eventManager.register(receptionistManager, null);
-        eventManager.register(new CoreListener(), null);
-        eventManager.denyCoreRegister();
+        eventManager.registerListeners(receptionistManager, null);
+        eventManager.registerListeners(new CoreListener(this), null);
 
         // 设置调用限制
         userCallLimitManager.getGroupCallLimiter().setConfiguration(configuration.getGroupCallConfig());
         userCallLimitManager.getPrivateCallLimiter().setConfiguration(configuration.getPrivateCallConfig());
     }
 
-    void initialize() {
+    private void initialize() {
         makeDirectories();
 
         fillInitializer();
@@ -432,14 +466,13 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         // 加载所有的插件
         try {
-            pluginManager.loadAllPlugins(consoleXiaomingUser);
+            pluginManager.initialize();
         } catch (Throwable throwable) {
-            this.getLogger().error("加载所有插件时出现异常：", throwable);
+            getLogger().error("加载所有插件时出现异常：", throwable);
         }
     }
 
-    @Override
-    public void start() {
+    private List<String> loadTips() {
         // 载入启动时的小 tips
         List<String> tips = null;
         final InputStream tipStream = getClass().getClassLoader().getResourceAsStream("tips.txt");
@@ -452,12 +485,15 @@ public class XiaomingBotImpl implements XiaomingBot {
             } catch (IOException ignored) {
             }
         }
-
         if (CollectionUtility.isEmpty(tips)) {
             tips = Arrays.asList("你知道吗，当你看到这条 TIPS 时，你就阅读了一条 TIPS");
         }
+        return tips;
+    }
 
-        this.getLogger().warn("\n" +
+    private void printIcon() {
+        final List<String> tips = loadTips();
+        getLogger().warn("\n" +
                 "\n" +
                 " __   __ _                __  __  _               \n" +
                 " \\ \\ / /(_)              |  \\/  |(_)              \n" +
@@ -468,22 +504,30 @@ public class XiaomingBotImpl implements XiaomingBot {
                 "                                             __/ |\n" +
                 "                                            |___/ \n" +
                 "                                        @" + SPONSOR + "\n" +
-                "core version: " + VERSION + "\n" +
+                "core version: " + XiaomingBot.COMPLETE_VERSION + "\n" +
                 "github: " + GITHUB + "\n" +
-                "tips: " + tips.get(new Random().nextInt(tips.size())) + "\n");
-        this.getLogger().info("正在启动小明机器人……");
+                "tips: " + CollectionUtility.randomGet(tips) + "\n");
+    }
 
-        if (Objects.isNull(miraiBot)) {
-            throw new NoSuchBotException();
-        }
-
+    private void translateArguments() {
         // 翻译参数
         final String property = System.getProperty("xiaoming.slider.captcha.supported");
         if (Objects.nonNull(property)) {
             System.setProperty("mirai.slider.captcha.supported", "");
         }
+    }
 
-        stop = false;
+    @Override
+    public void start() {
+        setStatus(Status.ENABLING);
+        printIcon();
+        if (Objects.isNull(miraiBot)) {
+            throw new NoSuchBotException();
+        }
+
+        getLogger().info("正在启动小明机器人……");
+        translateArguments();
+
         initialize();
 
         // 登录机器人
@@ -501,9 +545,10 @@ public class XiaomingBotImpl implements XiaomingBot {
         try {
             post();
         } catch (Exception exception) {
-            this.getLogger().error(exception.getMessage(), exception);
+            getLogger().error(exception.getMessage(), exception);
         }
-        this.getLogger().info("小明机器人启动完成");
+        getLogger().info("小明机器人启动完成");
+        setStatus(Status.ENABLED);
     }
 
     /**
@@ -515,10 +560,12 @@ public class XiaomingBotImpl implements XiaomingBot {
         }
     }
 
+    File workingDirectory = new File(System.getProperty("user.dir"));
+
     /**
      * 统一权限管理器
      */
-    File configurationDirectory = PathUtility.CONFIG;
+    File configurationDirectory;
     PermissionManager permissionManager;
 
     LanguageManager languageManager;
@@ -528,7 +575,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     /**
      * 插件管理器
      */
-    File pluginDirectory = PathUtility.PLUGIN;
+    File pluginDirectory;
     PluginManager pluginManager;
 
     /**
@@ -546,6 +593,9 @@ public class XiaomingBotImpl implements XiaomingBot {
      */
     UserCallLimitManager userCallLimitManager;
 
+    /** 中央服务器客户端 */
+    CenterClientManager centerClientManager;
+
     /**
      * 小明基本设置
      */
@@ -557,11 +607,6 @@ public class XiaomingBotImpl implements XiaomingBot {
     Statistician statistician;
 
     /**
-     * 机器人正在执行的标记，默认是 {@code true}，需要使用 start 启动
-     */
-    volatile boolean stop = true;
-
-    /**
      * 控制台小明使用者
      */
     ConsoleInputThread consoleInputThread;
@@ -570,7 +615,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     /**
      * 用户数据管理器
      */
-    File accountDirectory = PathUtility.ACCOUNT;
+    File accountDirectory;
     AccountManager accountManager;
 
     /**
@@ -591,7 +636,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     /**
      * 本地资源管理器
      */
-    File resourceDirectory = PathUtility.RESOURCES;
+    File resourceDirectory;
     ResourceManager resourceManager;
 
     /** 用户须知管理器 */
@@ -600,34 +645,22 @@ public class XiaomingBotImpl implements XiaomingBot {
     /** 调度器 */
     Scheduler scheduler;
 
-    File logDirectory = PathUtility.LOG;
+    File logDirectory;
 
     /** 小明类加载器，用于加载插件及其相关配置文件 */
     XiaomingClassLoader xiaomingClassLoader = new XiaomingClassLoader(getClass().getClassLoader());
 
-    private Serializer initializedSerializer() {
-        final ObjectMapper objectMapper = new ObjectMapper();
-
-        // 只使用公开的 setter
-        objectMapper.setVisibility(PropertyAccessor.SETTER, JsonAutoDetect.Visibility.PUBLIC_ONLY);
-        // 不使用 getter
-        objectMapper.setVisibility(PropertyAccessor.GETTER, JsonAutoDetect.Visibility.NONE);
-        // 直接填充 field
-        objectMapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        // 序列化不明确的类时，写上类名
-        objectMapper.activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_CONCRETE_AND_ARRAYS, JsonTypeInfo.As.PROPERTY);
-
-        final Serializer serializer = new JackJsonSerializer(objectMapper);
+    /** 自定义序列化器，用来存储文件等 */
+    Serializer serializer = SerializerUtility.initializedSerializer();
+    {
         serializer.getConfiguration().getClassLoader().addClassLoader(xiaomingClassLoader);
-
-        return serializer;
     }
 
-    /** 自定义序列化器，用来存储文件等 */
-    Serializer serializer = initializedSerializer();
-
     /** 核心序列化器，用来存储关键文件。例如 configurations 等不能变更序列化器的文件 */
-    final Serializer coreSerializer = initializedSerializer();
+    final Serializer coreSerializer = SerializerUtility.initializedSerializer();
+    {
+        coreSerializer.getConfiguration().getClassLoader().addClassLoader(xiaomingClassLoader);
+    }
 
     /** 核心文件载入器 */
     FileLoader coreFileLoader = new JsonFileLoader(((JsonSerializer) coreSerializer));
@@ -652,58 +685,44 @@ public class XiaomingBotImpl implements XiaomingBot {
 
     @Override
     public synchronized void stop() {
-        if (isStop()) {
+        if (isDisabled()) {
             throw new XiaomingRuntimeException("can not stop a stopped xiaoming bot");
         }
 
-        stop = true;
+        setStatus(Status.DISABLING);
 
-        // 关闭所有的插件
-        this.getLogger().info("正在关闭所有插件");
+        getLogger().info("正在卸载所有插件");
         try {
-            for (XiaomingPlugin plugin : pluginManager.getEnabledPlugins()) {
-                this.getLogger().info("正在关闭插件：{}", plugin.getCompleteName());
-                try {
-                    plugin.onDisable();
-                } catch (Exception exception) {
-                    exception.printStackTrace();
-                }
-            }
+            // 卸载所有插件
+            pluginManager.getPluginHandlers().forEach(pluginManager::unloadPlugin);
         } catch (Exception exception) {
-            this.getLogger().error(exception.getMessage(), exception);
+            getLogger().error("卸载所有插件时出现异常", exception);
         }
 
-        this.getLogger().info("正在卸载所有插件");
-        try {
-            for (XiaomingPlugin plugin : pluginManager.getLoadedPlugins()) {
-                this.getLogger().info("正在卸载插件：{}", plugin.getCompleteName());
-                try {
-                    plugin.onUnload();
-                } catch (Exception exception) {
-                    exception.printStackTrace();
-                }
-            }
-        } catch (Exception exception) {
-            this.getLogger().error(exception.getMessage(), exception);
-        }
-
-        this.getLogger().info("正在关闭 mirai 机器人");
+        getLogger().info("正在关闭 mirai 机器人");
         try {
             miraiBot.close();
         } catch (Throwable throwable) {
-            this.getLogger().error(throwable.getMessage(), throwable);
+            getLogger().error(throwable.getMessage(), throwable);
         }
 
-        this.getLogger().info("正在关闭线程池");
+        getLogger().info("正在关闭线程池");
 
-        // 唤醒并关闭所有用户线程
-        receptionistManager.close();
-
-        // 添加开关机记录
+        // 添加小明开关机记录
         statistician.onClose();
 
+        // 关闭中心服务器
+        if (centerClientManager.isConnected()) {
+            try {
+                getLogger().info("正在断开和小明中心服务器的连接");
+                centerClientManager.disconnect();
+            } catch (Exception exception) {
+                getLogger().info("断开和小明中心服务器的连接时出现异常", exception);
+            }
+        }
+
         // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
-        scheduler.stop();
+        scheduler.stopNow();
 
         final ExecutorService threadPool = scheduler.getThreadPool();
         // 如果还没关闭就尝试关闭一下
@@ -715,12 +734,15 @@ public class XiaomingBotImpl implements XiaomingBot {
             try {
                 int remainTryTimes = 5;
                 while (!threadPool.awaitTermination(5, TimeUnit.SECONDS) && remainTryTimes > 0) {
-                    this.getLogger().warn("线程仍然没有全部结束，请稍等，小明还会尝试 " + remainTryTimes + " 次……");
+                    getLogger().warn("线程仍然没有全部结束，请稍等，小明还会尝试 " + remainTryTimes + " 次……");
                     remainTryTimes--;
                 }
             } catch (InterruptedException exception) {
-                this.getLogger().warn("等待线程池关闭被强行中止");
+                getLogger().warn("等待线程池关闭被强行中止");
             }
         }
+
+        setStatus(Status.DISABLED);
+        getLogger().info("成功关闭小明，期待和你的下一次重逢 (๑•̀ㅂ•́)و✧");
     }
 }

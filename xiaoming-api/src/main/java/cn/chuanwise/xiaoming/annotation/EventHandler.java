@@ -1,5 +1,7 @@
 package cn.chuanwise.xiaoming.annotation;
 
+import cn.chuanwise.xiaoming.listener.ListenerPriority;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -12,4 +14,8 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EventHandler {
+
+    ListenerPriority priority() default ListenerPriority.NORMAL;
+    
+    boolean ignoreCancelled() default true;
 }

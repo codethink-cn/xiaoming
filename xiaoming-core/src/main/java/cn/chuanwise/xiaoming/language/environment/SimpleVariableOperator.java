@@ -1,20 +1,20 @@
 package cn.chuanwise.xiaoming.language.environment;
 
 import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.xiaoming.language.variable.VariableOperator;
+import cn.chuanwise.xiaoming.language.variable.VariableRequester;
+import cn.chuanwise.xiaoming.object.PluginObjectImpl;
 import lombok.Data;
-import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
 @Data
-public class SimpleVariableOperator<T> implements VariableOperator<T> {
-    final List<VariableHandler<T>> handlers = new ArrayList<>();
+public class SimpleVariableOperator<T> extends PluginObjectImpl implements VariableOperator<T> {
+    final List<VariableRequester<T>> handlers = new ArrayList<>();
     final Class<T> clazz;
 
     @Override
@@ -23,10 +23,10 @@ public class SimpleVariableOperator<T> implements VariableOperator<T> {
     }
 
     @Override
-    public VariableOperator<T> register(BiPredicate<T, String> predicate, BiFunction<T, String, Object> function) {
-        return register(new VariableHandler<T>() {
+    public VariableOperator<T> addOperator(BiPredicate<T, String> predicate, BiFunction<T, String, Object> function) {
+        return addOperator(new VariableRequester<T>() {
             @Override
-            public Object onRequest(T value, String identifier) {
+            public Object request(T value, String identifier) {
                 return function.apply(value, identifier);
             }
 

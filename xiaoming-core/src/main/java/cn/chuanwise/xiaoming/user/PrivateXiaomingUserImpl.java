@@ -1,6 +1,7 @@
 package cn.chuanwise.xiaoming.user;
 
 import cn.chuanwise.xiaoming.account.record.PrivateCommandRecord;
+import cn.chuanwise.xiaoming.client.CenterClientManager;
 import cn.chuanwise.xiaoming.contact.contact.PrivateContact;
 import cn.chuanwise.xiaoming.recept.PrivateReceptionTask;
 import cn.chuanwise.xiaoming.recept.Receptionist;
@@ -28,8 +29,8 @@ public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, Pr
     }
 
     @Override
-    public void onNextInput(MessageChain messages) {
-        onNextInput(new PrivateMessageImpl(this, messages));
+    public PrivateMessage buildMessage(MessageChain messages) {
+        return new PrivateMessageImpl(this, messages);
     }
 
     @Override
@@ -52,13 +53,11 @@ public class PrivateXiaomingUserImpl extends XiaomingUserImpl<PrivateContact, Pr
             list.add(message);
             list.notifyAll();
         }
-
-        getAccount().addCommand(new PrivateCommandRecord(message.serialize()));
     }
 
     @Override
-    public void sendMessage(String message, Object... arguments) {
-        final String replacedMessage = replaceArguments(message, arguments);
+    public void sendMessage(String message, Object... contexts) {
+        final String replacedMessage = format(message, contexts);
         if (isUsingBuffer()) {
             appendBuffer(replacedMessage);
         } else {

@@ -1,8 +1,12 @@
 package cn.chuanwise.xiaoming.schedule;
 
+import cn.chuanwise.utility.CheckUtility;
 import cn.chuanwise.xiaoming.object.ModuleObject;
+import cn.chuanwise.xiaoming.plugin.Plugin;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.*;
 
 public interface Scheduler extends ModuleObject {
@@ -20,6 +24,13 @@ public interface Scheduler extends ModuleObject {
 
     default ScheduledFuture<?> runLater(long delay, Runnable runnable) {
         return getThreadPool().schedule(runnable, delay, TimeUnit.MILLISECONDS);
+    }
+
+    default <T> ScheduledFuture<T> runLater(long delay, Runnable runnable, T returnValue) {
+        return runLater(delay, () -> {
+            runnable.run();
+            return returnValue;
+        });
     }
 
     default ScheduledFuture<?> runAtFixedRate(long period, Runnable runnable) {
@@ -42,18 +53,15 @@ public interface Scheduler extends ModuleObject {
         return getThreadPool().schedule(callable, delay, TimeUnit.MILLISECONDS);
     }
 
-    List<Runnable> getFinalTasks();
-
-    default void runFinally(Runnable runnable) {
-        getFinalTasks().add(runnable);
+    default Runnable getFinalTask(String name) {
+        return getFinalTasks().get(name);
     }
 
-    default void cancelFinally(Runnable runnable) {
-        if (isStopped()) {
-            throw new IllegalStateException("scheduler already stopped");
-        }
-        getFinalTasks().remove(runnable);
-    }
+    Map<String, Runnable> getFinalTasks();
+
+    void runFinally(String name, Runnable runnable);
+
+    Runnable cancelFinally(String name);
 
     ScheduledExecutorService getThreadPool();
 
@@ -66,44 +74,51 @@ public interface Scheduler extends ModuleObject {
     }
 
     default void stop() {
-        if (isStopped()) {
-            throw new IllegalStateException("scheduler already stopped");
-        }
+        CheckUtility.checkState(!isStopped(), "scheduler already stopped");
+        final Map<String, Runnable> finalTasks = getFinalTasks();
+        finalTasks.forEach((name, runnable) -> run(runnable));
         getThreadPool().shutdown();
-        getFinalTasks().forEach(runnable -> {
-            try {
-                runnable.run();
-            } catch (Exception exception) {
-                exception.printStackTrace();
-            }
-        });
     }
 
     default void stopNow() {
-        if (isStopped()) {
-            throw new IllegalStateException("scheduler already stopped");
+        CheckUtility.checkState(!isStopped(), "scheduler already stopped");
+        final Map<String, Runnable> finalTasks = getFinalTasks();
+        final List<Future<?>> futures = new ArrayList<>(finalTasks.size());
+
+        finalTasks.forEach((name, runnable) -> {
+            getLogger().info("正在执行关闭前任务：" + name);
+            futures.add(run(runnable, null));
+        });
+        for (Future<?> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException exception) {
+                getLogger().error("等待任务执行结束时出现异常", exception);
+            } catch (ExecutionException e) {
+                getLogger().error("执行关闭前任务时出现异常", e);
+            }
         }
         getThreadPool().shutdownNow();
-        getFinalTasks().forEach(runnable -> {
-            try {
-                runnable.run();
-            } catch (Exception exception) {
-                exception.printStackTrace();
-            }
-        });
     }
 
-    default void awaitStop(long timeout) throws InterruptedException {
-        if (isStopped()) {
-            throw new IllegalStateException("scheduler already stopped");
-        }
-        getThreadPool().awaitTermination(timeout, TimeUnit.MILLISECONDS);
-        getFinalTasks().forEach(runnable -> {
-            try {
-                runnable.run();
-            } catch (Exception exception) {
-                exception.printStackTrace();
-            }
+    default boolean awaitStop(long timeout) throws InterruptedException {
+        CheckUtility.checkState(!isStopped(), "scheduler already stopped");
+        final Map<String, Runnable> finalTasks = getFinalTasks();
+        final List<Future<?>> futures = new ArrayList<>(finalTasks.size());
+
+        finalTasks.forEach((name, runnable) -> {
+            getLogger().info("正在执行关闭前任务：" + name);
+            futures.add(run(runnable, null));
         });
+        for (Future<?> future : futures) {
+            try {
+                future.get();
+            } catch (InterruptedException exception) {
+                getLogger().error("等待任务执行结束时出现异常", exception);
+            } catch (ExecutionException e) {
+                getLogger().error("执行关闭前任务时出现异常", e);
+            }
+        }
+        return getThreadPool().awaitTermination(timeout, TimeUnit.MILLISECONDS);
     }
 }

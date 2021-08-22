@@ -350,7 +350,7 @@ public class InteractorUtility extends StaticUtility {
         if (Objects.isNull(what)) {
             emptyNotice = null;
         } else {
-            emptyNotice = user.replaceLanguage("{lang.canNotBeEmpty}", what);
+            emptyNotice = user.format("{lang.canNotBeEmpty}", what);
         }
         return fillStringCollection(user, collection, "结束", emptyNotice);
     }

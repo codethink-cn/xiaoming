@@ -32,6 +32,14 @@ public interface PermissionGroup {
 
     String getAlias();
 
+    default String getAliasOrName() {
+        if (StringUtility.nonEmpty(getAlias())) {
+            return getAlias();
+        } else {
+            return getName();
+        }
+    }
+
     default String getAliasAndName() {
         if (StringUtility.nonEmpty(getAlias())) {
             return getAlias() + "（" + getName() + "）";

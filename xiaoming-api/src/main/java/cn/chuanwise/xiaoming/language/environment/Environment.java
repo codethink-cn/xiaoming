@@ -1,7 +1,6 @@
 package cn.chuanwise.xiaoming.language.environment;
 
-import cn.chuanwise.toolkit.value.container.BiValueContainer;
-import cn.chuanwise.utility.MapUtility;
+import cn.chuanwise.xiaoming.language.variable.VariableOperator;
 
 import java.util.List;
 import java.util.Objects;
@@ -19,11 +18,11 @@ public interface Environment {
 
     Object render(Object object, String variable);
 
-    default <T> void register(Class<T> clazz, VariableOperator<T> operator) {
+    default <T> void registerOperator(Class<T> clazz, VariableOperator<T> operator) {
         getOperators().add(operator);
     }
 
-    <T> VariableOperator<T> register(Class<T> clazz);
+    <T> VariableOperator<T> registerOperator(Class<T> clazz);
 
     List<VariableOperator<?>> getOperators();
 }

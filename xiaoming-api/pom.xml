@@ -5,7 +5,7 @@
     <parent>
         <artifactId>xiaoming-bot</artifactId>
         <groupId>cn.chuanwise</groupId>
-        <version>3.1.5</version>
+        <version>3.3.1</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -17,10 +17,23 @@
             <url>https://github.com/Chuanwise/chuanwise-toolkit</url>
         </repository>
     </repositories>
+
     <dependencies>
         <dependency>
+            <groupId>org.jline</groupId>
+            <artifactId>jline</artifactId>
+            <version>3.20.0</version>
+        </dependency>
+
+        <dependency>
             <groupId>cn.chuanwise</groupId>
-            <artifactId>chuanwise-toolkit-api</artifactId>
+            <artifactId>chuanwise-toolkit-implement</artifactId>
+            <version>2.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.chuanwise</groupId>
+            <artifactId>xiaoming-center-client</artifactId>
             <version>1.0</version>
         </dependency>
     </dependencies>

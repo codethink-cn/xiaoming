@@ -11,7 +11,7 @@ public class MatchFilterMatcher extends RegexFilterMatcher {
     }
 
     @Override
-    public boolean apply(XiaomingUser user, Message message) {
+    public <M extends Message> boolean apply(XiaomingUser<?, M, ?> user, M message) {
         return pattern.matcher(message.serialize()).matches();
     }
 }

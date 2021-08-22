@@ -1,5 +1,7 @@
 package cn.chuanwise.xiaoming.recept;
 
+import cn.chuanwise.xiaoming.account.record.CommandRecord;
+import cn.chuanwise.xiaoming.client.CenterClientManager;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.exception.InteractorTimeoutException;
 import cn.chuanwise.xiaoming.exception.ReceptCancelledException;
@@ -17,9 +19,9 @@ public abstract class ReceptionTaskImpl extends ModuleObjectImpl implements Rece
     final Receptionist receptionist;
     final String identify;
 
-    Message message;
+    protected Message message;
 
-    Thread thread;
+    protected Thread thread;
 
     volatile boolean busy = false;
     volatile boolean running = false;
@@ -59,13 +61,8 @@ public abstract class ReceptionTaskImpl extends ModuleObjectImpl implements Rece
             busy = true;
             // 交互完后要记录指令，迟早要获得 Account。但现在获得一下可以确保 alias 非空
             user.getAccount();
-
-            getXiaomingBot().getInteractorManager().onInput(getUser(), message);
+            xiaomingBot.getInteractorManager().interact(getUser(), message);
         } catch (ReceptCancelledException | InteractorTimeoutException | TimeoutCancellationException exception) {
-        } catch (Throwable throwable) {
-            this.getLogger().error("和用户" + user.getCompleteName() + "交互时出现异常", throwable);
-            user.sendError("{lang.internalError}");
-            getXiaomingBot().getReportMessageManager().addThrowableMessage(user, throwable);
         } finally {
             // 自动执行结束时，running 还是 true，所以手动执行 stop
             // 当前线程可能是在自己的 recentMessage 上等待，也可能是在别人的 recentMessage 上。咱们就粗暴打断

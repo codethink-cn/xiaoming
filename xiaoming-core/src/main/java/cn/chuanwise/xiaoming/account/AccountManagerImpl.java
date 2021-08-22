@@ -29,7 +29,7 @@ public class AccountManagerImpl extends ModuleObjectImpl implements AccountManag
     }
 
     @Override
-    public Account forAccount(long code) {
+    public Account getAccount(long code) {
         return MapUtility.getOrPutSupply(loadedAccounts, code,
                 () -> getXiaomingBot().getFileLoader().loadOrSupply(AccountImpl.class, accountFile(code),
                         () -> {

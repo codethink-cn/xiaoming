@@ -9,7 +9,7 @@ public abstract class StringFilterMatcher extends FilterMatcher {
     String string;
 
     @Override
-    public String toString() {
+    public String toUsage() {
         return string;
     }
 }

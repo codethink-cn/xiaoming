@@ -1,6 +1,7 @@
 package cn.chuanwise.xiaoming.user;
 
 import cn.chuanwise.xiaoming.account.record.MemberCommandRecord;
+import cn.chuanwise.xiaoming.client.CenterClientManager;
 import cn.chuanwise.xiaoming.contact.contact.MemberContact;
 import cn.chuanwise.xiaoming.recept.Receptionist;
 import cn.chuanwise.xiaoming.recept.MemberReceptionTask;
@@ -28,8 +29,8 @@ public class MemberXiaomingUserImpl extends XiaomingUserImpl<MemberContact, Memb
     }
 
     @Override
-    public void onNextInput(MessageChain messages) {
-        onNextInput(new MemberMessageImpl(this, messages));
+    public MemberMessage buildMessage(MessageChain messages) {
+        return new MemberMessageImpl(this, messages);
     }
 
     @Override
@@ -57,8 +58,6 @@ public class MemberXiaomingUserImpl extends XiaomingUserImpl<MemberContact, Memb
                 recentMessages.notifyAll();
             }
         }
-
-        getAccount().addCommand(new MemberCommandRecord(getGroupCode(), message.serialize()));
     }
 
     @Override
@@ -68,7 +67,7 @@ public class MemberXiaomingUserImpl extends XiaomingUserImpl<MemberContact, Memb
 
     @Override
     public void sendMessage(String message, Object... arguments) {
-        final String replacedMessage = replaceArguments(message, arguments);
+        final String replacedMessage = format(message, arguments);
         if (isUsingBuffer()) {
             appendBuffer(replacedMessage);
         } else {

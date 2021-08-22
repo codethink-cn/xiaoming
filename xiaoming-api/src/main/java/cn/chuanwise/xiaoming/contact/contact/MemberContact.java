@@ -1,6 +1,5 @@
 package cn.chuanwise.xiaoming.contact.contact;
 
-import cn.chuanwise.utility.ArgumentUtility;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.group.GroupRecord;
 import cn.chuanwise.xiaoming.contact.message.MemberMessage;
@@ -14,12 +13,13 @@ import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.QuoteReply;
 
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 public interface MemberContact extends XiaomingContact<MemberMessage, NormalMember> {
     default Account getAccount() {
-        return getXiaomingBot().getAccountManager().forAccount(getCode());
+        return getXiaomingBot().getAccountManager().getAccount(getCode());
     }
 
     @Override
@@ -118,7 +118,7 @@ public interface MemberContact extends XiaomingContact<MemberMessage, NormalMemb
     }
 
     default MemberMessage replyGroup(Message quote, String message) {
-        return replyGroup(quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
+        return replyGroup(quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
     }
 
     default MemberMessage replyGroup(Message quote, MessageChain message) {
@@ -126,7 +126,7 @@ public interface MemberContact extends XiaomingContact<MemberMessage, NormalMemb
     }
 
     default ScheduledFuture<MemberMessage> replyGroupLater(long delay, Message quote, String message) {
-        return replyGroupLater(delay, quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
+        return replyGroupLater(delay, quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
     }
 
     default ScheduledFuture<MemberMessage> replyGroupLater(long delay, Message quote, MessageChain message) {
@@ -134,6 +134,11 @@ public interface MemberContact extends XiaomingContact<MemberMessage, NormalMemb
     }
 
     default MemberXiaomingUser getUser() {
-        return getXiaomingBot().getReceptionistManager().forReceptionist(getCode()).forMember(getGroupCode());
+        return getXiaomingBot().getReceptionistManager().getReceptionist(getCode()).forMember(getGroupCode());
+    }
+
+    @Override
+    default Set<String> getTags() {
+        return getXiaomingBot().getAccountManager().getTags(getCode());
     }
 }

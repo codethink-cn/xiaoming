@@ -2,6 +2,8 @@ package cn.chuanwise.xiaoming.language;
 
 import cn.chuanwise.utility.FunctionalUtility;
 import cn.chuanwise.toolkit.preservable.Preservable;
+import cn.chuanwise.xiaoming.language.sentence.Sentence;
+import cn.chuanwise.xiaoming.object.PluginObject;
 
 import java.io.File;
 import java.util.Map;
@@ -11,14 +13,14 @@ import java.util.Objects;
  * 小明的提示文本管理器
  * @author Chuanwise
  */
-public interface Language extends Preservable<File> {
+public interface Language extends Preservable<File>, PluginObject {
     Map<String, Sentence> getSentences();
 
     default boolean containsSentence(String identifier) {
-        return Objects.nonNull(forSentence(identifier));
+        return Objects.nonNull(getSentence(identifier));
     }
 
-    default Sentence forSentence(String identifier) {
+    default Sentence getSentence(String identifier) {
         return getSentenceOrDefault(identifier, null);
     }
 
@@ -27,7 +29,7 @@ public interface Language extends Preservable<File> {
     }
 
     default String getSentenceValueOrDefault(String identifier, String defaultValue) {
-        return FunctionalUtility.runIfArgumentNonNullOrDefault(Sentence::getValue, forSentence(identifier), defaultValue);
+        return FunctionalUtility.runIfArgumentNonNullOrDefault(Sentence::getValue, getSentence(identifier), defaultValue);
     }
 
     default String getSentenceValue(String identifier) {

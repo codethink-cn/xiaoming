@@ -12,7 +12,7 @@ public abstract class RegexFilterMatcher extends FilterMatcher {
     Pattern pattern;
 
     @Override
-    public String toString() {
+    public String toUsage() {
         return UsageStringUtility.translateUsageRegex(pattern.pattern());
     }
 }

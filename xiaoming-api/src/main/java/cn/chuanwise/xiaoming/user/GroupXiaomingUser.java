@@ -1,6 +1,7 @@
 package cn.chuanwise.xiaoming.user;
 
-import cn.chuanwise.utility.ArgumentUtility;
+import cn.chuanwise.xiaoming.account.record.CommandRecord;
+import cn.chuanwise.xiaoming.account.record.GroupCommandRecord;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.contact.contact.MemberContact;
 import cn.chuanwise.xiaoming.contact.message.GroupMessage;
@@ -15,6 +16,15 @@ import net.mamoe.mirai.message.data.MessageChain;
 
 public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessage, GroupReceptionTask> {
     MemberContact getMemberContact();
+
+    @Override
+    default GroupCommandRecord buildCommandRecord(String command) {
+        return new GroupCommandRecord(getGroupCode(), command);
+    }
+
+    default boolean isMuted() {
+        return getMemberContact().isMuted();
+    }
 
     default String getNick() {
         return getMemberContact().getNick();
@@ -63,7 +73,7 @@ public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessa
     }
 
     default GroupMessage sendGroupMessage(String message) {
-        return sendGroupMessage(MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
+        return sendGroupMessage(MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
     }
 
     default ScheduledFuture<GroupMessage> atReplyLater(long delay, Message quote, MessageChain message) {
@@ -117,6 +127,6 @@ public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessa
 
     @Override
     default MemberMessage sendPrivateMessage(String message, Object... arguments) {
-        return getMemberContact().send(MiraiCode.deserializeMiraiCode(replaceArguments(message, arguments)));
+        return getMemberContact().send(MiraiCode.deserializeMiraiCode(format(message, arguments)));
     }
 }

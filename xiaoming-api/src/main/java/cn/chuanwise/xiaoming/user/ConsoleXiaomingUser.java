@@ -1,12 +1,20 @@
 package cn.chuanwise.xiaoming.user;
 
+import cn.chuanwise.xiaoming.account.record.CommandRecord;
+import cn.chuanwise.xiaoming.account.record.PrivateCommandRecord;
 import cn.chuanwise.xiaoming.contact.contact.ConsoleContact;
 import cn.chuanwise.xiaoming.contact.message.ConsoleMessage;
 import cn.chuanwise.xiaoming.object.ModuleObject;
 import cn.chuanwise.xiaoming.recept.ConsoleReceptionTask;
+import net.mamoe.mirai.message.data.MessageChain;
 
 public interface ConsoleXiaomingUser extends ModuleObject, XiaomingUser<ConsoleContact, ConsoleMessage, ConsoleReceptionTask> {
     void setReceptionTask(ConsoleReceptionTask receptionTask);
+
+    @Override
+    default CommandRecord buildCommandRecord(String command) {
+        return new PrivateCommandRecord(command);
+    }
 
     @Override
     default boolean hasPermission(String require) {
@@ -20,19 +28,19 @@ public interface ConsoleXiaomingUser extends ModuleObject, XiaomingUser<ConsoleC
 
     @Override
     default void sendMessage(String message, Object... arguments) {
-        final String replacedMessage = replaceArguments(message, arguments);
+        final String replacedMessage = format(message, arguments);
         getLogger().info(replacedMessage);
     }
 
     @Override
     default void sendError(String message, Object... arguments) {
-        final String replacedMessage = replaceArguments(message, arguments);
+        final String replacedMessage = format(message, arguments);
         getLogger().error(replacedMessage);
     }
 
     @Override
     default void sendWarning(String message, Object... arguments) {
-        final String replacedMessage = replaceArguments(message, arguments);
+        final String replacedMessage = format(message, arguments);
         getLogger().warn(replacedMessage);
     }
 

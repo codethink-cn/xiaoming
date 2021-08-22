@@ -1,6 +1,7 @@
 package cn.chuanwise.xiaoming.language.environment;
 
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
+import cn.chuanwise.xiaoming.language.variable.VariableOperator;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import lombok.Getter;
 
@@ -67,7 +68,7 @@ public class EnvironmentImpl extends ModuleObjectImpl implements Environment {
     }
 
     @Override
-    public <T> VariableOperator<T> register(Class<T> clazz) {
+    public <T> VariableOperator<T> registerOperator(Class<T> clazz) {
         final SimpleVariableOperator<T> operator = new SimpleVariableOperator<>(clazz);
         operators.add(operator);
         return operator;

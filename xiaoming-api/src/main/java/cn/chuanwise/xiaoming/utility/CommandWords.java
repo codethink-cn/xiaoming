@@ -4,6 +4,7 @@ import cn.chuanwise.utility.StaticUtility;
 
 public class CommandWords extends StaticUtility {
     public static final String
+            ALL = "(全部|全|all)",
             GLOBAL = "(全局|全|公共|global)",
             ECHO = "(复读|repeat回声|回响|echo)",
             HEAD = "(头|开头|head)",
@@ -101,5 +102,12 @@ public class CommandWords extends StaticUtility {
             DEFAULT = "(默认|default)",
             TARGET = "(目标|target)",
             CHANNEL = "(频道|channel)",
-            MY = "(我的|my)";
+            MY = "(我的|my)",
+            UNLOAD = "(卸载|unload)",
+            LOAD = "(加载|load)",
+            REENABLE = "(重启|reenable)",
+            FLUSH = "(刷新|flush)",
+            HISTORY = "(历史|history)",
+            REPORT = "(报告|report)",
+            LANGUAGE = "(语言|language)";
 }

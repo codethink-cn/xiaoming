@@ -27,7 +27,7 @@ public interface XiaomingLauncher {
     default void setShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             // 如果小明此时还没有关闭则关闭
-            if (!getXiaomingBot().isStop()) {
+            if (!getXiaomingBot().isDisabled()) {
                 getXiaomingBot().stop();
             }
         }));

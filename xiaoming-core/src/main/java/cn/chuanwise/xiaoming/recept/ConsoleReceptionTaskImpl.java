@@ -1,5 +1,6 @@
 package cn.chuanwise.xiaoming.recept;
 
+import cn.chuanwise.xiaoming.account.record.CommandRecord;
 import cn.chuanwise.xiaoming.contact.message.ConsoleMessage;
 import cn.chuanwise.xiaoming.user.ConsoleXiaomingUser;
 import lombok.Getter;

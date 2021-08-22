@@ -12,14 +12,14 @@ import java.util.Set;
 public interface AccountManager extends ModuleObject {
     File accountFile(long code);
 
-    Account forAccount(long code);
+    Account getAccount(long code);
 
     File getDirectory();
 
     Map<Long, Account> getLoadedAccounts();
 
     default String getAliasOrCode(long code) {
-        final Account account = forAccount(code);
+        final Account account = getAccount(code);
         if (Objects.isNull(account)) {
             return String.valueOf(code);
         } else {
@@ -28,7 +28,7 @@ public interface AccountManager extends ModuleObject {
     }
 
     default String getAliasAndCode(long code) {
-        final Account account = forAccount(code);
+        final Account account = getAccount(code);
         if (Objects.isNull(account)) {
             return String.valueOf(code);
         } else {
@@ -37,7 +37,7 @@ public interface AccountManager extends ModuleObject {
     }
 
     default Set<String> getTags(long code) {
-        final Account account = forAccount(code);
+        final Account account = getAccount(code);
         if (Objects.isNull(account)) {
             return CollectionUtility.asSet(TagHolder.RECORDED, String.valueOf(code));
         } else {

@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 
 public class CollectionFormatUtility extends StaticUtility {
     public static <T> String format(CollectionFormat format, Collection<T> collection, Function<T, Map<String, ? extends Object>> environmentBuilder, int maxIteration) {
@@ -16,7 +15,7 @@ public class CollectionFormatUtility extends StaticUtility {
         commonEnvironment.put("size", collection.size());
         commonEnvironment.put("index", 0);
 
-        return ArgumentUtility.render(ObjectUtility.firstNonNull(format.getPrefix(), "") + CollectionUtility.toIndexString(collection, (index, element) -> {
+        return ArgumentUtility.format(ObjectUtility.firstNonNull(format.getPrefix(), "") + CollectionUtility.toIndexString(collection, (index, element) -> {
             commonEnvironment.put("index", index + 1);
             return "";
         }, element -> {
@@ -25,9 +24,9 @@ public class CollectionFormatUtility extends StaticUtility {
             }
 
             final Map<String, ? extends Object> specialEnvironment = environmentBuilder.apply(element);
-            final String content = ArgumentUtility.render(format.getContent(), maxIteration, specialEnvironment);
+            final String content = ArgumentUtility.format(format.getContent(), maxIteration, specialEnvironment);
 
-            return ArgumentUtility.render(content, maxIteration, commonEnvironment);
+            return ArgumentUtility.format(content, maxIteration, commonEnvironment);
         }, ObjectUtility.firstNonNull(format.getSplitter(), "")) +
                 ObjectUtility.firstNonNull(format.getSuffix(), ""), maxIteration, commonEnvironment);
     }

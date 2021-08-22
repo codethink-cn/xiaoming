@@ -51,7 +51,7 @@ public class ReportMessageManagerImpl extends FilePreservableImpl implements Rep
         }
         final ReportMessage reportMessage;
 
-        final List userRecentMessages = user.getRecentMessages();
+        final List<? extends Message> userRecentMessages = user.getRecentMessages();
 
         final List<String> clonedRecentMessages = CollectionUtility.addTo(userRecentMessages, new ArrayList<>(userRecentMessages.size()), Message::serialize);
         final List<String> messages = new ArrayList<>(clonedRecentMessages.size());
@@ -64,6 +64,6 @@ public class ReportMessageManagerImpl extends FilePreservableImpl implements Rep
             reportMessage = new ReportMessageImpl(user.getCode(), messages, throwable.toString());
         }
         addMessage(reportMessage);
-        getXiaomingBot().getContactManager().sendGroupMessage("log", "发现一个新的异常报告");
+//        getXiaomingBot().getContactManager().sendGroupMessage("log", "发现一个新的异常报告");
     }
 }

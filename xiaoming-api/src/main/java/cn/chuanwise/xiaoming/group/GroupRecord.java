@@ -1,17 +1,15 @@
 package cn.chuanwise.xiaoming.group;
 
+import cn.chuanwise.utility.CollectionUtility;
 import cn.chuanwise.utility.StringUtility;
 import cn.chuanwise.xiaoming.object.XiaomingObject;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.tag.PluginBlockable;
 import cn.chuanwise.xiaoming.tag.TagHolder;
 
-public interface GroupRecord extends XiaomingObject, PluginBlockable {
-    @Override
-    default String getName() {
-        return getCodeString();
-    }
+import java.util.Set;
 
+public interface GroupRecord extends XiaomingObject, PluginBlockable {
     long getCode();
 
     default String getCodeString() {
@@ -33,5 +31,10 @@ public interface GroupRecord extends XiaomingObject, PluginBlockable {
 
     default GroupContact getContact() {
         return getXiaomingBot().getContactManager().getGroupContact(getCode());
+    }
+
+    @Override
+    default Set<String> buildOriginalTags() {
+        return CollectionUtility.asSet(getCodeString(), RECORDED);
     }
 }

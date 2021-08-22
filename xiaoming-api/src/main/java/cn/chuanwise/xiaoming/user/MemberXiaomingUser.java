@@ -1,5 +1,7 @@
 package cn.chuanwise.xiaoming.user;
 
+import cn.chuanwise.xiaoming.account.record.CommandRecord;
+import cn.chuanwise.xiaoming.account.record.MemberCommandRecord;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.contact.contact.MemberContact;
 import cn.chuanwise.xiaoming.contact.message.MemberMessage;
@@ -13,6 +15,11 @@ public interface MemberXiaomingUser extends XiaomingUser<MemberContact, MemberMe
     }
 
     void setReceptionTask(MemberReceptionTask task);
+
+    @Override
+    default MemberCommandRecord buildCommandRecord(String command) {
+        return new MemberCommandRecord(getGroupCode(), command);
+    }
 
     @Override
     default void nudge() {
@@ -29,7 +36,7 @@ public interface MemberXiaomingUser extends XiaomingUser<MemberContact, MemberMe
 
     @Override
     default MemberMessage sendPrivateMessage(String message, Object... arguments) {
-        return getContact().send(MiraiCode.deserializeMiraiCode(replaceArguments(message, arguments)));
+        return getContact().send(MiraiCode.deserializeMiraiCode(format(message, arguments)));
     }
 
     default GroupContact getGroupContact() {

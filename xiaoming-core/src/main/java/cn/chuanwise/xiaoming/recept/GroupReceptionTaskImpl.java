@@ -1,5 +1,6 @@
 package cn.chuanwise.xiaoming.recept;
 
+import cn.chuanwise.xiaoming.account.record.GroupCommandRecord;
 import cn.chuanwise.xiaoming.contact.message.GroupMessage;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import lombok.Getter;
@@ -17,6 +18,7 @@ public class GroupReceptionTaskImpl extends ReceptionTaskImpl implements GroupRe
         user.setReceptionTask(this);
         this.recentMessages = user.getRecentMessages();
     }
+
     @Override
     protected void register() {
         thread = Thread.currentThread();
