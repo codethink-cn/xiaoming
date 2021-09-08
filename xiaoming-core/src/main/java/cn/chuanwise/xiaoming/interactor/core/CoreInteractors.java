@@ -7,8 +7,6 @@ import cn.chuanwise.utility.StringUtility;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.annotation.Permission;
-import cn.chuanwise.xiaoming.bot.XiaomingBot;
-import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.interactor.InteractorManager;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
 import cn.chuanwise.xiaoming.interactor.handler.InteractorHandler;
@@ -17,20 +15,14 @@ import cn.chuanwise.xiaoming.schedule.FileSaver;
 import cn.chuanwise.xiaoming.recept.Receptionist;
 import cn.chuanwise.xiaoming.recept.ReceptionistManager;
 import cn.chuanwise.xiaoming.user.ConsoleXiaomingUser;
-import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
-import cn.chuanwise.xiaoming.user.PrivateXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.utility.CommandWords;
 import cn.chuanwise.xiaoming.utility.InteractorUtility;
-import net.mamoe.mirai.message.code.MiraiCode;
-import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.SingleMessage;
 
 import java.io.File;
 import java.util.*;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class CoreInteractors extends SimpleInteractors {
     public static final String BATCH = "(批处理|bat)";
@@ -54,58 +46,49 @@ public class CoreInteractors extends SimpleInteractors {
     @Filter(CommandWords.CALL)
     @Permission("core.statistics.call")
     public void onCall(XiaomingUser user) {
-        if (getXiaomingBot().getCenterClientManager().isConnected()) {
+        if (getXiaomingBot().getCenterClient().isConnected()) {
             user.sendMessage("{lang.callNumberWithTheTotal}");
         } else {
             user.sendMessage("{lang.callNumber}");
         }
     }
 
-    /** 批处理指令 */
-    @Filter("#" + BATCH + "#" + "{r:指令}")
-    public void onMultipleCommands(XiaomingUser user,
-                                   @FilterParameter("指令") String remain,
-                                   Message message) {
-        final String[] subCommands = remain.split(Pattern.quote("\\n"), 0);
-        final long maxJoinTime = TimeUnit.SECONDS.toMillis(1);
-
-        user.enablePrintWriter();
-        try {
-            Future<Boolean> task = null;
-            for (int i = 1; i < subCommands.length; i++) {
-                String command = subCommands[i];
-                if (command.isEmpty()) {
-                    continue;
-                }
-
-                if (Objects.isNull(task) || task.isDone()) {
-                    int finalI = i;
-                    task = getXiaomingBot().getScheduler().run(() -> {
-                        final Message clonedMessage = message.clone();
-                        final MessageChain messageChain = MiraiCode.deserializeMiraiCode(subCommands[finalI]);
-                        clonedMessage.setMessageChain(messageChain);
-                        clonedMessage.setOriginalMessageChain(messageChain);
-
-                        return getXiaomingBot().getInteractorManager().interact(user, clonedMessage);
-                    });
-                    if (!task.get()) {
-                        user.sendError("{lang.batchTaskInterruptedByIllegalCommand}", command);
-                        break;
-                    }
-                } else {
-                    user.onNextInput(command);
-                }
-            }
-            if (Objects.nonNull(task) && !task.isDone()) {
-                task.get();
-            }
-        } catch (Exception exception) {
-            user.sendError("{lang.batchTaskInterruptedByException}", exception);
-            exception.printStackTrace();
-        }
-        final String buffer = user.getBufferAndClose();
-        user.sendMessage(StringUtility.isEmpty(buffer) ? "{lang.batchTaskNoAnyOutput}" : buffer);
-    }
+//    /** 批处理指令 */
+//    @Filter("#" + BATCH + "#" + "{r:指令}")
+//    public void onMultipleCommands(XiaomingUser user,
+//                                   @FilterParameter("指令") String remain,
+//                                   Message message) {
+//        final String[] subCommands = remain.split(Pattern.quote("\\n"), 0);
+//        final long maxJoinTime = TimeUnit.SECONDS.toMillis(1);
+//
+//        user.enablePrintWriter();
+//        try {
+//            Future<Boolean> task = null;
+//            for (int i = 1; i < subCommands.length; i++) {
+//                String command = subCommands[i];
+//                if (command.isEmpty()) {
+//                    continue;
+//                }
+//
+//                if (Objects.isNull(task) || task.isDone()) {
+//                    final int finalI = i;
+//                    task = getXiaomingBot().getScheduler().run(() -> {
+//                        return getXiaomingBot().getInteractorManager().interact(user, command[finalI]);
+//                    });
+//                } else {
+//                    user.onNextInput(command);
+//                }
+//            }
+//            if (Objects.nonNull(task) && !task.isDone()) {
+//                task.get();
+//            }
+//        } catch (Exception exception) {
+//            user.sendError("{lang.batchTaskInterruptedByException}", exception);
+//            exception.printStackTrace();
+//        }
+//        final String buffer = user.getBufferAndClose();
+//        user.sendMessage(StringUtility.isEmpty(buffer) ? "{lang.batchTaskNoAnyOutput}" : buffer);
+//    }
 
     @Filter(CommandWords.OPTIMIZE)
     public void onOptimize(XiaomingUser user) {
@@ -144,7 +127,7 @@ public class CoreInteractors extends SimpleInteractors {
             user.sendMessage("{lang.noFileNeedToSave}");
         } else {
             user.sendWarning("{lang.confirmCancelSaveFile}");
-            if (Objects.equals(user.nextInput().serialize(), "确定")) {
+            if (Objects.equals(user.nextMessageOrExit().serialize(), "确定")) {
                 preservables.clear();
                 user.sendMessage("{lang.savePlanCancelled}");
             } else {
@@ -164,20 +147,13 @@ public class CoreInteractors extends SimpleInteractors {
     @Filter(CommandWords.COMMAND + CommandWords.FORMAT)
     @Filter(CommandWords.FORMAT)
     public void onGlobalUsage(XiaomingUser user) {
-        if (user instanceof GroupXiaomingUser) {
-            user = user.getReceptionist().forPrivate();
-        }
-        final XiaomingUser finalUser = user;
-
         final List<InteractorHandler> interactors = getXiaomingBot().getInteractorManager().getInteractors();
-        final List<String> commandFormats = new ArrayList<>(interactors.size());
-
-        interactors.forEach(interactor -> {
-            if (interactor.hasPermission(finalUser) && StringUtility.nonEmpty(interactor.getUsage())) {
-                commandFormats.add(interactor.getUsage());
-            }
-        });
-        Collections.sort(commandFormats);
+        final List<String> commandFormats = interactors.stream()
+                .map(InteractorHandler::getUsage)
+                .filter(StringUtility::nonEmpty)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
 
         if (user instanceof ConsoleXiaomingUser) {
             user.sendMessage(CollectionUtility.toIndexString(commandFormats));
@@ -188,17 +164,19 @@ public class CoreInteractors extends SimpleInteractors {
 
     @Filter(CommandWords.COMMAND + CommandWords.FORMAT + " {插件名}")
     public void onPluginUsage(XiaomingUser user, @FilterParameter("插件名") Plugin plugin) {
-        final PrivateXiaomingUser privateXiaomingUser = user.getReceptionist().forPrivate();
         final List<InteractorHandler> interactors = getXiaomingBot().getInteractorManager().getInteractors(plugin);
-        final List<String> commandFormats = new ArrayList<>(interactors.size());
+        final List<String> commandFormats = interactors.stream()
+                .map(InteractorHandler::getUsage)
+                .filter(StringUtility::nonEmpty)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
 
-        interactors.forEach(interactor -> {
-            if (interactor.hasPermission(user)) {
-                commandFormats.add(interactor.getUsage());
-            }
-        });
-        Collections.sort(commandFormats);
-        InteractorUtility.showCollection(privateXiaomingUser, commandFormats, String::toString, 30);
+        if (user instanceof ConsoleXiaomingUser) {
+            user.sendMessage(CollectionUtility.toIndexString(commandFormats));
+        } else {
+            InteractorUtility.showCollection(user, commandFormats, String::toString, 30);
+        }
     }
 
     @Filter(CommandWords.HELP)
@@ -212,7 +190,7 @@ public class CoreInteractors extends SimpleInteractors {
     public void onCloseXiaoming(XiaomingUser user) {
         user.sendMessage("{lang.confirmCloseXiaoming}");
 
-        if (Objects.equals(user.nextInput(TimeUnit.MINUTES.toMillis(1)).serialize(), "确定")) {
+        if (Objects.equals(user.nextMessageOrExit(TimeUnit.MINUTES.toMillis(1)).serialize(), "确定")) {
             final long delay = TimeUnit.SECONDS.toMillis(10);
             getXiaomingBot().getScheduler().runLater(delay, () -> {
                 getXiaomingBot().stop();
@@ -252,63 +230,6 @@ public class CoreInteractors extends SimpleInteractors {
             user.sendMessage("{lang.userHasNotReceptionist}");
         } else {
             user.sendMessage("{lang.userReceptionistDetail}", receptionist);
-        }
-    }
-
-    @Filter(CommandWords.DISABLE + CommandWords.RECEPTIONIST + " {qq}")
-    @Permission("core.receptionist.disable")
-    public void onDisableReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
-        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
-        final Receptionist receptionist = receptionistManager.getReceptionist(qq);
-
-        if (Objects.isNull(receptionist)) {
-            user.sendMessage("{lang.userHasNotReceptionist}");
-        } else {
-            if (receptionist.isBusy()) {
-                receptionist.optimize();
-                user.sendMessage("{lang.optimizedReceptionist}", qq);
-            } else {
-                receptionist.stop();
-                user.sendMessage("{lang.receptionistClosed}");
-            }
-        }
-    }
-
-    @Filter(CommandWords.OPTIMIZE + CommandWords.RECEPTIONIST + " {qq}")
-    @Permission("core.receptionist.optimize")
-    public void onOptimizeReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
-        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
-        final Receptionist receptionist = receptionistManager.getReceptionist(qq);
-
-        if (Objects.isNull(receptionist)) {
-            user.sendMessage("{lang.noAnyReceptionist}");
-        } else {
-            receptionist.optimize();
-            user.sendMessage("{lang.receptionistOptimized}");
-        }
-    }
-
-    @Filter(CommandWords.OPTIMIZE + CommandWords.RECEPTIONIST)
-    @Permission("core.receptionist.optimize")
-    public void onOptimizeReceptionist(XiaomingUser user) {
-        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
-
-        receptionistManager.optimize();
-        user.sendMessage("{lang.receptionistOptimized}");
-    }
-
-    @Filter(CommandWords.FORCE + CommandWords.DISABLE + CommandWords.RECEPTIONIST + " {qq}")
-    @Permission("core.receptionist.disable")
-    public void onForceDisableReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
-        final ReceptionistManager receptionistManager = getXiaomingBot().getReceptionistManager();
-        final Receptionist receptionist = receptionistManager.getReceptionist(qq);
-
-        if (Objects.isNull(receptionist)) {
-            user.sendMessage("{lang.userHasNotReceptionist}");
-        } else {
-            receptionist.stop();
-            receptionistManager.getReceptionists().remove(qq);
-            user.sendMessage("{lang.receptionistClosed}");
         }
     }
 

@@ -1,14 +1,24 @@
 package cn.chuanwise.xiaoming.contact.contact;
 
 import cn.chuanwise.xiaoming.account.Account;
-import cn.chuanwise.xiaoming.contact.message.PrivateMessage;
+import cn.chuanwise.xiaoming.contact.message.Message;
+import cn.chuanwise.xiaoming.event.MessageEvent;
 import cn.chuanwise.xiaoming.user.PrivateXiaomingUser;
 import net.mamoe.mirai.contact.Friend;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
-public interface PrivateContact extends XiaomingContact<PrivateMessage, Friend> {
+public interface PrivateContact extends XiaomingContact<Friend> {
+    @Override
+    default Optional<Message> nextMessage(long timeout) throws InterruptedException {
+        return getXiaomingBot()
+                .getContactManager()
+                .nextPrivateMessage(getCode(), timeout)
+                .map(MessageEvent::getMessage);
+    }
+
     default Account getAccount() {
         return getXiaomingBot().getAccountManager().getAccount(getCode());
     }
@@ -30,7 +40,7 @@ public interface PrivateContact extends XiaomingContact<PrivateMessage, Friend> 
     }
 
     @Override
-    default String getCompleteName() {
+    default String getAliasAndCode() {
         return getAlias() + "（" + getCodeString() + "）";
     }
 
@@ -47,7 +57,7 @@ public interface PrivateContact extends XiaomingContact<PrivateMessage, Friend> 
     }
 
     default PrivateXiaomingUser getUser() {
-        return getXiaomingBot().getReceptionistManager().getReceptionist(getCode()).forPrivate();
+        return getXiaomingBot().getReceptionistManager().getReceptionist(getCode()).getPrivateXiaomingUser();
     }
 
     @Override

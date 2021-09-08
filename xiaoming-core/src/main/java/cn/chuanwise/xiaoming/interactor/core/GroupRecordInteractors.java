@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * 小明响应群相关的指令处理器
@@ -93,7 +94,6 @@ public class GroupRecordInteractors extends SimpleInteractors {
             groupManager.addGroup(groupRecord);
             if (alreadyIn) {
                 user.sendMessage("{lang.xiaomingEnabledInThatGroupAndIn}");
-                xiaomingBot.getContactManager().sendGroupMessage(group, xiaomingBot.getLanguageManager().getSentenceValue("new-response-group"));
             } else {
                 user.sendWarning("{lang.xiaomingEnabledInThatGroupAndNotIn}");
             }

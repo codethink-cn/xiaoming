@@ -61,7 +61,7 @@ public abstract class FilterMatcher {
      * @param user 当前用户
      * @return 输入是否合法
      */
-    public abstract <M extends Message> boolean apply(XiaomingUser<?, M, ?> user, M message);
+    public abstract boolean apply(XiaomingUser user, Message message);
 
     /**
      * 生成一个过滤器

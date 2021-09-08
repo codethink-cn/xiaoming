@@ -1,31 +1,23 @@
 package cn.chuanwise.xiaoming.contact.contact;
 
 import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.xiaoming.language.sentence.Sentence;
+import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.object.XiaomingObject;
 import cn.chuanwise.xiaoming.tag.TagHolder;
-import cn.chuanwise.xiaoming.utility.InteractorUtility;
-import cn.chuanwise.xiaoming.contact.message.Message;
 
-import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ScheduledFuture;
+
+import cn.chuanwise.xiaoming.utility.MiraiCodeUtility;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.*;
 import net.mamoe.mirai.utils.ExternalResource;
 
-import java.util.List;
-import java.util.function.Function;
+public interface XiaomingContact<C extends Contact> extends XiaomingObject, TagHolder {
+    String getAliasAndCode();
 
-public interface XiaomingContact<M extends Message, MC extends Contact> extends XiaomingObject, TagHolder {
-    String getCompleteName();
-
-    MC getMiraiContact();
-
-    default String getAliasAndCode() {
-        return getAlias() + "（" + getCodeString() + "）";
-    }
+    C getMiraiContact();
 
     default long getCode() {
         return getMiraiContact().getId();
@@ -41,74 +33,49 @@ public interface XiaomingContact<M extends Message, MC extends Contact> extends 
 
     String getAvatarUrl();
 
-    default M send(String message) {
+    default Message sendMessage(String message) {
         final String replacedMessage = getXiaomingBot().getLanguageManager().format(message);
-        return send(MiraiCode.deserializeMiraiCode(replacedMessage));
+        return sendMessage(MiraiCode.deserializeMiraiCode(replacedMessage));
     }
 
-    M send(MessageChain messages);
+    Message sendMessage(MessageChain messages);
 
-    default M send(M messages) {
+    default Message sendMessage(Message messages) {
         messages.setOriginalMessageChain(getMiraiContact().sendMessage(messages.getMessageChain()).getSource().getOriginalMessage());
         return messages;
     }
 
-    default ScheduledFuture<M> sendLater(long delay, Sentence sentence, Function<String, Object> externalGetter, Object... arguments) {
-        return getXiaomingBot().getScheduler().runLater(delay, () -> send(getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments)));
+    default Message sendMessage(SingleMessage... messages) {
+        return sendMessage(MiraiCodeUtility.asMessageChain(messages));
     }
 
-    default ScheduledFuture<M> sendLater(long delay, String message) {
-        return getXiaomingBot().getScheduler().runLater(delay, () -> send(message));
+
+    default Message reply(Message quote, MessageChain messages) {
+        return sendMessage(new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(messages));
     }
 
-    default ScheduledFuture<M> sendLater(long delay, MessageChain message) {
-        return getXiaomingBot().getScheduler().runLater(delay, () -> send(message));
-    }
-
-    default ScheduledFuture<M> sendLater(long delay, M message) {
-        return getXiaomingBot().getScheduler().runLater(delay, () -> send(message));
-    }
-
-    default M reply(Message quote, MessageChain messages) {
-        return send(new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(messages));
-    }
-
-    default M reply(Message quote, M message) {
+    default Message reply(Message quote, Message message) {
         return reply(quote, message.getMessageChain());
     }
 
-    default M reply(Message quote, String message) {
+    default Message reply(Message quote, String message) {
         return reply(quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
     }
 
-    default ScheduledFuture<M> replyLater(long delay, Message quote, MessageChain messages) {
-        return sendLater(delay, new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(messages));
-    }
 
-    default ScheduledFuture<M> replyLater(long delay, Message quote, String message) {
-        return replyLater(delay, quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
-    }
+    Optional<Message> nextMessage(long timeout) throws InterruptedException;
 
-    default ScheduledFuture<M> replyLater(long delay, Message quote, M message) {
-        return replyLater(delay, quote, message.getMessageChain());
-    }
-
-    List<M> getRecentMessages();
-
-    default M nextMessage(long timeout) {
-        return InteractorUtility.waitLastElement(getRecentMessages(), timeout);
-    }
-
-    default M nextMessage() {
-        return nextMessage(getXiaomingBot().getConfiguration().getMaxUserInputWaitTime());
+    default Optional<Message> nextMessage() throws InterruptedException {
+        return nextMessage(getXiaomingBot().getConfiguration().getMaxUserInputTimeout());
     }
 
     default Image uploadImage(ExternalResource resource) {
         return getMiraiContact().uploadImage(resource);
     }
 
+
     @Override
-    default Set<String> buildOriginalTags() {
+    default Set<String> originalTags() {
         return CollectionUtility.asSet(getCodeString(), RECORDED);
     }
 }

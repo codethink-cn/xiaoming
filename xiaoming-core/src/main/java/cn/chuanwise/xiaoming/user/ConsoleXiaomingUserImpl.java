@@ -1,38 +1,31 @@
 package cn.chuanwise.xiaoming.user;
 
 import cn.chuanwise.toolkit.sized.SizedCopyOnWriteArrayList;
-import cn.chuanwise.xiaoming.account.record.CommandRecord;
 import cn.chuanwise.xiaoming.contact.contact.ConsoleContact;
-import cn.chuanwise.xiaoming.contact.message.ConsoleMessage;
 import cn.chuanwise.xiaoming.attribute.AttributeType;
-import cn.chuanwise.xiaoming.recept.ConsoleReceptionTask;
+import cn.chuanwise.xiaoming.contact.message.Message;
+import cn.chuanwise.xiaoming.contact.message.MessageImpl;
+import cn.chuanwise.xiaoming.recept.ReceptionTask;
 import cn.chuanwise.xiaoming.recept.Receptionist;
-import cn.chuanwise.xiaoming.contact.message.ConsoleMessageImpl;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
-
-import java.util.List;
 
 /**
  * @author Chuanwise
  */
-@Data
-public class ConsoleXiaomingUserImpl extends XiaomingUserImpl<ConsoleContact, ConsoleMessage, ConsoleReceptionTask> implements ConsoleXiaomingUser {
+@Getter
+public class ConsoleXiaomingUserImpl extends XiaomingUserImpl<ConsoleContact> implements ConsoleXiaomingUser {
+    @Setter
     long code;
+
     final ConsoleContact contact;
-    final List<ConsoleMessage> recentMessages;
-    ConsoleReceptionTask receptionTask;
 
     public ConsoleXiaomingUserImpl(ConsoleContact contact) {
         super(contact.getXiaomingBot(), 0);
         this.contact = contact;
-        this.recentMessages = new SizedCopyOnWriteArrayList<>(getXiaomingBot().getConfiguration().getMaxRecentMessageBufferSize());
-    }
-
-    @Override
-    public ConsoleMessage buildMessage(MessageChain messages) {
-        return new ConsoleMessageImpl(this, messages);
     }
 
     public void setCode(long code) {
@@ -45,26 +38,9 @@ public class ConsoleXiaomingUserImpl extends XiaomingUserImpl<ConsoleContact, Co
     }
 
     @Override
-    public void onNextInput(ConsoleMessage message) {
-        final List<ConsoleMessage> list = getRecentMessages();
-        setAttribute(AttributeType.LAST, message);
-        list.add(message);
-
-        final Receptionist receptionist = getReceptionist();
-        receptionist.setGlobalRecentMessages(list);
-
-        synchronized (list) {
-            list.notifyAll();
-        }
-        synchronized (receptionist) {
-            receptionist.notifyAll();
-        }
-    }
-
-    @Override
-    public ConsoleMessage sendPrivateMessage(String message, Object... arguments) {
+    public Message sendPrivateMessage(String message, Object... arguments) {
         sendMessage(message, arguments);
         final MessageChain messages = MiraiCode.deserializeMiraiCode(format(message, arguments));
-        return new ConsoleMessageImpl(this, messages);
+        return new MessageImpl(xiaomingBot, messages);
     }
 }

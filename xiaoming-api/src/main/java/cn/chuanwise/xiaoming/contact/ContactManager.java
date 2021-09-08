@@ -1,27 +1,28 @@
 package cn.chuanwise.xiaoming.contact;
 
-import cn.chuanwise.toolkit.sized.SizedCopyOnWriteArrayList;
-import cn.chuanwise.toolkit.sized.SizedResidentConcurrentHashMap;
-import cn.chuanwise.utility.FunctionalUtility;
-import cn.chuanwise.utility.MapUtility;
+import cn.chuanwise.xiaoming.contact.message.Message;
+import cn.chuanwise.xiaoming.event.MessageEvent;
 import cn.chuanwise.xiaoming.group.GroupRecord;
 import cn.chuanwise.xiaoming.language.sentence.Sentence;
 import cn.chuanwise.xiaoming.object.ModuleObject;
-import cn.chuanwise.xiaoming.utility.InteractorUtility;
-import cn.chuanwise.xiaoming.contact.message.GroupMessage;
-import cn.chuanwise.xiaoming.contact.message.MemberMessage;
-import cn.chuanwise.xiaoming.contact.message.PrivateMessage;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.contact.contact.PrivateContact;
 import cn.chuanwise.xiaoming.contact.contact.MemberContact;
+import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
+import cn.chuanwise.xiaoming.user.MemberXiaomingUser;
+import cn.chuanwise.xiaoming.user.PrivateXiaomingUser;
+import cn.chuanwise.xiaoming.user.XiaomingUser;
 import net.mamoe.mirai.contact.NormalMember;
 import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public interface ContactManager extends ModuleObject {
     void clear();
+
+    List<MessageEvent> getRecentMessageEvents();
 
     PrivateContact getBotPrivateContact();
 
@@ -33,67 +34,89 @@ public interface ContactManager extends ModuleObject {
 
     MemberContact getMemberContact(GroupContact groupContact, NormalMember normalMember);
 
-    /** 私聊最近消息 */
-    Map<String, List<PrivateMessage>> getPrivateRecentMessages();
+    void onNextMessageEvent(MessageEvent messageEvent);
 
-    default PrivateMessage nextPrivateMessage(String accountTag, long timeout) {
-        return FunctionalUtility.supplyOrDefault(() -> InteractorUtility.waitLastElement(forPrivateMessages(accountTag), timeout), null);
+    Optional<MessageEvent> nextMessageEvent(long timeout, Predicate<MessageEvent> filter) throws InterruptedException;
+
+    default Optional<MessageEvent> nextMessageEvent(long timeout) throws InterruptedException {
+        return nextMessageEvent(timeout, e -> true);
     }
 
-    default List<PrivateMessage> forPrivateMessages(String accountTag) {
-        return MapUtility.getOrPutSupply(getPrivateRecentMessages(), accountTag,
-                () -> new SizedCopyOnWriteArrayList<>(getXiaomingBot().getConfiguration().getMaxRecentMessageBufferSize()));
+    default Optional<MessageEvent> nextGroupMessage(long code, long timeout) throws InterruptedException {
+        return nextMessageEvent(timeout, messageEvent -> {
+            final XiaomingUser user = messageEvent.getUser();
+            return user instanceof GroupXiaomingUser && ((GroupXiaomingUser) user).getGroupCode() == code;
+        });
     }
 
-
-    /** 群聊最近消息 */
-    default Map<String, List<GroupMessage>> getGroupRecentMessages() {
-        return MapUtility.getOrPutSupply(getGroupMemberRecentMessages(), "recorded",
-                () -> new SizedResidentConcurrentHashMap<>(getXiaomingBot().getConfiguration().getMaxRecentMessageBufferSize()));
+    default Optional<MessageEvent> nextGroupMessage(String tag, long timeout) throws InterruptedException {
+        return nextMessageEvent(timeout, messageEvent -> {
+            final XiaomingUser user = messageEvent.getUser();
+            return user instanceof GroupXiaomingUser && ((GroupXiaomingUser) user).getContact().hasTags(tag);
+        });
     }
 
-    default GroupMessage nextGroupMessage(String groupTag, long timeout) {
-        return FunctionalUtility.supplyOrDefault(() -> InteractorUtility.waitLastElement(forGroupMessages(groupTag), timeout), null);
+    default Optional<MessageEvent> nextGroupMemberMessage(long groupCode, long accountCode, long timeout) throws InterruptedException {
+        return nextMessageEvent(timeout, messageEvent -> {
+            final XiaomingUser user = messageEvent.getUser();
+            return user instanceof GroupXiaomingUser && ((GroupXiaomingUser) user).getGroupCode() == groupCode && user.getCode() == accountCode;
+        });
     }
 
-    default List<GroupMessage> forGroupMessages(String groupTag) {
-        return MapUtility.getOrPutSupply(getGroupRecentMessages(), groupTag,
-                () -> new SizedCopyOnWriteArrayList<>(getXiaomingBot().getConfiguration().getMaxRecentMessageBufferSize()));
+    default Optional<MessageEvent> nextGroupMemberMessage(String groupTag, String accountTag, long timeout) throws InterruptedException {
+        return nextMessageEvent(timeout, messageEvent -> {
+            final XiaomingUser user = messageEvent.getUser();
+            return user instanceof GroupXiaomingUser && ((GroupXiaomingUser) user).getContact().hasTag(groupTag) && user.hasTag(accountTag);
+        });
     }
 
-    /** 成员在群聊中的最近消息 */
-    Map<String, Map<String, List<GroupMessage>>> getGroupMemberRecentMessages();
-
-    default GroupMessage nextGroupMemberMessage(String groupTag, String accountTag, long timeout) {
-        return FunctionalUtility.supplyOrDefault(() -> InteractorUtility.waitLastElement(forGroupMemberMessages(groupTag, accountTag), timeout), null);
+    default Optional<MessageEvent> nextGroupMemberMessage(long groupCode, String accountTag, long timeout) throws InterruptedException {
+        return nextMessageEvent(timeout, messageEvent -> {
+            final XiaomingUser user = messageEvent.getUser();
+            return user instanceof GroupXiaomingUser && ((GroupXiaomingUser) user).getGroupCode() == groupCode && user.hasTag(accountTag);
+        });
     }
 
-    default List<GroupMessage> forGroupMemberMessages(String groupTag, String accountTag) {
-        final Map<String, List<GroupMessage>> groupMemberRecentMessages = MapUtility.getOrPutSupply(getGroupMemberRecentMessages(), groupTag,
-                () -> new SizedResidentConcurrentHashMap<>(getXiaomingBot().getConfiguration().getMaxRecentGroupMemberMessageBufferQuantity()));
-        return MapUtility.getOrPutSupply(groupMemberRecentMessages, accountTag,
-                () -> new SizedCopyOnWriteArrayList<>(getXiaomingBot().getConfiguration().getMaxRecentMessageBufferSize()));
+    default Optional<MessageEvent> nextGroupMemberMessage(String groupTag, long accountCode, long timeout) throws InterruptedException {
+        return nextMessageEvent(timeout, messageEvent -> {
+            final XiaomingUser user = messageEvent.getUser();
+            return user instanceof GroupXiaomingUser && ((GroupXiaomingUser) user).getContact().hasTag(groupTag) && user.getCode() == accountCode;
+        });
     }
 
-
-    /** 成员在群聊临时会话中的最近消息 */
-    Map<String, Map<String, List<MemberMessage>>> getMemberRecentMessages();
-
-    default MemberMessage nextMemberMessage(String groupTag, String accountTag, long timeout) {
-        return FunctionalUtility.supplyOrDefault(() -> InteractorUtility.waitLastElement(forMemberMessages(groupTag, accountTag), timeout), null);
+    default Optional<MessageEvent> nextPrivateMessage(long code, long timeout) throws InterruptedException {
+        return nextMessageEvent(timeout, messageEvent -> {
+            final XiaomingUser user = messageEvent.getUser();
+            return user instanceof PrivateXiaomingUser && user.getCode() == code;
+        });
     }
 
-    default List<MemberMessage> forMemberMessages(String groupTag, String accountTag) {
-        final Map<String, List<MemberMessage>> groupMemberRecentMessages = MapUtility.getOrPutSupply(getMemberRecentMessages(), groupTag,
-                () -> new SizedResidentConcurrentHashMap<>(getXiaomingBot().getConfiguration().getMaxRecentGroupMemberMessageBufferQuantity()));
-        return MapUtility.getOrPutSupply(groupMemberRecentMessages, accountTag, () -> new SizedCopyOnWriteArrayList<>(getXiaomingBot().getConfiguration().getMaxRecentMessageBufferSize()));
+    default Optional<MessageEvent> nextPrivateMessage(String tag, long timeout) throws InterruptedException {
+        return nextMessageEvent(timeout, messageEvent -> {
+            final XiaomingUser user = messageEvent.getUser();
+            return user instanceof PrivateXiaomingUser && user.hasTag(tag);
+        });
+    }
+
+    default Optional<MessageEvent> nextMemberMessage(long code, long timeout) throws InterruptedException {
+        return nextMessageEvent(timeout, messageEvent -> {
+            final XiaomingUser user = messageEvent.getUser();
+            return user instanceof MemberXiaomingUser && ((MemberXiaomingUser) user).getGroupCode() == code;
+        });
+    }
+
+    default Optional<MessageEvent> nextMemberMessage(String tag, long timeout) throws InterruptedException {
+        return nextMessageEvent(timeout, messageEvent -> {
+            final XiaomingUser user = messageEvent.getUser();
+            return user instanceof MemberXiaomingUser && ((MemberXiaomingUser) user).getGroupContact().hasTag(tag);
+        });
     }
 
     default boolean sendGroupMessage(long group, String message, Object... arguments) {
         message = getXiaomingBot().getLanguageManager().formatAdditional(message, variable -> null, arguments);
         final GroupContact groupContact = getGroupContact(group);
         if (Objects.nonNull(groupContact)) {
-            groupContact.send(message);
+            groupContact.sendMessage(message);
             return true;
         } else {
             return false;
@@ -103,7 +126,7 @@ public interface ContactManager extends ModuleObject {
     default boolean sendGroupMessage(long group, MessageChain messages) {
         final GroupContact groupContact = getGroupContact(group);
         if (Objects.nonNull(groupContact)) {
-            groupContact.send(messages);
+            groupContact.sendMessage(messages);
             return true;
         } else {
             return false;
@@ -119,7 +142,7 @@ public interface ContactManager extends ModuleObject {
             for (GroupRecord groupRecord : groupRecords) {
                 final GroupContact contact = groupRecord.getContact();
                 if (Objects.nonNull(contact)) {
-                    contact.send(message);
+                    contact.sendMessage(message);
                 }
             }
             return true;
@@ -134,7 +157,7 @@ public interface ContactManager extends ModuleObject {
             for (GroupRecord groupRecord : groupRecords) {
                 final GroupContact contact = groupRecord.getContact();
                 if (Objects.nonNull(contact)) {
-                    contact.send(getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
+                    contact.sendMessage(getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
                 }
             }
             return true;
@@ -149,7 +172,7 @@ public interface ContactManager extends ModuleObject {
             for (GroupRecord groupRecord : groupRecords) {
                 final GroupContact contact = groupRecord.getContact();
                 if (Objects.nonNull(contact)) {
-                    contact.send(messages);
+                    contact.sendMessage(messages);
                 }
             }
             return true;
@@ -160,7 +183,7 @@ public interface ContactManager extends ModuleObject {
         message = getXiaomingBot().getLanguageManager().formatAdditional(message, variable -> null, arguments);
         final PrivateContact privateContact = getPrivateContact(code);
         if (Objects.nonNull(privateContact)) {
-            privateContact.send(message);
+            privateContact.sendMessage(message);
             return true;
         } else {
             return false;
@@ -170,7 +193,7 @@ public interface ContactManager extends ModuleObject {
     default boolean sendPrivateMessage(long code, Sentence sentence, Function<String, Object> externalGetter, Object... arguments) {
         final PrivateContact privateContact = getPrivateContact(code);
         if (Objects.nonNull(privateContact)) {
-            privateContact.send(getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
+            privateContact.sendMessage(getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
             return true;
         } else {
             return false;
@@ -180,7 +203,7 @@ public interface ContactManager extends ModuleObject {
     default boolean sendPrivateMessage(long code, MessageChain messages) {
         final PrivateContact privateContact = getPrivateContact(code);
         if (Objects.nonNull(privateContact)) {
-            privateContact.send(messages);
+            privateContact.sendMessage(messages);
             return true;
         } else {
             return false;
@@ -193,7 +216,7 @@ public interface ContactManager extends ModuleObject {
         if (Objects.nonNull(groupContact)) {
             final MemberContact member = groupContact.getMember(code);
             if (Objects.nonNull(member)) {
-                member.send(message);
+                member.sendMessage(message);
                 return true;
             }
         }
@@ -205,7 +228,7 @@ public interface ContactManager extends ModuleObject {
         if (Objects.nonNull(groupContact)) {
             final MemberContact member = groupContact.getMember(code);
             if (Objects.nonNull(member)) {
-                member.send(getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
+                member.sendMessage(getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
                 return true;
             }
         }
@@ -217,7 +240,7 @@ public interface ContactManager extends ModuleObject {
         if (Objects.nonNull(groupContact)) {
             final MemberContact member = groupContact.getMember(code);
             if (Objects.nonNull(member)) {
-                member.send(messages);
+                member.sendMessage(messages);
                 return true;
             }
         }

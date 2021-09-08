@@ -2,17 +2,20 @@ package cn.chuanwise.xiaoming.contact.contact;
 
 import cn.chuanwise.utility.ArgumentUtility;
 import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.xiaoming.contact.message.ConsoleMessage;
+import cn.chuanwise.xiaoming.attribute.AttributeType;
 import cn.chuanwise.xiaoming.contact.message.Message;
+import cn.chuanwise.xiaoming.event.MessageEvent;
+import cn.chuanwise.xiaoming.user.ConsoleXiaomingUser;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ScheduledFuture;
 
-public interface ConsoleContact extends XiaomingContact<ConsoleMessage, Friend> {
+public interface ConsoleContact extends XiaomingContact<Friend> {
     @Override
     default Friend getMiraiContact() {
         return getXiaomingBot().getMiraiBot().getAsFriend();
@@ -34,34 +37,15 @@ public interface ConsoleContact extends XiaomingContact<ConsoleMessage, Friend> 
     }
 
     @Override
-    default String getCompleteName() {
+    default String getAliasAndCode() {
         return "后台";
     }
 
-    default ConsoleMessage atReply(Message quote, String message) {
-//        return atReply(quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
-        return null;
-    }
-
-    default ConsoleMessage atReply(Message quote, MessageChain message) {
-        return reply(quote, quote.getSender().getAt().plus(" ").plus(message));
-    }
-
-    default ConsoleMessage atReply(Message quote, ConsoleMessage message) {
-        return atReply(quote, message.getMessageChain());
-    }
-
-    default ScheduledFuture<ConsoleMessage> atReplyLater(long delay, Message quote, String message) {
-//        return atReplyLater(delay, quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)));
-        return null;
-    }
-
-    default ScheduledFuture<ConsoleMessage> atReplyLater(long delay, Message quote, MessageChain message) {
-        return replyLater(delay, quote, quote.getSender().getAt().plus(" ").plus(message));
-    }
-
-    default ScheduledFuture<ConsoleMessage> atReplyLater(long delay, Message quote, ConsoleMessage message) {
-        return replyLater(delay, quote, message.getMessageChain());
+    @Override
+    default Optional<Message> nextMessage(long timeout) throws InterruptedException {
+        return getXiaomingBot().getContactManager()
+                .nextMessageEvent(timeout, messageEvent -> messageEvent.getUser() instanceof ConsoleXiaomingUser)
+                .map(MessageEvent::getMessage);
     }
 
     @Override

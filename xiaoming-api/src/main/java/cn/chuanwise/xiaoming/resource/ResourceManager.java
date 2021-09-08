@@ -17,8 +17,8 @@ import java.util.Map;
 import java.util.Objects;
 
 public interface ResourceManager extends ModuleObject, Preservable<File> {
-    default <T extends Message> T useResources(T message) {
-        message.setMessageChain(useResources(message.getMessageChain(), message.getContact().getMiraiContact()));
+    default Message useResources(Message message, XiaomingContact contact) {
+        message.setMessageChain(useResources(message.getMessageChain(), contact.getMiraiContact()));
         return message;
     }
 

@@ -1,5 +1,6 @@
 package cn.chuanwise.xiaoming.bot;
 
+import cn.chuanwise.api.SimpleSetableStatusHolder;
 import cn.chuanwise.exception.UnsupportedVersionException;
 import cn.chuanwise.toolkit.preservable.Preservable;
 import cn.chuanwise.toolkit.preservable.file.FileLoader;
@@ -7,11 +8,12 @@ import cn.chuanwise.toolkit.preservable.file.loader.JsonFileLoader;
 import cn.chuanwise.toolkit.serialize.serializer.Serializer;
 import cn.chuanwise.toolkit.serialize.serializer.json.JsonSerializer;
 import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.utility.FunctionalUtility;
 import cn.chuanwise.utility.ObjectUtility;
 import cn.chuanwise.utility.StreamUtility;
 import cn.chuanwise.xiaoming.account.AccountManager;
 import cn.chuanwise.xiaoming.classloader.XiaomingClassLoader;
-import cn.chuanwise.xiaoming.client.CenterClientManager;
+import cn.chuanwise.xiaoming.client.CenterClient;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.configuration.Statistician;
 import cn.chuanwise.xiaoming.contact.ContactManager;
@@ -89,34 +91,19 @@ import java.util.regex.Pattern;
  * 小明机器人核心
  * @author Chuanwise
  */
-@NoArgsConstructor
 @Getter
 @Setter
-public class XiaomingBotImpl implements XiaomingBot {
+public class XiaomingBotImpl
+        extends SimpleSetableStatusHolder<XiaomingBot.Status>
+        implements XiaomingBot {
     private static final String LOGGER_NAME = "xiaoming-core";
     Logger logger = LoggerFactory.getLogger(LOGGER_NAME);
-
-    Status status = Status.DISABLED;
-    Object statusConditionalVariable = new Object();
-
-    @Override
-    public Status nextStatus(long timeout) throws InterruptedException {
-        switch (ObjectUtility.wait(statusConditionalVariable, timeout)) {
-            case INTERRUPT:
-                throw new InterruptedException();
-            case TIMEOUT:
-                return null;
-            case NOTIFY:
-                return status;
-            default:
-                throw new UnsupportedVersionException();
-        }
-    }
 
     /** mirai 机器人引用 */
     Bot miraiBot;
 
     public XiaomingBotImpl(Bot miraiBot) {
+        super(Status.DISABLED);
         setMiraiBot(miraiBot);
     }
 
@@ -255,7 +242,9 @@ public class XiaomingBotImpl implements XiaomingBot {
             checkIfCanDeleteAndLog.accept(new File(configurationDirectory, "language"), "语言文件夹");
 
             final String[] languageFileNames = ("account\n" +
+                    "apply\n" +
                     "base\n" +
+                    "client\n" +
                     "configuration\n" +
                     "core\n" +
                     "group\n" +
@@ -263,6 +252,7 @@ public class XiaomingBotImpl implements XiaomingBot {
                     "license\n" +
                     "permission\n" +
                     "plugin\n" +
+                    "report\n" +
                     "resource").split(Pattern.quote("\n"));
 
             for (String languageFileName : languageFileNames) {
@@ -296,7 +286,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         });
 
         initializer.put("centerClientManager", () -> {
-            centerClientManager = new CenterClientManager(this);
+            centerClient = new CenterClient(this);
         });
 
         initializer.put("permissionManager", () -> {
@@ -371,11 +361,11 @@ public class XiaomingBotImpl implements XiaomingBot {
             contactManager = new ContactManagerImpl(this);
         });
 
-        initializer.put("consoleXiaomingUser", () -> {
+        initializer.put("console", () -> {
             consoleInputThread = new ConsoleInputThread(this);
             consoleXiaomingUser = new ConsoleXiaomingUserImpl(new ConsoleContactImpl(this, consoleInputThread));
 
-            consoleXiaomingUser.setReceptionist(receptionistManager.getBotReceptionist());
+            consoleXiaomingUser.setReceptionist(receptionistManager.getReceptionist(0));
             consoleInputThread.setUser(consoleXiaomingUser);
 
             scheduler.run(consoleInputThread);
@@ -429,7 +419,6 @@ public class XiaomingBotImpl implements XiaomingBot {
         if (configuration.isEnablePreviewFunctions()) {
             interactorManager.registerInteractors(new PreviewFunctionInteractors(), null);
         }
-
 //        if (configuration.isDebug()) {
             interactorManager.registerInteractors(new DebugInteractors(), null);
 //        }
@@ -441,6 +430,7 @@ public class XiaomingBotImpl implements XiaomingBot {
         interactorManager.registerInteractors(new ReportInteractors(), null);
         interactorManager.registerInteractors(new CallLimitInteractors(), null);
         interactorManager.registerInteractors(new CoreInteractors(), null);
+        interactorManager.registerInteractors(new CenterInteractors(), null);
         interactorManager.registerInteractors(new ConfigurationInteractors(), null);
         interactorManager.registerInteractors(new PermissionInteractors(), null);
         interactorManager.registerInteractors(new GroupRecordInteractors(), null);
@@ -449,7 +439,7 @@ public class XiaomingBotImpl implements XiaomingBot {
 
         // 注册内核监听器
         eventManager.registerListeners(receptionistManager, null);
-        eventManager.registerListeners(new CoreListener(this), null);
+        eventManager.registerListeners(new CoreListener(), null);
 
         // 设置调用限制
         userCallLimitManager.getGroupCallLimiter().setConfiguration(configuration.getGroupCallConfig());
@@ -528,10 +518,10 @@ public class XiaomingBotImpl implements XiaomingBot {
         getLogger().info("正在启动小明机器人……");
         translateArguments();
 
-        initialize();
-
         // 登录机器人
         miraiBot.login();
+
+        initialize();
 
         // 将 mirai 的事件转发到小明的中央消息处理器
         final EventChannel<BotEvent> eventChannel = miraiBot.getEventChannel();
@@ -594,7 +584,7 @@ public class XiaomingBotImpl implements XiaomingBot {
     UserCallLimitManager userCallLimitManager;
 
     /** 中央服务器客户端 */
-    CenterClientManager centerClientManager;
+    CenterClient centerClient;
 
     /**
      * 小明基本设置
@@ -712,14 +702,17 @@ public class XiaomingBotImpl implements XiaomingBot {
         statistician.onClose();
 
         // 关闭中心服务器
-        if (centerClientManager.isConnected()) {
+        if (centerClient.isConnected()) {
             try {
                 getLogger().info("正在断开和小明中心服务器的连接");
-                centerClientManager.disconnect();
+                centerClient.disconnectManually();
             } catch (Exception exception) {
                 getLogger().info("断开和小明中心服务器的连接时出现异常", exception);
             }
         }
+
+        // 如果正在输入，打断
+        FunctionalUtility.runIfArgumentNonNull(Thread::interrupt, consoleInputThread.getThread());
 
         // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
         scheduler.stopNow();

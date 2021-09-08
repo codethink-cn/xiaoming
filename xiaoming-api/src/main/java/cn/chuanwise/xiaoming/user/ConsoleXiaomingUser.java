@@ -3,14 +3,12 @@ package cn.chuanwise.xiaoming.user;
 import cn.chuanwise.xiaoming.account.record.CommandRecord;
 import cn.chuanwise.xiaoming.account.record.PrivateCommandRecord;
 import cn.chuanwise.xiaoming.contact.contact.ConsoleContact;
-import cn.chuanwise.xiaoming.contact.message.ConsoleMessage;
+import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.object.ModuleObject;
-import cn.chuanwise.xiaoming.recept.ConsoleReceptionTask;
-import net.mamoe.mirai.message.data.MessageChain;
 
-public interface ConsoleXiaomingUser extends ModuleObject, XiaomingUser<ConsoleContact, ConsoleMessage, ConsoleReceptionTask> {
-    void setReceptionTask(ConsoleReceptionTask receptionTask);
+import java.util.Optional;
 
+public interface ConsoleXiaomingUser extends ModuleObject, XiaomingUser<ConsoleContact> {
     @Override
     default CommandRecord buildCommandRecord(String command) {
         return new PrivateCommandRecord(command);
@@ -27,21 +25,24 @@ public interface ConsoleXiaomingUser extends ModuleObject, XiaomingUser<ConsoleC
     }
 
     @Override
-    default void sendMessage(String message, Object... arguments) {
+    default Optional<Message> sendMessage(String message, Object... arguments) {
         final String replacedMessage = format(message, arguments);
         getLogger().info(replacedMessage);
+        return Optional.empty();
     }
 
     @Override
-    default void sendError(String message, Object... arguments) {
+    default Optional<Message> sendError(String message, Object... arguments) {
         final String replacedMessage = format(message, arguments);
         getLogger().error(replacedMessage);
+        return Optional.empty();
     }
 
     @Override
-    default void sendWarning(String message, Object... arguments) {
+    default Optional<Message> sendWarning(String message, Object... arguments) {
         final String replacedMessage = format(message, arguments);
         getLogger().warn(replacedMessage);
+        return Optional.empty();
     }
 
     @Override

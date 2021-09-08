@@ -1,20 +1,15 @@
 package cn.chuanwise.xiaoming.user;
 
-import cn.chuanwise.xiaoming.account.record.CommandRecord;
 import cn.chuanwise.xiaoming.account.record.GroupCommandRecord;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.contact.contact.MemberContact;
-import cn.chuanwise.xiaoming.contact.message.GroupMessage;
-import cn.chuanwise.xiaoming.contact.message.MemberMessage;
 import cn.chuanwise.xiaoming.contact.message.Message;
-import cn.chuanwise.xiaoming.recept.GroupReceptionTask;
 import cn.chuanwise.xiaoming.group.GroupRecord;
-import java.util.concurrent.ScheduledFuture;
 
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
 
-public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessage, GroupReceptionTask> {
+public interface GroupXiaomingUser extends XiaomingUser<GroupContact> {
     MemberContact getMemberContact();
 
     @Override
@@ -46,70 +41,34 @@ public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessa
         return getContact().getCodeString();
     }
 
-    void setReceptionTask(GroupReceptionTask receptionTask);
-
     default GroupRecord getGroupRecord() {
         return getContact().getGroupRecord();
     }
 
-    default GroupMessage atReply(Message quote, String message) {
+
+    default Message atReply(Message quote, String message) {
         return atReply(quote, MiraiCode.deserializeMiraiCode(message));
     }
 
-    default GroupMessage atReply(Message quote, GroupMessage message) {
+    default Message atReply(Message quote, Message message) {
         return atReply(quote, message.getMessageChain());
     }
 
-    default GroupMessage atReply(Message quote, MessageChain message) {
-        return getContact().atReply(quote, message);
+    default Message atReply(Message quote, MessageChain message) {
+        return getContact().atReply(quote, getCode(), message);
     }
 
-    default GroupMessage sendGroupMessage(GroupMessage message) {
+
+    default Message sendGroupMessage(Message message) {
         return sendGroupMessage(message.getMessageChain());
     }
 
-    default GroupMessage sendGroupMessage(MessageChain message) {
-        return getContact().send(message);
+    default Message sendGroupMessage(MessageChain message) {
+        return getContact().sendMessage(message);
     }
 
-    default GroupMessage sendGroupMessage(String message) {
+    default Message sendGroupMessage(String message) {
         return sendGroupMessage(MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
-    }
-
-    default ScheduledFuture<GroupMessage> atReplyLater(long delay, Message quote, MessageChain message) {
-        return getContact().atReplayLater(delay, quote, message);
-    }
-
-    default ScheduledFuture<GroupMessage> atReplyLater(long delay, Message quote, GroupMessage message) {
-        return atReplyLater(delay, quote, message.getMessageChain());
-    }
-
-    default ScheduledFuture<GroupMessage> atReplyLater(long delay, Message quote, String message) {
-        return atReplyLater(delay, quote, MiraiCode.deserializeMiraiCode(message));
-    }
-
-    default GroupMessage atReplyLatest(String message) {
-        return atReply(getLatestMessage(), MiraiCode.deserializeMiraiCode(message));
-    }
-
-    default GroupMessage atReplyLatest(GroupMessage message) {
-        return atReply(getLatestMessage(), message.getMessageChain());
-    }
-
-    default GroupMessage atReplyLatest(MessageChain message) {
-        return getContact().atReply(getLatestMessage(), message);
-    }
-
-    default ScheduledFuture<GroupMessage> atReplyLatestLater(long delay, MessageChain message) {
-        return getContact().atReplayLater(delay, getLatestMessage(), message);
-    }
-
-    default ScheduledFuture<GroupMessage> atReplyLatestLater(long delay, GroupMessage message) {
-        return atReplyLatestLater(delay, message.getMessageChain());
-    }
-
-    default ScheduledFuture<GroupMessage> atReplyLatestLater(long delay, String message) {
-        return atReplyLatestLater(delay, MiraiCode.deserializeMiraiCode(message));
     }
 
     @Override
@@ -121,12 +80,12 @@ public interface GroupXiaomingUser extends XiaomingUser<GroupContact, GroupMessa
         getMemberContact().mute(timeMillis);
     }
 
-    default void lift() {
-        getMemberContact().lift();
+    default void unmute() {
+        getMemberContact().unmute();
     }
 
     @Override
-    default MemberMessage sendPrivateMessage(String message, Object... arguments) {
-        return getMemberContact().send(MiraiCode.deserializeMiraiCode(format(message, arguments)));
+    default Message sendPrivateMessage(String message, Object... arguments) {
+        return getMemberContact().sendMessage(MiraiCode.deserializeMiraiCode(format(message, arguments)));
     }
 }

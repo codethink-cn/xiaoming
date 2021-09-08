@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.tag;
 
-import java.util.Arrays;
+import java.beans.Transient;
 import java.util.Set;
 
 public interface TagHolder {
@@ -40,15 +40,15 @@ public interface TagHolder {
     }
 
     default boolean isOriginalTag(String tag) {
-        return buildOriginalTags().contains(tag);
+        return originalTags().contains(tag);
     }
 
-    Set<String> buildOriginalTags();
+    Set<String> originalTags();
 
     Set<String> getTags();
 
     default void flushTags() {
-        getTags().addAll(buildOriginalTags());
+        getTags().addAll(originalTags());
         getTags().add(RECORDED);
     }
 }

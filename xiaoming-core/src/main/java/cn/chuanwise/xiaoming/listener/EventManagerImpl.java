@@ -3,7 +3,7 @@ package cn.chuanwise.xiaoming.listener;
 import cn.chuanwise.utility.CheckUtility;
 import cn.chuanwise.utility.MapUtility;
 import cn.chuanwise.utility.ReflectUtility;
-import cn.chuanwise.xiaoming.annotation.EventHandler;
+import cn.chuanwise.xiaoming.annotation.EventListener;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.event.Listeners;
 import cn.chuanwise.xiaoming.object.PluginObject;
@@ -49,13 +49,13 @@ public class EventManagerImpl extends ModuleObjectImpl implements EventManager {
         }
         listeners.onRegister();
         ReflectUtility.forEachDeclaredMethod(listeners.getClass(), (c, method) -> {
-            final EventHandler[] handlers = method.getAnnotationsByType(EventHandler.class);
+            final EventListener[] handlers = method.getAnnotationsByType(EventListener.class);
             final Parameter[] parameters = method.getParameters();
             if (handlers.length == 0 || parameters.length != 1) {
                 return;
             }
 
-            final EventHandler handler = handlers[0];
+            final EventListener handler = handlers[0];
             final Parameter parameter = parameters[0];
 
             // 如果监听函数的参数不是 Event 则免谈

@@ -72,10 +72,10 @@ public class ConfigurationImpl extends FilePreservableImpl implements Configurat
     Set<String> clearCallPrefixes = new LinkedHashSet<>();
 
     /** 和用户 */
-    long maxUserInputWaitTime = TimeUnit.MINUTES.toMillis(10);
-    long maxUserGlobalInputWaitTime = TimeUnit.MINUTES.toMillis(10);
-    long maxUserPrivateInputWaitTime = TimeUnit.MINUTES.toMillis(10);
-    long maxUserGroupInputWaitTime = TimeUnit.MINUTES.toMillis(10);
+    long maxUserInputTimeout = TimeUnit.MINUTES.toMillis(10);
+    long maxUserGlobalInputTimeout = TimeUnit.MINUTES.toMillis(10);
+    long maxUserPrivateInputTimeout = TimeUnit.MINUTES.toMillis(10);
+    long maxUserGroupInputTimeout = TimeUnit.MINUTES.toMillis(10);
 
     long optimizePeriod = TimeUnit.MINUTES.toMillis(10);
     long savePeriod = TimeUnit.MINUTES.toMillis(30);
@@ -88,15 +88,10 @@ public class ConfigurationImpl extends FilePreservableImpl implements Configurat
     String blockPluginTagPrefix = "plugin.block.";
     String quietModeBypassPermission = "quiet.bypass";
 
-    int maxRecentMessageBufferSize = 10;
-    int maxRecentGroupMessageBufferQuantity = 10;
-    int maxLoadedAccountQuantity = 10;
-    int maxUserRecentGroupMessageBufferQuantity = 3;
-    int maxRecentGroupMemberMessageBufferQuantity = 10;
-    int maxRecentPrivateMessageBufferQuantity = 3;
+    int maxMemberUserQuantityInReceptionist = 3;
     int maxGroupUserQuantityInReceptionist = 10;
-    int maxMemberUserQuantityInReceptionist = 5;
-    int maxUserPropertyQuantity = 20;
-    int maxRecentPrivateMessageBufferSize = 10;
+    int maxRecentMessageBufferSize = 10;
+    int maxLoadedAccountQuantity = 10;
+    int maxUserAttributeQuantity = 20;
     int maxReceptionistQuantity = 50;
 }

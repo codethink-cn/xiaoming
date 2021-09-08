@@ -1,23 +1,28 @@
 package cn.chuanwise.xiaoming.contact.contact;
 
 import cn.chuanwise.xiaoming.account.Account;
+import cn.chuanwise.xiaoming.event.MessageEvent;
 import cn.chuanwise.xiaoming.group.GroupRecord;
-import cn.chuanwise.xiaoming.contact.message.MemberMessage;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.user.MemberXiaomingUser;
 import net.mamoe.mirai.contact.MemberPermission;
 import net.mamoe.mirai.contact.NormalMember;
 import net.mamoe.mirai.data.UserProfile;
-import net.mamoe.mirai.message.code.MiraiCode;
-import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.QuoteReply;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
-public interface MemberContact extends XiaomingContact<MemberMessage, NormalMember> {
+public interface MemberContact extends XiaomingContact<NormalMember> {
+    @Override
+    default Optional<Message> nextMessage(long timeout) throws InterruptedException {
+        return getXiaomingBot()
+                .getContactManager()
+                .nextMemberMessage(getCode(), timeout)
+                .map(MessageEvent::getMessage);
+    }
+
     default Account getAccount() {
         return getXiaomingBot().getAccountManager().getAccount(getCode());
     }
@@ -33,8 +38,8 @@ public interface MemberContact extends XiaomingContact<MemberMessage, NormalMemb
     }
 
     @Override
-    default String getCompleteName() {
-        return "「" + getGroupContact().getCompleteName() + "」" + getName() + "（" + getCodeString() + "）";
+    default String getAliasAndCode() {
+        return "「" + getGroupContact().getAliasAndCode() + "」" + getName() + "（" + getCodeString() + "）";
     }
 
     @Override
@@ -63,7 +68,7 @@ public interface MemberContact extends XiaomingContact<MemberMessage, NormalMemb
         getMiraiContact().mute(((int) TimeUnit.MILLISECONDS.toSeconds(timeMillis)));
     }
 
-    default void lift() {
+    default void unmute() {
         this.getMiraiContact().unmute();
     }
 
@@ -117,24 +122,8 @@ public interface MemberContact extends XiaomingContact<MemberMessage, NormalMemb
         return this.getMiraiContact().queryProfile();
     }
 
-    default MemberMessage replyGroup(Message quote, String message) {
-        return replyGroup(quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
-    }
-
-    default MemberMessage replyGroup(Message quote, MessageChain message) {
-        return send(new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(message));
-    }
-
-    default ScheduledFuture<MemberMessage> replyGroupLater(long delay, Message quote, String message) {
-        return replyGroupLater(delay, quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
-    }
-
-    default ScheduledFuture<MemberMessage> replyGroupLater(long delay, Message quote, MessageChain message) {
-        return sendLater(delay, new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(message));
-    }
-
     default MemberXiaomingUser getUser() {
-        return getXiaomingBot().getReceptionistManager().getReceptionist(getCode()).forMember(getGroupCode());
+        return getXiaomingBot().getReceptionistManager().getReceptionist(getCode()).getMemberXiaomingUser(getGroupCode());
     }
 
     @Override

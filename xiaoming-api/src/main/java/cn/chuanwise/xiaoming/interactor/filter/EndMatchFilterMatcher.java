@@ -15,7 +15,7 @@ public class EndMatchFilterMatcher extends RegexFilterMatcher {
     }
 
     @Override
-    public <M extends Message> boolean apply(XiaomingUser<?, M, ?> user, M message) {
+    public boolean apply(XiaomingUser user, Message message) {
         final String serialize = message.serialize();
         final Matcher matcher = pattern.matcher(serialize);
         return matcher.find() && matcher.end() == serialize.length();

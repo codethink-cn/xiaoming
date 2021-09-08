@@ -1,15 +1,13 @@
 package cn.chuanwise.xiaoming.interactor;
 
-import cn.chuanwise.toolkit.value.container.SimpleValueContainer;
 import cn.chuanwise.toolkit.value.container.ValueContainer;
 import cn.chuanwise.utility.CollectionUtility;
 import cn.chuanwise.utility.ReflectUtility;
 import cn.chuanwise.utility.ThrowableUtility;
-import cn.chuanwise.xiaoming.annotation.Name;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.center.content.ErrorReport;
 import cn.chuanwise.xiaoming.center.content.GroupErrorReport;
-import cn.chuanwise.xiaoming.client.CenterClientManager;
+import cn.chuanwise.xiaoming.client.CenterClient;
 import cn.chuanwise.xiaoming.interactor.caughter.InteractorThrowableCaughter;
 import cn.chuanwise.xiaoming.interactor.caughter.InteractorThrowableCaughterHandler;
 import cn.chuanwise.xiaoming.interactor.context.InteractorContext;
@@ -30,7 +28,6 @@ import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.SingleMessage;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
 
 public interface InteractorManager extends ModuleObject {
@@ -40,11 +37,9 @@ public interface InteractorManager extends ModuleObject {
      * @return 是否交互成功
      * @throws Exception 交互期间抛出的异常
      */
-    <M extends Message> boolean interactIf(XiaomingUser<?, M, ?> user, M message, Predicate<InteractorHandler> filter);
+    boolean interactIf(XiaomingUser user, Message message, Predicate<InteractorHandler> filter);
 
-    default boolean interactIf(XiaomingUser user, MessageChain messages, Predicate<InteractorHandler> filter) {
-        return interactIf(user, user.buildMessage(messages), filter);
-    }
+    boolean interactIf(XiaomingUser user, MessageChain messages, Predicate<InteractorHandler> filter);
 
     default boolean interactIf(XiaomingUser user, String message, Predicate<InteractorHandler> filter) {
         return interactIf(user, MiraiCode.deserializeMiraiCode(message), filter);
@@ -54,7 +49,7 @@ public interface InteractorManager extends ModuleObject {
         return interactIf(user, MiraiCodeUtility.asMessageChain(singleMessage), filter);
     }
 
-    default <M extends Message> boolean interact(XiaomingUser<?, M, ?> user, M message) {
+    default boolean interact(XiaomingUser user, Message message) {
         return interactIf(user, message, null);
     }
 
@@ -188,24 +183,21 @@ public interface InteractorManager extends ModuleObject {
             getLogger().error("和用户 " + user.getCompleteName() + " 交互时出现异常", throwable);
             getXiaomingBot().getReportMessageManager().addThrowableMessage(user, throwable);
 
-            final List<? extends Message> recentMessages = user.getRecentMessages();
-            final List<String> serializedMessages = CollectionUtility.addTo(recentMessages, new ArrayList<>(recentMessages.size()), Message::serialize);
-
-            final CenterClientManager clientManager = getXiaomingBot().getCenterClientManager();
-            if (clientManager.isConnected()) {
+            final CenterClient centerClient = getXiaomingBot().getCenterClient();
+            if (centerClient.isConnected()) {
                 if (user instanceof GroupXiaomingUser) {
-                    clientManager.sendGroupErrorReport(new GroupErrorReport(ErrorReport.XiaomingStatus.valueOf(getXiaomingBot().getStatus().toString()),
+                    centerClient.sendGroupErrorReport(new GroupErrorReport(ErrorReport.XiaomingStatus.valueOf(getXiaomingBot().getStatus().toString()),
                             System.currentTimeMillis(),
                             ((GroupXiaomingUser) user).getGroupCode(),
                             user.getCode(),
-                            serializedMessages,
+                            context.getMessage().serialize(),
                             ThrowableUtility.writeStackTraces(throwable)
                             ));
                 } else {
-                    clientManager.sendErrorReport(new ErrorReport(ErrorReport.XiaomingStatus.valueOf(getXiaomingBot().getStatus().toString()),
+                    centerClient.sendErrorReport(new ErrorReport(ErrorReport.XiaomingStatus.valueOf(getXiaomingBot().getStatus().toString()),
                             System.currentTimeMillis(),
                             user.getCode(),
-                            serializedMessages,
+                            context.getMessage().serialize(),
                             ThrowableUtility.writeStackTraces(throwable)
                     ));
                 }

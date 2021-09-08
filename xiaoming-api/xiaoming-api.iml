@@ -12,11 +12,6 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Maven: org.jline:jline:3.20.0" level="project" />
-    <orderEntry type="library" name="Maven: net.mamoe:mirai-core-jvm:2.6.7" level="project" />
-    <orderEntry type="library" name="Maven: net.mamoe:mirai-core-api-jvm:2.6.7" level="project" />
-    <orderEntry type="library" scope="RUNTIME" name="Maven: net.mamoe:mirai-core-utils-jvm:2.6.7" level="project" />
-    <orderEntry type="library" scope="PROVIDED" name="Maven: org.projectlombok:lombok:1.18.20" level="project" />
-    <orderEntry type="library" name="Maven: org.jline:jline:3.20.0" level="project" />
     <orderEntry type="library" name="Maven: cn.chuanwise:chuanwise-toolkit-implement:2.0" level="project" />
     <orderEntry type="library" name="Maven: cn.chuanwise:chuanwise-toolkit-api:2.0" level="project" />
     <orderEntry type="library" name="Maven: com.alibaba:fastjson:1.2.75" level="project" />

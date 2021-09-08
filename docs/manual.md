@@ -118,10 +118,10 @@ grant <QQ> *
 |`enableLicense`|`boolean`|是否启动小明使用协议|默认关闭。如果开启，用户首次使用小明时小明会询问是否同意一个协议（内容自定），只有同意了的用户才能和机器人交互。
 |`enableClearCall`|`boolean`|是否启动明确调用。明确调用就是规定小明需要响应的信息的开头，小明未来只会响应这些字符串开头的信息|
 |`callPrefixs`|集合|只有`enableClearCall`为`true`时才生效|
-|`maxUserInputWaitTime`|`long`|在等待用户的下一次输入时，默认最长等待多久就放弃|
-|`maxUserGroupInputWaitTime`|`long`|在等待用户的下一次群聊输入时，默认最长等待多久就放弃|
-|`maxUserPrivateInputWaitTime`|`long`|在等待用户的下一次私聊输入时，默认最长等待多久就放弃|
-|`maxUserGlobalInputWaitTime`|`long`|在等待用户的下一次全局输入时，默认最长等待多久就放弃|
+|`maxUserInputTimeout`|`long`|在等待用户的下一次输入时，默认最长等待多久就放弃|
+|`maxUserGroupInputTimeout`|`long`|在等待用户的下一次群聊输入时，默认最长等待多久就放弃|
+|`maxUserPrivateInputTimeout`|`long`|在等待用户的下一次私聊输入时，默认最长等待多久就放弃|
+|`maxUserGlobalInputTimeout`|`long`|在等待用户的下一次全局输入时，默认最长等待多久就放弃|
 |`optimizePeriod`|`long`|自动优化自身性能的周期
 |`savePeriod`|`long`|自动保存需要保存的文件的周期
 

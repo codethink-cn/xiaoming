@@ -4,8 +4,8 @@ import cn.chuanwise.exception.UnsupportedVersionException;
 import cn.chuanwise.utility.ObjectUtility;
 import cn.chuanwise.utility.StaticUtility;
 import cn.chuanwise.utility.StringUtility;
-import cn.chuanwise.xiaoming.exception.InteractorTimeoutException;
-import cn.chuanwise.xiaoming.exception.ReceptCancelledException;
+import cn.chuanwise.xiaoming.exception.InteractInterrtuptedException;
+import cn.chuanwise.xiaoming.exception.InteractExitedException;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 
@@ -65,7 +65,7 @@ public class InteractorUtility extends StaticUtility {
                 showPageInfo = true;
 
                 // 选择翻页等操作
-                final String nextInput = user.nextInput().serialize();
+                final String nextInput = user.nextMessageOrExit().serialize();
 
                 // 第 X 页
                 final Matcher nextMatcher = PAGE.matcher(nextInput);
@@ -206,14 +206,14 @@ public class InteractorUtility extends StaticUtility {
                     showPageInfo = true;
 
                     // 选择翻页等操作
-                    final String nextInput = user.nextInput().serialize();
+                    final String nextInput = user.nextMessageOrExit().serialize();
 
                     // 第 X 页
                     final Matcher nextMatcher = PAGE.matcher(nextInput);
                     if (nextMatcher.matches()) {
                         final int switchTo = Integer.parseInt(nextMatcher.group("page"));
                         if (switchTo < 1 || switchTo > totalPageNumber) {
-                            user.sendError("页码应该在 {} 到 {} 之间", 1, totalPageNumber);
+                            user.sendError("页码应该在 {context.min} 到 {context.max} 之间", 1, totalPageNumber);
                             showPageInfo = false;
                         } else if (switchTo + 1 == pageNumber) {
                             user.sendMessage("当前就正在这一页上哦");
@@ -272,19 +272,6 @@ public class InteractorUtility extends StaticUtility {
         return null;
     }
 
-    public static <T> T waitLastElement(List<T> list, long timeout) {
-        switch (ObjectUtility.wait(list, timeout)) {
-            case NOTIFY:
-                return list.get(list.size() - 1);
-            case TIMEOUT:
-                throw new InteractorTimeoutException();
-            case INTERRUPT:
-                throw new ReceptCancelledException();
-            default:
-                throw new UnsupportedVersionException();
-        }
-    }
-
     /**
      * 将用户的输入填充到集合中
      * @param user 输入值
@@ -304,7 +291,7 @@ public class InteractorUtility extends StaticUtility {
                                                                 BiConsumer<XiaomingUser, Message> onEmptyStop) {
         Message message = null;
         while (true) {
-            message = user.nextInput();
+            message = user.nextMessageOrExit();
 
             final boolean shouldStop = stopPredicate.test(message);
             if (shouldStop) {
@@ -333,7 +320,7 @@ public class InteractorUtility extends StaticUtility {
                                                                            String emptyNotice) {
         final BiConsumer<XiaomingUser, Message> onEmptyStop;
         if (StringUtility.nonEmpty(emptyNotice)) {
-            onEmptyStop = (u, m) -> u.reply(m, emptyNotice);
+            onEmptyStop = (u, m) -> u.replyError(m, emptyNotice);
         } else {
             onEmptyStop = null;
         }
@@ -357,7 +344,7 @@ public class InteractorUtility extends StaticUtility {
 
     public static Message waitNextLegalInput(XiaomingUser user, Predicate<Message> judger, Consumer<Message> onIllegalInput) {
         while (true) {
-            final Message message = user.nextInput();
+            final Message message = user.nextMessageOrExit();
 
             if (judger.test(message)) {
                 return message;
@@ -368,7 +355,7 @@ public class InteractorUtility extends StaticUtility {
     }
 
     public static Message waitNextLegalInput(XiaomingUser user, Predicate<String> judger, String illegalInput) {
-        return waitNextLegalInput(user, message -> judger.test(message.serialize()), message -> user.reply(message, illegalInput));
+        return waitNextLegalInput(user, message -> judger.test(message.serialize()), message -> user.replyError(message, illegalInput));
     }
 
     public static Message waitNextInputIn(XiaomingUser user, Collection<String> defintions, String illegalInput) {

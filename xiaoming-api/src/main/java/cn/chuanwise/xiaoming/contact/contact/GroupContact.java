@@ -1,71 +1,32 @@
 package cn.chuanwise.xiaoming.contact.contact;
 
+import cn.chuanwise.xiaoming.attribute.AttributeType;
 import cn.chuanwise.xiaoming.contact.ContactManager;
+import cn.chuanwise.xiaoming.event.MessageEvent;
 import cn.chuanwise.xiaoming.group.GroupRecord;
-import cn.chuanwise.xiaoming.contact.message.GroupMessage;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.group.GroupRecordManager;
+
+import java.util.*;
 import java.util.concurrent.ScheduledFuture;
 
+import cn.chuanwise.xiaoming.user.XiaomingUser;
 import net.mamoe.mirai.contact.*;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.MessageChain;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-
-public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
-    default GroupMessage atSend(long code, String message) {
+public interface GroupContact extends XiaomingContact<Group> {
+    default Message atSend(long code, String message) {
         return atSend(code, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
     }
 
-    default GroupMessage atSend(long code, MessageChain messages) {
-        return send(new At(code).plus(" ").plus(messages));
+    default Message atSend(long code, MessageChain messages) {
+        return sendMessage(new At(code).plus(" ").plus(messages));
     }
 
-    default GroupMessage atSend(long code, Message messages) {
+    default Message atSend(long code, Message messages) {
         return atSend(code, messages.getMessageChain());
-    }
-
-    default ScheduledFuture<GroupMessage> atSendLater(long delay, long code, String message) {
-        return getXiaomingBot().getScheduler().runLater(delay, () -> send(message));
-    }
-
-    default ScheduledFuture<GroupMessage> atSendLater(long delay, long code, MessageChain messages) {
-        messages.add(0, new At(code));
-        return sendLater(delay, messages);
-    }
-
-    default ScheduledFuture<GroupMessage> atSendLater(long delay, long code, Message messages) {
-        return atSendLater(delay, code, messages.getMessageChain());
-    }
-
-    default GroupMessage atReply(Message quote, String message) {
-//        return atReply(quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().render(message)))
-        return null;
-    }
-
-    default GroupMessage atReply(Message quote, MessageChain message) {
-        return reply(quote, quote.getSender().getAt().plus(message));
-    }
-
-    default GroupMessage atReply(Message quote, GroupMessage message) {
-        return atReply(quote, message.getMessageChain());
-    }
-
-    default ScheduledFuture<GroupMessage> atReplayLater(long delay, Message quote, MessageChain message) {
-        return replyLater(delay, quote, quote.getSender().getAt().plus(message));
-    }
-
-    default ScheduledFuture<GroupMessage> atReplayLater(long delay, Message quote, String message) {
-        return atReplayLater(delay, quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
-    }
-
-    default ScheduledFuture<GroupMessage> atReplayLater(long delay, Message quote, GroupMessage message) {
-        return atReplayLater(delay, quote, message.getMessageChain());
     }
 
     default GroupRecord getGroupRecord() {
@@ -78,8 +39,16 @@ public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
     }
 
     @Override
-    default String getCompleteName() {
-        return getName() + "（" + getCodeString() + "）";
+    default Optional<Message> nextMessage(long timeout) throws InterruptedException {
+        return getXiaomingBot()
+                .getContactManager()
+                .nextGroupMessage(getCode(), timeout)
+                .map(MessageEvent::getMessage);
+    }
+
+    @Override
+    default String getAliasAndCode() {
+        return getAlias() + "（" + getCodeString() + "）";
     }
 
     @Override
@@ -96,6 +65,18 @@ public interface GroupContact extends XiaomingContact<GroupMessage, Group> {
     default String getAlias() {
         final GroupRecord groupRecord = getGroupRecord();
         return Objects.nonNull(groupRecord) ? groupRecord.getAlias() : getName();
+    }
+
+    default Message atReply(Message quote, long target, MessageChain messages) {
+        return reply(quote, new At(target).plus(" ").plus(messages));
+    }
+
+    default Message atReply(Message quote, long target, String message) {
+        return atReply(quote, target, MiraiCode.deserializeMiraiCode(message));
+    }
+
+    default Message atReply(Message quote, long target, Message message) {
+        return atReply(quote, target, message.getMessageChain());
     }
 
     /**

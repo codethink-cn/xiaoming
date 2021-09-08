@@ -41,21 +41,17 @@ public interface Configuration extends FilePreservable, XiaomingObject {
 
     void setMaxRecentMessageBufferSize(int maxRecentMessageBufferSize);
 
-    int getMaxRecentGroupMessageBufferQuantity();
-
-    void setMaxRecentGroupMessageBufferQuantity(int maxRecentGroupMessageBufferQuantity);
-
     int getMaxLoadedAccountQuantity();
 
     void setMaxLoadedAccountQuantity(int maxLoadedAccountQuantity);
 
-    int getMaxRecentGroupMemberMessageBufferQuantity();
+    int getMaxUserAttributeQuantity();
 
-    void setMaxRecentGroupMemberMessageBufferQuantity(int maxRecentGroupMemberMessageBufferQuantity);
+    void setMaxUserAttributeQuantity(int maxUserAttributeQuantity);
 
-    int getMaxRecentPrivateMessageBufferQuantity();
+    int getMaxReceptionistQuantity();
 
-    void setMaxRecentPrivateMessageBufferQuantity(int maxRecentPrivateMessageBufferQuantity);
+    void setMaxReceptionistQuantity(int MaxReceptionistQuantity);
 
     int getMaxGroupUserQuantityInReceptionist();
 
@@ -65,35 +61,23 @@ public interface Configuration extends FilePreservable, XiaomingObject {
 
     void setMaxMemberUserQuantityInReceptionist(int maxMemberUserQuantityInReceptionist);
 
-    int getMaxUserPropertyQuantity();
-
-    void setMaxUserPropertyQuantity(int maxUserPropertyQuantity);
-
-    int getMaxRecentPrivateMessageBufferSize();
-
-    void setMaxRecentPrivateMessageBufferSize(int maxRecentPrivateMessageBufferSize);
-
-    int getMaxReceptionistQuantity();
-
-    void setMaxReceptionistQuantity(int MaxReceptionistQuantity);
-
     void setDebug(boolean debug);
 
-    long getMaxUserInputWaitTime();
+    long getMaxUserInputTimeout();
 
-    void setMaxUserInputWaitTime(long time);
+    void setMaxUserInputTimeout(long time);
 
-    long getMaxUserGlobalInputWaitTime();
+    long getMaxUserGlobalInputTimeout();
 
-    void setMaxUserGlobalInputWaitTime(long time);
+    void setMaxUserGlobalInputTimeout(long time);
 
-    long getMaxUserPrivateInputWaitTime();
+    long getMaxUserPrivateInputTimeout();
 
-    void setMaxUserPrivateInputWaitTime(long time);
+    void setMaxUserPrivateInputTimeout(long time);
 
-    long getMaxUserGroupInputWaitTime();
+    long getMaxUserGroupInputTimeout();
 
-    void setMaxUserGroupInputWaitTime(long time);
+    void setMaxUserGroupInputTimeout(long time);
 
     String getQuietModeGroupTag();
 

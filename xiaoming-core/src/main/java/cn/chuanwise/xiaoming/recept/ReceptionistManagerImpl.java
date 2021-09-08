@@ -2,25 +2,37 @@ package cn.chuanwise.xiaoming.recept;
 
 import cn.chuanwise.toolkit.sized.SizedResidentConcurrentHashMap;
 import cn.chuanwise.utility.*;
-import cn.chuanwise.xiaoming.annotation.EventHandler;
+import cn.chuanwise.xiaoming.annotation.EventListener;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.configuration.Configuration;
+import cn.chuanwise.xiaoming.contact.message.Message;
+import cn.chuanwise.xiaoming.contact.message.MessageImpl;
 import cn.chuanwise.xiaoming.event.Listeners;
+import cn.chuanwise.xiaoming.event.MessageEvent;
 import cn.chuanwise.xiaoming.limit.CallLimitConfiguration;
 import cn.chuanwise.xiaoming.limit.CallLimiter;
+import cn.chuanwise.xiaoming.listener.ListenerPriority;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import cn.chuanwise.xiaoming.permission.PermissionAccessible;
+import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
+import cn.chuanwise.xiaoming.user.MemberXiaomingUser;
+import cn.chuanwise.xiaoming.user.PrivateXiaomingUser;
+import cn.chuanwise.xiaoming.user.XiaomingUser;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import net.mamoe.mirai.contact.*;
 import net.mamoe.mirai.event.events.FriendMessageEvent;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.GroupTempMessageEvent;
+import net.mamoe.mirai.message.code.MiraiCode;
 import org.slf4j.Logger;
 
 import java.beans.Transient;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * @author Chuanwise
@@ -39,133 +51,78 @@ public class ReceptionistManagerImpl extends ModuleObjectImpl implements Recepti
         this.receptionists = new SizedResidentConcurrentHashMap<>(xiaomingBot.getConfiguration().getMaxReceptionistQuantity());
     }
 
-    /**
-     * 用户接待员记录器
-     */
+    /** 用户接待员记录器 */
     final Map<Long, Receptionist> receptionists;
-    Receptionist botReceptionist;
-
-    @Override
-    public Receptionist getBotReceptionist() {
-        if (Objects.isNull(botReceptionist)) {
-            botReceptionist = getReceptionist(getXiaomingBot().getMiraiBot().getId());
-        }
-        return botReceptionist;
-    }
 
     @Override
     public Receptionist getReceptionist(long code) {
         return MapUtility.getOrPutSupply(receptionists, code, () -> new ReceptionistImpl(getXiaomingBot(), code));
     }
 
-    public boolean callable(Contact contact, boolean inGroup) {
-        final long qq = contact.getId();
-        final CallLimiter limiter;
-        if (inGroup) {
-            limiter = getXiaomingBot().getUserCallLimitManager().getGroupCallLimiter();
-        } else {
-            limiter = getXiaomingBot().getUserCallLimitManager().getPrivateCallLimiter();
-        }
-        if (limiter.uncallable(qq)) {
-            if (limiter.isTooManySoUncallable(qq) && limiter.shouldNotice(qq)) {
-                if (getXiaomingBot().getPermissionManager().userAccessible(qq, "limit.bypass") != PermissionAccessible.ACCESSABLE) {
-                    final CallLimitConfiguration config = limiter.getConfiguration();
-                    final String sceneName = inGroup ? "群聊" : "私聊";
-                    contact.sendMessage(
-                            ArgumentUtility.format("你在{}{}内召唤了{}次小明啦，好好休息一下，等{}咱们再一起在{}玩吧 {}",
-                                    new Object[]{
-                                            sceneName,
-                                            TimeUtility.toTimeLength(config.getPeriod()),
-                                            config.getTop(),
-                                            TimeUtility.after(config.getPeriod()),
-                                            sceneName,
-//                                            getXiaomingBot().getLanguage().get("happy")
-                                    })
-                    );
-
-                    limiter.setNoticed(qq);
-                    final Receptionist receptionist = getReceptionist(qq);
-                    if (Objects.nonNull(receptionist)) {
-                        receptionist.stop();
-                    }
-                    return false;
-                } else {
-                    return true;
-                }
-            }
-            return false;
-        } else {
-            return true;
-        }
-    }
-
     @Override
-    @EventHandler
+    @EventListener
     public void onGroupMessageEvent(GroupMessageEvent event) {
-        final Member member = event.getSender();
-        final long qq = member.getId();
-
-        final String message = event.getMessage().serializeToMiraiCode();
-        final Configuration configuration = getXiaomingBot().getConfiguration();
-
-        // 如果本群是启动明确调用的群
-        // 检查明确调用
-        String callContent = null;
-        if (configuration.isEnableClearCall() && getXiaomingBot().getGroupRecordManager().hasTag(event.getGroup().getId(), configuration.getClearCallGroupTag())) {
-            for (String prefix : configuration.getClearCallPrefixes()) {
-                if (message.startsWith(prefix) && message.length() > prefix.length()) {
-                    callContent = message.substring(prefix.length());
-                }
-            }
-        } else {
-            callContent = message;
-        }
-        if (Objects.nonNull(callContent)) {
-            callContent = callContent.trim();
-        }
-        if (StringUtility.isEmpty(callContent)) {
-            return;
-        }
-
-        if (!callable(member, true)) {
-            getLogger().warn("小明收到了来自 " + qq + " 的群聊消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
-            return;
-        }
-
-        final Receptionist receptionist = getReceptionist(qq);
-
         final Group group = event.getGroup();
-        receptionist.onGroupMessage(getXiaomingBot().getContactManager().getGroupContact(group.getId()), callContent, event.getMessage());
+        final Member member = event.getSender();
+
+        final long accountCode = member.getId();
+        final Receptionist receptionist = getReceptionist(accountCode);
+
+        final long groupCode = group.getId();
+        final GroupXiaomingUser user = receptionist.getGroupXiaomingUser(groupCode);
+        final Message message = new MessageImpl(xiaomingBot, event.getMessage(), event.getTime());
+
+        xiaomingBot.getEventManager().callEventAsync(new MessageEvent(user, message));
     }
 
     @Override
-    @EventHandler
+    @EventListener
     public void onPrivateMessageEvent(FriendMessageEvent event) {
         final Friend friend = event.getFriend();
 
-        final long qq = friend.getId();
-        if (!callable(friend, false)) {
-            getLogger().warn("小明收到了来自 " + qq + " 的私聊消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
-            return;
-        }
+        final long accountCode = friend.getId();
+        final Receptionist receptionist = getReceptionist(accountCode);
+        final PrivateXiaomingUser user = receptionist.getPrivateXiaomingUser();
+        final Message message = new MessageImpl(xiaomingBot, event.getMessage(), event.getTime());
 
-        final Receptionist receptionist = getReceptionist(qq);
-        receptionist.onPrivateMessage(getXiaomingBot().getContactManager().getPrivateContact(qq), event.getMessage());
+        xiaomingBot.getEventManager().callEventAsync(new MessageEvent(user, message));
     }
 
     @Override
-    @EventHandler
+    @EventListener
     public void onMemberMessageEvent(GroupTempMessageEvent event) {
         final Group group = event.getGroup();
         final NormalMember member = event.getSender();
 
-        final long qq = member.getId();
-        if (!callable(member, false)) {
-            getLogger().warn("小明收到了来自 " + qq + " 的临时会话消息：" + event.getMessage().serializeToMiraiCode() + "，但因为其尚处在调用限制期，故忽略此消息。");
+        final long accountCode = member.getId();
+        final Receptionist receptionist = getReceptionist(accountCode);
+
+        final long groupCode = group.getId();
+        final MemberXiaomingUser user = receptionist.getMemberXiaomingUser(groupCode);
+        final Message message = new MessageImpl(xiaomingBot, event.getMessage(), event.getTime());
+
+        xiaomingBot.getEventManager().callEventAsync(new MessageEvent(user, message));
+    }
+
+    @EventListener(priority = ListenerPriority.LOWEST)
+    public void onMessageEvent(MessageEvent messageEvent) {
+        final Message message = messageEvent.getMessage();
+        final XiaomingUser user = messageEvent.getUser();
+        final String serializedMessage = message.serialize();
+
+        // 唤醒正在等待这一条消息的线程
+        xiaomingBot.getContactManager().onNextMessageEvent(messageEvent);
+
+        // 检查明确调用
+        if (!messageEvent.isInteractable()) {
             return;
         }
 
-        final Receptionist receptionist = getReceptionist(qq);
-        receptionist.onMemberMessage(getXiaomingBot().getContactManager().getMemberContact(group.getId(), qq), event.getMessage());
+        if (Objects.nonNull(user.getInteractorContext())) {
+            getLogger().info("用户 " + user.getCompleteName() + " 已有交互上下文");
+            return;
+        }
+
+        xiaomingBot.getScheduler().run(new ReceptionTaskImpl<>(user, message));
     }
 }

@@ -34,7 +34,7 @@ public interface GroupRecord extends XiaomingObject, PluginBlockable {
     }
 
     @Override
-    default Set<String> buildOriginalTags() {
+    default Set<String> originalTags() {
         return CollectionUtility.asSet(getCodeString(), RECORDED);
     }
 }

@@ -234,7 +234,7 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
             if (Objects.nonNull(instanceValue) && pluginClass.isAssignableFrom(instanceValue.getClass())) {
                 plugin = ((Plugin) instanceValue);
             } else {
-                getLogger().error("插件主类 " + mainClassName + " 存在 INSTANCE 属性，但为空或不是该插件类类型");
+                getLogger().error("插件主类 " + mainClassName + " 存在 INSTANCE 属性，但为空或不是该插件类类型。小明将尝试构造该插件主类的实例。");
             }
         } catch (Throwable ignored) {
         }
@@ -289,6 +289,7 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
             return true;
         } catch (Throwable throwable) {
             getLogger().error("加载插件：" + plugin.getName() + " 时出现异常", throwable);
+            plugin.setStatus(Plugin.Status.ERROR);
             return false;
         }
     }

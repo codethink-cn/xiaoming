@@ -10,12 +10,14 @@ import java.io.IOException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 
-public interface Message extends XiaomingObject, Cloneable {
+public interface Message extends XiaomingObject {
     /**
      * 获取消息概要（会压缩信息显示。所有的图片变为 [图片] 等）
      * @return 消息概要字符串
      */
-    String summary();
+    default String summary() {
+        return getMessageChain().contentToString();
+    }
 
     String serialize();
 
@@ -27,11 +29,7 @@ public interface Message extends XiaomingObject, Cloneable {
 
     void setMessageChain(MessageChain messageChain);
 
-    XiaomingContact getContact();
-
     long getTime();
-
-    XiaomingUser getSender();
 
     default void saveResources() throws IOException {
         getXiaomingBot().getResourceManager().saveResources(this);
@@ -44,22 +42,8 @@ public interface Message extends XiaomingObject, Cloneable {
         });
     }
 
-    Message clone() throws CloneNotSupportedException;
-
     /** 撤回消息 */
     default void recall() {
         MessageSource.recall(getOriginalMessageChain());
-    }
-
-    /**
-     * 一段时间后撤回消息
-     * @param delay 延迟
-     * @return 撤回消息的异步结果
-     */
-    default ScheduledFuture<Boolean> recallLater(long delay) {
-        return getXiaomingBot().getScheduler().runLater(delay, () -> {
-            recall();
-            return true;
-        });
     }
 }

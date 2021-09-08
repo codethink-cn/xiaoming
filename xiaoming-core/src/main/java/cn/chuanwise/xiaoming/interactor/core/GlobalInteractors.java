@@ -3,7 +3,6 @@ package cn.chuanwise.xiaoming.interactor.core;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.Permission;
 import cn.chuanwise.xiaoming.annotation.WhenExternal;
-import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.license.LicenseManager;
 import cn.chuanwise.xiaoming.group.GroupRecord;
@@ -34,7 +33,7 @@ public class GlobalInteractors extends SimpleInteractors {
                 user.sendPrivateMessage(licenceManager.getLicense());
                 user.sendPrivateMessage("{lang.enterAgreeIfYouAgree}");
 
-                if (Objects.equals(user.nextInput().serialize(), "同意")) {
+                if (Objects.equals(user.nextMessageOrExit().serialize(), "同意")) {
                     user.sendMessage("{lang.licenseAgreed}");
                     licenceManager.agree(qq);
                 } else {

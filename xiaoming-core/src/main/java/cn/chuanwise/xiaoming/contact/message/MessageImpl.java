@@ -2,20 +2,25 @@ package cn.chuanwise.xiaoming.contact.message;
 
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.object.XiaomingObjectImpl;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
 
-@Getter
-public abstract class MessageImpl extends XiaomingObjectImpl implements Message {
+@EqualsAndHashCode
+public class MessageImpl extends XiaomingObjectImpl implements Message {
     @Setter
+    @Getter
     MessageChain messageChain;
     String serializedMessageChain;
 
     @Setter
+    @Getter
     MessageChain originalMessageChain;
-    final long time = System.currentTimeMillis();
+
+    @Getter
+    final long time;
 
     @Override
     public void setMessageChain(MessageChain messageChain) {
@@ -28,28 +33,32 @@ public abstract class MessageImpl extends XiaomingObjectImpl implements Message 
         return serializedMessageChain;
     }
 
-    protected MessageImpl(XiaomingBot xiaomingBot, MessageChain messageChain) {
-        super(xiaomingBot);
-        this.originalMessageChain = messageChain;
-        setMessageChain(messageChain);
+    public MessageImpl(XiaomingBot xiaomingBot, MessageChain messageChain) {
+        this(xiaomingBot, messageChain, System.currentTimeMillis());
     }
 
-    protected MessageImpl(XiaomingBot xiaomingBot, String message) {
-        this(xiaomingBot, MiraiCode.deserializeMiraiCode(message));
+    public MessageImpl(XiaomingBot xiaomingBot, MessageChain messageChain, long time) {
+        this(xiaomingBot, messageChain, messageChain, time);
     }
 
-    @Override
-    public String summary() {
-        return messageChain.contentToString();
+    public MessageImpl(XiaomingBot xiaomingBot, String message, long time) {
+        this(xiaomingBot, MiraiCode.deserializeMiraiCode(message), time);
+    }
+
+    public MessageImpl(XiaomingBot xiaomingBot, String message) {
+        this(xiaomingBot, message, System.currentTimeMillis());
+    }
+
+    public MessageImpl(XiaomingBot xiaomingBot, MessageChain messageChain, MessageChain originalMessageChain, long time) {
+        setXiaomingBot(xiaomingBot);
+        this.messageChain = messageChain;
+        this.originalMessageChain = originalMessageChain;
+        serializedMessageChain = messageChain.serializeToMiraiCode();
+        this.time = time;
     }
 
     @Override
     public String toString() {
-        return serialize();
-    }
-
-    @Override
-    public Message clone() throws CloneNotSupportedException {
-        return ((Message) super.clone());
+        return serializedMessageChain;
     }
 }

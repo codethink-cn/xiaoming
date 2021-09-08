@@ -1,23 +1,22 @@
 package cn.chuanwise.xiaoming.recept;
 
-import cn.chuanwise.xiaoming.account.record.CommandRecord;
-import cn.chuanwise.xiaoming.client.CenterClientManager;
 import cn.chuanwise.xiaoming.contact.message.Message;
-import cn.chuanwise.xiaoming.exception.InteractorTimeoutException;
-import cn.chuanwise.xiaoming.exception.ReceptCancelledException;
+import cn.chuanwise.xiaoming.exception.InteractInterrtuptedException;
+import cn.chuanwise.xiaoming.exception.InteractExitedException;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import kotlinx.coroutines.TimeoutCancellationException;
 import lombok.Getter;
+
+import java.util.Objects;
 
 /**
  * 交互器的响应任务
  * @author Chuanwise
  */
 @Getter
-public abstract class ReceptionTaskImpl extends ModuleObjectImpl implements ReceptionTask {
-    final Receptionist receptionist;
-    final String identify;
+public class ReceptionTaskImpl<U extends XiaomingUser<?>> extends ModuleObjectImpl implements ReceptionTask<U> {
+    final U user;
 
     protected Message message;
 
@@ -26,15 +25,11 @@ public abstract class ReceptionTaskImpl extends ModuleObjectImpl implements Rece
     volatile boolean busy = false;
     volatile boolean running = false;
 
-    protected ReceptionTaskImpl(Receptionist receptionist, String identify, Message message) {
-        super(receptionist.getXiaomingBot());
-        this.receptionist = receptionist;
-        this.identify = identify;
+    protected ReceptionTaskImpl(U user, Message message) {
+        super(user.getXiaomingBot());
         this.message = message;
+        this.user = user;
     }
-
-    @Override
-    public abstract XiaomingUser getUser();
 
     public void stop() {
         if (busy && thread.isAlive()) {
@@ -43,26 +38,25 @@ public abstract class ReceptionTaskImpl extends ModuleObjectImpl implements Rece
 
         busy = false;
         running = false;
-
-        unregister();
     }
 
-    protected abstract void register();
-
-    protected abstract void unregister();
-
     @Override
-    public void run() {
+    public Boolean call() throws Exception {
         final XiaomingUser user = getUser();
-        register();
+        if (Objects.nonNull(thread)) {
+            getLogger().error("重新启动已经停止的接待任务：" + message);
+        }
+
+        thread = Thread.currentThread();
         running = true;
 
         try {
             busy = true;
             // 交互完后要记录指令，迟早要获得 Account。但现在获得一下可以确保 alias 非空
             user.getAccount();
-            xiaomingBot.getInteractorManager().interact(getUser(), message);
-        } catch (ReceptCancelledException | InteractorTimeoutException | TimeoutCancellationException exception) {
+            return xiaomingBot.getInteractorManager().interact(getUser(), message);
+        } catch (InteractExitedException | InteractInterrtuptedException | TimeoutCancellationException exception) {
+            return false;
         } finally {
             // 自动执行结束时，running 还是 true，所以手动执行 stop
             // 当前线程可能是在自己的 recentMessage 上等待，也可能是在别人的 recentMessage 上。咱们就粗暴打断

@@ -117,7 +117,7 @@ public class ConfigurationInteractors extends SimpleInteractors {
             final String agreement = getXiaomingBot().getLicenseManager().getLicense();
             if (StringUtility.isEmpty(agreement)) {
                 user.sendMessage("{lang.pleaseEnterLicense}");
-                getXiaomingBot().getLicenseManager().setLicense(user.nextInput().serialize());
+                getXiaomingBot().getLicenseManager().setLicense(user.nextMessageOrExit().serialize());
                 user.sendMessage("{lang.licenseEnabled}");
             } else {
                 user.sendMessage("{lang.licenseEnabledWithElderLicense}");

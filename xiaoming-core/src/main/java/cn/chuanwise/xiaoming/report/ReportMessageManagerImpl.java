@@ -50,18 +50,12 @@ public class ReportMessageManagerImpl extends FilePreservableImpl implements Rep
             throwable = throwable.getCause();
         }
         final ReportMessage reportMessage;
-
-        final List<? extends Message> userRecentMessages = user.getRecentMessages();
-
-        final List<String> clonedRecentMessages = CollectionUtility.addTo(userRecentMessages, new ArrayList<>(userRecentMessages.size()), Message::serialize);
-        final List<String> messages = new ArrayList<>(clonedRecentMessages.size());
-
-        messages.addAll(clonedRecentMessages);
+        final String message = user.getInteractorContext().getMessage().serialize();
 
         if (user instanceof GroupXiaomingUser) {
-            reportMessage = new ReportMessageImpl(((GroupXiaomingUser) user).getGroupCode(), user.getCode(), messages, throwable.toString());
+            reportMessage = new ReportMessageImpl(((GroupXiaomingUser) user).getGroupCode(), user.getCode(), message, throwable.toString());
         } else {
-            reportMessage = new ReportMessageImpl(user.getCode(), messages, throwable.toString());
+            reportMessage = new ReportMessageImpl(user.getCode(), message, throwable.toString());
         }
         addMessage(reportMessage);
 //        getXiaomingBot().getContactManager().sendGroupMessage("log", "发现一个新的异常报告");

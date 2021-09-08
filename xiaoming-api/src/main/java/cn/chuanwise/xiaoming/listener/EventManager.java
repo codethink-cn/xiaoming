@@ -82,6 +82,9 @@ public interface EventManager extends ModuleObject {
         if (event instanceof XiaomingObject) {
             ((XiaomingObject) event).setXiaomingBot(getXiaomingBot());
         }
+        if (event instanceof XiaomingEvent) {
+            ((XiaomingEvent) event).onCall();
+        }
 
         final boolean highest = callEvent(ListenerPriority.HIGHEST, event);
         final boolean high = callEvent(ListenerPriority.HIGH, event);
@@ -94,7 +97,12 @@ public interface EventManager extends ModuleObject {
 
     /** 异步响应一个事件 */
     default Future<Boolean> callEventAsync(Event event) {
-        return callEventAsync(ListenerPriority.NORMAL, event);
+        if (getXiaomingBot().isEnabled()) {
+            return getXiaomingBot().getScheduler().run(() -> callEvent(event));
+        } else {
+            getLogger().error("小明已经关闭，无法异步响应事件：" + event);
+            return null;
+        }
     }
 
     /** 异步响应一个事件 */

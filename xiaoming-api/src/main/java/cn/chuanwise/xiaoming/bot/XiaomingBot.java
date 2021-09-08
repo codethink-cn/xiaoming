@@ -4,7 +4,7 @@ import cn.chuanwise.api.StatusHolder;
 import cn.chuanwise.xiaoming.account.AccountManager;
 import cn.chuanwise.xiaoming.center.VersionType;
 import cn.chuanwise.xiaoming.classloader.XiaomingClassLoader;
-import cn.chuanwise.xiaoming.client.CenterClientManager;
+import cn.chuanwise.xiaoming.client.CenterClient;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.configuration.Statistician;
 import cn.chuanwise.xiaoming.contact.ContactManager;
@@ -42,7 +42,7 @@ public interface XiaomingBot extends StatusHolder<XiaomingBot.Status> {
         DISABLED
     }
 
-    String VERSION = "3.3.1";
+    String VERSION = "3.5";
     VersionType VERSION_TYPE = VersionType.EXPERIMENTAL;
     String COMPLETE_VERSION = (VERSION + '-' + VERSION_TYPE).toLowerCase();
 
@@ -95,9 +95,9 @@ public interface XiaomingBot extends StatusHolder<XiaomingBot.Status> {
 
     void setEventManager(EventManager eventManager);
 
-    CenterClientManager getCenterClientManager();
+    CenterClient getCenterClient();
 
-    void setCenterClientManager(CenterClientManager centerClientManager);
+    void setCenterClient(CenterClient centerClient);
 
     UserCallLimitManager getUserCallLimitManager();
 

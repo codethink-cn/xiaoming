@@ -13,6 +13,8 @@ import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import lombok.Getter;
 import lombok.Setter;
 import net.mamoe.mirai.message.data.At;
+import net.mamoe.mirai.message.data.MessageChain;
+import net.mamoe.mirai.message.data.MessageChainImpl;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -23,11 +25,15 @@ import java.util.concurrent.CopyOnWriteArraySet;
  * 小明的使用者对象
  * @author Chuanwise
  */
-public abstract class XiaomingUserImpl<C extends XiaomingContact<M, ?>, M extends Message, R extends ReceptionTask>
-        extends ModuleObjectImpl implements XiaomingUser<C, M, R> {
+public abstract class XiaomingUserImpl<C extends XiaomingContact<?>>
+        extends ModuleObjectImpl implements XiaomingUser<C> {
     @Getter
     @Setter
     Receptionist receptionist;
+
+    @Getter
+    @Setter
+    ReceptionTask<XiaomingUser<C>> receptionTask;
 
     @Getter
     InteractorContext interactorContext;
@@ -43,12 +49,15 @@ public abstract class XiaomingUserImpl<C extends XiaomingContact<M, ?>, M extend
         this.receptionist = getXiaomingBot().getReceptionistManager().getReceptionist(qq);
 
         setAttribute(AttributeType.QQ, qq);
-        setAttribute(AttributeType.AT, new At(qq).serializeToMiraiCode());
+        setAttribute(AttributeType.AT, new At(qq));
     }
 
-    /**
-     * 发送消息的缓存机制
-     */
+    @Override
+    public void onNextInput(MessageChain messages) {
+        onNextInput(new MessageChainImpl(messages));
+    }
+
+    /** 发送消息的缓存机制 */
     Stack<StringWriter> stringWriters = new Stack<>();
     Stack<PrintWriter> printWriters = new Stack<>();
 

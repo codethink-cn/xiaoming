@@ -10,6 +10,7 @@ import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.plugin.PluginHandler;
 import cn.chuanwise.xiaoming.plugin.PluginHandlerImpl;
 import cn.chuanwise.xiaoming.utility.SerializerUtility;
+import org.apache.log4j.PropertyConfigurator;
 
 import java.io.File;
 import java.io.IOException;
@@ -82,7 +83,7 @@ public class XiaomingDebuggerBuilder {
         return addPlugin(pluginHandler);
     }
 
-    public <T extends Plugin> XiaomingDebuggerBuilder addPlugin(String name, T instance) {
-        return addPlugin(name, instance.getClass());
+    public <T extends Plugin> XiaomingDebuggerBuilder addPlugin(Class<T> mainClass) {
+        return addPlugin(mainClass.getSimpleName(), mainClass);
     }
 }

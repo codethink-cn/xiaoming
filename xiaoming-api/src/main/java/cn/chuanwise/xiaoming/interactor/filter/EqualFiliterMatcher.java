@@ -11,7 +11,7 @@ public class EqualFiliterMatcher extends StringFilterMatcher {
     }
 
     @Override
-    public <M extends Message> boolean apply(XiaomingUser<?, M, ?> user, M message) {
+    public boolean apply(XiaomingUser user, Message message) {
         return Objects.equals(message.serialize(), string);
     }
 }

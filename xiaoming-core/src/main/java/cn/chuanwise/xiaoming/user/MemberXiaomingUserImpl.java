@@ -1,12 +1,7 @@
 package cn.chuanwise.xiaoming.user;
 
-import cn.chuanwise.xiaoming.account.record.MemberCommandRecord;
-import cn.chuanwise.xiaoming.client.CenterClientManager;
 import cn.chuanwise.xiaoming.contact.contact.MemberContact;
 import cn.chuanwise.xiaoming.recept.Receptionist;
-import cn.chuanwise.xiaoming.recept.MemberReceptionTask;
-import cn.chuanwise.xiaoming.contact.message.MemberMessage;
-import cn.chuanwise.xiaoming.contact.message.MemberMessageImpl;
 import lombok.Getter;
 import lombok.Setter;
 import net.mamoe.mirai.message.data.MessageChain;
@@ -15,64 +10,17 @@ import java.util.List;
 import java.util.Objects;
 
 @Getter
-public class MemberXiaomingUserImpl extends XiaomingUserImpl<MemberContact, MemberMessage, MemberReceptionTask> implements MemberXiaomingUser {
+public class MemberXiaomingUserImpl extends XiaomingUserImpl<MemberContact> implements MemberXiaomingUser {
     final MemberContact contact;
-    final List<MemberMessage> recentMessages;
-
-    @Setter
-    MemberReceptionTask receptionTask;
 
     public MemberXiaomingUserImpl(MemberContact memberContact) {
         super(memberContact.getXiaomingBot(), memberContact.getCode());
         this.contact = memberContact;
-        this.recentMessages = getXiaomingBot().getContactManager().forMemberMessages(getGroupCodeString(), getCodeString());
-    }
-
-    @Override
-    public MemberMessage buildMessage(MessageChain messages) {
-        return new MemberMessageImpl(this, messages);
-    }
-
-    @Override
-    public void onNextInput(MemberMessage message) {
-        final List<MemberMessage> list = getRecentMessages();
-//        setProperty("last", message.serialize());
-
-        final MemberReceptionTask receptionTask = getReceptionTask();
-        if (Objects.isNull(receptionTask)) {
-            receptionist.onMemberMessage(getContact(), message);
-            return;
-        }
-
-        final Receptionist receptionist = getReceptionist();
-        receptionist.setGlobalRecentMessages(list);
-        synchronized (receptionist) {
-            receptionist.notifyAll();
-        }
-
-        // 对本人最近输入的追加
-        for (String tag : getContact().getGroupContact().getTags()) {
-            final List<MemberMessage> recentMessages = receptionist.forMemberRecentMessages(tag);
-            synchronized (recentMessages) {
-                recentMessages.add(message);
-                recentMessages.notifyAll();
-            }
-        }
     }
 
     @Override
     public long getCode() {
         return contact.getCode();
-    }
-
-    @Override
-    public void sendMessage(String message, Object... arguments) {
-        final String replacedMessage = format(message, arguments);
-        if (isUsingBuffer()) {
-            appendBuffer(replacedMessage);
-        } else {
-            contact.send(replacedMessage);
-        }
     }
 
     @Override
@@ -82,6 +30,6 @@ public class MemberXiaomingUserImpl extends XiaomingUserImpl<MemberContact, Memb
 
     @Override
     public String getCompleteName() {
-        return contact.getCompleteName();
+        return contact.getAliasAndCode();
     }
 }

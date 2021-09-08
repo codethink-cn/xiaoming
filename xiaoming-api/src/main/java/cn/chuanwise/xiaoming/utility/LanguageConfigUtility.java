@@ -6,7 +6,7 @@ import cn.chuanwise.utility.*;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.apply.ApplyHandler;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
-import cn.chuanwise.xiaoming.client.CenterClientManager;
+import cn.chuanwise.xiaoming.client.CenterClient;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.configuration.Statistician;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
@@ -31,6 +31,7 @@ import cn.chuanwise.xiaoming.plugin.PluginHandler;
 import cn.chuanwise.xiaoming.plugin.PluginManager;
 import cn.chuanwise.xiaoming.attribute.AttributeType;
 import cn.chuanwise.xiaoming.recept.Receptionist;
+import cn.chuanwise.xiaoming.report.ReportMessage;
 import cn.chuanwise.xiaoming.schedule.FileSaver;
 import cn.chuanwise.xiaoming.tag.TagHolder;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
@@ -68,6 +69,7 @@ public class LanguageConfigUtility extends StaticUtility {
         registerReceptionistRelated(languageManager);
         registerCenterClientRelated(languageManager);
         registerGeneric(languageManager);
+        registerReportReleted(languageManager);
     }
 
     protected static <T> Object parameterOperator(T value, String identifier, BiFunction<Character, String, Object> consumer) {
@@ -108,7 +110,7 @@ public class LanguageConfigUtility extends StaticUtility {
                 .addOperator("development-document", XiaomingBot.DEVELOPMENT_DOCUMENT)
                 .addOperator("receptionistManager", XiaomingBot::getReceptionistManager)
                 .addOperator("pluginManager", XiaomingBot::getPluginManager)
-                .addOperator("client", XiaomingBot::getCenterClientManager)
+                .addOperator("client", XiaomingBot::getCenterClient)
                 .addOperator("lang", XiaomingBot::getLanguageManager)
                 .addOperator("code", value -> value.getMiraiBot().getId())
                 .addOperator("codeString", value -> Long.toString(value.getMiraiBot().getId()));
@@ -561,7 +563,7 @@ public class LanguageConfigUtility extends StaticUtility {
     }
 
     protected static void registerCenterClientRelated(LanguageManager languageManager) {
-        languageManager.registerOperators(CenterClientManager.class, null)
+        languageManager.registerOperators(CenterClient.class, null)
                 .addOperator("totalCallNumber", client -> {
                     try {
                         return client.getTotalCallNumber();
@@ -575,14 +577,19 @@ public class LanguageConfigUtility extends StaticUtility {
         final XiaomingBot xiaomingBot = languageManager.getXiaomingBot();
         languageManager.registerOperators(Receptionist.class, null)
                 .addOperator("code", Receptionist::getCode)
-                .addOperator("isBusy", Receptionist::isBusy)
-                .addOperator("groupTasks", Receptionist::getGroupTasks)
-                .addOperator("privateTask", Receptionist::getPrivateTask)
-                .addOperator("memberTasks", Receptionist::getMemberTasks)
                 .addOperator("alias", receptionist -> xiaomingBot.getAccountManager().getAliasOrCode(receptionist.getCode()));
         languageManager.registerConvertor(Receptionist.class, receptionist -> {
-            return xiaomingBot.getAccountManager().getAliasAndCode(receptionist.getCode()) + "：" + (receptionist.isBusy() ? "忙碌" : "空闲");
+            return xiaomingBot.getAccountManager().getAliasAndCode(receptionist.getCode());
         }, null);
+    }
+
+    protected static void registerReportReleted(LanguageManager languageManager) {
+        languageManager.registerOperators(ReportMessage.class, null)
+                .addOperator("code", ReportMessage::getCode)
+                .addOperator("group", ReportMessage::getGroup)
+                .addOperator("message", ReportMessage::getMessage)
+                .addOperator("time", ReportMessage::getTime)
+                .addOperator("lastInputs", ReportMessage::getInput);
     }
 
     protected static void printMethodNames() {

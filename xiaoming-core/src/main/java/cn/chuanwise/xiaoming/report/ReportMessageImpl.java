@@ -13,19 +13,19 @@ public class ReportMessageImpl implements ReportMessage {
     long time = System.currentTimeMillis();
     long code;
     long group;
-    List<String> lastInputs;
+    String input;
     String message;
 
-    public ReportMessageImpl(long group, long code, List<String> lastInputs, String message) {
+    public ReportMessageImpl(long group, long code, String input, String message) {
         this.setCode(code);
         setGroup(group);
-        setLastInputs(lastInputs);
+        this.setInput(input);
         setMessage(message);
     }
 
-    public ReportMessageImpl(long code, List<String> lastInputs, String message) {
+    public ReportMessageImpl(long code, String input, String message) {
         this.setCode(code);
-        setLastInputs(lastInputs);
+        this.setInput(input);
         setMessage(message);
     }
 

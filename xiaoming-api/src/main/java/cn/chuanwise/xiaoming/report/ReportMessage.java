@@ -7,7 +7,7 @@ public interface ReportMessage {
 
     long getGroup();
 
-    java.util.List<String> getLastInputs();
+    String getInput();
 
     String getMessage();
 
@@ -17,7 +17,7 @@ public interface ReportMessage {
 
     void setGroup(long group);
 
-    void setLastInputs(java.util.List<String> lastInputs);
+    void setInput(String input);
 
     void setMessage(String message);
 }

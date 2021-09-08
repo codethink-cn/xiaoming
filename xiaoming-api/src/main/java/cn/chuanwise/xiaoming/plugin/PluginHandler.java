@@ -22,8 +22,10 @@ public interface PluginHandler extends MultipleTypePathGetter, PathSetter {
     Map<String, Object> getValues();
 
     default String getName() {
-        final String jsonFileName = getFile().getName();
-        return getOrDefault(NAME_PATH, jsonFileName.substring(0, jsonFileName.lastIndexOf('.')));
+        return getOrSupply(NAME_PATH, () -> {
+            final String jarFileName = getFile().getName();
+            return jarFileName.substring(0, jarFileName.lastIndexOf('.'));
+        });
     }
 
     default String getVersion() {
@@ -97,6 +99,10 @@ public interface PluginHandler extends MultipleTypePathGetter, PathSetter {
             }
         }
         return true;
+    }
+
+    default boolean isError() {
+        return getPlugin().getStatus() == Plugin.Status.ERROR;
     }
 
     default boolean isEnabled() {

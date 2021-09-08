@@ -17,8 +17,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
+import java.util.concurrent.Future;
 
-public class CenterClientManager extends AbstractNormalClient implements ModuleObject, Slf4jLoggerSendable {
+public class CenterClient extends AbstractNormalClient implements ModuleObject, Slf4jLoggerSendable {
     public static final String HOST = "server.taixue.cc";
     public static final int PORT = 10075;
 
@@ -29,7 +30,7 @@ public class CenterClientManager extends AbstractNormalClient implements ModuleO
     @Setter
     transient XiaomingBot xiaomingBot;
 
-    public CenterClientManager(XiaomingBot xiaomingBot) {
+    public CenterClient(XiaomingBot xiaomingBot) {
         super(new CenterClientConfiguration(HOST, PORT));
         this.xiaomingBot = xiaomingBot;
 
@@ -75,8 +76,17 @@ public class CenterClientManager extends AbstractNormalClient implements ModuleO
     }
 
     @Override
+    public void onDisconnectedAutomatically(Future<Boolean> reconnectFuture) throws Exception {
+        getLogger().info("中心服务器断开了和小明的连接");
+        if (Objects.nonNull(reconnectFuture)) {
+            getLogger().info("重连请求已提交");
+        } else {
+            getLogger().info("未提交重连请求");
+        }
+    }
+
+    @Override
     protected ConfirmResult loggerGroupConfirm(LoggerGroupConfirm request) {
-        
         return null;
     }
 
@@ -87,7 +97,7 @@ public class CenterClientManager extends AbstractNormalClient implements ModuleO
 
     @Override
     public void logDebug(String message) {
-        if (xiaomingBot.getConfiguration().isDebug()) {
+        if (Objects.nonNull(xiaomingBot) && xiaomingBot.getConfiguration().isDebug()) {
             getLogger().info(message);
         }
     }
@@ -102,5 +112,10 @@ public class CenterClientManager extends AbstractNormalClient implements ModuleO
             getLogger().error(operation + "失败", exception);
         }
         return false;
+    }
+
+    @Override
+    public void execute(Runnable runnable) {
+        xiaomingBot.getScheduler().run(runnable);
     }
 }

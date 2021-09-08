@@ -1,22 +1,21 @@
 package cn.chuanwise.xiaoming.contact;
 
-import cn.chuanwise.toolkit.sized.SizedResidentConcurrentHashMap;
+import cn.chuanwise.exception.UnsupportedVersionException;
+import cn.chuanwise.toolkit.sized.SizedCopyOnWriteArrayList;
+import cn.chuanwise.utility.ObjectUtility;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.contact.contact.*;
-import cn.chuanwise.xiaoming.contact.message.GroupMessage;
-import cn.chuanwise.xiaoming.contact.message.MemberMessage;
-import cn.chuanwise.xiaoming.contact.message.PrivateMessage;
+import cn.chuanwise.xiaoming.event.MessageEvent;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
+import lombok.AccessLevel;
 import lombok.Getter;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.NormalMember;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.function.Predicate;
 
 @Getter
 public class ContactManagerImpl extends ModuleObjectImpl implements ContactManager {
@@ -26,20 +25,32 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
 
     final Map<Long, GroupContact> groupContacts = new HashMap<>();
 
-    /** 最近临时会话消息 */
-    final Map<String, Map<String, List<MemberMessage>>> memberRecentMessages;
+    final List<MessageEvent> recentMessageEvents;
 
-    /** 最近群内每个成员的消息 */
-    final Map<String, Map<String, List<GroupMessage>>> groupMemberRecentMessages;
+    public List<MessageEvent> getRecentMessageEvents() {
+        return Collections.unmodifiableList(recentMessageEvents);
+    }
 
-    /** 最近私聊消息 */
-    final Map<String, List<PrivateMessage>> privateRecentMessages;
+    @Getter(AccessLevel.NONE)
+    final Object recentMessageConditionalVariable = new Object();
+
+    @Override
+    public Optional<MessageEvent> nextMessageEvent(long timeout, Predicate<MessageEvent> filter) throws InterruptedException {
+        switch (ObjectUtility.wait(recentMessageConditionalVariable, timeout, () -> filter.test(recentMessageEvents.get(recentMessageEvents.size() - 1)))) {
+            case NOTIFY:
+                return Optional.of(recentMessageEvents.get(recentMessageEvents.size() - 1));
+            case TIMEOUT:
+                return Optional.empty();
+            case INTERRUPT:
+                throw new InterruptedException();
+            default:
+                throw new UnsupportedVersionException();
+        }
+    }
 
     public ContactManagerImpl(XiaomingBot xiaomingBot) {
         super(xiaomingBot);
-        this.memberRecentMessages = new SizedResidentConcurrentHashMap<>(xiaomingBot.getConfiguration().getMaxRecentGroupMemberMessageBufferQuantity());
-        this.groupMemberRecentMessages = new SizedResidentConcurrentHashMap<>(xiaomingBot.getConfiguration().getMaxRecentGroupMemberMessageBufferQuantity());
-        this.privateRecentMessages = new SizedResidentConcurrentHashMap<>(xiaomingBot.getConfiguration().getMaxRecentPrivateMessageBufferQuantity());
+        recentMessageEvents = new SizedCopyOnWriteArrayList<>(xiaomingBot.getConfiguration().getMaxRecentMessageBufferSize());
     }
 
     @Override
@@ -152,5 +163,13 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
         }
 
         return memberContact;
+    }
+
+    @Override
+    public void onNextMessageEvent(MessageEvent messageEvent) {
+        recentMessageEvents.add(messageEvent);
+        synchronized (recentMessageConditionalVariable) {
+            recentMessageConditionalVariable.notifyAll();
+        }
     }
 }

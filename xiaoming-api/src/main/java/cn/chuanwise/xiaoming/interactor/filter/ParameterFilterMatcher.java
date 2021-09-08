@@ -17,7 +17,7 @@ public class ParameterFilterMatcher extends FilterMatcher {
     }
 
     @Override
-    public <M extends Message> boolean apply(XiaomingUser<?, M, ?> user, M message) {
+    public boolean apply(XiaomingUser user, Message message) {
         return MapUtility.nonEmpty(parse(message.serialize()));
     }
 

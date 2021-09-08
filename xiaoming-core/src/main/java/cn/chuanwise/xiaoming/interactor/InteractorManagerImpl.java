@@ -9,20 +9,22 @@ import cn.chuanwise.utility.TimeUtility;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.contact.message.Message;
+import cn.chuanwise.xiaoming.contact.message.MessageImpl;
 import cn.chuanwise.xiaoming.group.GroupRecord;
 import cn.chuanwise.xiaoming.interactor.caughter.InteractorThrowableCaughterHandler;
-import cn.chuanwise.xiaoming.interactor.context.InteractorContext;
 import cn.chuanwise.xiaoming.interactor.handler.InteractorHandler;
 import cn.chuanwise.xiaoming.interactor.parser.InteractorParameterParserHandler;
 import cn.chuanwise.xiaoming.permission.PermissionGroup;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.plugin.PluginHandler;
+import cn.chuanwise.xiaoming.report.ReportMessage;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import cn.chuanwise.xiaoming.utility.AtUtility;
 import cn.chuanwise.xiaoming.utility.RegisterUtility;
 import lombok.Getter;
+import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -199,6 +201,31 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
                     return null;
             }
         }, true, null);
+        registerParameterParser(ReportMessage.class, context -> {
+            final List<ReportMessage> reportMessages = xiaomingBot.getReportMessageManager().getReportMessages();
+            final String inputValue = context.getInputValue();
+            final XiaomingUser user = context.getUser();
+
+            if (reportMessages.isEmpty()) {
+                user.sendError("{lang.noAnyReports}");
+                return null;
+            }
+
+            final Integer index = NumberUtility.parseIndex(inputValue, 1, reportMessages.size());
+
+            if (reportMessages.size() == 1 && Objects.equals(index, 1)) {
+                final ReportMessage target = reportMessages.get(0);
+                user.sendWarning("{lang.onlyOneReports}");
+                return ValueContainer.of(target);
+            }
+
+            if (Objects.isNull(index)) {
+                user.sendError("{lang.illegalIndex}", inputValue);
+                return null;
+            } else {
+                return ValueContainer.of(reportMessages.get(index - 1));
+            }
+        }, true, null);
     }
 
     /** 智能参数解析器 */
@@ -237,9 +264,14 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
         throwableCaughters.removeIf(caughter -> (caughter.getPlugin() == plugin));
     }
 
+    @Override
+    public boolean interactIf(XiaomingUser user, MessageChain messages, Predicate<InteractorHandler> filter) {
+        return interactIf(user, new MessageImpl(xiaomingBot, messages), filter);
+    }
+
     /** 和用户交互 */
     @Override
-    public <M extends Message> boolean interactIf(XiaomingUser<?, M, ?> user, M message, Predicate<InteractorHandler> filter) {
+    public boolean interactIf(XiaomingUser user, Message message, Predicate<InteractorHandler> filter) {
         boolean interacted = false;
 
         // 如果本群没有启动小明就不管了
@@ -260,7 +292,15 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
                     user.sendError("{lang.illegalType}");
                     getLogger().error("当前用户：" + user.getAliasAndCode() + "\n" +
                             "交互器：" + interactor.getName() + "\n" +
-                            "错误参数名：" + interactResult.getMessage());
+                            "该交互器方法带有 " + interactResult.getMessage() + " 类型的参数。该形式参数不带 @FilterParameter(...) 注解，也不是小明能够识别的类型");
+                    thisTimeInteracted = true;
+                    break;
+                case ILLEGAL_PARAMETER:
+                    user.sendError("{lang.illegalType}");
+                    getLogger().error("当前用户：" + user.getAliasAndCode() + "\n" +
+                            "交互器：" + interactor.getName() + "\n" +
+                            "错误参数名：" + interactResult.getMessage() + "\n" +
+                            "解析该方法时，该参数带有 @FilterParameter(...) 注解，但智能参数解析器（或变量运算器）将其解析成不符合函数参数的类型");
                     thisTimeInteracted = true;
                     break;
                 case LICENSE_DENIED:
@@ -271,8 +311,9 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
                 case TIMEOUT_CANCELLED:
                     thisTimeInteracted = true;
                     break;
+                case INTERRUPTED:
+                case EXIT:
                 case EVENT_CANCELLED:
-                case ILLEGAL_PARAMETER:
                 case LACK_ACCOUNT_TAGS:
                 case LACK_GROUP_TAGS:
                 case ACCOUNT_BLOCK_PLUGIN:
@@ -282,6 +323,7 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
                 case PARSE_FAILED:
                 case ILLEGAL_FORMAT:
                 case INTERACTED_BUT_FALSE:
+                case ILLEGAL_SCOPE:
                     break;
                 case LACK_PERMISSIONS:
                     user.sendError("{lang.lackPermission}", interactResult.getMessage());
