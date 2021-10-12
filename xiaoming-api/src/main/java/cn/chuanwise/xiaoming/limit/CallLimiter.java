@@ -1,7 +1,5 @@
 package cn.chuanwise.xiaoming.limit;
 
-import cn.chuanwise.utility.CollectionUtility;
-
 import java.util.Map;
 import java.util.Objects;
 

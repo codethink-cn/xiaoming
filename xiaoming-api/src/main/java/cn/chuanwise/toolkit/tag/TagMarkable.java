@@ -1,9 +1,10 @@
-package cn.chuanwise.xiaoming.tag;
+package cn.chuanwise.toolkit.tag;
 
-import java.beans.Transient;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Set;
 
-public interface TagHolder {
+public interface TagMarkable {
     String RECORDED = "recorded";
 
     default boolean hasTag(String tag) {
@@ -31,24 +32,28 @@ public interface TagHolder {
     }
 
     default boolean addTags(String... tags) {
-        for (String tag : tags) {
-            if (!addTag(tag)) {
-                return false;
-            }
+        return addTags(Arrays.asList(tags));
+    }
+
+    default boolean addTags(Collection<String> collection) {
+        boolean changed = false;
+        for (String tag : collection) {
+            final boolean thisTimeChanged = addTag(tag);
+            changed = changed || thisTimeChanged;
         }
-        return true;
+        return changed;
     }
 
     default boolean isOriginalTag(String tag) {
-        return originalTags().contains(tag);
+        return getOriginalTags().contains(tag);
     }
 
-    Set<String> originalTags();
+    Set<String> getOriginalTags();
 
     Set<String> getTags();
 
     default void flushTags() {
-        getTags().addAll(originalTags());
+        getTags().addAll(getOriginalTags());
         getTags().add(RECORDED);
     }
 }

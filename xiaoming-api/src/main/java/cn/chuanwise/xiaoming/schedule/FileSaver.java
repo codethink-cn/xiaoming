@@ -2,7 +2,7 @@ package cn.chuanwise.xiaoming.schedule;
 
 import cn.chuanwise.toolkit.preservable.Preservable;
 import cn.chuanwise.toolkit.serialize.serializer.Serializer;
-import cn.chuanwise.utility.CheckUtility;
+import cn.chuanwise.util.ConditionUtil;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.object.ModuleObject;
 
@@ -43,7 +43,7 @@ public interface FileSaver extends ModuleObject {
      */
     default void readyToSave(Preservable<File> preservable) {
         final File file = preservable.getMedium();
-        CheckUtility.checkArgument(Objects.nonNull(file), "medium can not be null!");
+        ConditionUtil.checkArgument(Objects.nonNull(file), "medium can not be null!");
 
         // 是否直接保存文件
         if (getXiaomingBot().getConfiguration().isSaveFileDirectly()) {
@@ -64,7 +64,7 @@ public interface FileSaver extends ModuleObject {
      */
     default void planToSave(Preservable<File> preservable) {
         final File file = preservable.getMedium();
-        CheckUtility.checkArgument(Objects.nonNull(file), "medium can not be null!");
+        ConditionUtil.checkArgument(Objects.nonNull(file), "medium can not be null!");
 
         getPreservables().put(file, preservable);
     }

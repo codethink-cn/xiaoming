@@ -1,7 +1,7 @@
 package cn.chuanwise.xiaoming.interactor.core;
 
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.TimeUtility;
+import cn.chuanwise.util.CollectionUtil;
+import cn.chuanwise.util.TimeUtil;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.annotation.Permission;
@@ -10,7 +10,7 @@ import cn.chuanwise.xiaoming.report.ReportMessage;
 import cn.chuanwise.xiaoming.report.ReportMessageImpl;
 import cn.chuanwise.xiaoming.report.ReportMessageManager;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.CommandWords;
+import cn.chuanwise.xiaoming.util.CommandWords;
 
 import java.util.List;
 import java.util.Objects;
@@ -39,7 +39,7 @@ public class ReportInteractors extends SimpleInteractors {
             builder.append("\n").append("群：" + message.getGroup());
         }
 
-        builder.append("\n").append("时间：" + TimeUtility.format(message.getTime()));
+        builder.append("\n").append("时间：" + TimeUtil.format(message.getTime()));
 
         user.sendPrivateMessage(builder.toString());
     }
@@ -86,7 +86,7 @@ public class ReportInteractors extends SimpleInteractors {
             getXiaomingBot().getFileSaver().readyToSave(reportMessageManager);
         } else {
             user.sendMessage("一共有 " + reportMessages.size() + " 个未经查看的报告：\n" +
-                    CollectionUtility.toIndexString(reportMessages, ReportMessage::getMessage));
+                    CollectionUtil.toIndexString(reportMessages, ReportMessage::getMessage));
         }
     }
 

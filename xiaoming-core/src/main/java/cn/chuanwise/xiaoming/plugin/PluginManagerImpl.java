@@ -2,8 +2,8 @@ package cn.chuanwise.xiaoming.plugin;
 
 import cn.chuanwise.optional.ValueWithMessage;
 import cn.chuanwise.toolkit.optional.SimpleValueWithMessage;
-import cn.chuanwise.utility.CheckUtility;
-import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.util.CollectionUtil;
+import cn.chuanwise.util.ConditionUtil;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.classloader.XiaomingClassLoader;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
@@ -58,7 +58,7 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
         // 对插件文件夹内所有的文件
         for (File file : directory.listFiles()) {
             // 如果是旧表中已经加载了的，不重复加载
-            final PluginHandler lastLoadedHandler = CollectionUtility.first(elderPluginHandlers.values(), handler -> Objects.equals(file, handler.getFile()));
+            final PluginHandler lastLoadedHandler = CollectionUtil.first(elderPluginHandlers.values(), handler -> Objects.equals(file, handler.getFile()));
             if (Objects.nonNull(lastLoadedHandler)) {
                 pluginHandlers.put(lastLoadedHandler.getName(), lastLoadedHandler);
                 continue;
@@ -128,7 +128,7 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
     }
 
     @Override
-    public boolean addPluginHandler(String name, PluginHandler handler) {
+    public boolean addPlugin(String name, PluginHandler handler) {
         if (!pluginHandlers.containsKey(name)) {
             pluginHandlers.put(name, handler);
             return true;
@@ -191,7 +191,12 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
         // 扩展类加载器
         try {
             final XiaomingClassLoader xiaomingClassLoader = getXiaomingBot().getXiaomingClassLoader();
-            xiaomingClassLoader.addURL(handler.getFile().toURI().toURL());
+
+            final File file = handler.getFile();
+            if (Objects.nonNull(file)) {
+                xiaomingClassLoader.addURL(file.toURI().toURL());
+            }
+
             classLoader = xiaomingClassLoader;
         } catch (Exception exception) {
             getLogger().error("无法扩展类加载器", exception);
@@ -414,7 +419,7 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
 
     @Override
     public void initialize() {
-        CheckUtility.checkState(getXiaomingBot().getStatus() == XiaomingBot.Status.ENABLING,
+        ConditionUtil.checkState(getXiaomingBot().getStatus() == XiaomingBot.Status.ENABLING,
                 "can not call the initialize method when xiaoming is not enabling");
         tryLoadPlugins();
         tryEnablePlugins();
@@ -427,7 +432,7 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
         }
 
         // 获得需要加载的插件
-        final Set<PluginHandler> informationRequireLoad = CollectionUtility.filter(pluginHandlers.values(), information -> Objects.isNull(information.getPlugin()));
+        final Set<PluginHandler> informationRequireLoad = CollectionUtil.filter(pluginHandlers.values(), information -> Objects.isNull(information.getPlugin()));
 
         // 对每一个这样的插件都加载一次
         // 首先是 load
@@ -454,7 +459,7 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
 
     protected int tryEnablePlugins() {
         // 不断循环，直到无法再启动插件为止
-        final Set<PluginHandler> informationRequireEnable = CollectionUtility.filter(pluginHandlers.values(),
+        final Set<PluginHandler> informationRequireEnable = CollectionUtil.filter(pluginHandlers.values(),
                 information -> Objects.nonNull(information.getPlugin()) && (information.getPlugin().getStatus() == Plugin.Status.LOADED));
         int enabledPluginNumber = 0;
         int thisTimeEnabledPluginNumber = 0;

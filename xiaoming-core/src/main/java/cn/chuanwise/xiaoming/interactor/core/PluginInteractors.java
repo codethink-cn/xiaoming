@@ -1,17 +1,13 @@
 package cn.chuanwise.xiaoming.interactor.core;
 
-import cn.chuanwise.utility.MapUtility;
+import cn.chuanwise.util.MapUtil;
 import cn.chuanwise.xiaoming.annotation.*;
-import cn.chuanwise.xiaoming.bot.XiaomingBot;
-import cn.chuanwise.xiaoming.contact.contact.MemberContact;
-import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.plugin.PluginHandler;
 import cn.chuanwise.xiaoming.plugin.PluginManager;
-import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.CommandWords;
+import cn.chuanwise.xiaoming.util.CommandWords;
 
 import java.util.*;
 
@@ -30,7 +26,7 @@ public class PluginInteractors extends SimpleInteractors {
         final Map<Plugin.Status, Set<Plugin>> status = new HashMap<>();
 
         for (Plugin plugin : plugins.values()) {
-            MapUtility.getOrPutSupply(status, plugin.getStatus(), HashSet::new).add(plugin);
+            MapUtil.getOrPutSupply(status, plugin.getStatus(), HashSet::new).add(plugin);
         }
         if (plugins.isEmpty()) {
             user.sendMessage("{lang.noAnyLoadedPlugin}");

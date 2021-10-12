@@ -1,11 +1,7 @@
-package cn.chuanwise.xiaoming.utility;
+package cn.chuanwise.xiaoming.util;
 
-import cn.chuanwise.exception.UnsupportedVersionException;
-import cn.chuanwise.utility.ObjectUtility;
-import cn.chuanwise.utility.StaticUtility;
-import cn.chuanwise.utility.StringUtility;
-import cn.chuanwise.xiaoming.exception.InteractInterrtuptedException;
-import cn.chuanwise.xiaoming.exception.InteractExitedException;
+import cn.chuanwise.util.StaticUtil;
+import cn.chuanwise.util.StringUtil;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 
@@ -20,7 +16,7 @@ import java.util.regex.Pattern;
 /**
  * @author Chuanwise
  */
-public class InteractorUtility extends StaticUtility {
+public class InteractorUtil extends StaticUtil {
     static final Pattern PAGE = Pattern.compile("(第|P|p)\\s*(?<page>\\d+)\\s*页");
 
     public static <T> void showCollection(XiaomingUser user, Collection<T> collection, Function<T, String> summarizer, String empty, int elementNumberPerPage) {
@@ -319,7 +315,7 @@ public class InteractorUtility extends StaticUtility {
                                                                            String stopSign,
                                                                            String emptyNotice) {
         final BiConsumer<XiaomingUser, Message> onEmptyStop;
-        if (StringUtility.nonEmpty(emptyNotice)) {
+        if (StringUtil.notEmpty(emptyNotice)) {
             onEmptyStop = (u, m) -> u.replyError(m, emptyNotice);
         } else {
             onEmptyStop = null;

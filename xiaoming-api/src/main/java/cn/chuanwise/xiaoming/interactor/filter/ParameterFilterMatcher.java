@@ -1,7 +1,7 @@
 package cn.chuanwise.xiaoming.interactor.filter;
 
 import cn.chuanwise.pattern.ParameterPattern;
-import cn.chuanwise.utility.MapUtility;
+import cn.chuanwise.util.MapUtil;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import lombok.Getter;
@@ -18,7 +18,7 @@ public class ParameterFilterMatcher extends FilterMatcher {
 
     @Override
     public boolean apply(XiaomingUser user, Message message) {
-        return MapUtility.nonEmpty(parse(message.serialize()));
+        return parse(message.serialize()).map(MapUtil::nonEmpty).orElse(false);
     }
 
     @Override
@@ -30,7 +30,7 @@ public class ParameterFilterMatcher extends FilterMatcher {
         return parameterPattern.matches(input);
     }
 
-    public Map<String, String> parse(String input) {
+    public Optional<Map<String, String>> parse(String input) {
         return parameterPattern.parse(input);
     }
 }

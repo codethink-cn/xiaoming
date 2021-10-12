@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.interactor.core;
 
-import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.account.AccountManager;
 import cn.chuanwise.xiaoming.account.record.Record;
@@ -9,10 +9,9 @@ import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.annotation.Permission;
 import cn.chuanwise.xiaoming.plugin.Plugin;
-import cn.chuanwise.xiaoming.tag.TagHolder;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.CommandWords;
-import cn.chuanwise.xiaoming.utility.InteractorUtility;
+import cn.chuanwise.xiaoming.util.CommandWords;
+import cn.chuanwise.xiaoming.util.InteractorUtil;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
 
 import java.util.*;
@@ -36,10 +35,10 @@ public class AccountInteractors extends SimpleInteractors {
                                   @FilterParameter("qq") long qq) {
         final Account account = user.getAccount();
         final List<Record> histories = account.getHistories();
-        if (CollectionUtility.isEmpty(histories)) {
+        if (CollectionUtil.isEmpty(histories)) {
             user.sendWarning("{lang.userHasNoHistory}");
         } else {
-            InteractorUtility.showCollection(user, account.getCommands(), Record::getMessage, 5);
+            InteractorUtil.showCollection(user, account.getCommands(), Record::getMessage, 5);
         }
     }
 

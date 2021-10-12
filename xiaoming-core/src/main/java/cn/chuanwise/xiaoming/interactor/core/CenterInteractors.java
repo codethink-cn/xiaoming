@@ -8,7 +8,7 @@ import cn.chuanwise.xiaoming.client.CenterClient;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.CommandWords;
+import cn.chuanwise.xiaoming.util.CommandWords;
 import net.mamoe.mirai.message.data.At;
 
 import java.util.Set;

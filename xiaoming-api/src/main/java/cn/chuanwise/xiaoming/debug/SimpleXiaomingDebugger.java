@@ -23,22 +23,15 @@ public class SimpleXiaomingDebugger implements XiaomingDebugger {
     }
 
     @Override
-    public void debug() throws Exception {
-        launch();
-        launcher.getXiaomingBot().getConfiguration().setDebug(true);
-    }
-
-    @Override
     public void run() throws Exception {
         launch();
-        launcher.getXiaomingBot().getConfiguration().setDebug(false);
     }
 
     protected void launch() throws Exception {
         launcher.launch();
         if (launcher.start()) {
             final PluginManager pluginManager = getXiaomingBot().getPluginManager();
-            pluginManager.addPluginHandlers(pluginHandlers);
+            pluginManager.addPlugins(pluginHandlers);
 
             for (PluginHandler pluginHandler : pluginHandlers) {
                 if (pluginManager.loadPlugin(pluginHandler) && pluginManager.enablePlugin(pluginHandler)) {

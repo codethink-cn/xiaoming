@@ -1,19 +1,13 @@
 package cn.chuanwise.xiaoming.contact.contact;
 
-import cn.chuanwise.utility.ArgumentUtility;
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.xiaoming.attribute.AttributeType;
+import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.event.MessageEvent;
 import cn.chuanwise.xiaoming.user.ConsoleXiaomingUser;
 import net.mamoe.mirai.contact.Friend;
-import net.mamoe.mirai.message.code.MiraiCode;
-import net.mamoe.mirai.message.data.MessageChain;
 
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ScheduledFuture;
 
 public interface ConsoleContact extends XiaomingContact<Friend> {
     @Override
@@ -50,6 +44,6 @@ public interface ConsoleContact extends XiaomingContact<Friend> {
 
     @Override
     default Set<String> getTags() {
-        return CollectionUtility.asSet(RECORDED, "console");
+        return CollectionUtil.asSet(RECORDED, "console");
     }
 }

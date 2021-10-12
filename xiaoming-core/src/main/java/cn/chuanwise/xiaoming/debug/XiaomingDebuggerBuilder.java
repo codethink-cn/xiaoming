@@ -1,16 +1,15 @@
 package cn.chuanwise.xiaoming.debug;
 
 import cn.chuanwise.toolkit.serialize.serializer.Serializer;
-import cn.chuanwise.utility.CheckUtility;
-import cn.chuanwise.utility.MessageDigestUtility;
+import cn.chuanwise.util.ConditionUtil;
+import cn.chuanwise.util.MessageDigestUtil;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.bot.XiaomingBotImpl;
 import cn.chuanwise.xiaoming.launcher.SimpleXiaomingLauncher;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.plugin.PluginHandler;
 import cn.chuanwise.xiaoming.plugin.PluginHandlerImpl;
-import cn.chuanwise.xiaoming.utility.SerializerUtility;
-import org.apache.log4j.PropertyConfigurator;
+import cn.chuanwise.util.SerializerUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +19,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class XiaomingDebuggerBuilder {
-    final Serializer serializer = SerializerUtility.initializedSerializer();
+    final Serializer serializer = SerializerUtil.initializedSerializer();
     final List<PluginHandler> pluginHandlers = new ArrayList<>();
 
     long code;
@@ -28,7 +27,7 @@ public class XiaomingDebuggerBuilder {
     File workingDirectory;
 
     public XiaomingDebugger build() {
-        CheckUtility.nonNull(passwordMd5, "password");
+        ConditionUtil.nonNull(passwordMd5, "password");
         final XiaomingBot xiaomingBot = new XiaomingBotImpl(code, passwordMd5);
         if (Objects.nonNull(workingDirectory)) {
             xiaomingBot.setWorkingDirectory(workingDirectory);
@@ -36,6 +35,7 @@ public class XiaomingDebuggerBuilder {
         } else {
             xiaomingBot.getMiraiBot().getConfiguration().setWorkingDir(new File("launcher"));
         }
+        xiaomingBot.getMiraiBot().getConfiguration().fileBasedDeviceInfo();
         return new SimpleXiaomingDebugger(new SimpleXiaomingLauncher(xiaomingBot), pluginHandlers);
     }
 
@@ -45,7 +45,7 @@ public class XiaomingDebuggerBuilder {
     }
 
     public XiaomingDebuggerBuilder password(String password) {
-        passwordMd5 = MessageDigestUtility.MD5.digest(password.getBytes());
+        passwordMd5 = MessageDigestUtil.MD5.digest(password.getBytes());
         return this;
     }
 

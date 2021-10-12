@@ -53,23 +53,23 @@ public interface PluginManager extends XiaomingObject, ModuleObject {
 
     Set<PluginHandler> getPluginHandlers();
 
-    boolean addPluginHandler(String name, PluginHandler handler);
+    boolean addPlugin(String name, PluginHandler handler);
 
-    default boolean addPluginHandler(PluginHandler handler) {
-        return addPluginHandler(handler.getName(), handler);
+    default boolean addPlugin(PluginHandler handler) {
+        return addPlugin(handler.getName(), handler);
     }
 
-    default boolean addPluginHandlers(PluginHandler... handlers) {
+    default boolean addPlugins(PluginHandler... handlers) {
         for (PluginHandler handler : handlers) {
-            if (!addPluginHandler(handler)) {
+            if (!addPlugin(handler)) {
                 return false;
             }
         }
         return true;
     }
 
-    default boolean addPluginHandlers(Collection<PluginHandler> handlers) {
-        return addPluginHandlers(handlers.toArray(new PluginHandler[0]));
+    default boolean addPlugins(Collection<PluginHandler> handlers) {
+        return addPlugins(handlers.toArray(new PluginHandler[0]));
     }
 
     /** 加载一个插件 */

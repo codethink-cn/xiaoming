@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.language;
 
-import cn.chuanwise.utility.FunctionalUtility;
+import cn.chuanwise.util.FunctionalUtil;
 import cn.chuanwise.toolkit.preservable.Preservable;
 import cn.chuanwise.xiaoming.language.sentence.Sentence;
 import cn.chuanwise.xiaoming.object.PluginObject;
@@ -29,7 +29,7 @@ public interface Language extends Preservable<File>, PluginObject {
     }
 
     default String getSentenceValueOrDefault(String identifier, String defaultValue) {
-        return FunctionalUtility.runIfArgumentNonNullOrDefault(Sentence::getValue, getSentence(identifier), defaultValue);
+        return FunctionalUtil.runIfArgumentNonNullOrDefault(Sentence::getValue, getSentence(identifier), defaultValue);
     }
 
     default String getSentenceValue(String identifier) {

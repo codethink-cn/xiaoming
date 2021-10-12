@@ -7,11 +7,10 @@
 小明目前拥有的插件还不算多。如果你有意开发喜欢的插件，欢迎阅读[开发文档](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/Development.md)，通过添加你的插件后 [Pull Request](https://github.com/Chuanwise/xiaoming-bot/pulls)，阅读[发布插件指南](#发布插件指南)后，将你的插件信息放在本页上。
 
 ## 插件列表
-|中文名|英文名|作者|适用内核|概括|相关页面|
-|---|---|---|---|---|---|
-|词库|lexicons|Chuanwise|`2.0` 及以上|提供自定义关键字随机回复等功能|[项目地址](https://github.com/Chuanwise/xiaoming-lexicons)|
-|词库（专业版）|lexicons-pro|Chuanwise|`3.0` 及以上|提供多种匹配模式的自定义关键字随机回复等功能|[项目地址](https://github.com/Chuanwise/lexicons-pro)|
-|小明MC|xiaoming-minecraft|Chuanwise|`2.5.1` 及以上|让你的小明和服务器互通|[项目地址](https://github.com/Chuanwise/xiaoming-minecraft)|
+|中文名|英文名|作者|概括|相关页面|
+|---|---|---|---|---|
+|词库专业版|`lexicons-pro`|`Chuanwise`|提供多种匹配模式的自定义关键字随机回复等功能|[项目地址](https://github.com/Chuanwise/lexicons-pro) [用户手册]()|
+|小明MC|`XiaomingMinecraft`|`Chuanwise`|让你的小明和服务器互通|[项目地址](https://github.com/Chuanwise/xiaoming-minecraft)|
 
 ## 发布插件指南
 欢迎你将你开发的插件公开在小明的插件中心！

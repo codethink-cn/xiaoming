@@ -1,5 +1,6 @@
 package cn.chuanwise.xiaoming.contact;
 
+import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.event.MessageEvent;
 import cn.chuanwise.xiaoming.group.GroupRecord;
@@ -12,7 +13,9 @@ import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.MemberXiaomingUser;
 import cn.chuanwise.xiaoming.user.PrivateXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
+import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.NormalMember;
+import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.*;
@@ -245,5 +248,37 @@ public interface ContactManager extends ModuleObject {
             }
         }
         return false;
+    }
+
+    default Optional<XiaomingContact> sendPrivateMessagePossibly(long code, MessageChain messageChain) {
+        final PrivateContact privateContact = getPrivateContact(code);
+        if (Objects.nonNull(privateContact)) {
+            try {
+                privateContact.sendMessage(messageChain);
+                return Optional.of(privateContact);
+            } catch (Exception ignored) {
+            }
+        }
+
+        for (Group group : getXiaomingBot().getMiraiBot().getGroups()) {
+            final NormalMember member = group.get(code);
+            if (Objects.nonNull(member)) {
+                try {
+                    member.sendMessage(messageChain);
+                    return Optional.of(getMemberContact(group.getId(), code));
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    default Optional<XiaomingContact> sendPrivateMessagePossibly(long code, String message, Object... arguments) {
+        return sendPrivateMessagePossibly(code, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().formatAdditional(message, variable -> null, arguments)));
+    }
+
+    default Optional<XiaomingContact> sendPrivateMessagePossibly(long code, Sentence sentence, Function<String, Object> externalGetter, Object... arguments) {
+        return sendPrivateMessagePossibly(code, getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
     }
 }

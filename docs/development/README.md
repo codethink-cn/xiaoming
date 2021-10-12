@@ -40,43 +40,9 @@
 |小明账户管理器|`AccountManager`|[AccountManager](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/AccountManager.md)|查看、管理用户指令记录、相关事件的痕迹等等
 |插件管理器|`PluginManager`|[PluginManager](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/PluginManager.md)|管理、获取、加载或卸载现有的插件相关功能
 
-
 ## 启动小明的方式
 ### 开发小明插件
-将插件 `jar` 文件放在小明目录的 `plugins` 文件夹中，重启小明，或执行以下指令：
-```xiaoming
-刷新插件
-加载插件 <你的插件名>
-```
-即可加载你的插件。
-
-### 将小明作为组件
-此方式需要通过代码启动小明机器人。请在[这里](https://github.com/Chuanwise/xiaoming-bot/releases)下载最新的小明内核和 `API`，导入项目后通过 `XiaomingBot` 类的 `start()` 方法启动小明：
-```java
-package cn.chuanwise.xiaoming.example;
-
-import XiaomingBot;
-import XiaomingBotImpl;
-
-/**
- * 程序中调用小明示例
- * @author Chuanwise
- */
-public class EnableXiaomingExample {
-    public static void main(String[] args) {
-        // 第一个参数为 QQ，第二个为密码
-        final long qq = 123456789;
-        final String password = "password";
-
-        XiaomingBot xiaomingBot = new XiaomingBotImpl(qq, password);
-        xiaomingBot.start();
-
-        // ...
-        xiaomingBot.stop();
-    }
-}
-```
-如果你已经有现成的 `Mirai` 协议的 `Bot`，可以使用 `xiaomingBot.setMiraiBot(Bot miraiBot)` 直接设置现成的。
+将插件 `jar` 文件放在小明目录的 `plugins` 文件夹中，重启小明即可加载你的插件。
 
 > **声明**
 > 

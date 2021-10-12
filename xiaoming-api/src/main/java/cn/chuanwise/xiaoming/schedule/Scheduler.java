@@ -1,8 +1,7 @@
 package cn.chuanwise.xiaoming.schedule;
 
-import cn.chuanwise.utility.CheckUtility;
+import cn.chuanwise.util.ConditionUtil;
 import cn.chuanwise.xiaoming.object.ModuleObject;
-import cn.chuanwise.xiaoming.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,19 +10,35 @@ import java.util.concurrent.*;
 
 public interface Scheduler extends ModuleObject {
     default void run(Runnable runnable) {
-        getThreadPool().submit(runnable);
+        runLater(0, runnable);
     }
 
     default <T> Future<T> run(Runnable runnable, T returnValue) {
-        return getThreadPool().submit(runnable, returnValue);
+        return getThreadPool().submit(() -> {
+            runnable.run();
+            return returnValue;
+        });
     }
 
     default <T> Future<T> run(Callable<T> callable) {
-        return getThreadPool().submit(callable);
+        return getThreadPool().submit(() -> {
+            try {
+                return callable.call();
+            } catch (Throwable exception) {
+                getLogger().error("执行任务 " + callable + " 时出现异常", exception);
+                return null;
+            }
+        });
     }
 
     default ScheduledFuture<?> runLater(long delay, Runnable runnable) {
-        return getThreadPool().schedule(runnable, delay, TimeUnit.MILLISECONDS);
+        return getThreadPool().schedule(() -> {
+            try {
+                runnable.run();
+            } catch (Throwable exception) {
+                getLogger().error("执行任务 " + runnable + " 时出现异常", exception);
+            }
+        }, delay, TimeUnit.MILLISECONDS);
     }
 
     default <T> ScheduledFuture<T> runLater(long delay, Runnable runnable, T returnValue) {
@@ -38,7 +53,13 @@ public interface Scheduler extends ModuleObject {
     }
 
     default ScheduledFuture<?> runAtFixedRateLater(long period, long delay, Runnable runnable) {
-        return getThreadPool().scheduleAtFixedRate(runnable, delay, period, TimeUnit.MILLISECONDS);
+        return getThreadPool().scheduleAtFixedRate(() -> {
+            try {
+                runnable.run();
+            } catch (Throwable exception) {
+                getLogger().error("执行周期性任务 " + runnable + " 时出现异常", exception);
+            }
+        }, delay, period, TimeUnit.MILLISECONDS);
     }
 
     default ScheduledFuture<?> runWithFixedDelay(long period, Runnable runnable) {
@@ -46,11 +67,24 @@ public interface Scheduler extends ModuleObject {
     }
 
     default ScheduledFuture<?> runWithFixedDelayLater(long period, long delay, Runnable runnable) {
-        return getThreadPool().scheduleWithFixedDelay(runnable, delay, period, TimeUnit.MILLISECONDS);
+        return getThreadPool().scheduleWithFixedDelay(() -> {
+            try {
+                runnable.run();
+            } catch (Throwable exception) {
+                getLogger().error("执行周期性任务 " + runnable + " 时出现异常", exception);
+            }
+        }, delay, period, TimeUnit.MILLISECONDS);
     }
 
     default <T> ScheduledFuture<T> runLater(long delay, Callable<T> callable) {
-        return getThreadPool().schedule(callable, delay, TimeUnit.MILLISECONDS);
+        return getThreadPool().schedule(() -> {
+            try {
+                return callable.call();
+            } catch (Throwable exception) {
+                getLogger().error("执行任务 " + callable + " 时出现异常", exception);
+                return null;
+            }
+        }, delay, TimeUnit.MILLISECONDS);
     }
 
     default Runnable getFinalTask(String name) {
@@ -74,14 +108,14 @@ public interface Scheduler extends ModuleObject {
     }
 
     default void stop() {
-        CheckUtility.checkState(!isStopped(), "scheduler already stopped");
+        ConditionUtil.checkState(!isStopped(), "scheduler already stopped");
         final Map<String, Runnable> finalTasks = getFinalTasks();
         finalTasks.forEach((name, runnable) -> run(runnable));
         getThreadPool().shutdown();
     }
 
     default void stopNow() {
-        CheckUtility.checkState(!isStopped(), "scheduler already stopped");
+        ConditionUtil.checkState(!isStopped(), "scheduler already stopped");
         final Map<String, Runnable> finalTasks = getFinalTasks();
         final List<Future<?>> futures = new ArrayList<>(finalTasks.size());
 
@@ -102,7 +136,7 @@ public interface Scheduler extends ModuleObject {
     }
 
     default boolean awaitStop(long timeout) throws InterruptedException {
-        CheckUtility.checkState(!isStopped(), "scheduler already stopped");
+        ConditionUtil.checkState(!isStopped(), "scheduler already stopped");
         final Map<String, Runnable> finalTasks = getFinalTasks();
         final List<Future<?>> futures = new ArrayList<>(finalTasks.size());
 

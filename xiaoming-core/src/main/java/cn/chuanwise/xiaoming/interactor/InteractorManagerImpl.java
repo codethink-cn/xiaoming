@@ -2,10 +2,10 @@ package cn.chuanwise.xiaoming.interactor;
 
 import cn.chuanwise.exception.UnsupportedVersionException;
 import cn.chuanwise.optional.ValueWithMessage;
-import cn.chuanwise.toolkit.value.container.ValueContainer;
-import cn.chuanwise.utility.ArgumentUtility;
-import cn.chuanwise.utility.NumberUtility;
-import cn.chuanwise.utility.TimeUtility;
+import cn.chuanwise.toolkit.container.Container;
+import cn.chuanwise.util.ArgumentUtil;
+import cn.chuanwise.util.NumberUtil;
+import cn.chuanwise.util.TimeUtil;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.contact.message.Message;
@@ -21,8 +21,8 @@ import cn.chuanwise.xiaoming.report.ReportMessage;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
-import cn.chuanwise.xiaoming.utility.AtUtility;
-import cn.chuanwise.xiaoming.utility.RegisterUtility;
+import cn.chuanwise.xiaoming.util.AtUtil;
+import cn.chuanwise.xiaoming.util.RegisterUtil;
 import lombok.Getter;
 import net.mamoe.mirai.message.data.MessageChain;
 
@@ -46,7 +46,7 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
     }
 
     private void initialize() {
-        registerParameterParser(XiaomingBot.class, context -> ValueContainer.of(getXiaomingBot()), true, null);
+        registerParameterParser(XiaomingBot.class, context -> Container.of(getXiaomingBot()), true, null);
         registerParameterParser(long.class, context -> {
             final XiaomingUser user = context.getUser();
             final String inputValue = context.getInputValue();
@@ -54,35 +54,35 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
                 case "qq":
                 case "code":
                 case "account":
-                    final Long code = AtUtility.parseAt(context.getInputValue());
-                    if (Objects.isNull(code)) {
+                    final Optional<Long> optionalCode = AtUtil.parseAt(context.getInputValue());
+                    if (optionalCode.isPresent()) {
+                        return Container.of(optionalCode.get());
+                    } else {
                         user.sendError("{lang.illegalCode}", inputValue);
                         return null;
-                    } else {
-                        return ValueContainer.of(code);
                     }
                 case "time":
                 case "period":
                 case "时长":
-                    final Long time = TimeUtility.parseTimeLength(inputValue);
-                    if (Objects.isNull(time)) {
+                    final Optional<Long> time = TimeUtil.parseTimeLength(inputValue);
+                    if (time.isPresent()) {
+                        return Container.of(time.get());
+                    } else {
                         user.sendError("{lang.illegalPeriod}", inputValue);
                         return null;
-                    } else {
-                        return ValueContainer.of(time);
                     }
                 case "group":
-                    final Long groupCode = NumberUtility.parseLong(inputValue);
-                    if (Objects.isNull(groupCode)) {
+                    final Optional<Long> groupCode = NumberUtil.parseLong(inputValue);
+                    if (groupCode.isPresent()) {
+                        return Container.of(groupCode.get());
+                    } else {
                         user.sendError("{lang.illegalGroupCode}", inputValue);
                         return null;
-                    } else {
-                        return ValueContainer.of(groupCode);
                     }
                 default:
-                    final Long parseResult = NumberUtility.parseLong(inputValue);
-                    if (Objects.nonNull(parseResult)) {
-                        return ValueContainer.of(parseResult);
+                    final Optional<Long> parseLong = NumberUtil.parseLong(inputValue);
+                    if (parseLong.isPresent()) {
+                        return Container.of(parseLong.get());
                     } else {
                         return null;
                     }
@@ -91,17 +91,17 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
         registerParameterParser(Account.class, context -> {
             final XiaomingUser user = context.getUser();
             final String inputValue = context.getInputValue();
-            final long qq = AtUtility.parseAt(inputValue);
-            if (qq == -1) {
-                user.sendError("{lang.illegalCode}", inputValue);
-                return null;
-            } else {
-                final Account account = getXiaomingBot().getAccountManager().getAccount(qq);
+            final Optional<Long> optionalCode = AtUtil.parseAt(inputValue);
+            if (optionalCode.isPresent()) {
+                final Account account = getXiaomingBot().getAccountManager().getAccount(optionalCode.get());
                 if (Objects.nonNull(account)) {
-                    return ValueContainer.of(account);
+                    return Container.of(account);
                 } else {
                     return null;
                 }
+            } else {
+                user.sendError("{lang.illegalCode}", inputValue);
+                return null;
             }
         }, true, null);
         registerParameterParser(int.class, context -> {
@@ -109,11 +109,9 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
             final String inputValue = context.getInputValue();
             final XiaomingUser user = context.getUser();
 
-            final Integer integer = NumberUtility.parseInteger(inputValue);
-            if (Objects.isNull(integer)) {
-                user.sendError("{lang.illegalInteger}", inputValue);
-                return null;
-            } else {
+            final Optional<Integer> optionalInteger = NumberUtil.parseInteger(inputValue);
+            if (optionalInteger.isPresent()) {
+                final Integer integer = optionalInteger.get();
                 switch (parameterName) {
                     case "index":
                     case "序号":
@@ -121,11 +119,14 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
                             user.sendError("{lang.illegalIndex}", inputValue);
                             return null;
                         } else {
-                            return ValueContainer.of(integer - 1);
+                            return Container.of(integer - 1);
                         }
                     default:
-                        return ValueContainer.of(integer);
+                        return Container.of(integer);
                 }
+            } else {
+                user.sendError("{lang.illegalInteger}", inputValue);
+                return null;
             }
         }, true, null);
         registerParameterParser(Plugin.class, context -> {
@@ -137,7 +138,7 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
                 user.sendError("{lang.pluginHadNotLoad}", inputValue);
                 return null;
             } else {
-                return ValueContainer.of(plugin);
+                return Container.of(plugin);
             }
         }, true, null);
         registerParameterParser(PermissionGroup.class, context -> {
@@ -145,7 +146,7 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
             final String inputValue = context.getInputValue();
             final PermissionGroup permissionGroup = getXiaomingBot().getPermissionManager().forPermissionGroup(inputValue);
             if (Objects.nonNull(permissionGroup)) {
-                return ValueContainer.of(permissionGroup);
+                return Container.of(permissionGroup);
             } else {
                 user.sendError("{lang.noSuchPermissionGroup}", inputValue);
                 return null;
@@ -154,30 +155,30 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
         registerParameterParser(double.class, context -> {
             final String inputValue = context.getInputValue();
             final XiaomingUser user = context.getUser();
-            final Double parseResult = NumberUtility.parseDouble(inputValue);
-            if (Objects.isNull(parseResult)) {
+            final Optional<Double> optionalDouble = NumberUtil.parseDouble(inputValue);
+            if (optionalDouble.isPresent()) {
+                return Container.of(optionalDouble.get());
+            } else {
                 user.sendError("{lang.illegalDouble}", inputValue);
                 return null;
-            } else {
-                return ValueContainer.of(parseResult);
             }
         }, true, null);
         registerParameterParser(GroupRecord.class, context -> {
             final String inputValue = context.getInputValue();
             final XiaomingUser user = context.getUser();
 
-            final Long groupCode = NumberUtility.parseLong(inputValue);
-            if (Objects.isNull(groupCode)) {
-                user.sendError("{lang.illegalGroupCode}", inputValue);
-                return null;
-            } else {
-                final GroupRecord groupRecord = getXiaomingBot().getGroupRecordManager().forCode(groupCode);
+            final Optional<Long> optionalGroupCode = NumberUtil.parseLong(inputValue);
+            if (optionalGroupCode.isPresent()) {
+                final GroupRecord groupRecord = getXiaomingBot().getGroupRecordManager().forCode(optionalGroupCode.get());
                 if (Objects.isNull(groupRecord)) {
                     user.sendError("{lang.groupRecordNotFound}", inputValue);
                     return null;
                 } else {
-                    return ValueContainer.of(groupRecord);
+                    return Container.of(groupRecord);
                 }
+            } else {
+                user.sendError("{lang.illegalGroupCode}", inputValue);
+                return null;
             }
         }, true, null);
         registerParameterParser(PluginHandler.class, context -> {
@@ -189,14 +190,14 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
                 user.sendError("{lang.pluginHadNotLoad}", inputValue);
                 return null;
             } else {
-                return ValueContainer.of(handler);
+                return Container.of(handler);
             }
         }, true, null);
         registerParameterParser(String[].class, context -> {
             switch (context.getParameterName()) {
                 case "args":
                 case "arguments":
-                    return ValueContainer.of(ArgumentUtility.split(context.getMessage().serialize()).toArray(new String[0]));
+                    return Container.of(ArgumentUtil.split(context.getMessage().serialize()).toArray(new String[0]));
                 default:
                     return null;
             }
@@ -211,19 +212,19 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
                 return null;
             }
 
-            final Integer index = NumberUtility.parseIndex(inputValue, 1, reportMessages.size());
+            final Optional<Integer> optionalIndex = NumberUtil.parseIndex(inputValue, 1, reportMessages.size());
 
-            if (reportMessages.size() == 1 && Objects.equals(index, 1)) {
+            if (reportMessages.size() == 1) {
                 final ReportMessage target = reportMessages.get(0);
                 user.sendWarning("{lang.onlyOneReports}");
-                return ValueContainer.of(target);
+                return Container.of(target);
             }
 
-            if (Objects.isNull(index)) {
+            if (optionalIndex.isPresent()) {
+                return Container.of(reportMessages.get(optionalIndex.get() - 1));
+            } else {
                 user.sendError("{lang.illegalIndex}", inputValue);
                 return null;
-            } else {
-                return ValueContainer.of(reportMessages.get(index - 1));
             }
         }, true, null);
     }
@@ -236,13 +237,13 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
 
     @Override
     public <T> void registerParameterParser(InteractorParameterParserHandler<T> handler) {
-        RegisterUtility.checkRegister(getXiaomingBot(), handler.getPlugin(), "parameter parser");
+        RegisterUtil.checkRegister(getXiaomingBot(), handler.getPlugin(), "parameter parser");
         parameterParsers.add(handler);
     }
 
     @Override
     public void unregisterParameterParsers(Plugin plugin) {
-        RegisterUtility.checkUnregister(getXiaomingBot(), plugin, "parameter parser");
+        RegisterUtil.checkUnregister(getXiaomingBot(), plugin, "parameter parser");
         parameterParsers.removeIf(parser -> (parser.getPlugin() == plugin));
     }
 
@@ -254,13 +255,13 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
 
     @Override
     public <T extends Throwable> void registerThrowableCaughter(InteractorThrowableCaughterHandler<T> handler) {
-        RegisterUtility.checkRegister(getXiaomingBot(), handler.getPlugin(), "throwable caughter");
+        RegisterUtil.checkRegister(getXiaomingBot(), handler.getPlugin(), "throwable caughter");
         throwableCaughters.add(handler);
     }
 
     @Override
     public void unregisterThrowableCaughters(Plugin plugin) {
-        RegisterUtility.checkUnregister(getXiaomingBot(), plugin, "throwable caughter");
+        RegisterUtil.checkUnregister(getXiaomingBot(), plugin, "throwable caughter");
         throwableCaughters.removeIf(caughter -> (caughter.getPlugin() == plugin));
     }
 
@@ -354,13 +355,13 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
 
     @Override
     public void registerInteractor(InteractorHandler interactor) {
-        RegisterUtility.checkRegister(getXiaomingBot(), interactor.getPlugin(), "interactor");
+        RegisterUtil.checkRegister(getXiaomingBot(), interactor.getPlugin(), "interactor");
         interactors.add(interactor);
     }
 
     @Override
     public void unregisterInteractors(Plugin plugin) {
-        RegisterUtility.checkUnregister(getXiaomingBot(), plugin, "interactor");
+        RegisterUtil.checkUnregister(getXiaomingBot(), plugin, "interactor");
         interactors.removeIf(interactor -> (interactor.getPlugin() == plugin));
     }
 
@@ -370,7 +371,7 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
             if (interactor.getInteractors() != interactors) {
                 return false;
             }
-            RegisterUtility.checkUnregister(getXiaomingBot(), interactor.getPlugin(), "interactor");
+            RegisterUtil.checkUnregister(getXiaomingBot(), interactor.getPlugin(), "interactor");
             return true;
         });
     }

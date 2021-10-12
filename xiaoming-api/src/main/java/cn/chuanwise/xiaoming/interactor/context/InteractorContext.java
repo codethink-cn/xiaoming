@@ -1,11 +1,10 @@
 package cn.chuanwise.xiaoming.interactor.context;
 
-import cn.chuanwise.utility.MapUtility;
+import cn.chuanwise.util.MapUtil;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.interactor.handler.InteractorHandler;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.List;
@@ -21,7 +20,7 @@ public class InteractorContext {
     final List<Object> finalArguments;
 
     public String getArgument(String name) {
-        if (MapUtility.nonEmpty(arguments)) {
+        if (MapUtil.nonEmpty(arguments)) {
             return arguments.get(name);
         } else {
             return null;

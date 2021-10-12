@@ -8,7 +8,7 @@
     <artifactId>xiaoming-bot</artifactId>
     <packaging>pom</packaging>
 
-    <version>3.5</version>
+    <version>3.7.2-exp</version>
     <url>https://github.com/Chuanwise/xiaoming-bot</url>
 
     <modules>
@@ -18,27 +18,20 @@
 
     <properties>
         <github.global.server>github</github.global.server>
-        <xiaoming.versionType>experimental</xiaoming.versionType>
         <xiaoming.version>${project.version}</xiaoming.version>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>net.mamoe</groupId>
-            <artifactId>mirai-core-jvm</artifactId>
-            <version>2.6.7</version>
-        </dependency>
-
-        <dependency>
             <groupId>cn.chuanwise</groupId>
-            <artifactId>chuanwise-toolkit-implement</artifactId>
-            <version>2.0</version>
+            <artifactId>chuanwise-toolkit-generic</artifactId>
+            <version>3.0</version>
         </dependency>
 
         <dependency>
             <groupId>cn.chuanwise</groupId>
             <artifactId>xiaoming-center-client</artifactId>
-            <version>1.0</version>
+            <version>1.0-exp</version>
         </dependency>
 
         <dependency>
@@ -82,8 +75,6 @@
     </dependencies>
 
     <build>
-        <finalName>${project.name}-${project.version}-${xiaoming.versionType}</finalName>
-
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -1,16 +1,15 @@
 package cn.chuanwise.xiaoming.interactor.core;
 
-import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.annotation.NonNext;
 import cn.chuanwise.xiaoming.annotation.Permission;
-import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
-import cn.chuanwise.xiaoming.attribute.AttributeType;
+import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.CommandWords;
+import cn.chuanwise.xiaoming.util.CommandWords;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.utils.ExternalResource;
 
@@ -27,13 +26,13 @@ public class PreviewFunctionInteractors extends SimpleInteractors {
     static final String DOWNLOAD = "(获取|下载|download|get)";
     static final String UPLOAD = "(上传|上载|upload|give)";
 
-    static final AttributeType<File> CURRENT_CONTENT_PROPERTY = new AttributeType<>();
+    static final PropertyType<File> CURRENT_CONTENT_PROPERTY = new PropertyType<>();
     protected File getCurrentPath(XiaomingUser user) {
-        return user.getAttribute(CURRENT_CONTENT_PROPERTY);
+        return user.getProperty(CURRENT_CONTENT_PROPERTY).orElse(null);
     }
 
     protected void setCurrentPath(XiaomingUser user, File currentPath) {
-        user.setAttribute(CURRENT_CONTENT_PROPERTY, currentPath);
+        user.setProperty(CURRENT_CONTENT_PROPERTY, currentPath);
     }
 
     @NonNext
@@ -53,7 +52,7 @@ public class PreviewFunctionInteractors extends SimpleInteractors {
                 return file.getAbsolutePath() + " 下无任何文件";
             } else {
                 return file.getAbsolutePath() + "：" +
-                        "\n" + CollectionUtility.toIndexString(Arrays.asList(files), File::getName);
+                        "\n" + CollectionUtil.toIndexString(Arrays.asList(files), File::getName);
             }
         }
     }

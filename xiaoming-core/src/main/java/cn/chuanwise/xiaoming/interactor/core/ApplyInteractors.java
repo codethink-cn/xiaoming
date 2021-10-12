@@ -1,24 +1,23 @@
 package cn.chuanwise.xiaoming.interactor.core;
 
-import cn.chuanwise.toolkit.value.container.ValueContainer;
+import cn.chuanwise.toolkit.container.Container;
 import cn.chuanwise.toolkit.verify.VerifyCodeHandler;
 import cn.chuanwise.toolkit.verify.VerifyCodeManager;
-import cn.chuanwise.utility.StringUtility;
+import cn.chuanwise.util.StringUtil;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.annotation.Name;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.Permission;
 import cn.chuanwise.xiaoming.apply.ApplyHandler;
-import cn.chuanwise.xiaoming.attribute.AttributeType;
+import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.CommandWords;
+import cn.chuanwise.xiaoming.util.CommandWords;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 public class ApplyInteractors extends SimpleInteractors {
     public static VerifyCodeManager<ApplyHandler> MANAGER;
@@ -54,11 +53,11 @@ public class ApplyInteractors extends SimpleInteractors {
                     } else if (acceptableGlobalHandlers.size() == 1) {
                         final ApplyHandler target = acceptableGlobalHandlers.values().iterator().next();
 
-                        if (StringUtility.isEmpty(inputValue)) {
+                        if (StringUtil.isEmpty(inputValue)) {
                             // 检查是否是省略参数的
-                            return ValueContainer.of(target);
+                            return Container.of(target);
                         } else if (Objects.equals(inputValue, target.getVerifyCode())) {
-                            return ValueContainer.of(target);
+                            return Container.of(target);
                         } else {
                             user.sendError("{lang.noSuchGlobalApplyButSingle}", inputValue, target);
                             return null;
@@ -69,7 +68,7 @@ public class ApplyInteractors extends SimpleInteractors {
                             user.sendError("{lang.noSuchGlobalApplyButMultiple}", inputValue);
                             return null;
                         } else {
-                            return ValueContainer.of(target);
+                            return Container.of(target);
                         }
                     }
                 default:
@@ -82,10 +81,10 @@ public class ApplyInteractors extends SimpleInteractors {
                     } else if (personalHandlers.size() == 1) {
                         final ApplyHandler target = personalHandlers.values().iterator().next();
 
-                        if (StringUtility.isEmpty(inputValue)) {
-                            return ValueContainer.of(target);
+                        if (StringUtil.isEmpty(inputValue)) {
+                            return Container.of(target);
                         } else if (Objects.equals(target.getVerifyCode(), inputValue)) {
-                            return ValueContainer.of(target);
+                            return Container.of(target);
                         } else {
                             user.sendError("{lang.noSuchPersonalApplyButSingle}", inputValue, target);
                             return null;
@@ -96,7 +95,7 @@ public class ApplyInteractors extends SimpleInteractors {
                             user.sendError("{lang.noSuchPersonalApplyButMultiple}", inputValue);
                             return null;
                         } else {
-                            return ValueContainer.of(target);
+                            return Container.of(target);
                         }
                     }
             }
@@ -109,13 +108,13 @@ public class ApplyInteractors extends SimpleInteractors {
     }
 
     protected VerifyCodeManager<ApplyHandler> getVerifyCodeManager(XiaomingUser xiaomingUser) {
-        return xiaomingUser.getAttributeOrPutSupply(AttributeType.VERIFY_CODE_MANAGER, this::buildVerifyCodeManager);
+        return xiaomingUser.getProperty(PropertyType.VERIFY_CODE_MANAGER).orElseGet(this::buildVerifyCodeManager);
     }
 
     protected Map<String, ApplyHandler> forAcceptableInstances(VerifyCodeManager<ApplyHandler> manager, XiaomingUser user) {
         final Map<String, ApplyHandler> results = new HashMap<>();
         manager.getHandlers().forEach((key, instance) -> {
-            if (user.hasPermission(instance.getPermissions())) {
+            if (user.hasPermissions(instance.getPermissions())) {
                 results.put(key, instance);
             }
         });

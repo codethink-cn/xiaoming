@@ -5,7 +5,7 @@ import cn.chuanwise.annotation.Incomplete;
 import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
 import cn.chuanwise.toolkit.serialize.serializer.configuration.SerializerConfiguration;
 import cn.chuanwise.toolkit.serialize.serializer.json.configuration.JsonSerializerConfiguration;
-import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.limit.CallLimitConfiguration;
 import cn.chuanwise.xiaoming.limit.CallLimitConfigurationImpl;
@@ -46,10 +46,10 @@ public class ConfigurationImpl extends FilePreservableImpl implements Configurat
     boolean autoAcceptGroupInvite = false;
 
     int maxVerifyCodeLength = 5;
-    Set<String> verifyCodeCharacters = CollectionUtility.asSet("0123456789");
+    Set<String> verifyCodeCharacters = CollectionUtil.asSet("0123456789");
 
     /** 主线程池最大容量 */
-    int maxMainThreadPoolSize = 5;
+    int maxMainThreadPoolSize = 10;
 
     /** 接待员线程池最大容量 */
     int maxReceptionThreadPoolSize = 3;

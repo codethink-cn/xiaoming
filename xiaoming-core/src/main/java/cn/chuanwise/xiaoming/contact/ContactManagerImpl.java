@@ -2,7 +2,7 @@ package cn.chuanwise.xiaoming.contact;
 
 import cn.chuanwise.exception.UnsupportedVersionException;
 import cn.chuanwise.toolkit.sized.SizedCopyOnWriteArrayList;
-import cn.chuanwise.utility.ObjectUtility;
+import cn.chuanwise.util.ObjectUtil;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.contact.contact.*;
 import cn.chuanwise.xiaoming.event.MessageEvent;
@@ -27,6 +27,7 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
 
     final List<MessageEvent> recentMessageEvents;
 
+    @Override
     public List<MessageEvent> getRecentMessageEvents() {
         return Collections.unmodifiableList(recentMessageEvents);
     }
@@ -36,13 +37,11 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
 
     @Override
     public Optional<MessageEvent> nextMessageEvent(long timeout, Predicate<MessageEvent> filter) throws InterruptedException {
-        switch (ObjectUtility.wait(recentMessageConditionalVariable, timeout, () -> filter.test(recentMessageEvents.get(recentMessageEvents.size() - 1)))) {
+        switch (ObjectUtil.wait(recentMessageConditionalVariable, timeout, () -> filter.test(recentMessageEvents.get(recentMessageEvents.size() - 1)))) {
             case NOTIFY:
                 return Optional.of(recentMessageEvents.get(recentMessageEvents.size() - 1));
             case TIMEOUT:
                 return Optional.empty();
-            case INTERRUPT:
-                throw new InterruptedException();
             default:
                 throw new UnsupportedVersionException();
         }

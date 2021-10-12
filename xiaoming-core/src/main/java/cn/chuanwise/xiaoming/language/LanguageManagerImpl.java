@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.language;
 
-import cn.chuanwise.utility.*;
+import cn.chuanwise.util.*;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.language.convertor.Convertor;
 import cn.chuanwise.xiaoming.language.convertor.ConvertorHandler;
@@ -11,8 +11,7 @@ import cn.chuanwise.xiaoming.language.variable.VariableHandler;
 import cn.chuanwise.xiaoming.language.variable.VariableOperator;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import cn.chuanwise.xiaoming.plugin.Plugin;
-import cn.chuanwise.xiaoming.utility.LanguageConfigUtility;
-import cn.chuanwise.xiaoming.utility.RegisterUtility;
+import cn.chuanwise.xiaoming.util.RegisterUtil;
 import lombok.Getter;
 
 import java.io.File;
@@ -32,7 +31,6 @@ public class LanguageManagerImpl extends ModuleObjectImpl implements LanguageMan
     public LanguageManagerImpl(XiaomingBot xiaomingBot, File directory) {
         super(xiaomingBot);
         this.directory = directory;
-        LanguageConfigUtility.config(this);
     }
 
     final List<VariableOperator<?>> operators = new ArrayList<>();
@@ -101,7 +99,7 @@ public class LanguageManagerImpl extends ModuleObjectImpl implements LanguageMan
 
     @Override
     public void unregisterOperators(Plugin plugin) {
-        RegisterUtility.checkUnregister(getXiaomingBot(), plugin, "operator");
+        RegisterUtil.checkUnregister(getXiaomingBot(), plugin, "operator");
         operators.removeIf(operator -> (operator.getPlugin() == plugin));
     }
 
@@ -117,19 +115,19 @@ public class LanguageManagerImpl extends ModuleObjectImpl implements LanguageMan
 
     @Override
     public void unregisterVariables(Plugin plugin) {
-        RegisterUtility.checkUnregister(getXiaomingBot(), plugin, "global variable");
+        RegisterUtil.checkUnregister(getXiaomingBot(), plugin, "global variable");
         variables.values().removeIf(handler -> (handler.getPlugin() == plugin));
     }
 
     @Override
     public void unregisterConvertors(Plugin plugin) {
-        RegisterUtility.checkUnregister(getXiaomingBot(), plugin, "convertor");
+        RegisterUtil.checkUnregister(getXiaomingBot(), plugin, "convertor");
         convertors.removeIf(convertor -> (convertor.getPlugin() == plugin));
     }
 
     @Override
     public <T> void registerConvertor(Class<T> fromClass, Convertor<T> convertor, Plugin plugin) {
-        RegisterUtility.checkRegister(getXiaomingBot(), plugin, "convertor");
+        RegisterUtil.checkRegister(getXiaomingBot(), plugin, "convertor");
         convertors.add(new ConvertorHandler(fromClass, plugin, convertor));
     }
 
@@ -141,20 +139,20 @@ public class LanguageManagerImpl extends ModuleObjectImpl implements LanguageMan
 
     @Override
     public void registerLanguage(Language value, Plugin plugin) {
-        RegisterUtility.checkRegister(getXiaomingBot(), plugin, "language");
+        RegisterUtil.checkRegister(getXiaomingBot(), plugin, "language");
         value.setPlugin(plugin);
         languages.add(value);
     }
 
     @Override
     public void unregisterLanguages(Plugin plugin) {
-        RegisterUtility.checkUnregister(getXiaomingBot(), plugin, "language");
+        RegisterUtil.checkUnregister(getXiaomingBot(), plugin, "language");
         languages.removeIf(language -> (language.getPlugin() == plugin));
     }
 
     @Override
     public String formatContext(String format, Function<String, ?> getter, LanguageRenderContext context) {
-        return ArgumentUtility.format(format, getXiaomingBot().getConfiguration().getMaxIterateTime(), variable -> {
+        return ArgumentUtil.format(format, getXiaomingBot().getConfiguration().getMaxIterateTime(), variable -> {
             return caculate(baseVariable -> {
                 if (Objects.equals(baseVariable, "context")) {
                     return context;
@@ -172,7 +170,7 @@ public class LanguageManagerImpl extends ModuleObjectImpl implements LanguageMan
     @Override
     public String formatAdditional(String format, Function<String, ?> getter, Object... contexts) {
         final String afterReplace = formatContext(format, getter, null);
-        final List<String> parameterNames = ArgumentUtility.getContextVariableNames(afterReplace);
+        final List<String> parameterNames = ArgumentUtil.getContextVariableNames(afterReplace);
         return formatContext(afterReplace, getter, new LanguageRenderContext(parameterNames, contexts));
     }
 }

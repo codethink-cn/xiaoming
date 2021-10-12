@@ -1,10 +1,13 @@
 package cn.chuanwise.xiaoming.recept;
 
+import cn.chuanwise.exception.UnsupportedVersionException;
+import cn.chuanwise.toolkit.container.Container;
 import cn.chuanwise.toolkit.sized.SizedResidentConcurrentHashMap;
-import cn.chuanwise.utility.MapUtility;
+import cn.chuanwise.util.MapUtil;
+import cn.chuanwise.util.ObjectUtil;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.configuration.Configuration;
-import cn.chuanwise.xiaoming.attribute.AttributeType;
+import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.user.*;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUserImpl;
@@ -14,14 +17,15 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 小明接待员
  * @author Chuanwise
  */
 @Getter
-public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
+public class ReceptionistImpl
+        extends ModuleObjectImpl
+        implements Receptionist {
     final long code;
 
     public ReceptionistImpl(XiaomingBot xiaomingBot, long code) {
@@ -31,7 +35,8 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
         final Configuration configuration = xiaomingBot.getConfiguration();
         this.groupXiaomingUsers = new SizedResidentConcurrentHashMap<>(configuration.getMaxGroupUserQuantityInReceptionist());
         this.memberXiaomingUsers = new SizedResidentConcurrentHashMap<>(configuration.getMaxMemberUserQuantityInReceptionist());
-        this.attributes = new SizedResidentConcurrentHashMap<>(xiaomingBot.getConfiguration().getMaxUserAttributeQuantity());
+        this.properties = new SizedResidentConcurrentHashMap<>(xiaomingBot.getConfiguration().getMaxUserAttributeQuantity());
+        this.conditionalVariables = new SizedResidentConcurrentHashMap<>(xiaomingBot.getConfiguration().getMaxUserAttributeQuantity());
     }
 
     /** 私聊接待线程任务 */
@@ -44,15 +49,53 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
 
     PrivateXiaomingUser privateXiaomingUser;
 
-    @Getter
-    final Map<AttributeType, Object> attributes;
+    final Map<PropertyType, Object> properties;
+    final Map<PropertyType, Object> conditionalVariables;
 
-    @Getter
-    Map<AttributeType, Object> attributeConditionalVariables = new ConcurrentHashMap<>();
+    @Override
+    public Map<PropertyType, Object> getProperties() {
+        return Collections.unmodifiableMap(properties);
+    }
+
+    @Override
+    public <T> Container<T> removeProperty(PropertyType<T> type) {
+        return Container.of((T) properties.remove(type));
+    }
+
+    @Override
+    public <T> void setProperty(PropertyType<T> type, T value) {
+        synchronized (properties) {
+            synchronized (conditionalVariables) {
+                properties.put(type, value);
+
+                // 唤醒那些正在等待的线程
+                final Object conditionalVariable = conditionalVariables.get(type);
+                if (Objects.nonNull(conditionalVariable)) {
+                    synchronized (conditionalVariable) {
+                        conditionalVariable.notifyAll();
+                    }
+                    conditionalVariables.remove(type);
+                }
+            }
+        }
+    }
+
+    @Override
+    public <T> Container<T> waitProperty(PropertyType<T> type, long timeout) throws InterruptedException {
+        final Object conditionalVariable = MapUtil.getOrPutSupply(conditionalVariables, type, Object::new);
+        switch (ObjectUtil.wait(conditionalVariable, timeout)) {
+            case NOTIFY:
+                return Container.of((T) properties.get(type));
+            case TIMEOUT:
+                return Container.empty();
+            default:
+                throw new UnsupportedVersionException();
+        }
+    }
 
     @Override
     public GroupXiaomingUser getGroupXiaomingUser(long groupCode) {
-        return MapUtility.getOrPutSupply(groupXiaomingUsers, groupCode,
+        return MapUtil.getOrPutSupply(groupXiaomingUsers, groupCode,
                 () -> {
                     final GroupXiaomingUserImpl groupXiaomingUser = new GroupXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code));
                     groupXiaomingUser.setReceptionist(ReceptionistImpl.this);
@@ -62,7 +105,7 @@ public class ReceptionistImpl extends ModuleObjectImpl implements Receptionist {
 
     @Override
     public MemberXiaomingUser getMemberXiaomingUser(long groupCode) {
-        return MapUtility.getOrPutSupply(memberXiaomingUsers, groupCode,
+        return MapUtil.getOrPutSupply(memberXiaomingUsers, groupCode,
                 () -> {
                     final MemberXiaomingUserImpl memberXiaomingUser = new MemberXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code));
                     memberXiaomingUser.setReceptionist(ReceptionistImpl.this);

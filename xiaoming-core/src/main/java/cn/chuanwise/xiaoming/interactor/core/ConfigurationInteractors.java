@@ -1,14 +1,14 @@
 package cn.chuanwise.xiaoming.interactor.core;
 
-import cn.chuanwise.utility.StringUtility;
+import cn.chuanwise.util.StringUtil;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.annotation.Permission;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.CommandWords;
-import cn.chuanwise.xiaoming.utility.InteractorUtility;
+import cn.chuanwise.xiaoming.util.CommandWords;
+import cn.chuanwise.xiaoming.util.InteractorUtil;
 
 import java.util.Set;
 
@@ -55,7 +55,7 @@ public class ConfigurationInteractors extends SimpleInteractors {
             final Set<String> callPrefixes = configuration.getClearCallPrefixes();
             if (callPrefixes.isEmpty()) {
                 user.sendMessage("{lang.queryClearCallPrefixes}");
-                InteractorUtility.fillStringCollection(user,
+                InteractorUtil.fillStringCollection(user,
                         callPrefixes,
                         user.format("{lang.clearCallPrefixes}"));
             }
@@ -82,7 +82,7 @@ public class ConfigurationInteractors extends SimpleInteractors {
         final Set<String> callPrefixes = configuration.getClearCallPrefixes();
         callPrefixes.clear();
         user.sendMessage("{lang.queryClearCallPrefixes}");
-        InteractorUtility.fillStringCollection(user,
+        InteractorUtil.fillStringCollection(user,
                 callPrefixes,
                 user.format("{lang.clearCallPrefixes}"));
         configuration.setEnableClearCall(true);
@@ -115,7 +115,7 @@ public class ConfigurationInteractors extends SimpleInteractors {
             user.sendMessage("{lang.licenseAlreadyEnabled}");
         } else {
             final String agreement = getXiaomingBot().getLicenseManager().getLicense();
-            if (StringUtility.isEmpty(agreement)) {
+            if (StringUtil.isEmpty(agreement)) {
                 user.sendMessage("{lang.pleaseEnterLicense}");
                 getXiaomingBot().getLicenseManager().setLicense(user.nextMessageOrExit().serialize());
                 user.sendMessage("{lang.licenseEnabled}");

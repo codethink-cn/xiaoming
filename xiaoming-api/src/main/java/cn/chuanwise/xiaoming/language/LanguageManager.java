@@ -1,7 +1,6 @@
 package cn.chuanwise.xiaoming.language;
 
-import cn.chuanwise.utility.ArgumentUtility;
-import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.language.convertor.Convertor;
 import cn.chuanwise.xiaoming.language.convertor.ConvertorHandler;
 import cn.chuanwise.xiaoming.language.sentence.LanguageRenderContext;
@@ -30,7 +29,7 @@ public interface LanguageManager extends ModuleObject {
     void unregisterLanguages(Plugin plugin);
 
     default List<Language> getLanguages(Plugin plugin) {
-        return CollectionUtility.filter(getLanguages(), new ArrayList<>(), language -> (language.getPlugin() == plugin));
+        return CollectionUtil.filter(getLanguages(), new ArrayList<>(), language -> (language.getPlugin() == plugin));
     }
 
     default Sentence getSentence(String identifier) {
@@ -60,7 +59,7 @@ public interface LanguageManager extends ModuleObject {
     Map<String, VariableHandler> getVariables();
 
     default List<VariableHandler> getVariables(Plugin plugin) {
-        return CollectionUtility.filter(getVariables().values(), new ArrayList<>(), variable -> (variable.getPlugin() == plugin));
+        return CollectionUtil.filter(getVariables().values(), new ArrayList<>(), variable -> (variable.getPlugin() == plugin));
     }
 
     void registerVariable(String name, VariableGetter<?> getter, Plugin plugin);
@@ -118,11 +117,11 @@ public interface LanguageManager extends ModuleObject {
     }
 
     default <T> ConvertorHandler<T> getConvertor(Class<T> clazz) {
-        return CollectionUtility.first(getConvertors(), convertor -> convertor.getFromClass().isAssignableFrom(clazz));
+        return CollectionUtil.first(getConvertors(), convertor -> convertor.getFromClass().isAssignableFrom(clazz));
     }
 
     default List<ConvertorHandler> getConvertors(Plugin plugin) {
-        return CollectionUtility.filter(getConvertors(), new ArrayList<>(), convertor -> (convertor.getPlugin() == plugin));
+        return CollectionUtil.filter(getConvertors(), new ArrayList<>(), convertor -> (convertor.getPlugin() == plugin));
     }
 
     <T> void registerConvertor(Class<T> fromClass, Convertor<T> convertor, Plugin plugin);
@@ -135,7 +134,7 @@ public interface LanguageManager extends ModuleObject {
     <T> VariableOperator<T> registerOperators(Class<T> clazz, Plugin plugin);
 
     default List<VariableOperator<?>> getOperators(Plugin plugin) {
-        return CollectionUtility.filter(getOperators(), new ArrayList<>(), operator -> (operator.getPlugin() == plugin));
+        return CollectionUtil.filter(getOperators(), new ArrayList<>(), operator -> (operator.getPlugin() == plugin));
     }
 
     void unregisterOperators(Plugin plugin);

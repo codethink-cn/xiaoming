@@ -1,15 +1,14 @@
-package cn.chuanwise.xiaoming.utility;
+package cn.chuanwise.xiaoming.util;
 
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.StaticUtility;
+import cn.chuanwise.util.CollectionUtil;
+import cn.chuanwise.util.StaticUtil;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-public class MiraiCodeUtility extends StaticUtility {
+public class MiraiCodeUtil extends StaticUtil {
     public static MessageChain asMessageChain(SingleMessage... messages) {
         MessageChainBuilder chainBuilder = new MessageChainBuilder(messages.length);
         for (SingleMessage message : messages) {
@@ -27,6 +26,6 @@ public class MiraiCodeUtility extends StaticUtility {
     }
 
     public static List<Image> getImages(String string) {
-        return (List) CollectionUtility.filter(MiraiCode.deserializeMiraiCode(string), new ArrayList<>(), singleMessage -> singleMessage instanceof Image);
+        return (List) CollectionUtil.filter(MiraiCode.deserializeMiraiCode(string), new ArrayList<>(), singleMessage -> singleMessage instanceof Image);
     }
 }

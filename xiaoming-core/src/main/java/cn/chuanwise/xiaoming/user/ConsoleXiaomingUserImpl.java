@@ -1,13 +1,8 @@
 package cn.chuanwise.xiaoming.user;
 
-import cn.chuanwise.toolkit.sized.SizedCopyOnWriteArrayList;
 import cn.chuanwise.xiaoming.contact.contact.ConsoleContact;
-import cn.chuanwise.xiaoming.attribute.AttributeType;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.contact.message.MessageImpl;
-import cn.chuanwise.xiaoming.recept.ReceptionTask;
-import cn.chuanwise.xiaoming.recept.Receptionist;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import net.mamoe.mirai.message.code.MiraiCode;

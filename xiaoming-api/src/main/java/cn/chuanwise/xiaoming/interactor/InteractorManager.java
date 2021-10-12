@@ -1,9 +1,9 @@
 package cn.chuanwise.xiaoming.interactor;
 
-import cn.chuanwise.toolkit.value.container.ValueContainer;
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.ReflectUtility;
-import cn.chuanwise.utility.ThrowableUtility;
+import cn.chuanwise.toolkit.container.Container;
+import cn.chuanwise.util.CollectionUtil;
+import cn.chuanwise.util.ReflectUtil;
+import cn.chuanwise.util.ThrowableUtil;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.center.content.ErrorReport;
 import cn.chuanwise.xiaoming.center.content.GroupErrorReport;
@@ -22,7 +22,7 @@ import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.MiraiCodeUtility;
+import cn.chuanwise.xiaoming.util.MiraiCodeUtil;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.SingleMessage;
@@ -46,7 +46,7 @@ public interface InteractorManager extends ModuleObject {
     }
 
     default boolean interactIf(XiaomingUser user, SingleMessage singleMessage, Predicate<InteractorHandler> filter) {
-        return interactIf(user, MiraiCodeUtility.asMessageChain(singleMessage), filter);
+        return interactIf(user, MiraiCodeUtil.asMessageChain(singleMessage), filter);
     }
 
     default boolean interact(XiaomingUser user, Message message) {
@@ -62,14 +62,14 @@ public interface InteractorManager extends ModuleObject {
     }
 
     default boolean interact(XiaomingUser user, SingleMessage singleMessage) {
-        return interact(user, MiraiCodeUtility.asMessageChain(singleMessage));
+        return interact(user, MiraiCodeUtil.asMessageChain(singleMessage));
     }
 
     /** 交互器 */
     List<InteractorHandler> getInteractors();
 
     default List<InteractorHandler> getInteractors(Plugin plugin) {
-        return CollectionUtility.filter(getInteractors(), new ArrayList<>(), interactor -> (interactor.getPlugin() == plugin));
+        return CollectionUtil.filter(getInteractors(), new ArrayList<>(), interactor -> (interactor.getPlugin() == plugin));
     }
 
     void registerInteractor(InteractorHandler interactor);
@@ -82,7 +82,7 @@ public interface InteractorManager extends ModuleObject {
         }
 
         interactors.onRegister();
-        ReflectUtility.forEachDeclaredMethod(interactors.getClass(), (clazz, method) -> {
+        ReflectUtil.forEachDeclaredMethod(interactors.getClass(), (clazz, method) -> {
             if (method.getAnnotationsByType(Filter.class).length == 0) {
                 return;
             }
@@ -121,13 +121,13 @@ public interface InteractorManager extends ModuleObject {
     }
 
     default List<InteractorParameterParserHandler> getParameterParsers(Plugin plugin) {
-        return CollectionUtility.filter(getParameterParsers(), new ArrayList<>(), parser -> (parser.getPlugin() == plugin));
+        return CollectionUtil.filter(getParameterParsers(), new ArrayList<>(), parser -> (parser.getPlugin() == plugin));
     }
 
     void unregisterParameterParsers(Plugin plugin);
 
     /** 用内核 parser 或某插件的 parser 解析 */
-    default <T> ValueContainer<T> parseParameter(InteractorParameterContext<T> context) {
+    default <T> Container<T> parseParameter(InteractorParameterContext<T> context) {
         final Plugin plugin = context.getPlugin();
         final Class<T> parameterClass = context.getParameterClass();
 
@@ -139,7 +139,7 @@ public interface InteractorManager extends ModuleObject {
                 continue;
             }
 
-            final ValueContainer<T> result = (ValueContainer<T>) handler.getParser().parse(context);
+            final Container<T> result = (Container<T>) handler.getParser().parse(context);
             if (Objects.isNull(result)) {
                 return null;
             } else if (result.hasValue()) {
@@ -191,14 +191,14 @@ public interface InteractorManager extends ModuleObject {
                             ((GroupXiaomingUser) user).getGroupCode(),
                             user.getCode(),
                             context.getMessage().serialize(),
-                            ThrowableUtility.writeStackTraces(throwable)
+                            ThrowableUtil.writeStackTraces(throwable)
                             ));
                 } else {
                     centerClient.sendErrorReport(new ErrorReport(ErrorReport.XiaomingStatus.valueOf(getXiaomingBot().getStatus().toString()),
                             System.currentTimeMillis(),
                             user.getCode(),
                             context.getMessage().serialize(),
-                            ThrowableUtility.writeStackTraces(throwable)
+                            ThrowableUtil.writeStackTraces(throwable)
                     ));
                 }
             }

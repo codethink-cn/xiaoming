@@ -1,30 +1,22 @@
 package cn.chuanwise.xiaoming.interactor.core;
 
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.ObjectUtility;
-import cn.chuanwise.utility.StringUtility;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.annotation.Permission;
 import cn.chuanwise.xiaoming.annotation.WhenQuiet;
-import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.group.GroupRecord;
 import cn.chuanwise.xiaoming.group.GroupRecordImpl;
 import cn.chuanwise.xiaoming.group.GroupRecordManager;
 import cn.chuanwise.xiaoming.plugin.Plugin;
-import cn.chuanwise.xiaoming.tag.TagHolder;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.CommandWords;
+import cn.chuanwise.xiaoming.util.CommandWords;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.Group;
 
-import java.util.Arrays;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Stream;
 
 /**
  * 小明响应群相关的指令处理器

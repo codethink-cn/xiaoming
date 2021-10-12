@@ -34,16 +34,16 @@ public class CenterClient extends AbstractNormalClient implements ModuleObject, 
         super(new CenterClientConfiguration(HOST, PORT));
         this.xiaomingBot = xiaomingBot;
 
-        try {
-            getLogger().info("正在连接小明中心服务器");
-            if (connect()) {
-                getLogger().info("连接成功");
-            } else {
-                getLogger().info("连接失败");
-            }
-        } catch (Exception exception) {
-            getLogger().info("连接时出现异常", exception);
-        }
+//        try {
+//            getLogger().info("正在连接小明中心服务器");
+//            if (connect()) {
+//                getLogger().info("连接成功");
+//            } else {
+//                getLogger().info("连接失败");
+//            }
+//        } catch (Exception exception) {
+//            getLogger().info("连接时出现异常", exception);
+//        }
     }
 
     @Override
@@ -77,12 +77,12 @@ public class CenterClient extends AbstractNormalClient implements ModuleObject, 
 
     @Override
     public void onDisconnectedAutomatically(Future<Boolean> reconnectFuture) throws Exception {
-        getLogger().info("中心服务器断开了和小明的连接");
-        if (Objects.nonNull(reconnectFuture)) {
-            getLogger().info("重连请求已提交");
-        } else {
-            getLogger().info("未提交重连请求");
-        }
+//        getLogger().info("中心服务器断开了和小明的连接");
+//        if (Objects.nonNull(reconnectFuture)) {
+//            getLogger().info("重连请求已提交");
+//        } else {
+//            getLogger().info("未提交重连请求");
+//        }
     }
 
     @Override
@@ -92,7 +92,7 @@ public class CenterClient extends AbstractNormalClient implements ModuleObject, 
 
     @Override
     protected void run(Runnable runnable) {
-        xiaomingBot.getScheduler().run(runnable);
+//        xiaomingBot.getScheduler().run(runnable);
     }
 
     @Override
@@ -103,19 +103,20 @@ public class CenterClient extends AbstractNormalClient implements ModuleObject, 
     }
 
     public boolean doOrFail(ThrowableRunnable<Exception> runnable, String operation) {
-        try {
-            if (isConnected()) {
-                runnable.throwableRun();
-                return true;
-            }
-        } catch (Exception exception) {
-            getLogger().error(operation + "失败", exception);
-        }
+//        try {
+//            if (isConnected()) {
+//                runnable.throwableRun();
+//                return true;
+//            }
+//        } catch (Exception exception) {
+//            getLogger().error(operation + "失败", exception);
+//        }
+//        return false;
         return false;
     }
 
     @Override
     public void execute(Runnable runnable) {
-        xiaomingBot.getScheduler().run(runnable);
+//        xiaomingBot.getScheduler().run(runnable);
     }
 }

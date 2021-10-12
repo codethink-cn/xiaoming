@@ -2,9 +2,8 @@ package cn.chuanwise.xiaoming.plugin;
 
 import cn.chuanwise.api.ChineseConvertable;
 import cn.chuanwise.api.SetableStatusHolder;
-import cn.chuanwise.api.StatusHolder;
 import cn.chuanwise.exception.UnsupportedVersionException;
-import cn.chuanwise.utility.ResourceUtility;
+import cn.chuanwise.util.ResourceUtil;
 import cn.chuanwise.xiaoming.object.XiaomingObject;
 import cn.chuanwise.toolkit.preservable.Preservable;
 import org.slf4j.Logger;
@@ -27,7 +26,8 @@ import java.util.function.Supplier;
  * @version 3.1
  * @author Chuanwise
  */
-public interface Plugin extends XiaomingObject, SetableStatusHolder<Plugin.Status> {
+public interface Plugin
+        extends XiaomingObject, SetableStatusHolder<Plugin.Status> {
     /** 小明插件的各种状态，默认 UNLOADED */
     enum Status implements ChineseConvertable {
         CONSTRUCTED,
@@ -133,7 +133,7 @@ public interface Plugin extends XiaomingObject, SetableStatusHolder<Plugin.Statu
     }
 
     default boolean copyResource(String path, File to, boolean replace) throws IOException {
-        return ResourceUtility.copyResource(getClass().getClassLoader(), path, to, replace);
+        return ResourceUtil.copyResource(getClass().getClassLoader(), path, to, replace);
     }
 
     default boolean copyDefaultConfiguration(boolean replace) throws IOException {

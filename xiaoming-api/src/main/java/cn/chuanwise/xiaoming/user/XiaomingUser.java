@@ -1,10 +1,10 @@
 package cn.chuanwise.xiaoming.user;
 
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.StringUtility;
+import cn.chuanwise.util.CollectionUtil;
+import cn.chuanwise.util.StringUtil;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.account.record.CommandRecord;
-import cn.chuanwise.xiaoming.attribute.AttributeType;
+import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.client.CenterClient;
 import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.contact.message.Message;
@@ -18,11 +18,11 @@ import cn.chuanwise.xiaoming.language.MultipleLanguageFinder;
 import cn.chuanwise.xiaoming.language.sentence.Sentence;
 import cn.chuanwise.xiaoming.message.MessageSendable;
 import cn.chuanwise.xiaoming.object.ModuleObject;
-import cn.chuanwise.xiaoming.attribute.AttributeHolder;
+import cn.chuanwise.xiaoming.property.PropertyHandler;
 import cn.chuanwise.xiaoming.permission.PermissionAccessible;
 import cn.chuanwise.xiaoming.recept.Receptionist;
 import cn.chuanwise.xiaoming.tag.PluginBlockable;
-import cn.chuanwise.xiaoming.tag.TagHolder;
+import cn.chuanwise.toolkit.tag.TagMarkable;
 import cn.chuanwise.xiaoming.recept.ReceptionTask;
 
 import net.mamoe.mirai.message.code.MiraiCode;
@@ -36,7 +36,7 @@ import java.util.*;
  * @author Chuanwise
  */
 public interface XiaomingUser<C extends XiaomingContact<?>>
-        extends ModuleObject, AttributeHolder, TagHolder, PluginBlockable, MessageSendable<Optional<Message>> {
+        extends ModuleObject, PropertyHandler, TagMarkable, PluginBlockable, MessageSendable<Optional<Message>> {
     ReceptionTask<XiaomingUser<C>> getReceptionTask();
 
     void setReceptionTask(ReceptionTask<XiaomingUser<C>> receptionTask);
@@ -48,8 +48,8 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
     InteractorContext getInteractorContext();
 
     @Override
-    default Set<String> originalTags() {
-        return CollectionUtility.asSet(RECORDED, getCodeString());
+    default Set<String> getOriginalTags() {
+        return CollectionUtil.asSet(RECORDED, getCodeString());
     }
 
     CommandRecord buildCommandRecord(String command);
@@ -157,7 +157,7 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
         return getXiaomingBot().getPermissionManager().userAccessible(this, require) == PermissionAccessible.ACCESSABLE;
     }
 
-    default boolean hasPermission(String... require) {
+    default boolean hasPermissions(String... require) {
         for (String node : require) {
             if (!hasPermission(node)) {
                 return false;
@@ -190,19 +190,18 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
      */
     Receptionist getReceptionist();
 
-    default void onNextInput(Message message) {
-        setAttribute(AttributeType.LAST, message);
-        getXiaomingBot().getContactManager()
-                .onNextMessageEvent(new MessageEvent(this, message));
+    default boolean onNextMessage(Message message) {
+        setProperty(PropertyType.LAST, message);
+        return getXiaomingBot().getEventManager().callEvent(new MessageEvent(this, message));
     }
 
-    void onNextInput(MessageChain messages);
+    boolean onNextMessage(MessageChain messages);
 
-    default void onNextInput(String message) {
-        onNextInput(MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
+    default boolean onNextMessage(String message) {
+        return onNextMessage(MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
     }
 
-    default Optional<Message> nextInput(long timeout) throws InterruptedException, InteractExitedException {
+    default Optional<Message> nextMessage(long timeout) throws InterruptedException, InteractExitedException {
         final Optional<Message> optional = getContact().nextMessage(timeout);
         if (optional.isPresent()) {
             final Message message = optional.get();
@@ -226,13 +225,13 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
         }
     }
 
-    default Optional<Message> nextInput() throws InterruptedException, InteractExitedException {
-        return nextInput(getXiaomingBot().getConfiguration().getMaxUserInputTimeout());
+    default Optional<Message> nextMessage() throws InterruptedException, InteractExitedException {
+        return nextMessage(getXiaomingBot().getConfiguration().getMaxUserInputTimeout());
     }
 
     default Message nextMessageOrExit(long timeout) throws InteractExitedException {
         try {
-            return nextInput(timeout)
+            return nextMessage(timeout)
                     .orElseThrow(() -> new InteractTimeoutException(getInteractorContext(), this, timeout));
         } catch (InterruptedException exception) {
             throw new InteractInterrtuptedException(getInteractorContext(), this);
@@ -243,36 +242,36 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
         return nextMessageOrExit(getXiaomingBot().getConfiguration().getMaxUserInputTimeout());
     }
 
-    default Optional<Message> nextPrivateInput(long timeout) throws InterruptedException {
+    default Optional<Message> nextPrivateMessage(long timeout) throws InterruptedException {
         return getXiaomingBot()
                 .getContactManager()
                 .nextPrivateMessage(getCode(), timeout)
                 .map(MessageEvent::getMessage);
     }
 
-    default Optional<Message> nextPrivateInput() throws InterruptedException {
-        return nextPrivateInput(getXiaomingBot().getConfiguration().getMaxUserPrivateInputTimeout());
+    default Optional<Message> nextPrivateMessage() throws InterruptedException {
+        return nextPrivateMessage(getXiaomingBot().getConfiguration().getMaxUserPrivateInputTimeout());
     }
 
-    default Optional<Message> nextGroupInput(String tag, long timeout) throws InterruptedException {
+    default Optional<Message> nextGroupMessage(String tag, long timeout) throws InterruptedException {
         return getXiaomingBot().getContactManager()
                 .nextGroupMemberMessage(tag, getCode(), timeout)
                 .map(MessageEvent::getMessage);
     }
 
-    default Optional<Message> nextGroupInput(String tag) throws InterruptedException {
-        return nextGroupInput(tag, getXiaomingBot().getConfiguration().getMaxUserGroupInputTimeout());
+    default Optional<Message> nextGroupMessage(String tag) throws InterruptedException {
+        return nextGroupMessage(tag, getXiaomingBot().getConfiguration().getMaxUserGroupInputTimeout());
     }
 
-    default Optional<Message> nextGlobalInput(long timeout) throws InterruptedException {
+    default Optional<Message> nextGlobalMessage(long timeout) throws InterruptedException {
         return getXiaomingBot()
                 .getContactManager()
                 .nextMessageEvent(timeout, messageEvent -> messageEvent.getUser().getCode() == getCode())
                 .map(MessageEvent::getMessage);
     }
 
-    default Optional<Message> nextGlobalInput() throws InterruptedException {
-        return nextGlobalInput(getXiaomingBot().getConfiguration().getMaxUserInputTimeout());
+    default Optional<Message> nextGlobalMessage() throws InterruptedException {
+        return nextGlobalMessage(getXiaomingBot().getConfiguration().getMaxUserInputTimeout());
     }
 
     /**
@@ -335,7 +334,7 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
 
     default String getAlias() {
         final Account account = getAccount();
-        if (StringUtility.isEmpty(account.getAlias())) {
+        if (StringUtil.isEmpty(account.getAlias())) {
             return getName();
         } else {
             return account.getAlias();
@@ -353,7 +352,7 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
 
     default String getAliasOrCode() {
         final Account account = getAccount();
-        if (StringUtility.isEmpty(account.getAlias())) {
+        if (StringUtil.isEmpty(account.getAlias())) {
             return getCodeString();
         } else {
             return account.getAlias();

@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.listener;
 
-import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.event.Listeners;
 import cn.chuanwise.xiaoming.event.XiaomingEvent;
 import cn.chuanwise.xiaoming.object.ModuleObject;
@@ -28,14 +28,14 @@ public interface EventManager extends ModuleObject {
      */
     default List<ListenerHandler> getListeners(Plugin plugin) {
         final List<ListenerHandler> handlers = new ArrayList<>();
-        getListeners().values().forEach(list -> handlers.addAll(CollectionUtility.filter(list, handler -> (handler.getPlugin() == plugin))));
+        getListeners().values().forEach(list -> handlers.addAll(CollectionUtil.filter(list, handler -> (handler.getPlugin() == plugin))));
         return handlers;
     }
 
     /** 指定级别的监听器响应 */
     default boolean callEvent(ListenerPriority priority, Event event) {
         final List<ListenerHandler> listenerHandlers = getListeners().get(priority);
-        if (CollectionUtility.isEmpty(listenerHandlers)) {
+        if (CollectionUtil.isEmpty(listenerHandlers)) {
             return false;
         }
 

@@ -1,13 +1,11 @@
 package cn.chuanwise.xiaoming.plugin;
 
 import cn.chuanwise.toolkit.map.PathMapOperator;
-import cn.chuanwise.toolkit.serialize.object.DeserializedObjectImpl;
 import lombok.*;
 
 import java.io.File;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Chuanwise
@@ -22,7 +20,6 @@ public class PluginHandlerImpl extends PathMapOperator implements PluginHandler 
 
     public PluginHandlerImpl(Map<String, Object> values) {
         super(values);
-        getPathGetterConfiguration().setReturnNullIfFail(true);
     }
 
     @Override

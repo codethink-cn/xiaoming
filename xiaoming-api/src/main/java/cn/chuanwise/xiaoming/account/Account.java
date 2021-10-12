@@ -1,7 +1,7 @@
 package cn.chuanwise.xiaoming.account;
 
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.StringUtility;
+import cn.chuanwise.util.CollectionUtil;
+import cn.chuanwise.util.StringUtil;
 import cn.chuanwise.xiaoming.account.record.CommandRecord;
 import cn.chuanwise.xiaoming.account.record.Record;
 import cn.chuanwise.toolkit.preservable.Preservable;
@@ -37,7 +37,7 @@ public interface Account extends Preservable<File>, PluginBlockable {
     }
 
     default String getAliasOrCode() {
-        return StringUtility.firstNonEmpty(getAlias(), getCodeString());
+        return StringUtil.firstNonEmpty(getAlias(), getCodeString());
     }
 
     String getAlias();
@@ -53,7 +53,7 @@ public interface Account extends Preservable<File>, PluginBlockable {
     void setAlias(String alias);
 
     @Override
-    default Set<String> originalTags() {
-        return CollectionUtility.asSet(getCodeString(), RECORDED);
+    default Set<String> getOriginalTags() {
+        return CollectionUtil.asSet(getCodeString(), RECORDED);
     }
 }

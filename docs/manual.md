@@ -17,14 +17,45 @@
 小明初次启动会创建一些文件夹。请**不要直接将启动器放在桌面等处**，最好专门将其放在一个文件夹中（下文称「小明根目录」或「小明目录」）。
 
 ### 使用小明启动器
-#### 编写启动脚本
-在小明的根目录下创建一个记事本文件并把名字改为 `xxxx.bat` 的形式，例如 `start.bat`。它是机器人的启动脚本。内容为：
+#### 准备启动脚本
+将该启动器下载后放在小明根目录中（推荐使用 `xiaoming-host-terminal` 命令行版启动器）。
+
+初次启动会涉及滑块验证等问题。最推荐的是先在自己的设备上使用小明启动器登录 `bot` 账号后，再将设备信息复制到服务器上。你也可以参考[这里](#滑块验证)的内容。
+
+在小明的根目录下创建一个文件作为启动脚本。对于使用 `Windows` 系统的用户，请将此文件命名为 `xxx.bat`，例如 `start.bat`。输入：
 ```bash
-java -jar xiaoming-host-xxxx.jar
+chcp 65001
+java -Dfile.encoding=UTF-8 -Dmirai.slider.captcha.supported -jar xiaoming-host-terminal-xxxx.jar
+pause
+```
+第一句 `chcp 65001` 为修改控制台编码为 `UTF-8`。**缺少这句可能导致文件乱码**。
+
+对于使用 `Linux` 的用户，请将此命名为 `xxx.sh`，例如 `start.sh`。输入：
+```bash
+java -Dfile.encoding=UTF-8 -Dmirai.slider.captcha.supported -jar xiaoming-host-terminal-xxxx.jar
+pause
 ```
 那个 `xxxx` 就是具体的 `xiaoming-host-xxxx.jar` 的名字。
 
-双击该脚本初次启动。启动器会生成 `launcher` 文件夹用以存放和启动器相关的设置。请找到该文件夹内的 `launcher.json` 文件，在其中写入 QQ 账号和密码。例如：
+双击该脚本初次启动。初次启动时会询问 `QQ` 和密码，将其输入后便会生成默认配置。
+
+如果初次密码输入错误，请删除 `小明根目录/launcher/launcher.json` 后重新输入账号密码。**非常不建议手动修改该文件，除非你确保你熟悉 JSON 语法。插件作者不会提供有关 JSON 语法的帮助。**
+
+#### 滑块验证
+##### Windows 用户
+若弹框提示滑块验证，请在群内，或[这里](https://github.com/mzdluo123/TxCaptchaHelper)下载滑块验证助手，并安装至**安卓手机**上，将启动机器人时显示的弹框内容复制到滑块验证助手中，再将获得的一串文字复制回弹框后关闭弹框即可。
+
+如果上述方式仍无法正确通过滑块验证，请查阅最新的 `Mirai` [滑块验证文档](https://github.com/project-mirai/mirai-login-solver-selenium)，或在群内联系插件作者。
+
+##### Linux 用户
+如果你的 Linux 系统安装了 GUI，则方法和 Windows 的无异。
+
+如果没有，建议在自己的设备上按照上述方式滑块验证后，将 `小明根目录/launcher/device.json` 处的设备信息复制到服务器上，再登录即可。
+
+#### 修改登录方式
+默认配置下 `bot` 号会以安卓手机身份登录，因为滑块验证只有在安卓登录的情况下才能进行。
+
+等使用安卓手机登陆成功后，通过修改`小明启动器/launcher/launcher.json` 里的 `protocol` 为 `"ANDROID_PAD"` 以使用平板登录，这样就可以避免手机切换到 `bot` 号挤掉服务器的小明了。
 ```json
 {
     "account": {
@@ -36,27 +67,16 @@ java -jar xiaoming-host-xxxx.jar
     "autoReconnectOnForceOffline": false
 }
 ```
-`account.qq` 处填写 QQ 号，`account.password` 处填写密码。
-
-`protocol` 是登陆方式，可以选用下表中的一种：
+你还可以选用下表中的一种：
 |登录方式|说明|
 |---|---|
 |`ANDROID_PHONE`|安卓手机|
 |`ANDROID_PAD`|安卓平板|
 |`ANDROID_WATCH`|安卓手表|
 
-比较推荐用平板或手表登录，这样平时用自己的设备登录机器人账号不会导致服务器的机器人下线。
-
 保存后双击启动脚本再次启动机器人。
 
-#### 滑块验证
-若是初次在当前设备上登录，会涉及滑块验证等问题。请添加启动参数 `Dmirai.slider.captcha.supported`，也就是把机器人的启动脚本改成类似这样：
-```bash
-java -Dmirai.slider.captcha.supported -jar xiaoming-host-xxxx.jar
-```
-之后重新启动该脚本。在群内，或[这里](https://github.com/mzdluo123/TxCaptchaHelper)下载滑块验证助手，将启动机器人时显示的弹框内容复制到滑块验证助手中，再将获得的一串文字复制回弹框后关闭弹框即可。
-
-如果上述方式仍无法正确通过滑块验证，请查阅最新的 `Mirai` [滑块验证文档](https://github.com/project-mirai/mirai-login-solver-selenium)，或在群内联系插件作者。
+**其他问题请阅读[常见问题](#常见问题)**
 
 ### 初次邂逅
 #### 给自己的 `QQ` 号授权
@@ -73,6 +93,10 @@ grant <QQ> *
 ```xiaoming
 本群启动小明
 ```
+如果该指令无效，私聊机器人发送
+```xiaoming
+启动小明 <群号>
+```
 有关响应群的更多细节，可以查看[响应群](#响应群和群标记)。
 
 #### 找一个群用来存放小明的日志
@@ -85,12 +109,11 @@ grant <QQ> *
 #### 安装一些插件
 小明本体只有一些非常基础的功能，例如开关小明、权限配置、调用限制等。通过安装插件，可以赋予小明更丰富的功能。
 
-你可以在[插件中心](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/PluginCenter.md)找到你感兴趣的插件。找到插件本体（某个 `jar` 文件）后，将其放入 `小明根目录/plugins` 中，重启小明机器人或依次执行小明指令：
+你可以在[插件中心](https://github.com/Chuanwise/xiaoming-bot/tree/main/docs/PluginCenter.md)找到你感兴趣的插件。找到插件本体（某个 `jar` 文件）后，将其放入 `小明根目录/plugins` 中，重启小明机器人或执行小明指令：
 ```xiaoming
-刷新插件
-加载插件 <插件名>
+启动插件 <插件名>
 ```
-看到输出 `插件 <插件名> 启动成功` 即为插件成功启动。
+看到输出 `<插件名> 启动成功` 即为插件成功启动。
 
 ## 相关概念
 ### 控制台小明用户
@@ -119,9 +142,6 @@ grant <QQ> *
 |`enableClearCall`|`boolean`|是否启动明确调用。明确调用就是规定小明需要响应的信息的开头，小明未来只会响应这些字符串开头的信息|
 |`callPrefixs`|集合|只有`enableClearCall`为`true`时才生效|
 |`maxUserInputTimeout`|`long`|在等待用户的下一次输入时，默认最长等待多久就放弃|
-|`maxUserGroupInputTimeout`|`long`|在等待用户的下一次群聊输入时，默认最长等待多久就放弃|
-|`maxUserPrivateInputTimeout`|`long`|在等待用户的下一次私聊输入时，默认最长等待多久就放弃|
-|`maxUserGlobalInputTimeout`|`long`|在等待用户的下一次全局输入时，默认最长等待多久就放弃|
 |`optimizePeriod`|`long`|自动优化自身性能的周期
 |`savePeriod`|`long`|自动保存需要保存的文件的周期
 
@@ -166,6 +186,45 @@ grant <QQ> *
 }
 ```
 `superGroups` 描述了该权限组继承了哪些权限组的权限。`permissions` 是该权限组的全局权限，`groupPermissions` 是该权限组在特定群中的权限。-->
+
+## 消息和变量系统
+自 `3.x` 以来，小明的变量系统有了非常大的升级（引入操作符、变量环境和类型系统）。
+
+变量名是由 `.` 分割的一串字符。变量名用 `{}` 包围。例如 `{number.+10}`、`{bot.statistician.callNumber}`。其中，第一个 `.` 之前为全局变量名或上下文 `context`。这取决于变量使用的环境。由此可知 `{bot}` 和 `{number}` 是全局变量。
+
+全局变量如下表
+
+|变量名|类型|说明|
+|---|---|---|
+|`bot`|`XiaomingBot`|小明机器人实体|
+|`runtime`|`Runtime`|`Java` 运行时|
+|`lang`|`LanguageManager`|小明语言库|
+|`number`|`int`|值为 `0`|
+|`random`|`Random`|随机数生成器|
+
+全局变量 `{number}` 是 `int` 型变量，值为 `0`。对数字的运算有以下几种：
+
+|操作符|结果|结果类型|示例|
+|---|---|---|---|
+|`<+-*/%><number>`|这个数字和 `number` 相加的结果|和 `number` 的类型相同|`{number.+10}` => `10`<br>`{number.+10.*20}` => `200`<br>`{number.*20}` => `0`|
+|`int`|数字转化为 `int` 类型|`int`|`{number.+10.int}` => `10`|
+|`double`|数字转化为 `double` 类型|`double`|`{number.+10.double}` => `10.0`|
+|`delay`|将数字按时间戳转化为等待时间长度，相当于 `当前时间戳` - `当前数字` 按照毫秒数转化为时间长度|`String`||
+|`after`|将数字加时间戳转化为日期，相当于 `当前时间戳` + `当前数字` 转化为日期|`String`|现在是 `2021年8月11日 09点44分`，则 `{number.+60000.after}` => `2021-08-11 09:45:16`|
+|`date`|将数字按时间戳转化为日期|`Date`|`{number.+1628645956.date}` => `2021-08-11 09:39:16`|
+|`account`|将数字按 QQ 号转化为用户账号|`Account`|`{number.+1437100907.account}` => `椽子（1437100907）`|
+|`length`|将数字按毫秒数转化为时间长度|`String`|`{number.+1000.delay}` => `1秒`|
+|`abs`|取绝对值|原本数据的类型|`{number.-100.abs}` => `100`|
+
+对随机数的运算如下表
+|操作符|结果|结果类型|示例|
+|---|---|---|---|
+|`double`|生成一个 `0` 到 `1` 之间的 `double` 类型随机数|`double`|`{random.double.abs.*100}` => 一个介于 `[0, 100)` 的随机小数|
+|`int`|生成一个 `0` 到 `Integer.MAX_VALUE` 之间的 `int` 类型随机数|`int`|`{random.int.abs.%10}` => 一个介于 `[0, 10)` 的随机整数|
+
+小明有一个指令 `echo  {消息}`，作用是让小明复读 `{消息}` 的内容，可用于测试变量。例如执行小明指令 `echo  今日人品：{random.double.abs.*100}%`。
+
+未完待续
 
 > **声明**
 > 

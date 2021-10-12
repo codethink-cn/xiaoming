@@ -1,8 +1,8 @@
-package cn.chuanwise.xiaoming.utility;
+package cn.chuanwise.xiaoming.util;
 
-import cn.chuanwise.utility.StaticUtility;
+import cn.chuanwise.util.StaticUtil;
 
-public class CommandWords extends StaticUtility {
+public class CommandWords extends StaticUtil {
     public static final String
             ALL = "(全部|全|all)",
             GLOBAL = "(全局|全|公共|global)",
@@ -11,6 +11,10 @@ public class CommandWords extends StaticUtility {
             RELOAD = "(重载|重加载|reload)",
             LOOK = "(查看|罗列|list|look)",
             NEW = "(创建|新增|新建|新|new)",
+            START = "(开始|启动|begin|start)",
+            STOP = "(结束|停止|end|stop)",
+            PAUSE = "(暂停|pause)",
+            CONTINUE = "(继续|continue)",
             ADD = "(添加|增加|增添|add)",
             QQ = "(qq|QQ|Qq|qQ)",
             REMOVE = "(删除|删掉|卸载|删|取消|移除|去除|减少|remove|delete)",
@@ -37,10 +41,10 @@ public class CommandWords extends StaticUtility {
             ILLEGAL = "(非法|违规|禁用|禁止|illegal)",
             DISABLE = "(关闭|禁用|禁止|disable)",
             FORCE = "(强制|强行|force)",
-            STOP = "(关闭|禁用|禁止|stop)",
             OPTIMIZE = "(优化|optimize)",
             ENABLE = "(启用|启动|打开|enable)",
-            ACCOUNT = "(账户|account)",
+            ACCOUNT = "(账号|账户|account)",
+            STATISTIC = "(数据|statistic)",
             THIS = "(当前|本|this)",
             BLOCK = "(屏蔽|block)",
             CANCEL = "(取消|撤回|cancel|un)",
@@ -55,7 +59,7 @@ public class CommandWords extends StaticUtility {
             CLEAN = "(明确|干净|纯净|clean)",
             SAVE = "(保存|save)",
             PERIOD = "(周期|period)",
-            SEARCH = "(查|查询|search)",
+            SEARCH = "(查|查询|搜索|搜|search)",
             ERROR = "(错误|error)",
             MESSAGE = "(消息|信息|message|报告|report)",
             EDIT = "(修改|编辑|edit|modify)",
@@ -109,5 +113,6 @@ public class CommandWords extends StaticUtility {
             FLUSH = "(刷新|flush)",
             HISTORY = "(历史|history)",
             REPORT = "(报告|report)",
+            COMPLETE = "(完整|complete)",
             LANGUAGE = "(语言|language)";
 }

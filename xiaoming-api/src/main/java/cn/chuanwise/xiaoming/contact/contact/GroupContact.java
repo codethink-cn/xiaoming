@@ -1,6 +1,5 @@
 package cn.chuanwise.xiaoming.contact.contact;
 
-import cn.chuanwise.xiaoming.attribute.AttributeType;
 import cn.chuanwise.xiaoming.contact.ContactManager;
 import cn.chuanwise.xiaoming.event.MessageEvent;
 import cn.chuanwise.xiaoming.group.GroupRecord;
@@ -8,9 +7,7 @@ import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.group.GroupRecordManager;
 
 import java.util.*;
-import java.util.concurrent.ScheduledFuture;
 
-import cn.chuanwise.xiaoming.user.XiaomingUser;
 import net.mamoe.mirai.contact.*;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.At;

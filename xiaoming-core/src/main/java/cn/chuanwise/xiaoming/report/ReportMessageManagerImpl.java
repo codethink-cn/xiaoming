@@ -1,9 +1,7 @@
 package cn.chuanwise.xiaoming.report;
 
 import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
-import cn.chuanwise.utility.CollectionUtility;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
-import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import lombok.Data;
@@ -13,7 +11,6 @@ import org.slf4j.Logger;
 
 import java.beans.Transient;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 

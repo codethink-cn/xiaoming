@@ -1,16 +1,18 @@
 package cn.chuanwise.xiaoming.plugin;
 
-import cn.chuanwise.toolkit.map.getter.MultipleTypePathGetter;
-import cn.chuanwise.toolkit.map.setter.PathSetter;
-import cn.chuanwise.toolkit.serialize.serializer.object.DeserializedObject;
-import cn.chuanwise.utility.MapUtility;
+import cn.chuanwise.toolkit.map.TypePathGetter;
+import cn.chuanwise.toolkit.map.PathSetter;
+import cn.chuanwise.util.ArrayUtil;
+import cn.chuanwise.util.LambdaUtil;
 
 import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 
-public interface PluginHandler extends MultipleTypePathGetter, PathSetter {
+public interface PluginHandler extends TypePathGetter, PathSetter {
+    String DEFAULT_VERSION = "unknown";
+
     String MAIN_CLASS_NAME_PATH = "main";
     String SINGLE_AUTHOR_PATH = "author";
     String MULTIPLE_AUTHORS_PATH = "authors";
@@ -22,14 +24,14 @@ public interface PluginHandler extends MultipleTypePathGetter, PathSetter {
     Map<String, Object> getValues();
 
     default String getName() {
-        return getOrSupply(NAME_PATH, () -> {
+        return getStringContainer(NAME_PATH).orElseGet(() -> {
             final String jarFileName = getFile().getName();
             return jarFileName.substring(0, jarFileName.lastIndexOf('.'));
         });
     }
 
     default String getVersion() {
-        return getOrDefault(VERSION_PATH, "unknown");
+        return getStringContainer(VERSION_PATH).orElse(DEFAULT_VERSION);
     }
 
     default String getMainClassName() {
@@ -41,15 +43,15 @@ public interface PluginHandler extends MultipleTypePathGetter, PathSetter {
     }
 
     default String[] getMultipleAuthors() {
-        return getOrDefault(MULTIPLE_AUTHORS_PATH, new String[0]);
+        return getStringArrayContainer(MULTIPLE_AUTHORS_PATH).orElse(ArrayUtil.emptyArray(String.class));
     }
 
     default String[] getDepends() {
-        return getOrDefault(DEPENDS_PATH, new String[0]);
+        return getStringArrayContainer(DEPENDS_PATH).orElse(ArrayUtil.emptyArray(String.class));
     }
 
     default String[] getSoftDepends() {
-        return getOrDefault(SOFT_DEPENDS_PATH, new String[0]);
+        return getStringArrayContainer(SOFT_DEPENDS_PATH).orElse(ArrayUtil.emptyArray(String.class));
     }
 
     default boolean isSoftDepend(String pluginName) {

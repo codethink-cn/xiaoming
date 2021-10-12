@@ -1,8 +1,8 @@
-package cn.chuanwise.xiaoming.utility;
+package cn.chuanwise.xiaoming.util;
 
 import cn.chuanwise.api.ChineseConvertable;
 import cn.chuanwise.toolkit.verify.VerifyCodeHandler;
-import cn.chuanwise.utility.*;
+import cn.chuanwise.util.*;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.apply.ApplyHandler;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
@@ -29,11 +29,11 @@ import cn.chuanwise.xiaoming.permission.PermissionUserNode;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.plugin.PluginHandler;
 import cn.chuanwise.xiaoming.plugin.PluginManager;
-import cn.chuanwise.xiaoming.attribute.AttributeType;
+import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.recept.Receptionist;
 import cn.chuanwise.xiaoming.report.ReportMessage;
 import cn.chuanwise.xiaoming.schedule.FileSaver;
-import cn.chuanwise.xiaoming.tag.TagHolder;
+import cn.chuanwise.toolkit.tag.TagMarkable;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.MemberXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
@@ -41,7 +41,7 @@ import cn.chuanwise.xiaoming.user.XiaomingUser;
 import java.util.*;
 import java.util.function.BiFunction;
 
-public class LanguageConfigUtility extends StaticUtility {
+public class LanguageConfigUtil extends StaticUtil {
     public static void config(LanguageManager languageManager) {
         registerLicenseRelated(languageManager);
         registerPluginRelated(languageManager);
@@ -84,7 +84,7 @@ public class LanguageConfigUtility extends StaticUtility {
         languageManager.registerOperators(ApplyHandler.class, null)
                 .addOperator("message", ApplyHandler::getMessage)
                 .addOperator("permissions", ApplyHandler::getPermissions)
-                .addOperator("submitter", handler -> FunctionalUtility.runIfArgumentNonNullOrDefault(Plugin::getName, handler.getPlugin(), "内核"))
+                .addOperator("submitter", handler -> FunctionalUtil.runIfArgumentNonNullOrDefault(Plugin::getName, handler.getPlugin(), "内核"))
                 .addOperator("time", VerifyCodeHandler::getSubmitTime)
                 .addOperator("timeout", VerifyCodeHandler::getTimeout)
                 .addOperator("verifyCode", VerifyCodeHandler::getVerifyCode);
@@ -134,8 +134,8 @@ public class LanguageConfigUtility extends StaticUtility {
                             return null;
                     }
                 })))
-                        .addOperator("enabledPlugins", manager -> CollectionUtility.filter(manager.getPlugins().values(), plugin -> plugin.getHandler().isEnabled()))
-                .addOperator("loadedPlugins", manager -> CollectionUtility.filter(manager.getPlugins().values(), plugin -> plugin.getHandler().isLoaded()));
+                        .addOperator("enabledPlugins", manager -> CollectionUtil.filter(manager.getPlugins().values(), plugin -> plugin.getHandler().isEnabled()))
+                .addOperator("loadedPlugins", manager -> CollectionUtil.filter(manager.getPlugins().values(), plugin -> plugin.getHandler().isLoaded()));
         languageManager.registerOperators(Plugin.class, null)
                 .addOperator("name", Plugin::getName)
                 .addOperator("version", Plugin::getVersion)
@@ -178,9 +178,9 @@ public class LanguageConfigUtility extends StaticUtility {
                         case 'g':
                             return value.forPermissionGroup(content);
                         case 'u':
-                            final Long parsedCode = NumberUtility.parseLong(content);
-                            if (Objects.nonNull(parsedCode)) {
-                                return value.forUserNode(parsedCode);
+                            final Optional<Long> optionalCode = NumberUtil.parseLong(content);
+                            if (optionalCode.isPresent()) {
+                                return value.forUserNode(optionalCode.get());
                             }
                             return null;
                         default:
@@ -241,12 +241,12 @@ public class LanguageConfigUtility extends StaticUtility {
         languageManager.registerOperators(Number.class, null)
                 .addOperator("int", Number::intValue)
                 .addOperator("double", Number::doubleValue)
-                .addOperator("delay", value -> TimeUtility.since(value.longValue()))
-                .addOperator("after", value -> TimeUtility.after(value.longValue()))
+                .addOperator("delay", value -> TimeUtil.futureTimeLength(value.longValue()))
+                .addOperator("after", value -> TimeUtil.after(value.longValue()))
                 .addOperator("date", value -> new Date(value.longValue()))
                 .addOperator("account", value -> languageManager.getXiaomingBot().getAccountManager().getAccount(value.longValue()))
                 .addOperator("alias", value -> languageManager.getXiaomingBot().getAccountManager().getAliasOrCode(value.longValue()))
-                .addOperator("length", value -> TimeUtility.toTimeLength(value.longValue()));
+                .addOperator("length", value -> TimeUtil.toTimeLength(value.longValue()));
         languageManager.registerOperators(Double.class, null)
                 .addOperator("abs", Math::abs)
                 .addOperator((value, identifier) -> {
@@ -254,13 +254,15 @@ public class LanguageConfigUtility extends StaticUtility {
                         return null;
                     }
                     final char operator = identifier.charAt(0);
-                    final Double right = NumberUtility.parseDouble(identifier.substring(1));
+                    final Optional<Double> optionalRight = NumberUtil.parseDouble(identifier.substring(1));
                     final Double left = value;
 
                     // 数字格式错误时
-                    if (Objects.isNull(right)) {
+                    if (!optionalRight.isPresent()) {
                         return null;
                     }
+
+                    final Double right = optionalRight.get();
 
                     switch (operator) {
                         case '+':
@@ -284,13 +286,14 @@ public class LanguageConfigUtility extends StaticUtility {
                         return null;
                     }
                     final char operator = identifier.charAt(0);
-                    final Integer right = NumberUtility.parseInteger(identifier.substring(1));
+                    final Optional<Integer> optionalRight = NumberUtil.parseInteger(identifier.substring(1));
                     final Integer left = value;
 
                     // 数字格式错误时
-                    if (Objects.isNull(right)) {
+                    if (!optionalRight.isPresent()) {
                         return null;
                     }
+                    final Integer right = optionalRight.get();
 
                     switch (operator) {
                         case '+':
@@ -315,7 +318,7 @@ public class LanguageConfigUtility extends StaticUtility {
 
         languageManager.registerOperators(XiaomingUser.class, null)
                 .addOperator("name", XiaomingUser::getName)
-                .addOperator((user, identifier) -> user.getAttribute(AttributeType.valueOf(identifier)))
+                .addOperator((user, identifier) -> user.getProperty(PropertyType.valueOf(identifier)))
                 .addOperator("code", XiaomingUser::getCode)
                 .addOperator("codeString", XiaomingUser::getCodeString)
                 .addOperator("alias", XiaomingUser::getAlias)
@@ -348,7 +351,7 @@ public class LanguageConfigUtility extends StaticUtility {
     /** 日期相关 */
     protected static void registerDateRelated(LanguageManager languageManager) {
         languageManager.registerVariable("date", Date::new, null);
-        languageManager.registerConvertor(Date.class, TimeUtility::format, null);
+        languageManager.registerConvertor(Date.class, TimeUtil::format, null);
 
         languageManager.registerOperators(Date.class, null)
                 .addOperator("millis", Date::getTime)
@@ -362,7 +365,7 @@ public class LanguageConfigUtility extends StaticUtility {
                 .addOperator("alias", GroupRecord::getAlias)
                 .addOperator("aliasAndCode", GroupRecord::getAliasAndCode)
                 .addOperator("aliasOrCode", GroupRecord::getAlias)
-                .addOperator("tags", TagHolder::getTags);
+                .addOperator("tags", TagMarkable::getTags);
 
         languageManager.registerOperators(Integer.class, null)
                 .addOperator("group", languageManager.getXiaomingBot().getGroupRecordManager()::forCode);
@@ -378,7 +381,7 @@ public class LanguageConfigUtility extends StaticUtility {
         languageManager.registerOperators(InteractorManager.class, null)
                 .addOperator((manager, identifier) -> {
                     final List<InteractorHandler> interactors = manager.getInteractors();
-                    return CollectionUtility.first(interactors, interactor -> (Objects.equals(identifier, identifier.getClass().getName())));
+                    return CollectionUtil.first(interactors, interactor -> (Objects.equals(identifier, identifier.getClass().getName())));
                 });
         languageManager.registerConvertor(InteractorHandler.class, InteractorHandler::getName, null);
 
@@ -432,7 +435,7 @@ public class LanguageConfigUtility extends StaticUtility {
     }
 
     protected static void registerRandomRelated(LanguageManager languageManager) {
-        languageManager.registerVariable("random", RandomUtility.getRandom(), null);
+        languageManager.registerVariable("random", RandomUtil.getRandom(), null);
         languageManager.registerOperators(Random.class, null)
                 .addOperator("int", Random::nextInt)
                 .addOperator("long", Random::nextLong)
@@ -466,7 +469,7 @@ public class LanguageConfigUtility extends StaticUtility {
                     } else {
                         return false;
                     }
-                }, (collection, index) -> CollectionUtility.arrayGet(collection, Integer.parseInt(index)))
+                }, (collection, index) -> CollectionUtil.arrayGet(collection, Integer.parseInt(index)))
                 .addOperator(new VariableRequester<Collection>() {
                     @Override
                     public Object request(Collection value, String identifier) {
@@ -490,12 +493,12 @@ public class LanguageConfigUtility extends StaticUtility {
                     }
                 })
                 .addOperator("toSimpleString", collection -> {
-                    return CollectionUtility.toString(((Collection<Object>) collection), languageManager::convert);
+                    return CollectionUtil.toString(((Collection<Object>) collection), languageManager::convert);
                 })
                 .addOperator("toIndexString", collection -> {
-                    return CollectionUtility.toIndexString(((Collection<Object>) collection), languageManager::convert);
+                    return CollectionUtil.toIndexString(((Collection<Object>) collection), languageManager::convert);
                 });
-        languageManager.registerConvertor(Collection.class, collection -> CollectionUtility.toString(collection, languageManager::convert), null);
+        languageManager.registerConvertor(Collection.class, collection -> CollectionUtil.toString(collection, languageManager::convert), null);
 
         // 字符串相关
         languageManager.registerOperators(String.class, null)
@@ -505,7 +508,7 @@ public class LanguageConfigUtility extends StaticUtility {
                 .addOperator("repeat", string -> (string + string))
                 .addOperator("tagGroups", group -> xiaomingBot.getGroupRecordManager().forTag(group))
                 .addOperator("permissionGroup", string -> xiaomingBot.getPermissionManager().forPermissionGroup(string))
-                .addOperator("reverse", StringUtility::reverse);
+                .addOperator("reverse", StringUtil::reverse);
 
         // 映射相关
         languageManager.registerOperators(Map.class, null)
@@ -513,13 +516,14 @@ public class LanguageConfigUtility extends StaticUtility {
                 .addOperator((map, key) -> map.containsKey(key), Map::get);
         languageManager.registerConvertor(Map.class, map -> {
             final Set<Map.Entry> iterable = map.entrySet();
-            return StringUtility.firstNonEmpty(CollectionUtility.toIndexString(iterable, entry -> {
+            return StringUtil.firstNonEmpty(CollectionUtil.toIndexString(iterable, entry -> {
                 return languageManager.convert(entry.getKey()) + "：" + languageManager.convert(entry.getValue());
             }), "（空）");
         }, null);
     }
 
     protected static void registerLanguageRelated(LanguageManager languageManager) {
+        languageManager.registerVariable("lang", languageManager, null);
         languageManager.registerOperators(LanguageManager.class, null)
                 .addOperator(LanguageManager::getSentence);
         languageManager.registerOperators(MultipleLanguageFinder.class, null)
@@ -542,7 +546,7 @@ public class LanguageConfigUtility extends StaticUtility {
                         (context, identifier) -> {
                             final int index = context.getParameterNames().indexOf(identifier);
                             final Object[] values = context.getValues();
-                            if (IndexUtility.isLegal(index, values.length)) {
+                            if (IndexUtil.isLegal(index, values.length)) {
                                 return values[index];
                             } else {
                                 return "[[ctx-var: " + identifier + "]]";
@@ -593,7 +597,7 @@ public class LanguageConfigUtility extends StaticUtility {
     }
 
     protected static void printMethodNames() {
-        ReflectUtility.forEachDeclaredStaticMethod(LanguageConfigUtility.class, (clazz, method) -> {
+        ReflectUtil.forEachDeclaredStaticMethod(LanguageConfigUtil.class, (clazz, method) -> {
             final String name = method.getName();
             if (name.startsWith("register")) {
                 System.out.println(name + "(languageManager);");

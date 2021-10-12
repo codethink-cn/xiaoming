@@ -1,8 +1,8 @@
 package cn.chuanwise.xiaoming.optimize;
 
-import cn.chuanwise.utility.CheckUtility;
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.MapUtility;
+import cn.chuanwise.util.ConditionUtil;
+import cn.chuanwise.util.CollectionUtil;
+import cn.chuanwise.util.MapUtil;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 
 import java.util.List;
@@ -29,7 +29,7 @@ public interface Optimizer {
     }
 
     default void runWhileOptimize(Runnable runnable, Plugin plugin) {
-        MapUtility.getOrPutSupply(getPluginOptimizeTasks(), plugin, CopyOnWriteArrayList::new).add(runnable);
+        MapUtil.getOrPutSupply(getPluginOptimizeTasks(), plugin, CopyOnWriteArrayList::new).add(runnable);
     }
 
     /***
@@ -38,7 +38,7 @@ public interface Optimizer {
      * @param plugin 提交该操作的插件
      */
     default void runOnNextOptimize(Runnable runnable, Plugin plugin) {
-        CheckUtility.nonNull(plugin, "plugin submitted optimize tasks");
+        ConditionUtil.nonNull(plugin, "plugin submitted optimize tasks");
         runWhileOptimize(new Runnable() {
             @Override
             public void run() {
@@ -72,7 +72,7 @@ public interface Optimizer {
 
     default void cancelOptimizeTask(Runnable runnable, Plugin plugin) {
         final List<Runnable> runnables = getPluginOptimizeTasks().get(plugin);
-        if (CollectionUtility.isEmpty(runnables)) {
+        if (CollectionUtil.isEmpty(runnables)) {
             return;
         }
 

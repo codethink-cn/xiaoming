@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.language.environment;
 
-import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.language.variable.VariableOperator;
 import cn.chuanwise.xiaoming.language.variable.VariableRequester;
 import cn.chuanwise.xiaoming.object.PluginObjectImpl;
@@ -19,7 +19,7 @@ public class SimpleVariableOperator<T> extends PluginObjectImpl implements Varia
 
     @Override
     public boolean apply(T value, String identifier) {
-        return Objects.nonNull(CollectionUtility.first(handlers, handler -> handler.apply(value, identifier)));
+        return Objects.nonNull(CollectionUtil.first(handlers, handler -> handler.apply(value, identifier)));
     }
 
     @Override

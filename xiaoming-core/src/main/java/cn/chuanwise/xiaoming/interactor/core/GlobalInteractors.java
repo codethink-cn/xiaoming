@@ -9,7 +9,7 @@ import cn.chuanwise.xiaoming.group.GroupRecord;
 import cn.chuanwise.xiaoming.group.GroupRecordManager;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.CommandWords;
+import cn.chuanwise.xiaoming.util.CommandWords;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
 
 import java.util.Objects;

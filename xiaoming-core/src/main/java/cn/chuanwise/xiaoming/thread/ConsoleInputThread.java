@@ -7,7 +7,6 @@ import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import cn.chuanwise.xiaoming.user.ConsoleXiaomingUser;
 import lombok.Getter;
 import lombok.Setter;
-import net.mamoe.mirai.message.code.MiraiCode;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.UserInterruptException;
@@ -17,8 +16,6 @@ import org.jline.terminal.TerminalBuilder;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
-import java.util.Scanner;
-import java.util.concurrent.Future;
 
 @Getter
 @Setter
@@ -67,7 +64,14 @@ public class ConsoleInputThread extends ModuleObjectImpl implements Runnable {
                     break;
                 }
 
-                user.onNextInput(line);
+                final String finalLine = line;
+                xiaomingBot.getScheduler().run(() -> {
+                    final boolean interacted = xiaomingBot.getInteractorManager().interact(user, finalLine);
+                    if (!interacted) {
+                        user.sendError("小明不知道你的意思「" + finalLine + "」");
+                    }
+                    return interacted;
+                });
             } catch (UserInterruptException exception) {
                 break;
             } catch (Exception exception) {

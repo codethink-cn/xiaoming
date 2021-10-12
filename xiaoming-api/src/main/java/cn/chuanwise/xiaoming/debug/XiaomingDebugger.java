@@ -1,17 +1,20 @@
 package cn.chuanwise.xiaoming.debug;
 
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
+import cn.chuanwise.xiaoming.launcher.XiaomingLauncher;
+import cn.chuanwise.xiaoming.plugin.PluginHandler;
+import org.slf4j.Logger;
+
+import java.util.List;
 
 public interface XiaomingDebugger {
     XiaomingBot getXiaomingBot();
 
-    void debug() throws Exception;
-
     void run() throws Exception;
 
-    cn.chuanwise.xiaoming.launcher.XiaomingLauncher getLauncher();
+    XiaomingLauncher getLauncher();
 
-    java.util.List<cn.chuanwise.xiaoming.plugin.PluginHandler> getPluginHandlers();
+    List<PluginHandler> getPluginHandlers();
 
-    org.slf4j.Logger getLogger();
+    Logger getLogger();
 }

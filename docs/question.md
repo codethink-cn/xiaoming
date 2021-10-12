@@ -50,6 +50,8 @@ java -Dfile.encoding=UTF-8 -Dmirai.slider.captcha.supported -jar xiaoming-host-x
 #### 显示「设备异常，禁止登陆」怎么办？
 将 `xiaoming-host-xxx` 复制到自己的设备上登录小明后，找到 `launcher/device.json`。将该文件替换服务器那边的 `launcher/device.json`，随后重新启动小明。
 
+#### 设备锁验证界面打不开
+请点击蓝色的设备锁验证按钮，将打开的网址中的 `verify` 改为 `qrcode` 后刷新。
 
 ### 为什么机器人不响应消息？
 #### 机器人启动了吗？
@@ -57,18 +59,11 @@ java -Dfile.encoding=UTF-8 -Dmirai.slider.captcha.supported -jar xiaoming-host-x
 
 若启动遇到问题，请移步[无法启动机器人怎么办？](#无法启动机器人怎么办？)。
 
-#### 本群启动小明了吗？
-
-
 #### 为什么机器人只处理私聊消息，不处理群聊消息？
-
-#### 
-|检查项|做法|此项正常时|此项异常应|
-|---|---|---|---|
-|机器人是否启动|私聊机器人 `call`|机器人显示||
-|检查该群是否启动了明确调用|私聊机器人 `明确调用`|机器人提示「明确调用尚未被启动」|检查是否相应群聊中启动了明确调用（群聊中发送 `本群标记`），如果带有 `clear-call` 标记或刚才小明提到的标记，则本群启动了明确调用，只有以特定的一串字符开头的消息才会被小明注意。可能是
-|检查该群是否是响应群|在该群中发送 `本群启动小明`|
+这是腾讯风控你的机器人导致，新机器人偶尔出现该问题，让机器人账号登录一下[QQ安全中心](https://aq.qq.com/cn2/index)即可。
 
 未完待续
 
 ## 开发者问题
+### 为什么我的插件抛出 `NoSuchMethodError` 或 `ClassNotFoundError`，且缺少的类类名以 `cn.chuanwise.xiaoming` 开头？
+请更新 `core`、`api` 和 `host` 为最新版本。或至少同一版本。

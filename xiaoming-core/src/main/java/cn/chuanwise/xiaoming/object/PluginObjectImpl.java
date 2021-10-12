@@ -26,4 +26,12 @@ public class PluginObjectImpl<T extends Plugin> implements PluginObject<T> {
             return null;
         }
     }
+
+    @Override
+    public void setPlugin(T plugin) {
+        this.plugin = plugin;
+        if (Objects.isNull(xiaomingBot) && Objects.nonNull(plugin)) {
+            xiaomingBot = plugin.getXiaomingBot();
+        }
+    }
 }

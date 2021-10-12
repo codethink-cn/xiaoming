@@ -1,9 +1,9 @@
 package cn.chuanwise.xiaoming.interactor.core;
 
 import cn.chuanwise.toolkit.preservable.Preservable;
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.MapUtility;
-import cn.chuanwise.utility.StringUtility;
+import cn.chuanwise.util.CollectionUtil;
+import cn.chuanwise.util.MapUtil;
+import cn.chuanwise.util.StringUtil;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.annotation.Permission;
@@ -16,8 +16,8 @@ import cn.chuanwise.xiaoming.recept.Receptionist;
 import cn.chuanwise.xiaoming.recept.ReceptionistManager;
 import cn.chuanwise.xiaoming.user.ConsoleXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.CommandWords;
-import cn.chuanwise.xiaoming.utility.InteractorUtility;
+import cn.chuanwise.xiaoming.util.CommandWords;
+import cn.chuanwise.xiaoming.util.InteractorUtil;
 
 import java.io.File;
 import java.util.*;
@@ -27,18 +27,16 @@ import java.util.stream.Collectors;
 public class CoreInteractors extends SimpleInteractors {
     public static final String BATCH = "(批处理|bat)";
 
-    private void collectRegisters(Plugin plugin, Object object, Map<String, List<String>> results) {
-        final String pluginName = Objects.isNull(plugin) ? "小明内核" : plugin.getName();
-        MapUtility.getOrPutSupply(results, pluginName, ArrayList::new).add(object.getClass().getSimpleName());
-    }
-
     @Filter(CommandWords.INTERACTOR)
     @Permission("core.interactor.list")
     public void onInteractor(XiaomingUser user) {
         final Map<String, List<String>> interactorDetails = new HashMap<>();
 
         final InteractorManager interactorManager = getXiaomingBot().getInteractorManager();
-        interactorManager.getInteractors().forEach(interactor -> collectRegisters(interactor.getPlugin(), interactor.getInteractors(), interactorDetails));
+        interactorManager.getInteractors().forEach(interactor -> {
+            final List<String> interactorNames = MapUtil.getOrPutSupply(interactorDetails, interactor.getPlugin().getName(), ArrayList::new);
+            interactorNames.add(interactor.getInteractors().getClass().getSimpleName() + "." + interactor.getName());
+        });
 
         user.sendMessage("{lang.interactors}", interactorDetails);
     }
@@ -87,7 +85,7 @@ public class CoreInteractors extends SimpleInteractors {
 //            exception.printStackTrace();
 //        }
 //        final String buffer = user.getBufferAndClose();
-//        user.sendMessage(StringUtility.isEmpty(buffer) ? "{lang.batchTaskNoAnyOutput}" : buffer);
+//        user.sendMessage(StringUtil.isEmpty(buffer) ? "{lang.batchTaskNoAnyOutput}" : buffer);
 //    }
 
     @Filter(CommandWords.OPTIMIZE)
@@ -139,7 +137,7 @@ public class CoreInteractors extends SimpleInteractors {
     @Filter(CommandWords.ECHO + " {r:复读内容}")
     @Permission("core.echo")
     public void onEcho(XiaomingUser user, @FilterParameter("复读内容") String content) {
-        if (StringUtility.nonEmpty(content)) {
+        if (StringUtil.notEmpty(content)) {
             user.sendMessage(content);
         }
     }
@@ -150,15 +148,15 @@ public class CoreInteractors extends SimpleInteractors {
         final List<InteractorHandler> interactors = getXiaomingBot().getInteractorManager().getInteractors();
         final List<String> commandFormats = interactors.stream()
                 .map(InteractorHandler::getUsage)
-                .filter(StringUtility::nonEmpty)
+                .filter(StringUtil::notEmpty)
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
 
         if (user instanceof ConsoleXiaomingUser) {
-            user.sendMessage(CollectionUtility.toIndexString(commandFormats));
+            user.sendMessage(CollectionUtil.toIndexString(commandFormats));
         } else {
-            InteractorUtility.showCollection(user, commandFormats, String::toString, 30);
+            InteractorUtil.showCollection(user, commandFormats, String::toString, 30);
         }
     }
 
@@ -167,15 +165,15 @@ public class CoreInteractors extends SimpleInteractors {
         final List<InteractorHandler> interactors = getXiaomingBot().getInteractorManager().getInteractors(plugin);
         final List<String> commandFormats = interactors.stream()
                 .map(InteractorHandler::getUsage)
-                .filter(StringUtility::nonEmpty)
+                .filter(StringUtil::notEmpty)
                 .distinct()
                 .sorted()
                 .collect(Collectors.toList());
 
         if (user instanceof ConsoleXiaomingUser) {
-            user.sendMessage(CollectionUtility.toIndexString(commandFormats));
+            user.sendMessage(CollectionUtil.toIndexString(commandFormats));
         } else {
-            InteractorUtility.showCollection(user, commandFormats, String::toString, 30);
+            InteractorUtil.showCollection(user, commandFormats, String::toString, 30);
         }
     }
 

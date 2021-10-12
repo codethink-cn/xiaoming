@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.interactor.filter;
 
-import cn.chuanwise.utility.UsageStringUtility;
+import cn.chuanwise.util.UsageStringUtil;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -13,6 +13,6 @@ public abstract class RegexFilterMatcher extends FilterMatcher {
 
     @Override
     public String toUsage() {
-        return UsageStringUtility.translateUsageRegex(pattern.pattern());
+        return UsageStringUtil.translateUsageRegex(pattern.pattern());
     }
 }

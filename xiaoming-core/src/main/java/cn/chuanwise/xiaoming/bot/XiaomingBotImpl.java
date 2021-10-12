@@ -1,16 +1,14 @@
 package cn.chuanwise.xiaoming.bot;
 
 import cn.chuanwise.api.SimpleSetableStatusHolder;
-import cn.chuanwise.exception.UnsupportedVersionException;
 import cn.chuanwise.toolkit.preservable.Preservable;
 import cn.chuanwise.toolkit.preservable.file.FileLoader;
 import cn.chuanwise.toolkit.preservable.file.loader.JsonFileLoader;
 import cn.chuanwise.toolkit.serialize.serializer.Serializer;
 import cn.chuanwise.toolkit.serialize.serializer.json.JsonSerializer;
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.FunctionalUtility;
-import cn.chuanwise.utility.ObjectUtility;
-import cn.chuanwise.utility.StreamUtility;
+import cn.chuanwise.util.CollectionUtil;
+import cn.chuanwise.util.FunctionalUtil;
+import cn.chuanwise.util.StreamUtil;
 import cn.chuanwise.xiaoming.account.AccountManager;
 import cn.chuanwise.xiaoming.classloader.XiaomingClassLoader;
 import cn.chuanwise.xiaoming.client.CenterClient;
@@ -60,10 +58,10 @@ import cn.chuanwise.xiaoming.interactor.InteractorManager;
 import cn.chuanwise.xiaoming.limit.UserCallLimitManagerImpl;
 import cn.chuanwise.xiaoming.permission.PermissionManagerImpl;
 import cn.chuanwise.xiaoming.plugin.PluginManagerImpl;
-import cn.chuanwise.xiaoming.utility.LanguageUtility;
-import cn.chuanwise.xiaoming.utility.SerializerUtility;
+import cn.chuanwise.xiaoming.util.LanguageConfigUtil;
+import cn.chuanwise.xiaoming.util.LanguageUtil;
+import cn.chuanwise.util.SerializerUtil;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.BotFactory;
@@ -80,9 +78,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.regex.Pattern;
@@ -131,17 +127,8 @@ public class XiaomingBotImpl
 
     @Override
     public void load() {
-        final List<Future<?>> futures = new ArrayList<>(initializer.size());
-        initializer.values().forEach(runnable -> futures.add(scheduler.run(runnable, null)));
-        for (Future<?> future : futures) {
-            try {
-                future.get();
-            } catch (InterruptedException exception) {
-                exception.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
+        fillInitializer();
+        initializer.values().forEach(Runnable::run);
     }
 
     /**
@@ -196,7 +183,7 @@ public class XiaomingBotImpl
                     logger.info("全部文件保存成功");
                 } else {
                     logger.info("这些文件无法保存，小明已经尽力了：\n" +
-                            CollectionUtility.toIndexString(preservables.keySet(), File::getAbsolutePath));
+                            CollectionUtil.toIndexString(preservables.keySet(), File::getAbsolutePath));
                 }
             }
         });
@@ -262,7 +249,7 @@ public class XiaomingBotImpl
                 try {
                     logger.info("正在检查更新语言文件：" + languageFile);
                     if (Objects.nonNull(xiaomingClassLoader.getResourceAsStream(resourcePath))) {
-                        LanguageUtility.loadOrCopy(this, languageFile, xiaomingClassLoader, resourcePath);
+                        LanguageUtil.loadOrCopy(this, languageFile, xiaomingClassLoader, resourcePath);
                     } else {
                         logger.error("无法找到语言资源文件：" + resourcePath + "（如果正在使用小明调试器，请忽略此提示）");
                     }
@@ -321,7 +308,7 @@ public class XiaomingBotImpl
             groupRecordManager = fileLoader
                     .loadOrSupply(GroupRecordManagerImpl.class, file, GroupRecordManagerImpl::new);
             groupRecordManager.setXiaomingBot(this);
-            ((GroupRecordManagerImpl) groupRecordManager).setGroups(((Set) groupRecordManager.getGroups()));
+            ((GroupRecordManagerImpl) groupRecordManager).setGroups(groupRecordManager.getGroups());
         });
 
         initializer.put("receptionistManager", () -> {
@@ -359,16 +346,6 @@ public class XiaomingBotImpl
 
         initializer.put("contactManager", () -> {
             contactManager = new ContactManagerImpl(this);
-        });
-
-        initializer.put("console", () -> {
-            consoleInputThread = new ConsoleInputThread(this);
-            consoleXiaomingUser = new ConsoleXiaomingUserImpl(new ConsoleContactImpl(this, consoleInputThread));
-
-            consoleXiaomingUser.setReceptionist(receptionistManager.getReceptionist(0));
-            consoleInputThread.setUser(consoleXiaomingUser);
-
-            scheduler.run(consoleInputThread);
         });
     }
 
@@ -449,8 +426,16 @@ public class XiaomingBotImpl
     private void initialize() {
         makeDirectories();
 
-        fillInitializer();
         load();
+        LanguageConfigUtil.config(languageManager);
+
+        consoleInputThread = new ConsoleInputThread(this);
+        consoleXiaomingUser = new ConsoleXiaomingUserImpl(new ConsoleContactImpl(this, consoleInputThread));
+
+        consoleXiaomingUser.setReceptionist(receptionistManager.getReceptionist(getCode()));
+        consoleInputThread.setUser(consoleXiaomingUser);
+
+        scheduler.run(consoleInputThread);
 
         registerCoreModules();
 
@@ -468,14 +453,14 @@ public class XiaomingBotImpl
         final InputStream tipStream = getClass().getClassLoader().getResourceAsStream("tips.txt");
         if (Objects.nonNull(tipStream)) {
             try {
-                final String[] tipsArray = new String(StreamUtility.read(tipStream)).split(Pattern.quote("\n"));
+                final String[] tipsArray = new String(StreamUtil.read(tipStream)).split(Pattern.quote("\n"));
                 if (tipsArray.length > 0) {
                     tips = Arrays.asList(tipsArray);
                 }
             } catch (IOException ignored) {
             }
         }
-        if (CollectionUtility.isEmpty(tips)) {
+        if (CollectionUtil.isEmpty(tips)) {
             tips = Arrays.asList("你知道吗，当你看到这条 TIPS 时，你就阅读了一条 TIPS");
         }
         return tips;
@@ -496,7 +481,7 @@ public class XiaomingBotImpl
                 "                                        @" + SPONSOR + "\n" +
                 "core version: " + XiaomingBot.COMPLETE_VERSION + "\n" +
                 "github: " + GITHUB + "\n" +
-                "tips: " + CollectionUtility.randomGet(tips) + "\n");
+                "tips: " + CollectionUtil.randomGet(tips) + "\n");
     }
 
     private void translateArguments() {
@@ -641,13 +626,13 @@ public class XiaomingBotImpl
     XiaomingClassLoader xiaomingClassLoader = new XiaomingClassLoader(getClass().getClassLoader());
 
     /** 自定义序列化器，用来存储文件等 */
-    Serializer serializer = SerializerUtility.initializedSerializer();
+    Serializer serializer = SerializerUtil.initializedSerializer();
     {
         serializer.getConfiguration().getClassLoader().addClassLoader(xiaomingClassLoader);
     }
 
     /** 核心序列化器，用来存储关键文件。例如 configurations 等不能变更序列化器的文件 */
-    final Serializer coreSerializer = SerializerUtility.initializedSerializer();
+    final Serializer coreSerializer = SerializerUtil.initializedSerializer();
     {
         coreSerializer.getConfiguration().getClassLoader().addClassLoader(xiaomingClassLoader);
     }
@@ -712,7 +697,7 @@ public class XiaomingBotImpl
         }
 
         // 如果正在输入，打断
-        FunctionalUtility.runIfArgumentNonNull(Thread::interrupt, consoleInputThread.getThread());
+        FunctionalUtil.runIfArgumentNonNull(Thread::interrupt, consoleInputThread.getThread());
 
         // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
         scheduler.stopNow();

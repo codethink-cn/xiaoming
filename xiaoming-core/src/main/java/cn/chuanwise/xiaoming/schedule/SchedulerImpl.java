@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.schedule;
 
-import cn.chuanwise.utility.CheckUtility;
+import cn.chuanwise.util.ConditionUtil;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import lombok.*;
@@ -37,13 +37,13 @@ public class SchedulerImpl extends ModuleObjectImpl implements Scheduler {
 
     @Override
     public void runFinally(String name, Runnable runnable) {
-        CheckUtility.checkState(!isStopped(), "scheduler already stopped");
+        ConditionUtil.checkState(!isStopped(), "scheduler already stopped");
         finalTasks.put(name, runnable);
     }
 
     @Override
     public Runnable cancelFinally(String name) {
-        CheckUtility.checkState(!isStopped(), "scheduler already stopped");
+        ConditionUtil.checkState(!isStopped(), "scheduler already stopped");
 
         if (Objects.isNull(name)) {
             return null;

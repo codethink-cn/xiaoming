@@ -5,7 +5,7 @@
     <parent>
         <artifactId>xiaoming-bot</artifactId>
         <groupId>cn.chuanwise</groupId>
-        <version>3.5</version>
+        <version>3.7.2-exp</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -13,12 +13,24 @@
 
     <repositories>
         <repository>
-            <id>chuanwise-toolkit-implement</id>
+            <id>chuanwise-toolkit-generic</id>
             <url>https://github.com/Chuanwise/chuanwise-toolkit</url>
         </repository>
     </repositories>
 
     <dependencies>
+        <dependency>
+            <groupId>net.mamoe</groupId>
+            <artifactId>mirai-core-api-jvm</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.mamoe</groupId>
+            <artifactId>mirai-core-jvm</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+
         <dependency>
             <groupId>org.jline</groupId>
             <artifactId>jline</artifactId>
@@ -27,14 +39,8 @@
 
         <dependency>
             <groupId>cn.chuanwise</groupId>
-            <artifactId>chuanwise-toolkit-implement</artifactId>
-            <version>2.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>cn.chuanwise</groupId>
             <artifactId>xiaoming-center-client</artifactId>
-            <version>1.0</version>
+            <version>1.0-exp</version>
         </dependency>
     </dependencies>
 </project>

@@ -1,20 +1,23 @@
 package cn.chuanwise.xiaoming.contact.contact;
 
-import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.object.XiaomingObject;
-import cn.chuanwise.xiaoming.tag.TagHolder;
+import cn.chuanwise.toolkit.tag.TagMarkable;
 
 import java.util.Optional;
 import java.util.Set;
 
-import cn.chuanwise.xiaoming.utility.MiraiCodeUtility;
+import cn.chuanwise.xiaoming.util.MiraiCodeUtil;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.message.code.MiraiCode;
-import net.mamoe.mirai.message.data.*;
+import net.mamoe.mirai.message.data.Image;
+import net.mamoe.mirai.message.data.MessageChain;
+import net.mamoe.mirai.message.data.QuoteReply;
+import net.mamoe.mirai.message.data.SingleMessage;
 import net.mamoe.mirai.utils.ExternalResource;
 
-public interface XiaomingContact<C extends Contact> extends XiaomingObject, TagHolder {
+public interface XiaomingContact<C extends Contact> extends XiaomingObject, TagMarkable {
     String getAliasAndCode();
 
     C getMiraiContact();
@@ -46,7 +49,7 @@ public interface XiaomingContact<C extends Contact> extends XiaomingObject, TagH
     }
 
     default Message sendMessage(SingleMessage... messages) {
-        return sendMessage(MiraiCodeUtility.asMessageChain(messages));
+        return sendMessage(MiraiCodeUtil.asMessageChain(messages));
     }
 
 
@@ -75,7 +78,7 @@ public interface XiaomingContact<C extends Contact> extends XiaomingObject, TagH
 
 
     @Override
-    default Set<String> originalTags() {
-        return CollectionUtility.asSet(getCodeString(), RECORDED);
+    default Set<String> getOriginalTags() {
+        return CollectionUtil.asSet(getCodeString(), RECORDED);
     }
 }

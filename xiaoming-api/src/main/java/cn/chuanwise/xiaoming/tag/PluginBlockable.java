@@ -1,10 +1,11 @@
 package cn.chuanwise.xiaoming.tag;
 
+import cn.chuanwise.toolkit.tag.TagMarkable;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 
 import java.util.Objects;
 
-public interface PluginBlockable extends TagHolder {
+public interface PluginBlockable extends TagMarkable {
     default boolean isBlockPlugin(Plugin plugin) {
         if (Objects.isNull(plugin)) {
             return false;

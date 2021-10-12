@@ -1,14 +1,13 @@
 package cn.chuanwise.xiaoming.interactor.core;
 
-import cn.chuanwise.utility.TimeUtility;
+import cn.chuanwise.util.TimeUtil;
 import cn.chuanwise.xiaoming.annotation.Name;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.Permission;
-import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.resource.ResourceManager;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.CommandWords;
-import cn.chuanwise.xiaoming.utility.InteractorUtility;
+import cn.chuanwise.xiaoming.util.CommandWords;
+import cn.chuanwise.xiaoming.util.InteractorUtil;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
 
 import java.util.Map;
@@ -46,9 +45,9 @@ public class ResourceInteractors extends SimpleInteractors {
     public void onRemoveBefore(XiaomingUser user) {
         user.sendMessage("{lang.queryDeleteResourceBefore}");
 
-        final long before = TimeUtility.parseTimeLength(InteractorUtility.waitNextLegalInput(user, string -> {
-            return TimeUtility.parseTimeLength(string) != -1;
-        }, "这并不是一个合理的时间长度哦").serialize());
+        final long before = TimeUtil.parseTimeLength(InteractorUtil.waitNextLegalInput(user, string -> {
+            return TimeUtil.parseTimeLength(string).isPresent();
+        }, "这并不是一个合理的时间长度哦").serialize()).get();
 
         final int removedNumber = resourceManager.removeBefore(System.currentTimeMillis() - before);
         if (removedNumber > 0) {

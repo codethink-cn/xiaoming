@@ -1,12 +1,11 @@
-package cn.chuanwise.xiaoming.utility;
+package cn.chuanwise.xiaoming.util;
 
 import cn.chuanwise.toolkit.preservable.file.FileLoader;
-import cn.chuanwise.utility.ResourceUtility;
-import cn.chuanwise.utility.StaticUtility;
+import cn.chuanwise.util.ResourceUtil;
+import cn.chuanwise.util.StaticUtil;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.language.Language;
 import cn.chuanwise.xiaoming.language.LanguageImpl;
-import cn.chuanwise.xiaoming.language.LanguageManagerImpl;
 import cn.chuanwise.xiaoming.language.sentence.Sentence;
 import cn.chuanwise.xiaoming.schedule.FileSaver;
 
@@ -15,7 +14,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 
-public class LanguageUtility extends StaticUtility {
+public class LanguageUtil extends StaticUtil {
     public static Language loadOrCopy(XiaomingBot bot, File languageFile, ClassLoader classLoader, String resourcePath) throws IOException {
         // 直接载入，可能会因为文件不存在之类的失败
         final FileSaver fileSaver = bot.getFileSaver();
@@ -25,7 +24,7 @@ public class LanguageUtility extends StaticUtility {
 
         // 如果失败，则覆盖复制
         if (Objects.isNull(savedLanguage)) {
-            ResourceUtility.copyResource(classLoader, resourcePath, languageFile, true);
+            ResourceUtil.copyResource(classLoader, resourcePath, languageFile, true);
             savedLanguage = fileLoader.loadOrFail(LanguageImpl.class, languageFile);
 
             return savedLanguage;

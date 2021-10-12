@@ -2,8 +2,8 @@ package cn.chuanwise.xiaoming.interactor.handler;
 
 import cn.chuanwise.optional.ValueWithMessage;
 import cn.chuanwise.toolkit.optional.SimpleValueWithMessage;
-import cn.chuanwise.toolkit.value.container.ValueContainer;
-import cn.chuanwise.utility.*;
+import cn.chuanwise.toolkit.container.Container;
+import cn.chuanwise.util.*;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.account.record.CommandRecord;
 import cn.chuanwise.xiaoming.annotation.*;
@@ -24,11 +24,9 @@ import cn.chuanwise.xiaoming.interactor.filter.FilterMatcher;
 import cn.chuanwise.xiaoming.interactor.filter.ParameterFilterMatcher;
 import cn.chuanwise.xiaoming.interactor.parser.InteractorParameterContext;
 import cn.chuanwise.xiaoming.plugin.Plugin;
-import cn.chuanwise.xiaoming.attribute.AttributeType;
+import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.user.*;
 import lombok.*;
-import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.SingleMessage;
 
 import java.beans.Transient;
 import java.lang.reflect.InvocationTargetException;
@@ -100,13 +98,13 @@ public class InteractorHandler {
                 .collect(Collectors.toList())
                 .toArray(new String[0]);
         // 编译参数解析器
-        filterMatchers = ArrayUtility.copyAs(filters, FilterMatcher.class, FilterMatcher::filterMatcher);
+        filterMatchers = ArrayUtil.copyAs(filters, FilterMatcher.class, FilterMatcher::filterMatcher);
         // 获得相关权限
-        permissions = ArrayUtility.copyAs(method.getAnnotationsByType(Permission.class), String[].class, Permission::value);
+        permissions = ArrayUtil.copyAs(method.getAnnotationsByType(Permission.class), String[].class, Permission::value);
 
         // 获得指令用法
         final Usage[] usages = method.getAnnotationsByType(Usage.class);
-        final ParameterFilterMatcher firstParameterFilterMatcher = (ParameterFilterMatcher) CollectionUtility.first(Arrays.asList(filterMatchers), matcher -> (matcher instanceof ParameterFilterMatcher));
+        final ParameterFilterMatcher firstParameterFilterMatcher = (ParameterFilterMatcher) CollectionUtil.first(Arrays.asList(filterMatchers), matcher -> (matcher instanceof ParameterFilterMatcher));
         if (usages.length != 0) {
             usage = usages[0].value();
         } else if (Objects.nonNull(firstParameterFilterMatcher)) {
@@ -116,8 +114,8 @@ public class InteractorHandler {
         quietUsable = method.getAnnotationsByType(WhenQuiet.class).length != 0;
         externalUsable = method.getAnnotationsByType(WhenExternal.class).length != 0;
 
-        requireAccountTags = ArrayUtility.copyAs(method.getAnnotationsByType(RequireAccountTag.class), String.class, RequireAccountTag::value);
-        requireGroupTags = ArrayUtility.copyAs(method.getAnnotationsByType(RequireGroupTag.class), String.class, RequireGroupTag::value);
+        requireAccountTags = ArrayUtil.copyAs(method.getAnnotationsByType(RequireAccountTag.class), String.class, RequireAccountTag::value);
+        requireGroupTags = ArrayUtil.copyAs(method.getAnnotationsByType(RequireGroupTag.class), String.class, RequireGroupTag::value);
     }
 
     public InteractorHandler(Plugin plugin,
@@ -158,7 +156,7 @@ public class InteractorHandler {
 
     public void setFormats(String[] formats) {
         this.formats = formats;
-        this.filterMatchers = ArrayUtility.copyAs(formats, FilterMatcher.class, FilterMatcher::parameter);
+        this.filterMatchers = ArrayUtil.copyAs(formats, FilterMatcher.class, FilterMatcher::parameter);
     }
 
     public String[] listPermissions() {
@@ -181,7 +179,7 @@ public class InteractorHandler {
         if (inGroup) {
             final GroupContact groupContact = (GroupContact) contact;
 
-            user.setAttribute(AttributeType.GROUP, groupContact);
+            user.setProperty(PropertyType.GROUP, groupContact);
 
             // 检查本群是否启动
             final boolean hadNotEnableYet = !externalUsable &&
@@ -211,9 +209,9 @@ public class InteractorHandler {
                 }
             }
         } else {
-            user.removeProperty(AttributeType.GROUP);
+            user.removeProperty(PropertyType.GROUP);
         }
-        user.removeProperty(AttributeType.ARGUMENTS);
+        user.removeProperty(PropertyType.ARGUMENTS);
 
         // 检查用户有无屏蔽插件
         final boolean userBlockPlugin = account.isBlockPlugin(plugin);
@@ -235,8 +233,9 @@ public class InteractorHandler {
 
         for (FilterMatcher filterMatcher : filterMatchers) {
             if (filterMatcher instanceof ParameterFilterMatcher) {
-                argumentValues = ((ParameterFilterMatcher) filterMatcher).parse(serializedMessage);
-                if (Objects.nonNull(argumentValues)) {
+                final Optional<Map<String, String>> optionalParseResult = ((ParameterFilterMatcher) filterMatcher).parse(serializedMessage);
+                if (optionalParseResult.isPresent()) {
+                    argumentValues = optionalParseResult.get();
                     matchedFilterMatcher = filterMatcher;
                     break;
                 }
@@ -265,120 +264,25 @@ public class InteractorHandler {
 
         // 交互器上下文
         final InteractorContext interactorContext = new InteractorContext(user, this, plugin, message, argumentValues, arguments);
-        user.setInteractorContext(interactorContext);
-
-        // 替换所有的权限变量，检查权限
-        for (String[] eachLine : permissions) {
-            String noPermissionNode = null;
-            for (String permission : eachLine) {
-                final String checkPermission = user.format(permission);
-                if (user.hasPermission(checkPermission)) {
-                    noPermissionNode = null;
-                    break;
-                } else if (Objects.isNull(noPermissionNode)) {
-                    noPermissionNode = permission;
-                }
-            }
-
-            if (Objects.nonNull(noPermissionNode)) {
-                return new SimpleValueWithMessage<>(InteractResult.LACK_PERMISSIONS, noPermissionNode);
-            }
-        }
-
-        // 填充参数
-        for (Parameter parameter : parameters) {
-            final Class<?> type = parameter.getType();
-            if (XiaomingUser.class.isAssignableFrom(type)) {
-                if (type.isAssignableFrom(userClass)) {
-                    arguments.add(user);
-                } else {
-                    return new SimpleValueWithMessage<>(InteractResult.ILLEGAL_SCOPE);
-                }
-            } else if (XiaomingContact.class.isAssignableFrom(type)) {
-                if (type.isAssignableFrom(contactClass)) {
-                    arguments.add(contact);
-                } else {
-                    return new SimpleValueWithMessage<>(InteractResult.ILLEGAL_SCOPE);
-                }
-            } else if (Message.class.isAssignableFrom(type)) {
-                if (type.isAssignableFrom(message.getClass())) {
-                    arguments.add(message);
-                } else {
-                    return new SimpleValueWithMessage<>(InteractResult.ILLEGAL_SCOPE);
-                }
-            } else if (type.isAssignableFrom(InteractorHandler.class)) {
-                arguments.add(this);
-            } else if (type.isAssignableFrom(FilterMatcher.class)) {
-                arguments.add(matchedFilterMatcher);
-            } else if (type.isAssignableFrom(ParameterFilterMatcher.class) && Objects.nonNull(argumentValues)) {
-                arguments.add(matchedFilterMatcher);
-            } else if (parameter.isAnnotationPresent(FilterParameter.class)) {
-                // 如果是带有 FilterParameter 的，可能是普通的匹配器，也可能是变量匹配器
-                ValueContainer<?> container = null;
-                final FilterParameter filterParameter = parameter.getAnnotation(FilterParameter.class);
-                final String defaultValue = filterParameter.defaultValue();
-                final String parameterName = filterParameter.value();
-                final String currentValue;
-
-                if (Objects.nonNull(argumentValues)) {
-                    // 变量匹配器
-                    currentValue = argumentValues.getOrDefault(parameterName, defaultValue);
-                    if (type.isAssignableFrom(String.class)) {
-                        container = ValueContainer.of(currentValue);
-                    }
-                } else {
-                    // 普通的匹配器
-                    currentValue = "";
-                }
-
-                // 启动匹配器
-                if (Objects.isNull(container)) {
-                    final InteractorParameterContext context = new InteractorParameterContext<>(user, this, plugin, argumentValues, arguments, type, message, parameterName, currentValue, defaultValue);
-                    container = xiaomingBot.getInteractorManager().parseParameter(context);
-                }
-
-                // 启动变量计算
-                if (Objects.isNull(container)) {
-                    final Object object;
-                    final int dotPosition = parameterName.indexOf(".");
-                    final boolean noDot = dotPosition == -1;
-
-                    final Object baseVariable = xiaomingBot.getLanguageManager()
-                            .getGlobalVariable(noDot ? parameterName : parameterName.substring(dotPosition + 1));
-                    if (noDot) {
-                        object = baseVariable;
-                    } else {
-                        object = xiaomingBot.getLanguageManager().caculate(baseVariable, parameterName.substring(dotPosition + 1));
-                    }
-
-                    if (Objects.nonNull(object)) {
-                        container = ValueContainer.of(object);
-                    }
-                }
-
-                // 检查匹配结果
-                if (Objects.isNull(container) || !container.hasValue()) {
-                    return new SimpleValueWithMessage<>(InteractResult.PARSE_FAILED, parameterName);
-                }
-                final Object argument = container.getValue();
-                if (Objects.nonNull(argument)) {
-                    final Class<?> argumentClass = argument.getClass();
-
-                    // 参数类型错误
-                    if (!ClassUtility.isCorresponding(argumentClass, type) && !type.isAssignableFrom(argumentClass)) {
-                        return new SimpleValueWithMessage<>(InteractResult.ILLEGAL_TYPE, parameterName);
-                    }
-                }
-
-                arguments.add(argument);
-            } else {
-                return new SimpleValueWithMessage<>(InteractResult.ILLEGAL_PARAMETER, type.getSimpleName());
-            }
-        }
-
-        // 调用函数
         try {
-            method.setAccessible(true);
+            user.setInteractorContext(interactorContext);
+            // 替换所有的权限变量，检查权限
+            for (String[] eachLine : permissions) {
+                String noPermissionNode = null;
+                for (String permission : eachLine) {
+                    final String checkPermission = user.format(permission);
+                    if (user.hasPermission(checkPermission)) {
+                        noPermissionNode = null;
+                        break;
+                    } else if (Objects.isNull(noPermissionNode)) {
+                        noPermissionNode = permission;
+                    }
+                }
+
+                if (Objects.nonNull(noPermissionNode)) {
+                    return new SimpleValueWithMessage<>(InteractResult.LACK_PERMISSIONS, noPermissionNode);
+                }
+            }
 
             // 准备交互
             final InteractEvent interactEvent = new InteractEvent(interactorContext, user);
@@ -387,49 +291,144 @@ public class InteractorHandler {
                 return new SimpleValueWithMessage<>(InteractResult.EVENT_CANCELLED);
             }
 
+            // 填充参数
+            for (Parameter parameter : parameters) {
+                final Class<?> type = parameter.getType();
+                if (XiaomingUser.class.isAssignableFrom(type)) {
+                    if (type.isAssignableFrom(userClass)) {
+                        arguments.add(user);
+                    } else {
+                        return new SimpleValueWithMessage<>(InteractResult.ILLEGAL_SCOPE);
+                    }
+                } else if (XiaomingContact.class.isAssignableFrom(type)) {
+                    if (type.isAssignableFrom(contactClass)) {
+                        arguments.add(contact);
+                    } else {
+                        return new SimpleValueWithMessage<>(InteractResult.ILLEGAL_SCOPE);
+                    }
+                } else if (Message.class.isAssignableFrom(type)) {
+                    if (type.isAssignableFrom(message.getClass())) {
+                        arguments.add(message);
+                    } else {
+                        return new SimpleValueWithMessage<>(InteractResult.ILLEGAL_SCOPE);
+                    }
+                } else if (type.isAssignableFrom(InteractorHandler.class)) {
+                    arguments.add(this);
+                } else if (type.isAssignableFrom(FilterMatcher.class)) {
+                    arguments.add(matchedFilterMatcher);
+                } else if (type.isAssignableFrom(ParameterFilterMatcher.class) && Objects.nonNull(argumentValues)) {
+                    arguments.add(matchedFilterMatcher);
+                } else if (parameter.isAnnotationPresent(FilterParameter.class)) {
+                    // 如果是带有 FilterParameter 的，可能是普通的匹配器，也可能是变量匹配器
+                    Container<?> container = null;
+                    final FilterParameter filterParameter = parameter.getAnnotation(FilterParameter.class);
+                    final String defaultValue = filterParameter.defaultValue();
+                    final String parameterName = filterParameter.value();
+                    final String currentValue;
 
-            final Object invokeResult = method.invoke(interactors, arguments.toArray(new Object[0]));
-            final boolean interacted;
-            if (invokeResult instanceof Boolean) {
-                interacted = (Boolean) invokeResult;
-            } else {
-                interacted = true;
+                    if (Objects.nonNull(argumentValues)) {
+                        // 变量匹配器
+                        currentValue = argumentValues.getOrDefault(parameterName, defaultValue);
+                        if (type.isAssignableFrom(String.class)) {
+                            container = Container.of(currentValue);
+                        }
+                    } else {
+                        // 普通的匹配器
+                        currentValue = "";
+                    }
+
+                    // 启动匹配器
+                    if (Objects.isNull(container)) {
+                        final InteractorParameterContext context = new InteractorParameterContext<>(user, this, plugin, argumentValues, arguments, type, message, parameterName, currentValue, defaultValue);
+                        container = xiaomingBot.getInteractorManager().parseParameter(context);
+                    }
+
+                    // 启动变量计算
+                    if (Objects.isNull(container)) {
+                        final Object object;
+                        final int dotPosition = parameterName.indexOf(".");
+                        final boolean noDot = dotPosition == -1;
+
+                        final Object baseVariable = xiaomingBot.getLanguageManager()
+                                .getGlobalVariable(noDot ? parameterName : parameterName.substring(dotPosition + 1));
+                        if (noDot) {
+                            object = baseVariable;
+                        } else {
+                            object = xiaomingBot.getLanguageManager().caculate(baseVariable, parameterName.substring(dotPosition + 1));
+                        }
+
+                        if (Objects.nonNull(object)) {
+                            container = Container.of(object);
+                        }
+                    }
+
+                    // 检查匹配结果
+                    if (Objects.isNull(container) || !container.hasValue()) {
+                        return new SimpleValueWithMessage<>(InteractResult.PARSE_FAILED, parameterName);
+                    }
+                    final Object argument = container.getValue();
+                    if (Objects.nonNull(argument)) {
+                        final Class<?> argumentClass = argument.getClass();
+
+                        // 参数类型错误
+                        if (!NumberUtil.isCorresponding(argumentClass, type) && !type.isAssignableFrom(argumentClass)) {
+                            return new SimpleValueWithMessage<>(InteractResult.ILLEGAL_TYPE, parameterName);
+                        }
+                    }
+
+                    arguments.add(argument);
+                } else {
+                    return new SimpleValueWithMessage<>(InteractResult.ILLEGAL_PARAMETER, type.getSimpleName());
+                }
             }
 
-            if (interacted) {
-                // 保存调用记录
-                final CommandRecord commandRecord = user.buildCommandRecord(serializedMessage);
-                account.addCommand(commandRecord);
-                user.getXiaomingBot().getFileSaver().readyToSave(account);
+            // 调用函数
+            try {
+                method.setAccessible(true);
 
-                final CenterClient client = user.getXiaomingBot().getCenterClient();
-                client.doOrFail(client::increaseTotalCallNumber, "增加总小明调用次数");
+                final Object invokeResult = method.invoke(interactors, arguments.toArray(new Object[0]));
+                final boolean interacted;
+                if (invokeResult instanceof Boolean) {
+                    interacted = (Boolean) invokeResult;
+                } else {
+                    interacted = true;
+                }
 
-                return new SimpleValueWithMessage<>(InteractResult.INTERACTED);
-            } else {
-                return new SimpleValueWithMessage<>(InteractResult.INTERACTED_BUT_FALSE);
+                if (interacted) {
+                    // 保存调用记录
+                    final CommandRecord commandRecord = user.buildCommandRecord(serializedMessage);
+                    account.addCommand(commandRecord);
+                    user.getXiaomingBot().getFileSaver().readyToSave(account);
+
+                    final CenterClient client = user.getXiaomingBot().getCenterClient();
+                    client.doOrFail(client::increaseTotalCallNumber, "增加总小明调用次数");
+
+                    return new SimpleValueWithMessage<>(InteractResult.INTERACTED);
+                } else {
+                    return new SimpleValueWithMessage<>(InteractResult.INTERACTED_BUT_FALSE);
+                }
+            } catch (IllegalAccessException ignored) {
+                return null;
+            } catch (Throwable throwable) {
+                if (throwable instanceof InvocationTargetException && Objects.nonNull(throwable.getCause())) {
+                    throwable = throwable.getCause();
+                }
+
+                // 如果是人为取消的，则不使用异常捕捉器
+                if (throwable instanceof InteractExitedException) {
+                    user.sendMessage("{lang.exited}");
+                    return new SimpleValueWithMessage<>(InteractResult.EXIT);
+                } else if (throwable instanceof InteractInterrtuptedException) {
+                    user.sendMessage("{lang.interactCancelled}");
+                    return new SimpleValueWithMessage<>(InteractResult.INTERRUPTED);
+                } else if (throwable instanceof InteractTimeoutException) {
+                    user.sendError("{lang.userNextInputTimeout}", ((InteractTimeoutException) throwable).getTimeout());
+                    return new SimpleValueWithMessage<>(InteractResult.TIMEOUT_CANCELLED);
+                }
+
+                xiaomingBot.getInteractorManager().onThrowable(interactorContext, throwable);
+                return new SimpleValueWithMessage<>(InteractResult.ERROR);
             }
-        } catch (IllegalAccessException ignored) {
-            return null;
-        } catch (Throwable throwable) {
-            if (throwable instanceof InvocationTargetException && Objects.nonNull(throwable.getCause())) {
-                throwable = throwable.getCause();
-            }
-
-            // 如果是人为取消的，则不使用异常捕捉器
-            if (throwable instanceof InteractExitedException) {
-                user.sendMessage("{lang.exited}");
-                return new SimpleValueWithMessage<>(InteractResult.EXIT);
-            } else if (throwable instanceof InteractInterrtuptedException) {
-                user.sendMessage("{lang.interactCancelled}");
-                return new SimpleValueWithMessage<>(InteractResult.INTERRUPTED);
-            } else if (throwable instanceof InteractTimeoutException) {
-                user.sendError("{lang.userNextInputTimeout}", ((InteractTimeoutException) throwable).getTimeout());
-                return new SimpleValueWithMessage<>(InteractResult.TIMEOUT_CANCELLED);
-            }
-
-            xiaomingBot.getInteractorManager().onThrowable(interactorContext, throwable);
-            return new SimpleValueWithMessage<>(InteractResult.ERROR);
         } finally {
             user.setInteractorContext(null);
         }

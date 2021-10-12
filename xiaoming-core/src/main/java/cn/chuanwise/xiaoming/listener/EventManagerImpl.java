@@ -1,8 +1,8 @@
 package cn.chuanwise.xiaoming.listener;
 
-import cn.chuanwise.utility.CheckUtility;
-import cn.chuanwise.utility.MapUtility;
-import cn.chuanwise.utility.ReflectUtility;
+import cn.chuanwise.util.ConditionUtil;
+import cn.chuanwise.util.MapUtil;
+import cn.chuanwise.util.ReflectUtil;
 import cn.chuanwise.xiaoming.annotation.EventListener;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.event.Listeners;
@@ -36,7 +36,7 @@ public class EventManagerImpl extends ModuleObjectImpl implements EventManager {
 
     @Override
     public void unregisterListeners(Plugin plugin) {
-        CheckUtility.nonNull(plugin, "plugin");
+        ConditionUtil.nonNull(plugin, "plugin");
         listeners.values().forEach(list -> list.removeIf(handler -> Objects.equals(handler.getPlugin(), plugin)));
     }
 
@@ -48,7 +48,7 @@ public class EventManagerImpl extends ModuleObjectImpl implements EventManager {
             pluginObject.setPlugin(plugin);
         }
         listeners.onRegister();
-        ReflectUtility.forEachDeclaredMethod(listeners.getClass(), (c, method) -> {
+        ReflectUtil.forEachDeclaredMethod(listeners.getClass(), (c, method) -> {
             final EventListener[] handlers = method.getAnnotationsByType(EventListener.class);
             final Parameter[] parameters = method.getParameters();
             if (handlers.length == 0 || parameters.length != 1) {
@@ -65,7 +65,7 @@ public class EventManagerImpl extends ModuleObjectImpl implements EventManager {
                 return;
             }
 
-            final List<ListenerHandler> listenerHandlers = MapUtility.getOrPutSupply(this.listeners, handler.priority(), CopyOnWriteArrayList::new);
+            final List<ListenerHandler> listenerHandlers = MapUtil.getOrPutSupply(this.listeners, handler.priority(), CopyOnWriteArrayList::new);
             listenerHandlers.add(new ListenerHandler(handler.priority(), eventClass, event -> {
                 try {
                     method.setAccessible(true);
@@ -81,9 +81,9 @@ public class EventManagerImpl extends ModuleObjectImpl implements EventManager {
     @Override
     public void registerListener(ListenerHandler<?> handler) {
         final Plugin plugin = handler.getPlugin();
-        CheckUtility.checkState(getXiaomingBot().getStatus() == XiaomingBot.Status.ENABLING || Objects.nonNull(plugin),
+        ConditionUtil.checkState(getXiaomingBot().getStatus() == XiaomingBot.Status.ENABLING || Objects.nonNull(plugin),
                 "can not register listener as xiaoming core");
-        final List<ListenerHandler> samePriorityListeners = MapUtility.getOrPutSupply(listeners, handler.getPriority(), CopyOnWriteArrayList::new);
+        final List<ListenerHandler> samePriorityListeners = MapUtil.getOrPutSupply(listeners, handler.getPriority(), CopyOnWriteArrayList::new);
         samePriorityListeners.add(handler);
     }
 }

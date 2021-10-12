@@ -1,19 +1,15 @@
 package cn.chuanwise.xiaoming.recept;
 
 import cn.chuanwise.toolkit.sized.SizedResidentConcurrentHashMap;
-import cn.chuanwise.utility.*;
+import cn.chuanwise.util.*;
 import cn.chuanwise.xiaoming.annotation.EventListener;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
-import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.contact.message.MessageImpl;
 import cn.chuanwise.xiaoming.event.Listeners;
 import cn.chuanwise.xiaoming.event.MessageEvent;
-import cn.chuanwise.xiaoming.limit.CallLimitConfiguration;
-import cn.chuanwise.xiaoming.limit.CallLimiter;
 import cn.chuanwise.xiaoming.listener.ListenerPriority;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
-import cn.chuanwise.xiaoming.permission.PermissionAccessible;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.MemberXiaomingUser;
 import cn.chuanwise.xiaoming.user.PrivateXiaomingUser;
@@ -24,15 +20,11 @@ import net.mamoe.mirai.contact.*;
 import net.mamoe.mirai.event.events.FriendMessageEvent;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.GroupTempMessageEvent;
-import net.mamoe.mirai.message.code.MiraiCode;
 import org.slf4j.Logger;
 
 import java.beans.Transient;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Stream;
 
 /**
  * @author Chuanwise
@@ -56,7 +48,7 @@ public class ReceptionistManagerImpl extends ModuleObjectImpl implements Recepti
 
     @Override
     public Receptionist getReceptionist(long code) {
-        return MapUtility.getOrPutSupply(receptionists, code, () -> new ReceptionistImpl(getXiaomingBot(), code));
+        return MapUtil.getOrPutSupply(receptionists, code, () -> new ReceptionistImpl(getXiaomingBot(), code));
     }
 
     @Override
@@ -119,7 +111,7 @@ public class ReceptionistManagerImpl extends ModuleObjectImpl implements Recepti
         }
 
         if (Objects.nonNull(user.getInteractorContext())) {
-            getLogger().info("用户 " + user.getCompleteName() + " 已有交互上下文");
+            getLogger().info(user.getCompleteName() + "已有交互上下文，不再启动新的接待任务");
             return;
         }
 

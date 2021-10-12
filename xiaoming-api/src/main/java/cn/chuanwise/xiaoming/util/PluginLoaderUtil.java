@@ -1,6 +1,6 @@
-package cn.chuanwise.xiaoming.utility;
+package cn.chuanwise.xiaoming.util;
 
-import cn.chuanwise.utility.StaticUtility;
+import cn.chuanwise.util.StaticUtil;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -13,7 +13,7 @@ import java.net.URLClassLoader;
  * 插件类加载器
  * @author Chuanwise
  */
-public class PluginLoaderUtility extends StaticUtility {
+public class PluginLoaderUtil extends StaticUtil {
     /**
      * 设立某个 jarFile 的 URLClassLoader
      * @param jarFile

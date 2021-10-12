@@ -3,17 +3,14 @@ package cn.chuanwise.xiaoming.interactor.core;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.annotation.Permission;
-import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
 import cn.chuanwise.xiaoming.interactor.handler.InteractorHandler;
 import cn.chuanwise.xiaoming.permission.*;
 import cn.chuanwise.xiaoming.plugin.Plugin;
-import cn.chuanwise.xiaoming.recept.ReceptionistManager;
-import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
-import cn.chuanwise.xiaoming.utility.CommandWords;
+import cn.chuanwise.xiaoming.util.CommandWords;
 import cn.chuanwise.xiaoming.permission.PermissionGroupImpl;
-import cn.chuanwise.xiaoming.utility.InteractorUtility;
+import cn.chuanwise.xiaoming.util.InteractorUtil;
 
 import java.util.*;
 
@@ -55,7 +52,7 @@ public class PermissionInteractors extends SimpleInteractors {
         interactors.forEach(interactor -> permissions.addAll(Arrays.asList(interactor.listPermissions())));
         final List<String> sortedPermissions = Arrays.asList(permissions.toArray(new String[0]));
         Collections.sort(sortedPermissions);
-        InteractorUtility.showCollection(user, sortedPermissions, String::toString, 30);
+        InteractorUtil.showCollection(user, sortedPermissions, String::toString, 30);
     }
 
     /** 获得一个插件注册的所有权限节点 */
@@ -67,7 +64,7 @@ public class PermissionInteractors extends SimpleInteractors {
         interactors.forEach(interactor -> permissions.addAll(Arrays.asList(interactor.listPermissions())));
         final List<String> sortedPermissions = Arrays.asList(permissions.toArray(new String[0]));
         Collections.sort(sortedPermissions);
-        InteractorUtility.showCollection(user, sortedPermissions, String::toString, 30);
+        InteractorUtil.showCollection(user, sortedPermissions, String::toString, 30);
     }
 
     /** 设置用户权限组 */

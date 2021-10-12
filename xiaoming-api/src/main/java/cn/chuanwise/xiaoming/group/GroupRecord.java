@@ -1,11 +1,10 @@
 package cn.chuanwise.xiaoming.group;
 
-import cn.chuanwise.utility.CollectionUtility;
-import cn.chuanwise.utility.StringUtility;
+import cn.chuanwise.util.CollectionUtil;
+import cn.chuanwise.util.StringUtil;
 import cn.chuanwise.xiaoming.object.XiaomingObject;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.tag.PluginBlockable;
-import cn.chuanwise.xiaoming.tag.TagHolder;
 
 import java.util.Set;
 
@@ -22,7 +21,7 @@ public interface GroupRecord extends XiaomingObject, PluginBlockable {
 
     default String getAliasAndCode() {
         final String alias = getAlias();
-        if (StringUtility.isEmpty(alias)) {
+        if (StringUtil.isEmpty(alias)) {
             return getCodeString();
         } else {
             return alias + "（" + getCodeString() + "）";
@@ -34,7 +33,7 @@ public interface GroupRecord extends XiaomingObject, PluginBlockable {
     }
 
     @Override
-    default Set<String> originalTags() {
-        return CollectionUtility.asSet(getCodeString(), RECORDED);
+    default Set<String> getOriginalTags() {
+        return CollectionUtil.asSet(getCodeString(), RECORDED);
     }
 }

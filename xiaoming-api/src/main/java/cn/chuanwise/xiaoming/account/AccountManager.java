@@ -1,8 +1,8 @@
 package cn.chuanwise.xiaoming.account;
 
-import cn.chuanwise.utility.CollectionUtility;
+import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.object.ModuleObject;
-import cn.chuanwise.xiaoming.tag.TagHolder;
+import cn.chuanwise.toolkit.tag.TagMarkable;
 
 import java.io.File;
 import java.util.Map;
@@ -39,7 +39,7 @@ public interface AccountManager extends ModuleObject {
     default Set<String> getTags(long code) {
         final Account account = getAccount(code);
         if (Objects.isNull(account)) {
-            return CollectionUtility.asSet(TagHolder.RECORDED, String.valueOf(code));
+            return CollectionUtil.asSet(TagMarkable.RECORDED, String.valueOf(code));
         } else {
             return account.getTags();
         }

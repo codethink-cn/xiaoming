@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.launcher;
 
-import cn.chuanwise.utility.ArgumentUtility;
+import cn.chuanwise.util.ArgumentUtil;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.bot.XiaomingBotImpl;
 import lombok.AllArgsConstructor;
@@ -43,7 +43,7 @@ public class SimpleXiaomingLauncher implements XiaomingLauncher {
             return;
         }
 
-        final String password = ArgumentUtility.getRemainArguments(args, 1);
+        final String password = ArgumentUtil.getRemainArguments(args, 1);
         final SimpleXiaomingLauncher launcher = new SimpleXiaomingLauncher(new XiaomingBotImpl(qq, password));
 
         launcher.launch();

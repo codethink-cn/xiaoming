@@ -1,19 +1,15 @@
 package cn.chuanwise.xiaoming.message;
 
-import cn.chuanwise.utility.ArgumentUtility;
-import cn.chuanwise.utility.ArrayUtility;
-import cn.chuanwise.utility.CheckUtility;
+import cn.chuanwise.util.ArrayUtil;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.language.sentence.Sentence;
 import cn.chuanwise.xiaoming.object.FormatableObject;
 import cn.chuanwise.xiaoming.object.XiaomingObject;
-import cn.chuanwise.xiaoming.utility.MiraiCodeUtility;
+import cn.chuanwise.xiaoming.util.MiraiCodeUtil;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.QuoteReply;
 import net.mamoe.mirai.message.data.SingleMessage;
-
-import java.util.Optional;
 
 /**
  * 可以发送消息的类型
@@ -29,8 +25,8 @@ public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
     }
 
     default M sendMessage(SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtility.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtility.asMessageChain(singleMessages);
+        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
+        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
         return sendMessage(messageChain);
     }
 
@@ -43,8 +39,8 @@ public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
     }
 
     default M replyMessage(Message quote, SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtility.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtility.asMessageChain(singleMessages);
+        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
+        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
         return replyMessage(quote, messageChain);
     }
 
@@ -61,8 +57,8 @@ public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
     }
 
     default M replyMessage(MessageChain quote, SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtility.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtility.asMessageChain(singleMessages);
+        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
+        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
         return replyMessage(quote, messageChain);
     }
 
@@ -82,8 +78,8 @@ public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
     }
 
     default M sendWarning(SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtility.insert(remainElements, 0, firstElement);
-        return sendWarning(MiraiCodeUtility.asMessageChain(singleMessages));
+        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
+        return sendWarning(MiraiCodeUtil.asMessageChain(singleMessages));
     }
 
     default M sendWarning(MessageChain messageChain) {
@@ -100,8 +96,8 @@ public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
     }
 
     default M replyWarning(Message quote, SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtility.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtility.asMessageChain(singleMessages);
+        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
+        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
         return replyWarning(quote, messageChain);
     }
 
@@ -118,8 +114,8 @@ public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
     }
 
     default M replyWarning(MessageChain quote, SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtility.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtility.asMessageChain(singleMessages);
+        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
+        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
         return replyWarning(quote, messageChain);
     }
 
@@ -138,8 +134,8 @@ public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
     }
 
     default M sendError(SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtility.insert(remainElements, 0, firstElement);
-        return sendError(MiraiCodeUtility.asMessageChain(singleMessages));
+        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
+        return sendError(MiraiCodeUtil.asMessageChain(singleMessages));
     }
 
     default M sendError(MessageChain messageChain) {
@@ -155,8 +151,8 @@ public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
     }
 
     default M replyError(Message quote, SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtility.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtility.asMessageChain(singleMessages);
+        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
+        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
         return replyError(quote, messageChain);
     }
 
@@ -173,8 +169,8 @@ public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
     }
 
     default M replyError(MessageChain quote, SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtility.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtility.asMessageChain(singleMessages);
+        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
+        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
         return replyError(quote, messageChain);
     }
 
