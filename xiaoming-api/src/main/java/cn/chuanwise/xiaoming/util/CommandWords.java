@@ -18,6 +18,7 @@ public class CommandWords extends StaticUtil {
             ADD = "(添加|增加|增添|add)",
             QQ = "(qq|QQ|Qq|qQ)",
             REMOVE = "(删除|删掉|卸载|删|取消|移除|去除|减少|remove|delete)",
+            NOTICE = "(提醒|notice)",
             WRITE = "(写入|write)",
             PERSONAL = "(我的|我|私人|私有|用户|me|my|personal|private)",
             OTHERS = "(他人|别人|他|别人|his|her|its)",

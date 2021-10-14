@@ -304,8 +304,8 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
      */
     default Account getAccount() {
         final Account account = getXiaomingBot().getAccountManager().getAccount(getCode());
-        if (Objects.isNull(account)) {
-            account.setAlias(getAlias());
+        if (Objects.nonNull(account) && Objects.isNull(account.getAlias())) {
+            account.setAlias(getName());
         }
         return account;
     }

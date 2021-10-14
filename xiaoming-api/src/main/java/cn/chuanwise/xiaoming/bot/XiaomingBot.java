@@ -42,7 +42,7 @@ public interface XiaomingBot extends StatusHolder<XiaomingBot.Status> {
         DISABLED
     }
 
-    String VERSION = "3.7.2";
+    String VERSION = "3.7.5";
     VersionType VERSION_TYPE = VersionType.EXPERIMENTAL;
     String COMPLETE_VERSION = (VERSION + '-' + VERSION_TYPE).toLowerCase();
 

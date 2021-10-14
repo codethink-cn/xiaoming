@@ -4,9 +4,14 @@ import cn.chuanwise.toolkit.sized.SizedResidentConcurrentHashMap;
 import cn.chuanwise.util.MapUtil;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
+import cn.chuanwise.xiaoming.user.XiaomingUser;
 import lombok.Getter;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Map;
 
 @Getter

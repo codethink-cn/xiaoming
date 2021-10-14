@@ -250,6 +250,24 @@ public interface ContactManager extends ModuleObject {
         return false;
     }
 
+//    default List<XiaomingContact> getPrivateContactPossibly(long code) {
+//        final List<XiaomingContact> results = new ArrayList<>();
+//
+//        final PrivateContact privateContact = getPrivateContact(code);
+//        if (Objects.nonNull(privateContact)) {
+//            results.add(privateContact);
+//        }
+//
+//        for (Group group : getXiaomingBot().getMiraiBot().getGroups()) {
+//            final NormalMember member = group.get(code);
+//            if (Objects.nonNull(member)) {
+//                results.add(Optional.of(getMemberContact(group.getId(), code)));
+//            }
+//        }
+//
+//        return results;
+//    }
+
     default Optional<XiaomingContact> sendPrivateMessagePossibly(long code, MessageChain messageChain) {
         final PrivateContact privateContact = getPrivateContact(code);
         if (Objects.nonNull(privateContact)) {
