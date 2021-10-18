@@ -15,7 +15,7 @@ public interface VariableOperator<T> extends PluginObject {
 
     default Object operate(T value, String variable) {
         Object result = null;
-        for (VariableRequester<T> handler : getHandlers()) {
+       for (VariableRequester<T> handler : getHandlers()) {
             if (handler.apply(value, variable)) {
                 result = handler.request(value, variable);
                 if (Objects.nonNull(result)) {

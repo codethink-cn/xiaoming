@@ -2,7 +2,7 @@ package cn.chuanwise.xiaoming.contact.contact;
 
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.event.MessageEvent;
-import cn.chuanwise.xiaoming.group.GroupRecord;
+import cn.chuanwise.xiaoming.group.GroupInformation;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.user.MemberXiaomingUser;
 import net.mamoe.mirai.contact.MemberPermission;
@@ -24,7 +24,7 @@ public interface MemberContact extends XiaomingContact<NormalMember> {
     }
 
     default Account getAccount() {
-        return getXiaomingBot().getAccountManager().getAccount(getCode());
+        return getXiaomingBot().getAccountManager().createAccount(getCode());
     }
 
     @Override
@@ -60,8 +60,8 @@ public interface MemberContact extends XiaomingContact<NormalMember> {
         return this.getMiraiContact().getPermission();
     }
 
-    default GroupRecord getGroupRecord() {
-        return getGroupContact().getGroupRecord();
+    default GroupInformation getGroupRecord() {
+        return getGroupContact().getGroupInformation();
     }
 
     default void mute(long timeMillis) {

@@ -8,7 +8,7 @@
     <artifactId>xiaoming-bot</artifactId>
     <packaging>pom</packaging>
 
-    <version>3.7.5-exp</version>
+    <version>3.9.2-exp</version>
     <url>https://github.com/Chuanwise/xiaoming-bot</url>
 
     <modules>
@@ -26,12 +26,6 @@
             <groupId>cn.chuanwise</groupId>
             <artifactId>chuanwise-toolkit-generic</artifactId>
             <version>3.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>cn.chuanwise</groupId>
-            <artifactId>xiaoming-center-client</artifactId>
-            <version>1.0-exp</version>
         </dependency>
 
         <dependency>

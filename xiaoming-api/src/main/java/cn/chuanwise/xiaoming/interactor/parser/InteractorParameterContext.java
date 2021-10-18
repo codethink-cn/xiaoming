@@ -2,7 +2,7 @@ package cn.chuanwise.xiaoming.interactor.parser;
 
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.interactor.context.InteractorContext;
-import cn.chuanwise.xiaoming.interactor.handler.InteractorHandler;
+import cn.chuanwise.xiaoming.interactor.handler.Interactor;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import lombok.Getter;
@@ -18,7 +18,7 @@ public class InteractorParameterContext<T> extends InteractorContext {
     final String defaultValue;
 
     public InteractorParameterContext(XiaomingUser user,
-                                      InteractorHandler interactor,
+                                      Interactor interactor,
                                       Plugin plugin,
                                       Map<String, String> parameterValues,
                                       List<Object> arguments,

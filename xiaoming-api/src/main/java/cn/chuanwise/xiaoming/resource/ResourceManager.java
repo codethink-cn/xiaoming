@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
 
-public interface ResourceManager extends ModuleObject, Preservable<File> {
+public interface ResourceManager extends ModuleObject, Preservable {
     default Message useResources(Message message, XiaomingContact contact) {
         message.setMessageChain(useResources(message.getMessageChain(), contact.getMiraiContact()));
         return message;

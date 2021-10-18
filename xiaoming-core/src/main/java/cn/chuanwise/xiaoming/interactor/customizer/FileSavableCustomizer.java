@@ -1,7 +1,7 @@
 package cn.chuanwise.xiaoming.interactor.customizer;
 
-import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
-import cn.chuanwise.xiaoming.interactor.handler.InteractorHandler;
+import cn.chuanwise.toolkit.preservable.AbstractPreservable;
+import cn.chuanwise.xiaoming.interactor.handler.Interactor;
 import lombok.Data;
 
 import java.util.Collections;
@@ -9,27 +9,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Data
-public class FileSavableCustomizer extends FilePreservableImpl implements Customizer {
-    Map<String, InteractorHandler> interactorHandlers = new HashMap<>();
+public class FileSavableCustomizer extends AbstractPreservable implements Customizer {
+    Map<String, Interactor> interactors = new HashMap<>();
 
-    public Map<String, InteractorHandler> getInteractorHandlers() {
-        return Collections.unmodifiableMap(interactorHandlers);
+    public Map<String, Interactor> getInteractors() {
+        return Collections.unmodifiableMap(interactors);
     }
 
     @Override
-    public InteractorHandler forName(String interactorName) {
-        return interactorHandlers.get(interactorName);
+    public Interactor forName(String interactorName) {
+        return interactors.get(interactorName);
     }
 
-    public void addInteractorHandler(InteractorHandler handler) {
-        interactorHandlers.put(handler.getName(), handler);
+    public void addInteractorHandler(Interactor handler) {
+        interactors.put(handler.getName(), handler);
     }
 
     public void removeInteractorHandler(String methodName) {
-        interactorHandlers.remove(methodName);
+        interactors.remove(methodName);
     }
 
     public void clearInteractorHandler() {
-        interactorHandlers.clear();
+        interactors.clear();
     }
 }

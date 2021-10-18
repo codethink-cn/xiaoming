@@ -1,20 +1,12 @@
 package cn.chuanwise.xiaoming.configuration;
 
-import cn.chuanwise.toolkit.serialize.serializer.configuration.SerializerConfiguration;
-import cn.chuanwise.xiaoming.limit.CallLimitConfiguration;
-import cn.chuanwise.toolkit.preservable.file.FilePreservable;
+import cn.chuanwise.toolkit.preservable.Preservable;
 import cn.chuanwise.xiaoming.object.XiaomingObject;
-
-import java.util.Set;
 
 /**
  * 小明配置文件数据
  */
-public interface Configuration extends FilePreservable, XiaomingObject {
-    void setStorageDelType(DelType delType);
-
-    DelType getStorageDelType();
-
+public interface Configuration extends Preservable, XiaomingObject {
     String getStorageEncoding();
 
     void setStorageEncoding(String storageEncoding);
@@ -24,10 +16,6 @@ public interface Configuration extends FilePreservable, XiaomingObject {
     void setStorageDecoding(String storageEncoding);
 
     boolean isDebug();
-
-    boolean isEnablePreviewFunctions();
-
-    void setEnablePreviewFunctions(boolean enablePreviewFunction);
 
     boolean isEnableStartLog();
 
@@ -40,10 +28,6 @@ public interface Configuration extends FilePreservable, XiaomingObject {
     int getMaxRecentMessageBufferSize();
 
     void setMaxRecentMessageBufferSize(int maxRecentMessageBufferSize);
-
-    int getMaxLoadedAccountQuantity();
-
-    void setMaxLoadedAccountQuantity(int maxLoadedAccountQuantity);
 
     int getMaxUserAttributeQuantity();
 
@@ -67,10 +51,6 @@ public interface Configuration extends FilePreservable, XiaomingObject {
 
     void setMaxUserInputTimeout(long time);
 
-    long getMaxUserGlobalInputTimeout();
-
-    void setMaxUserGlobalInputTimeout(long time);
-
     long getMaxUserPrivateInputTimeout();
 
     void setMaxUserPrivateInputTimeout(long time);
@@ -79,34 +59,6 @@ public interface Configuration extends FilePreservable, XiaomingObject {
 
     void setMaxUserGroupInputTimeout(long time);
 
-    String getQuietModeGroupTag();
-
-    void setQuietModeGroupTag(String quietModeGroupTag);
-
-    String getEnableGroupTag();
-
-    void setEnableGroupTag(String enableGroupTag);
-
-    String getQuietModeBypassPermission();
-
-    void setQuietModeBypassPermission(String quietModeBypassPermission);
-
-    String getBlockPluginTagPrefix();
-
-    void setBlockPluginTagPrefix(String blockPluginTagPrefix);
-
-    CallLimitConfiguration getGroupCallConfig();
-
-    CallLimitConfiguration getPrivateCallConfig();
-
-    int getMaxVerifyCodeLength();
-
-    void setMaxVerifyCodeLength(int maxVerifyCodeLength);
-
-    Set<String> getVerifyCodeCharacters();
-
-    void setVerifyCodeCharacters(Set<String> verifyCodeCharacters);
-
     long getSavePeriod();
 
     void setSavePeriod(long savePeriod);
@@ -114,22 +66,6 @@ public interface Configuration extends FilePreservable, XiaomingObject {
     long getOptimizePeriod();
 
     void setOptimizePeriod(long optimizePeriod);
-
-    boolean isEnableLicense();
-
-    void setEnableLicense(boolean enableLicense);
-
-    boolean isEnableClearCall();
-
-    void setEnableClearCall(boolean enableClearCall);
-
-    Set<String> getClearCallPrefixes();
-
-    void setClearCallPrefixes(Set<String> clearCallPrefixes);
-
-    String getClearCallGroupTag();
-
-    void setClearCallGroupTag(String tag);
 
     boolean isSaveFileDirectly();
 
@@ -145,13 +81,7 @@ public interface Configuration extends FilePreservable, XiaomingObject {
 
     int getMaxMainThreadPoolSize();
 
-    void setMaxMainThreadPoolSize(int maxMainThreadPoolSize);
+    long getSendMessagePeriod();
 
-    int getMaxReceptionThreadPoolSize();
-
-    void setMaxReceptionThreadPoolSize(int maxReceptionThreadPoolSize);
-
-    SerializerConfiguration getSerializerConfiguration();
-
-    void setSerializerConfiguration(SerializerConfiguration serializerConfiguration);
+    void setSendMessagePeriod(long sendMessagePeriod);
 }

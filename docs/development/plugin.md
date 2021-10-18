@@ -669,10 +669,10 @@ getXiaomingBot().getListenerManager().registerListeners(new ExampleListeners(), 
 #### 载入相关
 |返回类型|原型|异常类型|说明|
 |---|---|---|---|
-|`T extends Preservable<File>`|`load(Serializer serializer, Class<T> clazz, File file)`|`IOException`|使用某序列化器从某文件中载入某类的对象|
-|`T extends Preservable<File>`|`load(Class<T> clazz, File file)`|`IOException`|使用默认序列化器从某文件载入某类的对象|
-|`T extends Preservable<File>`|`loadOrSupply(Serializer serializer, Class<T> clazz, File file, Supplier<T> supplier)`||使用某序列化器从某文件中载入某类的对象。如果载入失败，使用 `supplier` 构造一个|
-|`T extends Preservable<File>`|`loadOrSupply(Class<T> clazz, File file, Supplier supplier)`||使用默认序列化器从某文件中载入某类的对象。如果载入失败，使用 `supplier` 构造一个|
+|`T extends Preservable`|`load(Serializer serializer, Class<T> clazz, File file)`|`IOException`|使用某序列化器从某文件中载入某类的对象|
+|`T extends Preservable`|`load(Class<T> clazz, File file)`|`IOException`|使用默认序列化器从某文件载入某类的对象|
+|`T extends Preservable`|`loadOrSupply(Serializer serializer, Class<T> clazz, File file, Supplier<T> supplier)`||使用某序列化器从某文件中载入某类的对象。如果载入失败，使用 `supplier` 构造一个|
+|`T extends Preservable`|`loadOrSupply(Class<T> clazz, File file, Supplier supplier)`||使用默认序列化器从某文件中载入某类的对象。如果载入失败，使用 `supplier` 构造一个|
 |`Preservable`|`loadOrFail(Serializer serializer, Class<T> clazz, File file)`||使用某序列化器从某文件中载入某类的对象，失败时返回 `null`|
 |`Preservable`|`loadOrFail(Class<T> clazz, File file)`||使用默认序列化器从某文件中载入某类的对象。失败时返回 `null`|
 
@@ -695,11 +695,11 @@ getXiaomingBot().getListenerManager().registerListeners(new ExampleListeners(), 
 ```java
 package cn.chuanwise.xiaoming.example.configuration;
 
-import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
+import cn.chuanwise.toolkit.preservable.AbstractPreservable;
 import lombok.Data;
 
 @Data
-public class ExampleConfiguration extends FilePreservableImpl {
+public class ExampleConfiguration extends AbstractPreservable {
     boolean chuanwiseHandsome = true;
     boolean xiaomingBotGood = true;
 }
@@ -738,12 +738,12 @@ public class ExamplePlugin extends JavaPlugin {
 #### 保存相关
 |返回类型|原型|说明|
 |---|---|---|
-|`void`|`save(Preservable<File> preservable)`|`IOException`|立刻保存一个文件|
+|`void`|`save(Preservable preservable)`|`IOException`|立刻保存一个文件|
 |`boolean`|`saveOrFail(Preservable preservable)`||立刻保存一个文件，成功时返回 `true`|
 |`void`|`save()`||立刻保存所有等待保存的文件|
 |`void`|`readyToSave(Preservable preservable)`||提交一个文件保存申请。具体何时保存由小明决定，保证在关闭前保存|
 |`void`|`planToSave(Preservable preservable)`||将一个文件保存列入计划，在下一次例行保存，或小明关闭前保存|
-|`Map<File, Preservable<File>>`|`getPreservables()`|获得等待保存的文件列表|
+|`Map<File, Preservable>`|`getPreservables()`|获得等待保存的文件列表|
 
 推荐使用 `readyToSave(...)`。因为有些文件需要频繁操作，高频 `IO` 会造成不必要的开销。因此小明配置中有一个开关 `saveFileDirectly`，当其为 `true` 时，`readyToSave(...)` 将立刻保存文件。为 `false` 时，则将文件加入待保存队列，等待定时文件保存任务，或关闭前保存。
 

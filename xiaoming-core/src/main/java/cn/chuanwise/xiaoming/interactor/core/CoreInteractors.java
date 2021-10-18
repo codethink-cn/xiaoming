@@ -9,7 +9,7 @@ import cn.chuanwise.xiaoming.annotation.FilterParameter;
 import cn.chuanwise.xiaoming.annotation.Permission;
 import cn.chuanwise.xiaoming.interactor.InteractorManager;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
-import cn.chuanwise.xiaoming.interactor.handler.InteractorHandler;
+import cn.chuanwise.xiaoming.interactor.handler.Interactor;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.schedule.FileSaver;
 import cn.chuanwise.xiaoming.recept.Receptionist;
@@ -18,6 +18,10 @@ import cn.chuanwise.xiaoming.user.ConsoleXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.util.CommandWords;
 import cn.chuanwise.xiaoming.util.InteractorUtil;
+import cn.chuanwise.xiaoming.util.MessageUtil;
+import net.mamoe.mirai.message.code.MiraiCode;
+import net.mamoe.mirai.message.data.ForwardMessage;
+import net.mamoe.mirai.message.data.MessageChain;
 
 import java.io.File;
 import java.util.*;
@@ -34,7 +38,7 @@ public class CoreInteractors extends SimpleInteractors {
 
         final InteractorManager interactorManager = getXiaomingBot().getInteractorManager();
         interactorManager.getInteractors().forEach(interactor -> {
-            final List<String> interactorNames = MapUtil.getOrPutSupply(interactorDetails, interactor.getPlugin().getName(), ArrayList::new);
+            final List<String> interactorNames = MapUtil.getOrPutSupply(interactorDetails, Plugin.getEnglishName(interactor.getPlugin()), ArrayList::new);
             interactorNames.add(interactor.getInteractors().getClass().getSimpleName() + "." + interactor.getName());
         });
 
@@ -44,11 +48,7 @@ public class CoreInteractors extends SimpleInteractors {
     @Filter(CommandWords.CALL)
     @Permission("core.statistics.call")
     public void onCall(XiaomingUser user) {
-        if (getXiaomingBot().getCenterClient().isConnected()) {
-            user.sendMessage("{lang.callNumberWithTheTotal}");
-        } else {
-            user.sendMessage("{lang.callNumber}");
-        }
+        user.sendMessage("{lang.callNumber}");
     }
 
 //    /** 批处理指令 */
@@ -98,7 +98,7 @@ public class CoreInteractors extends SimpleInteractors {
     @Permission("core.save.do")
     public void onSave(XiaomingUser user) {
         final FileSaver fileSaver = getXiaomingBot().getFileSaver();
-        final Map<File, Preservable<File>> preservables = fileSaver.getPreservables();
+        final Map<File, Preservable> preservables = fileSaver.getPreservables();
         final int sizeBeforeSave = preservables.size();
 
         if (sizeBeforeSave == 0) {
@@ -119,7 +119,7 @@ public class CoreInteractors extends SimpleInteractors {
     @Permission("core.save.cancel")
     public void onCancelSave(XiaomingUser user) {
         final FileSaver task = getXiaomingBot().getFileSaver();
-        final Map<File, Preservable<File>> preservables = task.getPreservables();
+        final Map<File, Preservable> preservables = task.getPreservables();
 
         if (preservables.isEmpty()) {
             user.sendMessage("{lang.noFileNeedToSave}");
@@ -143,11 +143,10 @@ public class CoreInteractors extends SimpleInteractors {
     }
 
     @Filter(CommandWords.COMMAND + CommandWords.FORMAT)
-    @Filter(CommandWords.FORMAT)
     public void onGlobalUsage(XiaomingUser user) {
-        final List<InteractorHandler> interactors = getXiaomingBot().getInteractorManager().getInteractors();
+        final List<Interactor> interactors = getXiaomingBot().getInteractorManager().getInteractors();
         final List<String> commandFormats = interactors.stream()
-                .map(InteractorHandler::getUsage)
+                .map(Interactor::getUsage)
                 .filter(StringUtil::notEmpty)
                 .distinct()
                 .sorted()
@@ -160,11 +159,11 @@ public class CoreInteractors extends SimpleInteractors {
         }
     }
 
-    @Filter(CommandWords.COMMAND + CommandWords.FORMAT + " {插件名}")
-    public void onPluginUsage(XiaomingUser user, @FilterParameter("插件名") Plugin plugin) {
-        final List<InteractorHandler> interactors = getXiaomingBot().getInteractorManager().getInteractors(plugin);
+    @Filter(CommandWords.COMMAND + CommandWords.FORMAT + " {r:插件}")
+    public void onPluginUsage(XiaomingUser user, @FilterParameter("插件") Plugin plugin) {
+        final List<Interactor> interactors = getXiaomingBot().getInteractorManager().getInteractors(plugin);
         final List<String> commandFormats = interactors.stream()
-                .map(InteractorHandler::getUsage)
+                .map(Interactor::getUsage)
                 .filter(StringUtil::notEmpty)
                 .distinct()
                 .sorted()
@@ -174,6 +173,30 @@ public class CoreInteractors extends SimpleInteractors {
             user.sendMessage(CollectionUtil.toIndexString(commandFormats));
         } else {
             InteractorUtil.showCollection(user, commandFormats, String::toString, 30);
+        }
+    }
+
+    @Filter(CommandWords.SEARCH + CommandWords.COMMAND + " {r:关键字}")
+    public void searchCommands(XiaomingUser user, @FilterParameter("关键字") String keyword) {
+        final List<Interactor> interactors = getXiaomingBot().getInteractorManager().getInteractors(plugin);
+        final List<String> commandFormats = interactors.stream()
+                .map(Interactor::getUsage)
+                .filter(StringUtil::notEmpty)
+                .filter(x -> x.contains(keyword) || keyword.contains(x))
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+
+        if (commandFormats.isEmpty()) {
+            user.sendError("没有用「" + keyword + "」搜索到任何指令");
+            return;
+        }
+
+        if (user instanceof ConsoleXiaomingUser) {
+            user.sendMessage(CollectionUtil.toIndexString(commandFormats));
+        } else {
+            user.sendMessage("用「" + keyword + "」搜索到以下指令：\n" +
+                    CollectionUtil.toIndexString(commandFormats));
         }
     }
 

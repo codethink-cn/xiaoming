@@ -11,12 +11,13 @@ import org.slf4j.Logger;
 
 import java.beans.Transient;
 import java.util.Map;
+import java.util.Optional;
 
 public interface ReceptionistManager extends ModuleObject, Listeners {
     /**
      * 获得某用户的接待员
      * @param code 用户 QQ
-     * @return 其接待员。如果无此接待员，返回 {@code null}
+     * @return 其接待员。如果无此接待员，则创建一个
      */
     Receptionist getReceptionist(long code);
 
@@ -24,8 +25,8 @@ public interface ReceptionistManager extends ModuleObject, Listeners {
      * 取消某个用户的接待员
      * @param code 该用户
      */
-    default void removeReceptionist(long code) {
-        getReceptionists().remove(code);
+    default Optional<Receptionist> removeReceptionist(long code) {
+        return Optional.ofNullable(getReceptionists().remove(code));
     }
 
     /**

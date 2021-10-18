@@ -12,10 +12,7 @@ import cn.chuanwise.xiaoming.object.ModuleObject;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 
 public interface LanguageManager extends ModuleObject {
@@ -32,27 +29,18 @@ public interface LanguageManager extends ModuleObject {
         return CollectionUtil.filter(getLanguages(), new ArrayList<>(), language -> (language.getPlugin() == plugin));
     }
 
-    default Sentence getSentence(String identifier) {
+    default Optional<Sentence> getSentence(String identifier) {
         for (Language language : getLanguages()) {
-            final Sentence sentence = language.getSentence(identifier);
-            if (Objects.nonNull(sentence)) {
-                return sentence;
+            final Optional<Sentence> optionalSentence = language.getSentence(identifier);
+            if (optionalSentence.isPresent()) {
+                return optionalSentence;
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     default String getSentenceValue(String identifier) {
-        return getSentenceValueOrDefault(identifier, identifier);
-    }
-
-    default String getSentenceValueOrDefault(String identifier, String defaultValue) {
-        final Sentence sentence = getSentence(identifier);
-        if (Objects.isNull(sentence)) {
-            return defaultValue;
-        } else {
-            return sentence.getValue();
-        }
+        return getSentence(identifier).map(Sentence::getValue).orElse(identifier);
     }
 
     /** 全局变量表 */

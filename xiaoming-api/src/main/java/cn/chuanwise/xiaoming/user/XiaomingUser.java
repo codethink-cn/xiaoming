@@ -1,11 +1,10 @@
 package cn.chuanwise.xiaoming.user;
 
+import cn.chuanwise.api.OriginalTagMarkable;
 import cn.chuanwise.util.CollectionUtil;
-import cn.chuanwise.util.StringUtil;
+import cn.chuanwise.util.TagUtil;
 import cn.chuanwise.xiaoming.account.Account;
-import cn.chuanwise.xiaoming.account.record.CommandRecord;
 import cn.chuanwise.xiaoming.property.PropertyType;
-import cn.chuanwise.xiaoming.client.CenterClient;
 import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.event.MessageEvent;
@@ -19,24 +18,17 @@ import cn.chuanwise.xiaoming.language.sentence.Sentence;
 import cn.chuanwise.xiaoming.message.MessageSendable;
 import cn.chuanwise.xiaoming.object.ModuleObject;
 import cn.chuanwise.xiaoming.property.PropertyHandler;
-import cn.chuanwise.xiaoming.permission.PermissionAccessible;
 import cn.chuanwise.xiaoming.recept.Receptionist;
-import cn.chuanwise.xiaoming.tag.PluginBlockable;
-import cn.chuanwise.toolkit.tag.TagMarkable;
 import cn.chuanwise.xiaoming.recept.ReceptionTask;
 
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.*;
 import net.mamoe.mirai.utils.ExternalResource;
 
-import java.io.PrintWriter;
 import java.util.*;
 
-/**
- * @author Chuanwise
- */
 public interface XiaomingUser<C extends XiaomingContact<?>>
-        extends ModuleObject, PropertyHandler, TagMarkable, PluginBlockable, MessageSendable<Optional<Message>> {
+        extends ModuleObject, PropertyHandler, OriginalTagMarkable, MessageSendable<Optional<Message>> {
     ReceptionTask<XiaomingUser<C>> getReceptionTask();
 
     void setReceptionTask(ReceptionTask<XiaomingUser<C>> receptionTask);
@@ -49,10 +41,8 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
 
     @Override
     default Set<String> getOriginalTags() {
-        return CollectionUtil.asSet(RECORDED, getCodeString());
+        return CollectionUtil.asSet(TagUtil.ALL, getCodeString());
     }
-
-    CommandRecord buildCommandRecord(String command);
 
     /**
      * 以当前用户的身份替换变量
@@ -104,7 +94,7 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
         final LanguageManager languageManager = getXiaomingBot().getLanguageManager();
         return languageManager.formatAdditional(sentence, variable -> {
             if (Objects.equals(variable, "user")) {
-                return this;
+                return XiaomingUser.this;
             } else {
                 return null;
             }
@@ -113,12 +103,7 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
 
     @Override
     default Optional<Message> sendMessage(MessageChain messageChain) {
-        if (isUsingBuffer()) {
-            appendBuffer(messageChain.serializeToMiraiCode());
-            return Optional.empty();
-        } else {
-            return Optional.of(getContact().sendMessage(messageChain));
-        }
+        return getContact().sendMessage(messageChain);
     }
 
     default boolean isBot() {
@@ -127,21 +112,21 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
 
     C getContact();
 
-    Message sendPrivateMessage(String message, Object... arguments);
+    Optional<Message> sendPrivateMessage(String message, Object... arguments);
 
-    default Message sendPrivateMessage(MessageChain messages) {
+    default Optional<Message> sendPrivateMessage(MessageChain messages) {
         return sendPrivateMessage(messages.serializeToMiraiCode());
     }
 
-    default Message privateReply(Message quote, String message) {
+    default Optional<Message> privateReply(Message quote, String message) {
         return privateReply(quote, MiraiCode.deserializeMiraiCode(message));
     }
 
-    default Message privateReply(Message quote, Message message) {
+    default Optional<Message> privateReply(Message quote, Message message) {
         return privateReply(quote, message.getMessageChain());
     }
 
-    default Message privateReply(Message quote, MessageChain message) {
+    default Optional<Message> privateReply(Message quote, MessageChain message) {
         return sendPrivateMessage(new QuoteReply(quote.getOriginalMessageChain()).plus(message).serializeToMiraiCode());
     }
 
@@ -153,12 +138,12 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
         sendPrivateMessage(getXiaomingBot().getLanguageManager().getSentenceValue("warning") + " " + message, arguments);
     }
 
-    default boolean hasPermission(String require) {
-        return getXiaomingBot().getPermissionManager().userAccessible(this, require) == PermissionAccessible.ACCESSABLE;
+    default boolean hasPermission(String permission) {
+        return getXiaomingBot().getPermissionService().hasPermission(this, permission);
     }
 
-    default boolean hasPermissions(String... require) {
-        for (String node : require) {
+    default boolean hasPermissions(String... permissions) {
+        for (String node : permissions) {
             if (!hasPermission(node)) {
                 return false;
             }
@@ -166,11 +151,11 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
         return true;
     }
 
-    default boolean requirePermission(String require) {
-        if (hasPermission(require)) {
+    default boolean requirePermission(String permissions) {
+        if (hasPermission(permissions)) {
             return true;
         } else {
-            sendError("{lang.lackPermission}", require);
+            sendError("{lang.lackPermission}", permissions);
             return false;
         }
     }
@@ -210,14 +195,6 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
             if (Objects.equals(serializedMessage, "退出")) {
                 throw new InteractExitedException();
             } else {
-                final CommandRecord commandRecord = buildCommandRecord(serializedMessage);
-                final Account account = getAccount();
-                account.addCommand(commandRecord);
-                getXiaomingBot().getFileSaver().readyToSave(account);
-
-                final CenterClient client = getXiaomingBot().getCenterClient();
-                client.doOrFail(client::increaseTotalCallNumber, "增加总小明调用次数");
-
                 return optional;
             }
         } else {
@@ -298,47 +275,12 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
      */
     String getCompleteName();
 
-    /**
-     * 获取用户的账户
-     * @return 如果尚未存储相关信息，则创建，但不一定会立刻写入外存。
-     */
     default Account getAccount() {
-        final Account account = getXiaomingBot().getAccountManager().getAccount(getCode());
-        if (Objects.nonNull(account) && Objects.isNull(account.getAlias())) {
-            account.setAlias(getName());
-        }
-        return account;
+        return getXiaomingBot().getAccountManager().createAccount(getCode());
     }
 
-    /**
-     * 判断是否正在使用缓冲区
-     * @return useBuffer
-     */
-    boolean isUsingBuffer();
-
-    /**
-     * 获取当前的缓冲区
-     * @return
-     */
-    PrintWriter getPrintWriter();
-
-    void enablePrintWriter();
-
-    void disablePrintWriter();
-
-    /**
-     * 取出缓存区中的内容，并
-     * @return
-     */
-    String getBufferAndClose();
-
-    default String getAlias() {
-        final Account account = getAccount();
-        if (StringUtil.isEmpty(account.getAlias())) {
-            return getName();
-        } else {
-            return account.getAlias();
-        }
+    default String getAliasOrName() {
+        return getXiaomingBot().getAccountManager().getAlias(getCode()).orElseGet(this::getName);
     }
 
     @Override
@@ -347,19 +289,12 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
     }
 
     default String getAliasAndCode() {
-        return getAlias() + "（" + getCodeString() + "）";
+        return getAliasOrName() + "（" + getCodeString() + "）";
     }
 
     default String getAliasOrCode() {
-        final Account account = getAccount();
-        if (StringUtil.isEmpty(account.getAlias())) {
-            return getCodeString();
-        } else {
-            return account.getAlias();
-        }
+        return getXiaomingBot().getAccountManager().getAliasOrCode(getCode());
     }
-
-    void appendBuffer(String string);
 
     void nudge();
 

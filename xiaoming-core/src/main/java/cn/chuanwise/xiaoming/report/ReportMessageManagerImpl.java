@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.report;
 
-import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
+import cn.chuanwise.toolkit.preservable.AbstractPreservable;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
@@ -17,7 +17,7 @@ import java.util.Objects;
 @Data
 @NoArgsConstructor
 @Slf4j
-public class ReportMessageManagerImpl extends FilePreservableImpl implements ReportMessageManager {
+public class ReportMessageManagerImpl extends AbstractPreservable implements ReportMessageManager {
     transient XiaomingBot xiaomingBot;
 
     List<ReportMessage> reportMessages = new ArrayList<>();
@@ -55,6 +55,5 @@ public class ReportMessageManagerImpl extends FilePreservableImpl implements Rep
             reportMessage = new ReportMessageImpl(user.getCode(), message, throwable.toString());
         }
         addMessage(reportMessage);
-//        getXiaomingBot().getContactManager().sendGroupMessage("log", "发现一个新的异常报告");
     }
 }

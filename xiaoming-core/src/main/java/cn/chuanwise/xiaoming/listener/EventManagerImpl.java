@@ -36,7 +36,7 @@ public class EventManagerImpl extends ModuleObjectImpl implements EventManager {
 
     @Override
     public void unregisterListeners(Plugin plugin) {
-        ConditionUtil.nonNull(plugin, "plugin");
+        ConditionUtil.notNull(plugin, "plugin");
         listeners.values().forEach(list -> list.removeIf(handler -> Objects.equals(handler.getPlugin(), plugin)));
     }
 

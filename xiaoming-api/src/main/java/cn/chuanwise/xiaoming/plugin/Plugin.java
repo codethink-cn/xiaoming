@@ -4,6 +4,7 @@ import cn.chuanwise.api.ChineseConvertable;
 import cn.chuanwise.api.SetableStatusHolder;
 import cn.chuanwise.exception.UnsupportedVersionException;
 import cn.chuanwise.util.ResourceUtil;
+import cn.chuanwise.xiaoming.object.PluginObject;
 import cn.chuanwise.xiaoming.object.XiaomingObject;
 import cn.chuanwise.toolkit.preservable.Preservable;
 import org.slf4j.Logger;
@@ -11,6 +12,7 @@ import org.slf4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 /**
@@ -69,6 +71,14 @@ public interface Plugin
 
     /** 配置文件名 */
     String CONFIGURATION_FILE_NAME = "configurations.json";
+
+    static String getChineseName(Plugin plugin) {
+        return Optional.ofNullable(plugin).map(Plugin::getName).orElse("小明内核");
+    }
+
+    static String getEnglishName(Plugin plugin) {
+        return Optional.ofNullable(plugin).map(Plugin::getName).orElse("core");
+    }
 
     /** 获取插件名。如果插件属性中没有插件名，以 {@code jar} 文件名作为插件名 */
     default String getName() {
@@ -140,19 +150,17 @@ public interface Plugin
         return copyResource(CONFIGURATION_FILE_NAME, getConfigurationFile(), replace);
     }
 
-    default <T extends Preservable<File>> T loadConfigurationAs(Class<T> clazz) throws IOException {
+    default <T extends Preservable> T loadConfigurationAs(Class<T> clazz) throws IOException {
         return loadFileAs(clazz, getConfigurationFile());
     }
 
-    default <T extends Preservable<File>> T loadFileAs(Class<T> clazz, File file) throws IOException {
-        return getXiaomingBot().getFileLoader().load(clazz, file);
-    }
+    <T extends Preservable> T loadFileAs(Class<T> clazz, File file) throws IOException;
 
-    default <T extends Preservable<File>> T loadFileAs(Class<T> clazz, String fileName) throws IOException {
+    default <T extends Preservable> T loadFileAs(Class<T> clazz, String fileName) throws IOException {
         return loadFileAs(clazz, new File(getDataFolder(), fileName));
     }
 
-    default <T extends Preservable<File>> T loadConfigurationOrSupply(Class<T> clazz, Supplier<T> supplier) {
+    default <T extends Preservable> T loadConfigurationOrSupply(Class<T> clazz, Supplier<T> supplier) {
         return loadFileOrSupply(clazz, getConfigurationFile(), supplier);
     }
 
@@ -164,11 +172,11 @@ public interface Plugin
      * @param <T> 配置类类型
      * @return 从文件中导入的值，或由默认配置生成器生成的值
      */
-    default <T extends Preservable<File>> T loadFileOrSupply(Class<T> clazz, File file, Supplier<T> supplier) {
+    default <T extends Preservable> T loadFileOrSupply(Class<T> clazz, File file, Supplier<T> supplier) {
         return getXiaomingBot().getFileLoader().loadOrSupply(clazz, file, supplier);
     }
 
-    default <T extends Preservable<File>> T loadFileOrSupply(Class<T> clazz, String fileName, Supplier<T> supplier) {
+    default <T extends Preservable> T loadFileOrSupply(Class<T> clazz, String fileName, Supplier<T> supplier) {
         return loadFileOrSupply(clazz, new File(getDataFolder(), fileName), supplier);
     }
 }

@@ -1,20 +1,16 @@
 package cn.chuanwise.xiaoming.user;
 
-import cn.chuanwise.xiaoming.account.record.MemberCommandRecord;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.contact.contact.MemberContact;
 import cn.chuanwise.xiaoming.contact.message.Message;
-import cn.chuanwise.xiaoming.group.GroupRecord;
+import cn.chuanwise.xiaoming.group.GroupInformation;
 import net.mamoe.mirai.message.code.MiraiCode;
 
-public interface MemberXiaomingUser extends XiaomingUser<MemberContact> {
-    default GroupRecord getGroupRecord() {
-        return getContact().getGroupRecord();
-    }
+import java.util.Optional;
 
-    @Override
-    default MemberCommandRecord buildCommandRecord(String command) {
-        return new MemberCommandRecord(getGroupCode(), command);
+public interface MemberXiaomingUser extends XiaomingUser<MemberContact> {
+    default GroupInformation getGroupRecord() {
+        return getContact().getGroupRecord();
     }
 
     @Override
@@ -31,7 +27,7 @@ public interface MemberXiaomingUser extends XiaomingUser<MemberContact> {
     }
 
     @Override
-    default Message sendPrivateMessage(String message, Object... arguments) {
+    default Optional<Message> sendPrivateMessage(String message, Object... arguments) {
         return getContact().sendMessage(MiraiCode.deserializeMiraiCode(format(message, arguments)));
     }
 

@@ -1,7 +1,5 @@
 package cn.chuanwise.xiaoming.interactor;
 
-import lombok.AllArgsConstructor;
-
 public enum InteractResult {
     INTERACTED,
     INTERACTED_BUT_FALSE,
@@ -20,7 +18,5 @@ public enum InteractResult {
     ILLEGAL_PARAMETER,
     QUITE_MODE_DENIED,
     NOT_ENABLE_YET,
-    GROUP_BLOCK_PLUGIN,
     ACCOUNT_BLOCK_PLUGIN,
-    LICENSE_DENIED,
 }

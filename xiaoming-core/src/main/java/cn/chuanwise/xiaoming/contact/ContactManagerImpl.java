@@ -1,21 +1,34 @@
 package cn.chuanwise.xiaoming.contact;
 
 import cn.chuanwise.exception.UnsupportedVersionException;
+import cn.chuanwise.toolkit.container.Container;
 import cn.chuanwise.toolkit.sized.SizedCopyOnWriteArrayList;
+import cn.chuanwise.util.MapUtil;
 import cn.chuanwise.util.ObjectUtil;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.contact.contact.*;
+import cn.chuanwise.xiaoming.contact.message.Message;
+import cn.chuanwise.xiaoming.contact.message.MessageImpl;
 import cn.chuanwise.xiaoming.event.MessageEvent;
+import cn.chuanwise.xiaoming.event.SendMessageEvent;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import lombok.AccessLevel;
 import lombok.Getter;
 import net.mamoe.mirai.Bot;
+import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.NormalMember;
+import net.mamoe.mirai.message.MessageReceipt;
+import net.mamoe.mirai.message.data.OnlineMessageSource;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Getter
 public class ContactManagerImpl extends ModuleObjectImpl implements ContactManager {
@@ -26,6 +39,78 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
     final Map<Long, GroupContact> groupContacts = new HashMap<>();
 
     final List<MessageEvent> recentMessageEvents;
+
+    final List<SendMessageEvent> recentSentMessageEvents;
+
+    final List<SendMessageEvent> sendMessageList = new CopyOnWriteArrayList<>();
+
+    public ContactManagerImpl(XiaomingBot xiaomingBot) {
+        super(xiaomingBot);
+        recentMessageEvents = Collections.synchronizedList(new SizedCopyOnWriteArrayList<>(xiaomingBot.getConfiguration().getMaxRecentMessageBufferSize()));
+        recentSentMessageEvents = Collections.synchronizedList(new SizedCopyOnWriteArrayList<>(xiaomingBot.getConfiguration().getMaxRecentMessageBufferSize()));
+    }
+
+    final Container<Thread> sendMessageLoop = Container.empty();
+
+    @Override
+    public Future<Optional<Message>> readyToSend(SendMessageEvent event) {
+        recentSentMessageEvents.add(event);
+        sendMessageList.add(event);
+
+        sendMessageLoop.ifHasNotValue(() -> getXiaomingBot().getScheduler().run(() -> {
+            try {
+                sendMessageLoop.setValue(Thread.currentThread());
+
+                while (!sendMessageList.isEmpty()) {
+                    final SendMessageEvent cursor = sendMessageList.remove(0);
+
+                    if (!cursor.isCancelled()) {
+                        final XiaomingContact contact = cursor.getTarget();
+                        final Contact miraiContact = contact.getMiraiContact();
+
+                        final MessageReceipt messageReceipt = miraiContact.sendMessage(cursor.getMessageChain());
+                        final OnlineMessageSource.Outgoing source = messageReceipt.getSource();
+
+                        cursor.getMessageContainer().setValue(new MessageImpl(xiaomingBot, source.getOriginalMessage(), source.getTime()));
+                    }
+
+                    synchronized (cursor) {
+                        cursor.notifyAll();
+                    }
+
+                    try {
+                        Thread.sleep(Math.max(getXiaomingBot().getConfiguration().getSendMessagePeriod(), 0));
+                    } catch (InterruptedException exception) {
+                        getLogger().error("发送消息循环被打断", exception);
+                        return;
+                    }
+                }
+            } finally {
+                sendMessageLoop.clear();
+            }
+        }));
+
+        return getXiaomingBot().getScheduler().run(() -> {
+            switch (ObjectUtil.wait(event)) {
+                case NOTIFY:
+                    return event.getMessageContainer().toOptional();
+                case TIMEOUT:
+                    throw new IllegalStateException();
+                default:
+                    throw new UnsupportedVersionException();
+            }
+        });
+    }
+
+    @Override
+    public List<SendMessageEvent> getSendMessageList() {
+        return Collections.unmodifiableList(sendMessageList);
+    }
+
+    @Override
+    public List<SendMessageEvent> getRecentSentMessageEvents() {
+        return Collections.unmodifiableList(recentSentMessageEvents);
+    }
 
     @Override
     public List<MessageEvent> getRecentMessageEvents() {
@@ -45,11 +130,6 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
             default:
                 throw new UnsupportedVersionException();
         }
-    }
-
-    public ContactManagerImpl(XiaomingBot xiaomingBot) {
-        super(xiaomingBot);
-        recentMessageEvents = new SizedCopyOnWriteArrayList<>(xiaomingBot.getConfiguration().getMaxRecentMessageBufferSize());
     }
 
     @Override
@@ -83,7 +163,7 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
     }
 
     @Override
-    public PrivateContact getPrivateContact(long code) {
+    public Optional<PrivateContact> getPrivateContact(long code) {
         PrivateContact privateContact = privateContacts.get(code);
         Friend friend = getXiaomingBot().getMiraiBot().getFriend(code);
 
@@ -99,11 +179,11 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
             privateContact = null;
         }
 
-        return privateContact;
+        return Optional.ofNullable(privateContact);
     }
 
     @Override
-    public GroupContact getGroupContact(long code) {
+    public Optional<GroupContact> getGroupContact(long code) {
         GroupContact groupContact = groupContacts.get(code);
         Group group = getXiaomingBot().getMiraiBot().getGroup(code);
 
@@ -119,49 +199,38 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
             groupContact = null;
         }
 
-        return groupContact;
+        return Optional.ofNullable(groupContact);
     }
 
     @Override
-    public MemberContact getMemberContact(long group, long code) {
-        final GroupContact groupContact = getGroupContact(group);
-        if (Objects.isNull(groupContact)) {
-            return null;
+    public Optional<MemberContact> getMemberContact(long group, long code) {
+        final Optional<GroupContact> optionalGroupContact = getGroupContact(group);
+        if (optionalGroupContact.isEmpty()) {
+            return Optional.empty();
         }
+
+        final GroupContact groupContact = optionalGroupContact.get();
 
         final NormalMember member = groupContact.getMiraiContact().get(code);
-        return Objects.nonNull(member) ? getMemberContact(groupContact, member) : null;
+        return Objects.nonNull(member) ? getMemberContact(groupContact, member) : Optional.empty();
     }
 
     @Override
-    public MemberContact getMemberContact(GroupContact groupContact, NormalMember miraiMember) {
+    public Optional<MemberContact> getMemberContact(GroupContact groupContact, NormalMember miraiMember) {
         final long code = groupContact.getCode();
-        Map<Long, MemberContact> memberContacts = this.memberContacts.get(code);
-        if (Objects.isNull(memberContacts)) {
-            memberContacts = new HashMap<>();
-            this.memberContacts.put(code, memberContacts);
-        }
+        final Map<Long, MemberContact> memberContacts = MapUtil.getOrPutSupply(this.memberContacts, code, ConcurrentHashMap::new);
 
         final long qq = miraiMember.getId();
-        MemberContact memberContact = memberContacts.get(qq);
+        final Container<MemberContact> memberContactContainer = MapUtil.get(memberContacts, qq);
 
         // 记录了本群，但还没记录这个成员
-        if (Objects.isNull(memberContact) && Objects.nonNull(miraiMember)) {
-            memberContact = new MemberContactImpl(getGroupContact(code), miraiMember);
+        if (memberContactContainer.isEmpty()) {
+            final MemberContact memberContact = new MemberContactImpl(getGroupContact(code).orElseThrow(), miraiMember);
+            memberContactContainer.setValue(memberContact);
             memberContacts.put(qq, memberContact);
         }
 
-        // 记录了本群，但这个成员无了
-        if (Objects.isNull(miraiMember) && Objects.nonNull(memberContact)) {
-            memberContacts.remove(qq);
-            memberContact = null;
-        }
-
-        if (memberContacts.isEmpty()) {
-            this.memberContacts.remove(code);
-        }
-
-        return memberContact;
+        return memberContactContainer.toOptional();
     }
 
     @Override
@@ -170,5 +239,26 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
         synchronized (recentMessageConditionalVariable) {
             recentMessageConditionalVariable.notifyAll();
         }
+    }
+
+    @Override
+    public List<XiaomingContact> getPrivateContactPossibly(long code) {
+        final List<XiaomingContact> results = new ArrayList<>();
+
+        // find user in private contact
+        getPrivateContact(code).ifPresent(results::add);
+
+        // iterate all groups and get this member
+        final List<MemberContact> memberContacts = getXiaomingBot().getMiraiBot()
+                .getGroups()
+                .stream()
+                .map(contact -> new GroupContactImpl(xiaomingBot, contact))
+                .map(contact -> contact.getMember(code))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toUnmodifiableList());
+        results.addAll(memberContacts);
+
+        return Collections.unmodifiableList(results);
     }
 }

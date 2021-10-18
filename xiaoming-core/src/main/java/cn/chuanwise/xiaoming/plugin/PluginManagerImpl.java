@@ -106,7 +106,7 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
     /** 从文件中加载插件的信息 */
     public ValueWithMessage<PluginHandler> loadPluginHandler(File file) throws IOException {
         if (!file.isFile() || !file.getName().endsWith(".jar")) {
-            return new SimpleValueWithMessage<>("当前小明版本（" + XiaomingBot.COMPLETE_VERSION + "）下，只有 Jar 文件才能作为插件");
+            return new SimpleValueWithMessage<>("当前小明版本（" + XiaomingBot.VERSION + "）下，只有 Jar 文件才能作为插件");
         }
         // 加载插件属性
         final JarFile jarFile = new JarFile(file);

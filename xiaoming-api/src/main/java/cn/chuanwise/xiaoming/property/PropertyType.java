@@ -35,11 +35,15 @@ public class PropertyType<T> {
         this.identifier = identifier;
     }
 
-    public Container<T> get(PropertyHandler holder) {
-        return holder.getProperty(this);
+    public Container<T> get(PropertyHandler handler) {
+        return handler.getProperty(this);
     }
 
-    public void set(PropertyHandler holder, T value) {
-        holder.setProperty(this, value);
+    public void set(PropertyHandler handler, T value) {
+        handler.setProperty(this, value);
+    }
+
+    public Container<T> remove(PropertyHandler handler) {
+        return handler.removeProperty(this);
     }
 }

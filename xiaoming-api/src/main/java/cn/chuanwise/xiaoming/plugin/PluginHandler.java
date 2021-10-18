@@ -17,11 +17,16 @@ public interface PluginHandler extends TypePathGetter, PathSetter {
     String SINGLE_AUTHOR_PATH = "author";
     String MULTIPLE_AUTHORS_PATH = "authors";
     String DEPENDS_PATH = "depends";
-    String SOFT_DEPENDS_PATH = "softDepends";
+    String SOFT_DEPENDS_PATH = "soft-depends";
     String NAME_PATH = "name";
     String VERSION_PATH = "version";
+    String USER_PERMISSIONS = "user-permissions";
 
     Map<String, Object> getValues();
+
+    default String[] getUserPermissions() {
+        return getAsStringArrayContainer(USER_PERMISSIONS).orElse(ArrayUtil.emptyArray(String.class));
+    }
 
     default String getName() {
         return getStringContainer(NAME_PATH).orElseGet(() -> {

@@ -1,6 +1,7 @@
 package cn.chuanwise.xiaoming.contact.contact;
 
 import cn.chuanwise.util.CollectionUtil;
+import cn.chuanwise.util.TagUtil;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.event.MessageEvent;
 import cn.chuanwise.xiaoming.user.ConsoleXiaomingUser;
@@ -44,6 +45,6 @@ public interface ConsoleContact extends XiaomingContact<Friend> {
 
     @Override
     default Set<String> getTags() {
-        return CollectionUtil.asSet(RECORDED, "console");
+        return CollectionUtil.asSet(TagUtil.ALL, "console");
     }
 }

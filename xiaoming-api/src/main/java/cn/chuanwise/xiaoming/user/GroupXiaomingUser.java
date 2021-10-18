@@ -1,21 +1,17 @@
 package cn.chuanwise.xiaoming.user;
 
-import cn.chuanwise.xiaoming.account.record.GroupCommandRecord;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.contact.contact.MemberContact;
 import cn.chuanwise.xiaoming.contact.message.Message;
-import cn.chuanwise.xiaoming.group.GroupRecord;
+import cn.chuanwise.xiaoming.group.GroupInformation;
 
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
 
+import java.util.Optional;
+
 public interface GroupXiaomingUser extends XiaomingUser<GroupContact> {
     MemberContact getMemberContact();
-
-    @Override
-    default GroupCommandRecord buildCommandRecord(String command) {
-        return new GroupCommandRecord(getGroupCode(), command);
-    }
 
     default boolean isMuted() {
         return getMemberContact().isMuted();
@@ -41,33 +37,33 @@ public interface GroupXiaomingUser extends XiaomingUser<GroupContact> {
         return getContact().getCodeString();
     }
 
-    default GroupRecord getGroupRecord() {
-        return getContact().getGroupRecord();
+    default GroupInformation getGroupInformation() {
+        return getContact().getGroupInformation();
     }
 
 
-    default Message atReply(Message quote, String message) {
+    default Optional<Message> atReply(Message quote, String message) {
         return atReply(quote, MiraiCode.deserializeMiraiCode(message));
     }
 
-    default Message atReply(Message quote, Message message) {
+    default Optional<Message> atReply(Message quote, Message message) {
         return atReply(quote, message.getMessageChain());
     }
 
-    default Message atReply(Message quote, MessageChain message) {
+    default Optional<Message> atReply(Message quote, MessageChain message) {
         return getContact().atReply(quote, getCode(), message);
     }
 
 
-    default Message sendGroupMessage(Message message) {
+    default Optional<Message> sendGroupMessage(Message message) {
         return sendGroupMessage(message.getMessageChain());
     }
 
-    default Message sendGroupMessage(MessageChain message) {
+    default Optional<Message> sendGroupMessage(MessageChain message) {
         return getContact().sendMessage(message);
     }
 
-    default Message sendGroupMessage(String message) {
+    default Optional<Message> sendGroupMessage(String message) {
         return sendGroupMessage(MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
     }
 
@@ -85,7 +81,7 @@ public interface GroupXiaomingUser extends XiaomingUser<GroupContact> {
     }
 
     @Override
-    default Message sendPrivateMessage(String message, Object... arguments) {
+    default Optional<Message> sendPrivateMessage(String message, Object... arguments) {
         return getMemberContact().sendMessage(MiraiCode.deserializeMiraiCode(format(message, arguments)));
     }
 }

@@ -18,6 +18,10 @@ public class MessageImpl extends XiaomingObjectImpl implements Message {
     @Setter
     @Getter
     MessageChain originalMessageChain;
+    String serializedOriginalMessageChain;
+
+    @Getter
+    final int[] internalMessageCode, messageCode;
 
     @Getter
     final long time;
@@ -29,8 +33,19 @@ public class MessageImpl extends XiaomingObjectImpl implements Message {
     }
 
     @Override
+    public void setOriginalMessageChain(MessageChain originalMessageChain) {
+        this.originalMessageChain = originalMessageChain;
+        serializedOriginalMessageChain = originalMessageChain.serializeToMiraiCode();
+    }
+
+    @Override
     public String serialize() {
         return serializedMessageChain;
+    }
+
+    @Override
+    public String serializeOriginalMessage() {
+        return serializedOriginalMessageChain;
     }
 
     public MessageImpl(XiaomingBot xiaomingBot, MessageChain messageChain) {
@@ -38,23 +53,21 @@ public class MessageImpl extends XiaomingObjectImpl implements Message {
     }
 
     public MessageImpl(XiaomingBot xiaomingBot, MessageChain messageChain, long time) {
-        this(xiaomingBot, messageChain, messageChain, time);
+        this(xiaomingBot, messageChain, null, null, time);
     }
 
-    public MessageImpl(XiaomingBot xiaomingBot, String message, long time) {
-        this(xiaomingBot, MiraiCode.deserializeMiraiCode(message), time);
-    }
-
-    public MessageImpl(XiaomingBot xiaomingBot, String message) {
-        this(xiaomingBot, message, System.currentTimeMillis());
-    }
-
-    public MessageImpl(XiaomingBot xiaomingBot, MessageChain messageChain, MessageChain originalMessageChain, long time) {
+    public MessageImpl(XiaomingBot xiaomingBot,
+                       MessageChain messageChain,
+                       int[] messageCode,
+                       int[] internalMessageCode,
+                       long time) {
         setXiaomingBot(xiaomingBot);
-        this.messageChain = messageChain;
-        this.originalMessageChain = originalMessageChain;
-        serializedMessageChain = messageChain.serializeToMiraiCode();
+        setMessageChain(messageChain);
+        setOriginalMessageChain(messageChain);
         this.time = time;
+
+        this.messageCode = messageCode;
+        this.internalMessageCode = internalMessageCode;
     }
 
     @Override

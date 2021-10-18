@@ -2,48 +2,46 @@ package cn.chuanwise.xiaoming.bot;
 
 import cn.chuanwise.api.SimpleSetableStatusHolder;
 import cn.chuanwise.toolkit.preservable.Preservable;
-import cn.chuanwise.toolkit.preservable.file.FileLoader;
-import cn.chuanwise.toolkit.preservable.file.loader.JsonFileLoader;
+import cn.chuanwise.toolkit.preservable.loader.FileLoader;
+import cn.chuanwise.toolkit.preservable.loader.JsonFileLoader;
 import cn.chuanwise.toolkit.serialize.serializer.Serializer;
 import cn.chuanwise.toolkit.serialize.serializer.json.JsonSerializer;
 import cn.chuanwise.util.CollectionUtil;
-import cn.chuanwise.util.FunctionalUtil;
 import cn.chuanwise.util.StreamUtil;
 import cn.chuanwise.xiaoming.account.AccountManager;
 import cn.chuanwise.xiaoming.classloader.XiaomingClassLoader;
-import cn.chuanwise.xiaoming.client.CenterClient;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.configuration.Statistician;
 import cn.chuanwise.xiaoming.contact.ContactManager;
+import cn.chuanwise.xiaoming.group.GroupInformationManagerImpl;
 import cn.chuanwise.xiaoming.interactor.core.*;
 import cn.chuanwise.xiaoming.language.LanguageManager;
 import cn.chuanwise.xiaoming.language.LanguageManagerImpl;
-import cn.chuanwise.xiaoming.listener.CoreListener;
+import cn.chuanwise.xiaoming.listener.CoreListeners;
 import cn.chuanwise.xiaoming.listener.EventManager;
+import cn.chuanwise.xiaoming.object.XiaomingObject;
 import cn.chuanwise.xiaoming.optimize.Optimizer;
 import cn.chuanwise.xiaoming.optimize.OptimizerImpl;
+import cn.chuanwise.xiaoming.permission.PermissionService;
+import cn.chuanwise.xiaoming.permission.PermissionServiceImpl;
 import cn.chuanwise.xiaoming.report.ReportMessageManager;
 import cn.chuanwise.xiaoming.exception.NoSuchBotException;
 import cn.chuanwise.xiaoming.exception.XiaomingInitializeException;
 import cn.chuanwise.xiaoming.exception.XiaomingRuntimeException;
 import cn.chuanwise.xiaoming.language.Language;
-import cn.chuanwise.xiaoming.license.LicenseManager;
-import cn.chuanwise.xiaoming.group.GroupRecordManager;
+
+import cn.chuanwise.xiaoming.group.GroupInformationManager;
 import cn.chuanwise.xiaoming.schedule.FileSaver;
 import cn.chuanwise.xiaoming.schedule.Scheduler;
 import cn.chuanwise.xiaoming.recept.ReceptionistManager;
 import cn.chuanwise.xiaoming.schedule.SchedulerImpl;
 import cn.chuanwise.xiaoming.user.ConsoleXiaomingUser;
-import cn.chuanwise.xiaoming.limit.UserCallLimitManager;
-import cn.chuanwise.xiaoming.permission.PermissionManager;
 import cn.chuanwise.xiaoming.plugin.PluginManager;
 import cn.chuanwise.xiaoming.account.AccountManagerImpl;
 import cn.chuanwise.xiaoming.contact.ContactManagerImpl;
 import cn.chuanwise.xiaoming.contact.contact.ConsoleContactImpl;
 import cn.chuanwise.xiaoming.report.ReportMessageManagerImpl;
 import cn.chuanwise.xiaoming.interactor.InteractorManagerImpl;
-import cn.chuanwise.xiaoming.license.LicenceManagerImpl;
-import cn.chuanwise.xiaoming.group.GroupRecordManagerImpl;
 import cn.chuanwise.xiaoming.schedule.FileSaverImpl;
 import cn.chuanwise.xiaoming.thread.ConsoleInputThread;
 import cn.chuanwise.xiaoming.configuration.ConfigurationImpl;
@@ -55,8 +53,6 @@ import cn.chuanwise.xiaoming.user.ConsoleXiaomingUserImpl;
 import cn.chuanwise.xiaoming.language.LanguageImpl;
 import cn.chuanwise.xiaoming.listener.EventManagerImpl;
 import cn.chuanwise.xiaoming.interactor.InteractorManager;
-import cn.chuanwise.xiaoming.limit.UserCallLimitManagerImpl;
-import cn.chuanwise.xiaoming.permission.PermissionManagerImpl;
 import cn.chuanwise.xiaoming.plugin.PluginManagerImpl;
 import cn.chuanwise.xiaoming.util.LanguageConfigUtil;
 import cn.chuanwise.xiaoming.util.LanguageUtil;
@@ -70,6 +66,7 @@ import net.mamoe.mirai.event.EventChannel;
 import net.mamoe.mirai.event.EventHandler;
 import net.mamoe.mirai.event.ListenerHost;
 import net.mamoe.mirai.event.events.BotEvent;
+import net.mamoe.mirai.event.events.MessageRecallEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,6 +78,7 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 /**
@@ -173,7 +171,7 @@ public class XiaomingBotImpl
         scheduler.runAtFixedRateLater(configuration.getSavePeriod(), configuration.getSavePeriod(), () -> getFileSaver().save());
 
         scheduler.runFinally("保存文件", () -> {
-            final Map<File, Preservable<File>> preservables = getFileSaver().getPreservables();
+            final Map<File, Preservable> preservables = getFileSaver().getPreservables();
             if (preservables.isEmpty()) {
                 logger.info("没有任何需要保存的文件");
             } else {
@@ -201,12 +199,10 @@ public class XiaomingBotImpl
             }
         };
 
-        checkIfCanDeleteAndLog.accept(new File("texts"), "文本文件");
-
-        initializer.put("userCallLimitManager", () -> {
-            userCallLimitManager = new UserCallLimitManagerImpl();
-            userCallLimitManager.setXiaomingBot(this);
-        });
+        checkIfCanDeleteAndLog.accept(new File(workingDirectory, "texts"), "文本文件");
+        checkIfCanDeleteAndLog.accept(new File(workingDirectory, "accounts"), "账户文件夹");
+        checkIfCanDeleteAndLog.accept(new File(configurationDirectory, "permissions.json"), "权限文件");
+        checkIfCanDeleteAndLog.accept(new File(configurationDirectory, "license.json"), "协议文件");
 
         initializer.put("eventManager", () -> {
             eventManager = new EventManagerImpl(this);
@@ -229,15 +225,11 @@ public class XiaomingBotImpl
             checkIfCanDeleteAndLog.accept(new File(configurationDirectory, "language"), "语言文件夹");
 
             final String[] languageFileNames = ("account\n" +
-                    "apply\n" +
                     "base\n" +
-                    "client\n" +
                     "configuration\n" +
                     "core\n" +
                     "group\n" +
                     "interact\n" +
-                    "license\n" +
-                    "permission\n" +
                     "plugin\n" +
                     "report\n" +
                     "resource").split(Pattern.quote("\n"));
@@ -253,7 +245,7 @@ public class XiaomingBotImpl
                     } else {
                         logger.error("无法找到语言资源文件：" + resourcePath + "（如果正在使用小明调试器，请忽略此提示）");
                     }
-                } catch (IOException exception) {
+                } catch (Throwable exception) {
                     logger.info("更新语言文件 " + languageFileName + " 时出现异常", exception);
                 }
             }
@@ -272,17 +264,8 @@ public class XiaomingBotImpl
             languageManager.registerLanguage(fileLoader.loadOrSupply(LanguageImpl.class, directory, LanguageImpl::new), null);
         });
 
-        initializer.put("centerClientManager", () -> {
-            centerClient = new CenterClient(this);
-        });
-
-        initializer.put("permissionManager", () -> {
-            final File file = new File(configurationDirectory, "permissions.json");
-            checkIfExistAndLog.accept(file, "权限组文件");
-
-            permissionManager = fileLoader
-                    .loadOrSupply(PermissionManagerImpl.class, file, PermissionManagerImpl::new);
-            permissionManager.setXiaomingBot(this);
+        initializer.put("permissionService", () -> {
+            permissionService = new PermissionServiceImpl(this);
         });
 
         initializer.put("statistician", () -> {
@@ -298,17 +281,18 @@ public class XiaomingBotImpl
         });
 
         initializer.put("accountManager", () -> {
-            accountManager = new AccountManagerImpl(this, accountDirectory);
+            accountManager = fileLoader
+                    .loadOrSupply(AccountManagerImpl.class, new File(configurationDirectory, "accounts.json"), AccountManagerImpl::new);
+            accountManager.setXiaomingBot(this);
         });
 
-        initializer.put("groupRecordManager", () -> {
+        initializer.put("groupInformationManager", () -> {
             final File file = new File(configurationDirectory, "groups.json");
             checkIfExistAndLog.accept(file, "响应群数据文件");
 
-            groupRecordManager = fileLoader
-                    .loadOrSupply(GroupRecordManagerImpl.class, file, GroupRecordManagerImpl::new);
-            groupRecordManager.setXiaomingBot(this);
-            ((GroupRecordManagerImpl) groupRecordManager).setGroups(groupRecordManager.getGroups());
+            groupInformationManager = fileLoader
+                    .loadOrSupply(GroupInformationManagerImpl.class, file, GroupInformationManagerImpl::new);
+            groupInformationManager.setXiaomingBot(this);
         });
 
         initializer.put("receptionistManager", () -> {
@@ -335,15 +319,6 @@ public class XiaomingBotImpl
             resourceManager.flushBotReference(this);
         });
 
-        initializer.put("licenseManager", () -> {
-            final File file = new File(configurationDirectory, "license.json");
-            checkIfExistAndLog.accept(file, "小明协议验证数据");
-
-            licenseManager = fileLoader
-                    .loadOrSupply(LicenceManagerImpl.class, file, LicenceManagerImpl::new);
-            licenseManager.setXiaomingBot(this);
-        });
-
         initializer.put("contactManager", () -> {
             contactManager = new ContactManagerImpl(this);
         });
@@ -353,16 +328,10 @@ public class XiaomingBotImpl
      * 创建一些小明必要的的文件夹
      */
     void makeDirectories() {
-        accountDirectory = new File(workingDirectory, "accounts");
         configurationDirectory = new File(workingDirectory, "configurations");
         pluginDirectory = new File(workingDirectory, "plugins");
         logDirectory = new File(workingDirectory, "logs");
         resourceDirectory = new File(workingDirectory, "resources");
-
-        if (!accountDirectory.isDirectory() && !accountDirectory.mkdirs()) {
-            final String message = "无法创建账户文件夹：" + accountDirectory.getAbsolutePath();
-            throw new XiaomingInitializeException(message);
-        }
 
         if (!resourceDirectory.isDirectory() && !resourceDirectory.mkdirs()) {
             final String message = "无法创建本地资源文件夹：" + resourceDirectory.getAbsolutePath();
@@ -389,38 +358,23 @@ public class XiaomingBotImpl
      * 注册内核所需的一些监听器之类
      */
     void registerCoreModules() {
-        // 注册内核指令处理器
-        // 全局交互器
-        interactorManager.registerInteractors(new GlobalInteractors(), null);
-
-        if (configuration.isEnablePreviewFunctions()) {
-            interactorManager.registerInteractors(new PreviewFunctionInteractors(), null);
-        }
-//        if (configuration.isDebug()) {
-            interactorManager.registerInteractors(new DebugInteractors(), null);
+//        if (VERSION_TYPE == VersionType.EXPERIMENTAL) {
+//            interactorManager.registerInteractors(new ExperimentalInteractors(), null);
 //        }
-
         // 注册内核交互器
         interactorManager.registerInteractors(new PluginInteractors(), null);
+        interactorManager.registerInteractors(new ReceptionistInteractors(), null);
         interactorManager.registerInteractors(new ResourceInteractors(), null);
         interactorManager.registerInteractors(new AccountInteractors(), null);
         interactorManager.registerInteractors(new ReportInteractors(), null);
-        interactorManager.registerInteractors(new CallLimitInteractors(), null);
         interactorManager.registerInteractors(new CoreInteractors(), null);
-        interactorManager.registerInteractors(new CenterInteractors(), null);
         interactorManager.registerInteractors(new ConfigurationInteractors(), null);
-        interactorManager.registerInteractors(new PermissionInteractors(), null);
         interactorManager.registerInteractors(new GroupRecordInteractors(), null);
         interactorManager.registerInteractors(new LanguageIterator(), null);
-        interactorManager.registerInteractors(new ApplyInteractors(), null);
 
         // 注册内核监听器
         eventManager.registerListeners(receptionistManager, null);
-        eventManager.registerListeners(new CoreListener(), null);
-
-        // 设置调用限制
-        userCallLimitManager.getGroupCallLimiter().setConfiguration(configuration.getGroupCallConfig());
-        userCallLimitManager.getPrivateCallLimiter().setConfiguration(configuration.getPrivateCallConfig());
+        eventManager.registerListeners(new CoreListeners(), null);
     }
 
     private void initialize() {
@@ -479,7 +433,7 @@ public class XiaomingBotImpl
                 "                                             __/ |\n" +
                 "                                            |___/ \n" +
                 "                                        @" + SPONSOR + "\n" +
-                "core version: " + XiaomingBot.COMPLETE_VERSION + "\n" +
+                "core version: " + XiaomingBot.VERSION + "\n" +
                 "github: " + GITHUB + "\n" +
                 "tips: " + CollectionUtil.randomGet(tips) + "\n");
     }
@@ -541,7 +495,7 @@ public class XiaomingBotImpl
      * 统一权限管理器
      */
     File configurationDirectory;
-    PermissionManager permissionManager;
+    PermissionService permissionService;
 
     LanguageManager languageManager;
 
@@ -564,14 +518,6 @@ public class XiaomingBotImpl
     EventManager eventManager;
 
     /**
-     * 用户调用限制管理器
-     */
-    UserCallLimitManager userCallLimitManager;
-
-    /** 中央服务器客户端 */
-    CenterClient centerClient;
-
-    /**
      * 小明基本设置
      */
     Configuration configuration;
@@ -590,13 +536,12 @@ public class XiaomingBotImpl
     /**
      * 用户数据管理器
      */
-    File accountDirectory;
     AccountManager accountManager;
 
     /**
      * 响应群管理器
      */
-    GroupRecordManager groupRecordManager;
+    GroupInformationManager groupInformationManager;
 
     /**
      * 用户交互线程管理器
@@ -613,9 +558,6 @@ public class XiaomingBotImpl
      */
     File resourceDirectory;
     ResourceManager resourceManager;
-
-    /** 用户须知管理器 */
-    LicenseManager licenseManager;
 
     /** 调度器 */
     Scheduler scheduler;
@@ -638,13 +580,33 @@ public class XiaomingBotImpl
     }
 
     /** 核心文件载入器 */
-    FileLoader coreFileLoader = new JsonFileLoader(((JsonSerializer) coreSerializer));
+    FileLoader coreFileLoader = new JsonFileLoader(((JsonSerializer) coreSerializer)) {
+        @Override
+        public <T extends Preservable> T load(Serializer serializer, Class<T> clazz, File file) throws IOException {
+            final T result = super.load(serializer, clazz, file);
+            if (result instanceof XiaomingObject) {
+                ((XiaomingObject) result).setXiaomingBot(XiaomingBotImpl.this);
+            }
+
+            return result;
+        }
+    };
     {
         coreFileLoader.setDecodingCharset(StandardCharsets.UTF_8);
     }
 
     /** 文件存储信息载入和读取器 */
-    FileLoader fileLoader = new JsonFileLoader(((JsonSerializer) serializer));
+    FileLoader fileLoader = new JsonFileLoader(((JsonSerializer) serializer)) {
+        @Override
+        public <T extends Preservable> T load(Serializer serializer, Class<T> clazz, File file) throws IOException {
+            final T result = super.load(serializer, clazz, file);
+            if (result instanceof XiaomingObject) {
+                ((XiaomingObject) result).setXiaomingBot(XiaomingBotImpl.this);
+            }
+
+            return result;
+        }
+    };
     {
         fileLoader.setDecodingCharset(StandardCharsets.UTF_8);
     }
@@ -663,6 +625,10 @@ public class XiaomingBotImpl
         if (isDisabled()) {
             throw new XiaomingRuntimeException("can not stop a stopped xiaoming bot");
         }
+
+        fileSaver.readyToSave(accountManager);
+        fileSaver.readyToSave(configuration);
+        fileSaver.readyToSave(groupInformationManager);
 
         setStatus(Status.DISABLING);
 
@@ -686,18 +652,9 @@ public class XiaomingBotImpl
         // 添加小明开关机记录
         statistician.onClose();
 
-        // 关闭中心服务器
-        if (centerClient.isConnected()) {
-            try {
-                getLogger().info("正在断开和小明中心服务器的连接");
-                centerClient.disconnectManually();
-            } catch (Exception exception) {
-                getLogger().info("断开和小明中心服务器的连接时出现异常", exception);
-            }
-        }
-
         // 如果正在输入，打断
-        FunctionalUtil.runIfArgumentNonNull(Thread::interrupt, consoleInputThread.getThread());
+        Optional.ofNullable(consoleInputThread.getThread())
+                .ifPresent(Thread::interrupt);
 
         // 给线程池下关闭命令，等待 10 秒后检查是否成功关闭
         scheduler.stopNow();

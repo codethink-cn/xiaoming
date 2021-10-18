@@ -6,5 +6,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Repeatable(Permissions.class)
 public @interface Permission {
-    String[] value();
+    String value();
 }

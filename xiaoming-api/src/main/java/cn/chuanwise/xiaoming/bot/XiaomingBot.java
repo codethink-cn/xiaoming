@@ -2,27 +2,23 @@ package cn.chuanwise.xiaoming.bot;
 
 import cn.chuanwise.api.StatusHolder;
 import cn.chuanwise.xiaoming.account.AccountManager;
-import cn.chuanwise.xiaoming.center.VersionType;
 import cn.chuanwise.xiaoming.classloader.XiaomingClassLoader;
-import cn.chuanwise.xiaoming.client.CenterClient;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.configuration.Statistician;
 import cn.chuanwise.xiaoming.contact.ContactManager;
+import cn.chuanwise.xiaoming.group.GroupInformationManager;
 import cn.chuanwise.xiaoming.language.LanguageManager;
 import cn.chuanwise.xiaoming.listener.EventManager;
+import cn.chuanwise.xiaoming.permission.PermissionService;
 import cn.chuanwise.xiaoming.report.ReportMessageManager;
 import cn.chuanwise.xiaoming.schedule.FileSaver;
 import cn.chuanwise.xiaoming.interactor.InteractorManager;
-import cn.chuanwise.xiaoming.license.LicenseManager;
-import cn.chuanwise.xiaoming.limit.UserCallLimitManager;
-import cn.chuanwise.xiaoming.permission.PermissionManager;
 import cn.chuanwise.xiaoming.plugin.PluginManager;
 import cn.chuanwise.xiaoming.recept.ReceptionistManager;
 import cn.chuanwise.xiaoming.resource.ResourceManager;
-import cn.chuanwise.xiaoming.group.GroupRecordManager;
 import cn.chuanwise.xiaoming.optimize.Optimizer;
 import cn.chuanwise.xiaoming.user.ConsoleXiaomingUser;
-import cn.chuanwise.toolkit.preservable.file.FileLoader;
+import cn.chuanwise.toolkit.preservable.loader.FileLoader;
 import cn.chuanwise.toolkit.serialize.serializer.Serializer;
 import cn.chuanwise.xiaoming.schedule.Scheduler;
 import net.mamoe.mirai.Bot;
@@ -42,9 +38,7 @@ public interface XiaomingBot extends StatusHolder<XiaomingBot.Status> {
         DISABLED
     }
 
-    String VERSION = "3.7.5";
-    VersionType VERSION_TYPE = VersionType.EXPERIMENTAL;
-    String COMPLETE_VERSION = (VERSION + '-' + VERSION_TYPE).toLowerCase();
+    String VERSION = "3.9.2-exp";
 
     String SPONSOR = "Chuanwise";
     String GITHUB = "https://github.com/Chuanwise/xiaoming-bot";
@@ -71,9 +65,7 @@ public interface XiaomingBot extends StatusHolder<XiaomingBot.Status> {
 
     void setFileLoader(FileLoader fileLoader);
 
-    PermissionManager getPermissionManager();
-
-    void setPermissionManager(PermissionManager permissionManager);
+    PermissionService getPermissionService();
 
     LanguageManager getLanguageManager();
 
@@ -94,14 +86,6 @@ public interface XiaomingBot extends StatusHolder<XiaomingBot.Status> {
     EventManager getEventManager();
 
     void setEventManager(EventManager eventManager);
-
-    CenterClient getCenterClient();
-
-    void setCenterClient(CenterClient centerClient);
-
-    UserCallLimitManager getUserCallLimitManager();
-
-    void setUserCallLimitManager(UserCallLimitManager userCallLimitManager);
 
     void start();
 
@@ -139,9 +123,9 @@ public interface XiaomingBot extends StatusHolder<XiaomingBot.Status> {
 
     void setAccountManager(AccountManager accountManager);
 
-    GroupRecordManager getGroupRecordManager();
+    GroupInformationManager getGroupInformationManager();
 
-    void setGroupRecordManager(GroupRecordManager groupRecordManager);
+    void setGroupInformationManager(GroupInformationManager groupInformationManager);
 
     ReportMessageManager getReportMessageManager();
 
@@ -152,10 +136,6 @@ public interface XiaomingBot extends StatusHolder<XiaomingBot.Status> {
     void setReceptionistManager(ReceptionistManager receptionistManager);
 
     Logger getLogger();
-
-    LicenseManager getLicenseManager();
-
-    void setLicenseManager(LicenseManager licenseManager);
 
     Scheduler getScheduler();
 

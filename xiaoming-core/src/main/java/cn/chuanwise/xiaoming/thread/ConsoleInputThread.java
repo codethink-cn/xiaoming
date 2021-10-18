@@ -2,7 +2,6 @@ package cn.chuanwise.xiaoming.thread;
 
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.recept.Receptionist;
-import cn.chuanwise.xiaoming.log.ConsoleLogger;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import cn.chuanwise.xiaoming.user.ConsoleXiaomingUser;
 import lombok.Getter;
@@ -24,7 +23,6 @@ public class ConsoleInputThread extends ModuleObjectImpl implements Runnable {
     Receptionist consoleReceptionist;
 
     volatile Thread thread;
-    ConsoleLogger consoleLogger;
 
     public ConsoleInputThread(XiaomingBot xiaomingBot) {
         super(xiaomingBot);
@@ -33,14 +31,6 @@ public class ConsoleInputThread extends ModuleObjectImpl implements Runnable {
     public void setUser(ConsoleXiaomingUser user) {
         this.user = user;
         consoleReceptionist = user.getReceptionist();
-    }
-
-    public ConsoleLogger getConsoleLogger() {
-        if (Objects.isNull(consoleLogger)) {
-            consoleLogger = getXiaomingBot().getFileLoader()
-                    .loadOrSupply(ConsoleLogger.class, new File(getXiaomingBot().getLogDirectory(), "console.json"), ConsoleLogger::new);
-        }
-        return consoleLogger;
     }
 
     private void jline() throws IOException, InterruptedException {

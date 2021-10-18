@@ -1,23 +1,25 @@
 package cn.chuanwise.xiaoming.contact.contact;
 
+import cn.chuanwise.api.OriginalTagMarkable;
 import cn.chuanwise.util.CollectionUtil;
+import cn.chuanwise.util.TagUtil;
 import cn.chuanwise.xiaoming.contact.message.Message;
+import cn.chuanwise.xiaoming.language.LanguageManager;
+import cn.chuanwise.xiaoming.language.sentence.Sentence;
+import cn.chuanwise.xiaoming.message.MessageSendable;
 import cn.chuanwise.xiaoming.object.XiaomingObject;
-import cn.chuanwise.toolkit.tag.TagMarkable;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import cn.chuanwise.xiaoming.util.MiraiCodeUtil;
 import net.mamoe.mirai.contact.Contact;
-import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.Image;
 import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.QuoteReply;
-import net.mamoe.mirai.message.data.SingleMessage;
 import net.mamoe.mirai.utils.ExternalResource;
 
-public interface XiaomingContact<C extends Contact> extends XiaomingObject, TagMarkable {
+public interface XiaomingContact<C extends Contact>
+        extends XiaomingObject, OriginalTagMarkable, MessageSendable<Optional<Message>> {
     String getAliasAndCode();
 
     C getMiraiContact();
@@ -36,35 +38,8 @@ public interface XiaomingContact<C extends Contact> extends XiaomingObject, TagM
 
     String getAvatarUrl();
 
-    default Message sendMessage(String message) {
-        final String replacedMessage = getXiaomingBot().getLanguageManager().format(message);
-        return sendMessage(MiraiCode.deserializeMiraiCode(replacedMessage));
-    }
-
-    Message sendMessage(MessageChain messages);
-
-    default Message sendMessage(Message messages) {
-        messages.setOriginalMessageChain(getMiraiContact().sendMessage(messages.getMessageChain()).getSource().getOriginalMessage());
-        return messages;
-    }
-
-    default Message sendMessage(SingleMessage... messages) {
-        return sendMessage(MiraiCodeUtil.asMessageChain(messages));
-    }
-
-
-    default Message reply(Message quote, MessageChain messages) {
-        return sendMessage(new QuoteReply(quote.getOriginalMessageChain()).plus(" ").plus(messages));
-    }
-
-    default Message reply(Message quote, Message message) {
-        return reply(quote, message.getMessageChain());
-    }
-
-    default Message reply(Message quote, String message) {
-        return reply(quote, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().format(message)));
-    }
-
+    @Override
+    Optional<Message> sendMessage(MessageChain messages);
 
     Optional<Message> nextMessage(long timeout) throws InterruptedException;
 
@@ -76,9 +51,34 @@ public interface XiaomingContact<C extends Contact> extends XiaomingObject, TagM
         return getMiraiContact().uploadImage(resource);
     }
 
-
     @Override
     default Set<String> getOriginalTags() {
-        return CollectionUtil.asSet(getCodeString(), RECORDED);
+        return CollectionUtil.asSet(getCodeString(), TagUtil.ALL);
+    }
+
+    @Override
+    default String format(String format, Object... contexts) {
+        final LanguageManager languageManager = getXiaomingBot().getLanguageManager();
+
+        // 替换 Language 中的字句
+        return languageManager.formatAdditional(format, variable -> {
+            if (Objects.equals(variable, "contact")) {
+                return XiaomingContact.this;
+            } else {
+                return null;
+            }
+        }, contexts);
+    }
+
+    @Override
+    default String format(Sentence sentence, Object... arguments) {
+        final LanguageManager languageManager = getXiaomingBot().getLanguageManager();
+        return languageManager.formatAdditional(sentence, variable -> {
+            if (Objects.equals(variable, "contact")) {
+                return XiaomingContact.this;
+            } else {
+                return null;
+            }
+        }, arguments);
     }
 }

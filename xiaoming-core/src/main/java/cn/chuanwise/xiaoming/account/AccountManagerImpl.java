@@ -1,44 +1,57 @@
 package cn.chuanwise.xiaoming.account;
 
-import cn.chuanwise.toolkit.sized.SizedResidentConcurrentHashMap;
+import cn.chuanwise.toolkit.preservable.AbstractPreservable;
 import cn.chuanwise.util.MapUtil;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
-import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
-import cn.chuanwise.xiaoming.user.XiaomingUser;
+import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
 import lombok.Getter;
+import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.Map;
+import java.beans.Transient;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
-public class AccountManagerImpl extends ModuleObjectImpl implements AccountManager {
-    final File directory;
+public class AccountManagerImpl
+        extends AbstractPreservable
+        implements AccountManager {
+    final Map<Long, Account> accounts = new ConcurrentHashMap<>();
 
-    final Map<Long, Account> loadedAccounts;
-
-    public AccountManagerImpl(XiaomingBot xiaomingBot, File directory) {
-        super(xiaomingBot);
-        this.directory = directory;
-        this.loadedAccounts = new SizedResidentConcurrentHashMap<>(xiaomingBot.getConfiguration().getMaxLoadedAccountQuantity());
+    @Override
+    public Map<Long, Account> getAccounts() {
+        return Collections.unmodifiableMap(accounts);
     }
 
     @Override
-    public File accountFile(long code) {
-        return new File(directory, code + ".json");
+    public Account createAccount(long code) {
+        return MapUtil.getOrPutSupply(accounts, code,
+                () -> {
+                    final AccountImpl account = new AccountImpl();
+                    account.setCode(code);
+
+                    final List<XiaomingContact> contacts = xiaomingBot.getContactManager().getPrivateContactPossibly(code);
+                    if (!contacts.isEmpty()) {
+                        account.setAlias(contacts.get(0).getName());
+                    }
+
+                    return account;
+                });
     }
 
+    @Setter
+    transient XiaomingBot xiaomingBot;
+    transient Logger logger = LoggerFactory.getLogger(getClass());
+
     @Override
-    public Account getAccount(long code) {
-        return MapUtil.getOrPutSupply(loadedAccounts, code,
-                () -> getXiaomingBot().getFileLoader().loadOrSupply(AccountImpl.class, accountFile(code),
-                        () -> {
-                            final AccountImpl account = new AccountImpl();
-                            account.setCode(code);
-                            return account;
-                        }));
+    public Logger getLogger() {
+        return logger;
+    }
+
+    @Transient
+    @Override
+    public XiaomingBot getXiaomingBot() {
+        return xiaomingBot;
     }
 }

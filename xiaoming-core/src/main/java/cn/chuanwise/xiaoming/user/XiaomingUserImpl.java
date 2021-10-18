@@ -6,7 +6,7 @@ import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.contact.message.MessageImpl;
 import cn.chuanwise.xiaoming.interactor.context.InteractorContext;
-import cn.chuanwise.xiaoming.interactor.handler.InteractorHandler;
+import cn.chuanwise.xiaoming.interactor.handler.Interactor;
 import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.recept.ReceptionTask;
 import cn.chuanwise.xiaoming.recept.Receptionist;
@@ -40,7 +40,7 @@ public abstract class XiaomingUserImpl<C extends XiaomingContact<?>>
 
     @Override
     public void setInteractorContext(InteractorContext interactorContext) {
-        ConditionUtil.checkCallerSuperClass(InteractorHandler.class);
+        ConditionUtil.checkCallerSuperClass(Interactor.class);
         this.interactorContext = interactorContext;
     }
 
@@ -55,64 +55,6 @@ public abstract class XiaomingUserImpl<C extends XiaomingContact<?>>
     @Override
     public boolean onNextMessage(MessageChain messages) {
         return onNextMessage(new MessageImpl(xiaomingBot, messages));
-    }
-
-    /** 发送消息的缓存机制 */
-    Stack<StringWriter> stringWriters = new Stack<>();
-    Stack<PrintWriter> printWriters = new Stack<>();
-
-    @Override
-    public boolean isUsingBuffer() {
-        return !stringWriters.empty();
-    }
-
-    @Override
-    public void enablePrintWriter() {
-        final StringWriter stringWriter = new StringWriter();
-        stringWriters.add(stringWriter);
-        printWriters.add(new PrintWriter(stringWriter));
-    }
-
-    @Override
-    public void disablePrintWriter() {
-        if (isUsingBuffer()) {
-            stringWriters.pop();
-            printWriters.pop();
-        }
-    }
-
-    @Override
-    public PrintWriter getPrintWriter() {
-        if (printWriters.empty()) {
-            return null;
-        } else {
-            return printWriters.peek();
-        }
-    }
-
-    @Override
-    public void appendBuffer(String string) {
-        final PrintWriter printWriter = getPrintWriter();
-        if (stringWriters.peek().getBuffer().length() != 0) {
-            printWriter.println();
-        }
-        printWriter.print(string);
-    }
-
-    @Override
-    public String getBufferAndClose() {
-        if (stringWriters.empty()) {
-            return null;
-        }
-
-        final String string = stringWriters.pop().toString();
-        disablePrintWriter();
-
-        if (!stringWriters.empty()) {
-            stringWriters.peek().append("\n").append(string);
-        }
-
-        return string;
     }
 
     @Override
@@ -150,6 +92,23 @@ public abstract class XiaomingUserImpl<C extends XiaomingContact<?>>
         }
     }
 
-    @Getter
-    Set<Thread> globalMessageWaiter = new CopyOnWriteArraySet<>();
+    @Override
+    public void flush() {
+        getAccount().flush();
+    }
+
+    @Override
+    public boolean addTag(String tag) {
+        return getAccount().addTag(tag);
+    }
+
+    @Override
+    public boolean hasTag(String tag) {
+        return getAccount().hasTag(tag);
+    }
+
+    @Override
+    public boolean removeTag(String tag) {
+        return getAccount().removeTag(tag);
+    }
 }

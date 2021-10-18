@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class FileSaverImpl extends ModuleObjectImpl implements FileSaver {
     Charset encodeCharset = Charset.defaultCharset();
 
-    final Map<File, Preservable<File>> preservables = new ConcurrentHashMap<>();
+    final Map<File, Preservable> preservables = new ConcurrentHashMap<>();
     final AtomicLong lastSaveTime = new AtomicLong(System.currentTimeMillis());
     final AtomicLong lastValidSaveTime = new AtomicLong(System.currentTimeMillis());
 
@@ -38,9 +38,9 @@ public class FileSaverImpl extends ModuleObjectImpl implements FileSaver {
 
         lastValidSaveTime.set(timeMillis);
 
-        for (Map.Entry<File, Preservable<File>> entry : getPreservables().entrySet()) {
+        for (Map.Entry<File, Preservable> entry : getPreservables().entrySet()) {
             final File file = entry.getKey();
-            final Preservable<File> preservable = entry.getValue();
+            final Preservable preservable = entry.getValue();
 
             if (Objects.isNull(preservable.getMedium())) {
                 preservable.setMedium(file);

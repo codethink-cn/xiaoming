@@ -21,16 +21,6 @@ public class RegisterUtil extends StaticUtil {
                 "can not unregister " + objectName + "s registered by core");
     }
 
-    public static <T extends Registrable> void unregister(Collection<T> collection, Predicate<T> filter) {
-        collection.removeIf(element -> {
-            final boolean result = filter.test(element);
-            if (result) {
-                element.onUnregister();
-            }
-            return result;
-        });
-    }
-
     public static <T extends Registrable> void register(Collection<T> collection, T... elements) {
         for (T element : elements) {
             collection.add(element);

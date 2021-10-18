@@ -8,6 +8,8 @@ import lombok.Setter;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
 
+import java.util.Optional;
+
 /**
  * @author Chuanwise
  */
@@ -33,9 +35,9 @@ public class ConsoleXiaomingUserImpl extends XiaomingUserImpl<ConsoleContact> im
     }
 
     @Override
-    public Message sendPrivateMessage(String message, Object... arguments) {
+    public Optional<Message> sendPrivateMessage(String message, Object... arguments) {
         sendMessage(message, arguments);
         final MessageChain messages = MiraiCode.deserializeMiraiCode(format(message, arguments));
-        return new MessageImpl(xiaomingBot, messages);
+        return Optional.of(new MessageImpl(xiaomingBot, messages));
     }
 }

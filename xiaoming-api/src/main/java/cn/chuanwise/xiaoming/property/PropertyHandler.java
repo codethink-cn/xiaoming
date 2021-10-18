@@ -14,7 +14,12 @@ public interface PropertyHandler {
         if (Objects.isNull(type)) {
             return Container.empty();
         }
-        return Container.of((T) getProperties().get(type));
+        final Map<PropertyType, Object> properties = getProperties();
+        if (properties.containsKey(type)) {
+            return Container.of((T) properties.get(type));
+        } else {
+            return Container.empty();
+        }
     }
 
     <T> Container<T> removeProperty(PropertyType<T> type);

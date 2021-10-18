@@ -5,6 +5,7 @@ import cn.chuanwise.toolkit.serialize.serializer.Serializer;
 import cn.chuanwise.util.ConditionUtil;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.object.ModuleObject;
+import cn.chuanwise.xiaoming.preservable.SimplePreservable;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,7 +42,7 @@ public interface FileSaver extends ModuleObject {
      * 将文件加入保存计划，或直接保存。取决于 {@link Configuration#isSaveFileDirectly()}
      * @param preservable 文件
      */
-    default void readyToSave(Preservable<File> preservable) {
+    default void readyToSave(Preservable preservable) {
         final File file = preservable.getMedium();
         ConditionUtil.checkArgument(Objects.nonNull(file), "medium can not be null!");
 
@@ -62,19 +63,19 @@ public interface FileSaver extends ModuleObject {
      * 将文件加入保存计划
      * @param preservable 文件
      */
-    default void planToSave(Preservable<File> preservable) {
+    default void planToSave(Preservable preservable) {
         final File file = preservable.getMedium();
         ConditionUtil.checkArgument(Objects.nonNull(file), "medium can not be null!");
 
         getPreservables().put(file, preservable);
     }
 
-    default void save(Preservable<File> preservable) throws IOException {
+    default void save(Preservable preservable) throws IOException {
         final Serializer serializer = preservable.getSerializer();
         serializer.serialize(preservable, preservable.getMedium(), getEncode());
     }
 
-    default boolean saveOrFail(Preservable<File> preservable) {
+    default boolean saveOrFail(Preservable preservable) {
         try {
             save(preservable);
             return true;
@@ -91,5 +92,5 @@ public interface FileSaver extends ModuleObject {
     long getLastValidSaveTime();
 
     /** 上一次保存至今的保存计划，将在关闭前保存 */
-    Map<File, Preservable<File>> getPreservables();
+    Map<File, Preservable> getPreservables();
 }

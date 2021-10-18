@@ -52,8 +52,6 @@ public class ReceptionTaskImpl<U extends XiaomingUser<?>> extends ModuleObjectIm
 
         try {
             busy = true;
-            // 交互完后要记录指令，迟早要获得 Account。但现在获得一下可以确保 alias 非空
-            user.getAccount();
             return xiaomingBot.getInteractorManager().interact(getUser(), message);
         } catch (InteractExitedException | InteractInterrtuptedException | TimeoutCancellationException exception) {
             return false;

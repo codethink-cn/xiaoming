@@ -6,6 +6,7 @@ import cn.chuanwise.xiaoming.plugin.Plugin;
 import lombok.Data;
 
 import java.util.Objects;
+import java.util.Optional;
 
 @Data
 public class MultipleLanguageFinder {
@@ -16,13 +17,13 @@ public class MultipleLanguageFinder {
         final LanguageManager languageManager = xiaomingBot.getLanguageManager();
         if (Objects.nonNull(plugin)) {
             for (Language language : languageManager.getLanguages(plugin)) {
-                final Sentence sentence = language.getSentence(name);
-                if (Objects.nonNull(sentence)) {
-                    return sentence;
+                final Optional<Sentence> optionalSentence = language.getSentence(name);
+                if (optionalSentence.isPresent()) {
+                    return optionalSentence.get();
                 }
             }
         }
 
-        return languageManager.getSentence(name);
+        return languageManager.getSentence(name).orElse(null);
     }
 }

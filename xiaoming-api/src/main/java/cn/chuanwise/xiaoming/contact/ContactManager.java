@@ -1,9 +1,11 @@
 package cn.chuanwise.xiaoming.contact;
 
+import cn.chuanwise.util.LambdaUtil;
 import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.event.MessageEvent;
-import cn.chuanwise.xiaoming.group.GroupRecord;
+import cn.chuanwise.xiaoming.event.SendMessageEvent;
+import cn.chuanwise.xiaoming.group.GroupInformation;
 import cn.chuanwise.xiaoming.language.sentence.Sentence;
 import cn.chuanwise.xiaoming.object.ModuleObject;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
@@ -19,8 +21,10 @@ import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public interface ContactManager extends ModuleObject {
     void clear();
@@ -29,20 +33,26 @@ public interface ContactManager extends ModuleObject {
 
     PrivateContact getBotPrivateContact();
 
-    PrivateContact getPrivateContact(long code);
+    Optional<PrivateContact> getPrivateContact(long code);
 
-    GroupContact getGroupContact(long code);
+    Optional<GroupContact> getGroupContact(long code);
 
-    MemberContact getMemberContact(long group, long code);
+    Optional<MemberContact> getMemberContact(long group, long code);
 
-    MemberContact getMemberContact(GroupContact groupContact, NormalMember normalMember);
+    Optional<MemberContact> getMemberContact(GroupContact groupContact, NormalMember normalMember);
 
     void onNextMessageEvent(MessageEvent messageEvent);
 
     Optional<MessageEvent> nextMessageEvent(long timeout, Predicate<MessageEvent> filter) throws InterruptedException;
 
+    List<SendMessageEvent> getRecentSentMessageEvents();
+
+    List<SendMessageEvent> getSendMessageList();
+
+    Future<Optional<Message>> readyToSend(SendMessageEvent event);
+
     default Optional<MessageEvent> nextMessageEvent(long timeout) throws InterruptedException {
-        return nextMessageEvent(timeout, e -> true);
+        return nextMessageEvent(timeout, LambdaUtil.truePredicate());
     }
 
     default Optional<MessageEvent> nextGroupMessage(long code, long timeout) throws InterruptedException {
@@ -115,162 +125,115 @@ public interface ContactManager extends ModuleObject {
         });
     }
 
-    default boolean sendGroupMessage(long group, String message, Object... arguments) {
-        message = getXiaomingBot().getLanguageManager().formatAdditional(message, variable -> null, arguments);
-        final GroupContact groupContact = getGroupContact(group);
-        if (Objects.nonNull(groupContact)) {
-            groupContact.sendMessage(message);
-            return true;
-        } else {
-            return false;
-        }
+    default Optional<Message> sendGroupMessage(long group, String message, Object... arguments) {
+        message = getXiaomingBot().getLanguageManager().formatAdditional(message, LambdaUtil.nullFunction(), arguments);
+
+        final String finalMessage = message;
+        return getGroupContact(group).flatMap(contact -> contact.sendMessage(finalMessage));
     }
 
-    default boolean sendGroupMessage(long group, MessageChain messages) {
-        final GroupContact groupContact = getGroupContact(group);
-        if (Objects.nonNull(groupContact)) {
-            groupContact.sendMessage(messages);
-            return true;
-        } else {
-            return false;
-        }
+    default Optional<Message> sendGroupMessage(long group, MessageChain messages) {
+        return getGroupContact(group).flatMap(contact -> contact.sendMessage(messages));
     }
 
-    default boolean sendGroupMessage(String tag, String message, Object... arguments) {
-        message = getXiaomingBot().getLanguageManager().formatAdditional(message, variable -> null, arguments);
-        final Set<GroupRecord> groupRecords = getXiaomingBot().getGroupRecordManager().forTag(tag);
-        if (groupRecords.isEmpty()) {
-            return false;
-        } else {
-            for (GroupRecord groupRecord : groupRecords) {
-                final GroupContact contact = groupRecord.getContact();
-                if (Objects.nonNull(contact)) {
-                    contact.sendMessage(message);
-                }
-            }
-            return true;
-        }
+    default List<Message> sendGroupMessage(String tag, String message, Object... arguments) {
+        message = getXiaomingBot().getLanguageManager().formatAdditional(message, LambdaUtil.nullFunction(), arguments);
+
+        final String finalMessage = message;
+        return getXiaomingBot().getGroupInformationManager()
+                .searchGroupsByTag(tag)
+                .stream()
+                .map(GroupInformation::getContact)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(contact -> contact.sendMessage(finalMessage))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toUnmodifiableList());
     }
 
-    default boolean sendGroupMessage(String tag, Sentence sentence, Function<String, Object> externalGetter, Object... arguments) {
-        final Set<GroupRecord> groupRecords = getXiaomingBot().getGroupRecordManager().forTag(tag);
-        if (groupRecords.isEmpty()) {
-            return false;
-        } else {
-            for (GroupRecord groupRecord : groupRecords) {
-                final GroupContact contact = groupRecord.getContact();
-                if (Objects.nonNull(contact)) {
-                    contact.sendMessage(getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
-                }
-            }
-            return true;
-        }
+    default List<Message> sendGroupMessage(String tag, Sentence sentence, Function<String, Object> externalGetter, Object... arguments) {
+        final String finalMessage = getXiaomingBot()
+                .getLanguageManager()
+                .formatAdditional(sentence, externalGetter, arguments);
+
+        return getXiaomingBot().getGroupInformationManager()
+                .searchGroupsByTag(tag)
+                .stream()
+                .map(GroupInformation::getContact)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(contact -> contact.sendMessage(finalMessage))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toUnmodifiableList());
     }
 
-    default boolean sendGroupMessage(String tag, MessageChain messages) {
-        final Set<GroupRecord> groupRecords = getXiaomingBot().getGroupRecordManager().forTag(tag);
-        if (groupRecords.isEmpty()) {
-            return false;
-        } else {
-            for (GroupRecord groupRecord : groupRecords) {
-                final GroupContact contact = groupRecord.getContact();
-                if (Objects.nonNull(contact)) {
-                    contact.sendMessage(messages);
-                }
-            }
-            return true;
-        }
+    default List<Message> sendGroupMessage(String tag, MessageChain messages) {
+        return getXiaomingBot().getGroupInformationManager()
+                .searchGroupsByTag(tag)
+                .stream()
+                .map(GroupInformation::getContact)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(contact -> contact.sendMessage(messages))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toUnmodifiableList());
     }
 
-    default boolean sendPrivateMessage(long code, String message, Object... arguments) {
-        message = getXiaomingBot().getLanguageManager().formatAdditional(message, variable -> null, arguments);
-        final PrivateContact privateContact = getPrivateContact(code);
-        if (Objects.nonNull(privateContact)) {
-            privateContact.sendMessage(message);
-            return true;
-        } else {
-            return false;
-        }
+    default Optional<Message> sendPrivateMessage(long code, String message, Object... arguments) {
+        final String finalMessage = getXiaomingBot()
+                .getLanguageManager()
+                .formatAdditional(message, LambdaUtil.nullFunction(), arguments);
+
+        return getPrivateContact(code)
+                .flatMap(contact -> contact.sendMessage(finalMessage));
     }
 
-    default boolean sendPrivateMessage(long code, Sentence sentence, Function<String, Object> externalGetter, Object... arguments) {
-        final PrivateContact privateContact = getPrivateContact(code);
-        if (Objects.nonNull(privateContact)) {
-            privateContact.sendMessage(getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
-            return true;
-        } else {
-            return false;
-        }
+    default Optional<Message> sendPrivateMessage(long code, Sentence sentence, Function<String, Object> externalGetter, Object... arguments) {
+        final String finalMessage = getXiaomingBot()
+                .getLanguageManager()
+                .formatAdditional(sentence, externalGetter, arguments);
+
+        return getPrivateContact(code)
+                .flatMap(contact -> contact.sendMessage(finalMessage));
     }
 
-    default boolean sendPrivateMessage(long code, MessageChain messages) {
-        final PrivateContact privateContact = getPrivateContact(code);
-        if (Objects.nonNull(privateContact)) {
-            privateContact.sendMessage(messages);
-            return true;
-        } else {
-            return false;
-        }
+    default Optional<Message> sendPrivateMessage(long code, MessageChain messages) {
+        return getPrivateContact(code)
+                .flatMap(contact -> contact.sendMessage(messages));
     }
 
-    default boolean sendMemberMessage(long group, long code, String message, Object... arguments) {
-        message = getXiaomingBot().getLanguageManager().formatAdditional(message, variable -> null, arguments);
-        final GroupContact groupContact = getGroupContact(group);
-        if (Objects.nonNull(groupContact)) {
-            final MemberContact member = groupContact.getMember(code);
-            if (Objects.nonNull(member)) {
-                member.sendMessage(message);
-                return true;
-            }
-        }
-        return false;
+    default Optional<Message> sendMemberMessage(long group, long code, String message, Object... arguments) {
+        final String finalMessage = getXiaomingBot().getLanguageManager().formatAdditional(message, LambdaUtil.nullFunction(), arguments);
+
+        return getGroupContact(group)
+                .flatMap(contact -> contact.getMember(code))
+                .flatMap(member -> member.sendMessage(finalMessage));
     }
 
-    default boolean sendMemberMessage(long group, long code, Sentence sentence, Function<String, Object> externalGetter, Object... arguments) {
-        final GroupContact groupContact = getGroupContact(group);
-        if (Objects.nonNull(groupContact)) {
-            final MemberContact member = groupContact.getMember(code);
-            if (Objects.nonNull(member)) {
-                member.sendMessage(getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
-                return true;
-            }
-        }
-        return false;
+    default Optional<Message> sendMemberMessage(long group, long code, Sentence sentence, Function<String, Object> externalGetter, Object... arguments) {
+        final String finalMessage = getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments);
+
+        return getGroupContact(group)
+                .flatMap(contact -> contact.getMember(code))
+                .flatMap(member -> member.sendMessage(finalMessage));
     }
 
-    default boolean sendMemberMessage(long group, long code, MessageChain messages) {
-        final GroupContact groupContact = getGroupContact(group);
-        if (Objects.nonNull(groupContact)) {
-            final MemberContact member = groupContact.getMember(code);
-            if (Objects.nonNull(member)) {
-                member.sendMessage(messages);
-                return true;
-            }
-        }
-        return false;
+    default Optional<Message> sendMemberMessage(long group, long code, MessageChain messages) {
+        return getGroupContact(group)
+                .flatMap(contact -> contact.getMember(code))
+                .flatMap(member -> member.sendMessage(messages));
     }
 
-//    default List<XiaomingContact> getPrivateContactPossibly(long code) {
-//        final List<XiaomingContact> results = new ArrayList<>();
-//
-//        final PrivateContact privateContact = getPrivateContact(code);
-//        if (Objects.nonNull(privateContact)) {
-//            results.add(privateContact);
-//        }
-//
-//        for (Group group : getXiaomingBot().getMiraiBot().getGroups()) {
-//            final NormalMember member = group.get(code);
-//            if (Objects.nonNull(member)) {
-//                results.add(Optional.of(getMemberContact(group.getId(), code)));
-//            }
-//        }
-//
-//        return results;
-//    }
+    List<XiaomingContact> getPrivateContactPossibly(long code);
 
     default Optional<XiaomingContact> sendPrivateMessagePossibly(long code, MessageChain messageChain) {
-        final PrivateContact privateContact = getPrivateContact(code);
-        if (Objects.nonNull(privateContact)) {
+        // try send private message
+        final Optional<PrivateContact> optionalPrivateContact = getPrivateContact(code);
+        if (optionalPrivateContact.isPresent()) {
+            final PrivateContact privateContact = optionalPrivateContact.get();
             try {
                 privateContact.sendMessage(messageChain);
                 return Optional.of(privateContact);
@@ -278,12 +241,13 @@ public interface ContactManager extends ModuleObject {
             }
         }
 
+        // try send group temp message
         for (Group group : getXiaomingBot().getMiraiBot().getGroups()) {
             final NormalMember member = group.get(code);
             if (Objects.nonNull(member)) {
                 try {
                     member.sendMessage(messageChain);
-                    return Optional.of(getMemberContact(group.getId(), code));
+                    return Optional.of(getMemberContact(group.getId(), code).orElseThrow());
                 } catch (Exception ignored) {
                 }
             }
@@ -293,10 +257,15 @@ public interface ContactManager extends ModuleObject {
     }
 
     default Optional<XiaomingContact> sendPrivateMessagePossibly(long code, String message, Object... arguments) {
-        return sendPrivateMessagePossibly(code, MiraiCode.deserializeMiraiCode(getXiaomingBot().getLanguageManager().formatAdditional(message, variable -> null, arguments)));
+        final String finalMessage = getXiaomingBot().getLanguageManager().formatAdditional(message, LambdaUtil.nullFunction(), arguments);
+        final MessageChain messageChain = MiraiCode.deserializeMiraiCode(finalMessage);
+
+        return sendPrivateMessagePossibly(code, messageChain);
     }
 
     default Optional<XiaomingContact> sendPrivateMessagePossibly(long code, Sentence sentence, Function<String, Object> externalGetter, Object... arguments) {
-        return sendPrivateMessagePossibly(code, getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments));
+        final String finalMessage = getXiaomingBot().getLanguageManager().formatAdditional(sentence, externalGetter, arguments);
+
+        return sendPrivateMessagePossibly(code, finalMessage);
     }
 }

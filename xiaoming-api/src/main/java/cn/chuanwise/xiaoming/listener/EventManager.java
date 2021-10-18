@@ -1,5 +1,6 @@
 package cn.chuanwise.xiaoming.listener;
 
+import cn.chuanwise.api.Cancellable;
 import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.event.Listeners;
 import cn.chuanwise.xiaoming.event.XiaomingEvent;
@@ -13,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 /**
  * 监听器管理器
@@ -34,34 +36,32 @@ public interface EventManager extends ModuleObject {
 
     /** 指定级别的监听器响应 */
     default boolean callEvent(ListenerPriority priority, Event event) {
-        final List<ListenerHandler> listenerHandlers = getListeners().get(priority);
-        if (CollectionUtil.isEmpty(listenerHandlers)) {
+        final List<ListenerHandler> sameLevelHandlers = getListeners().get(priority);
+        if (CollectionUtil.isEmpty(sameLevelHandlers)) {
             return false;
         }
 
-        // 输出调试信息
-        if (getXiaomingBot().getConfiguration().isDebug()) {
-            getLogger().info("正在以「" + priority + "」优先级响应事件：" + event + "（共有 " + listenerHandlers.size() + " 个监听器）");
+        final List<ListenerHandler> handlers = sameLevelHandlers.stream()
+                .filter(handler -> handler.getEventClass().isInstance(event))
+                .collect(Collectors.toUnmodifiableList());
+
+        if (CollectionUtil.isEmpty(handlers)) {
+            return false;
         }
 
         boolean interacted = false;
-        final Class<? extends Event> eventClass = event.getClass();
-        for (ListenerHandler handler : listenerHandlers) {
-            // 如果监听的不是这种事件就跳过
-            if (!handler.getEventClass().isAssignableFrom(eventClass)) {
-                continue;
-            }
-
-            boolean shouldInteract = true;
+        for (ListenerHandler handler : handlers) {
             // 如果这个事件可以被取消
             // 则只有事件没有被取消，且监听器监听取消了的事件时才执行
-            if (event instanceof CancellableEvent) {
-                shouldInteract = !((CancellableEvent) event).isCancelled() || handler.isIgnoreCancelled();
+            boolean isCancelled = false;
+            if (event instanceof Cancellable) {
+                isCancelled = ((Cancellable) event).isCancelled();
             }
 
-            if (!shouldInteract) {
+            if (isCancelled && !handler.isIgnoreCancelled()) {
                 continue;
             }
+
             try {
                 handler.getListener().listen(event);
                 interacted = true;
@@ -84,6 +84,10 @@ public interface EventManager extends ModuleObject {
         }
         if (event instanceof XiaomingEvent) {
             ((XiaomingEvent) event).onCall();
+        }
+
+        if (getXiaomingBot().getConfiguration().isDebug()) {
+            getLogger().info("触发事件：" + event);
         }
 
         final boolean highest = callEvent(ListenerPriority.HIGHEST, event);

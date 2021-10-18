@@ -30,4 +30,24 @@ public class MemberContactImpl extends XiaomingContactImpl<NormalMember> impleme
     public void mute(long timeMillis) {
         miraiContact.mute((int) TimeUnit.MILLISECONDS.toSeconds(timeMillis));
     }
+
+    @Override
+    public void flush() {
+        getAccount().flush();
+    }
+
+    @Override
+    public boolean addTag(String tag) {
+        return getAccount().addTag(tag);
+    }
+
+    @Override
+    public boolean hasTag(String tag) {
+        return getAccount().hasTag(tag);
+    }
+
+    @Override
+    public boolean removeTag(String tag) {
+        return getAccount().removeTag(tag);
+    }
 }

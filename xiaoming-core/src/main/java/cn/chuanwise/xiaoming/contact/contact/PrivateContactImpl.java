@@ -12,4 +12,24 @@ public class PrivateContactImpl extends XiaomingContactImpl<Friend> implements P
     public PrivateContactImpl(XiaomingBot xiaomingBot, Friend miraiContact) {
         super(xiaomingBot, miraiContact);
     }
+
+    @Override
+    public void flush() {
+        getAccount().flush();
+    }
+
+    @Override
+    public boolean addTag(String tag) {
+        return getAccount().addTag(tag);
+    }
+
+    @Override
+    public boolean hasTag(String tag) {
+        return getAccount().hasTag(tag);
+    }
+
+    @Override
+    public boolean removeTag(String tag) {
+        return getAccount().removeTag(tag);
+    }
 }

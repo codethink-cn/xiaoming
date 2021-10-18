@@ -11,10 +11,6 @@ import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.QuoteReply;
 import net.mamoe.mirai.message.data.SingleMessage;
 
-/**
- * 可以发送消息的类型
- * @param <M> 消息回执类型
- */
 public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
     default M sendMessage(String miraiCode, Object... contexts) {
         return sendMessage(MiraiCode.deserializeMiraiCode(format(miraiCode, contexts)));
@@ -24,24 +20,20 @@ public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
         return sendMessage(format(sentence, contexts));
     }
 
-    default M sendMessage(SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
-        return sendMessage(messageChain);
+    default M sendMessage(SingleMessage... elements) {
+        return sendMessage(MiraiCodeUtil.asMessageChain(elements));
     }
 
     default M replyMessage(Message quote, String message, Object... contexts) {
-        return replyMessage(quote, format(message, contexts));
+        return replyMessage(quote.getOriginalMessageChain(), MiraiCode.deserializeMiraiCode(format(message, contexts)));
     }
 
     default M replyMessage(Message quote, Sentence sentence, Object... contexts) {
-        return replyMessage(quote, format(sentence, contexts));
+        return replyMessage(quote.getOriginalMessageChain(), MiraiCode.deserializeMiraiCode(format(sentence, contexts)));
     }
 
-    default M replyMessage(Message quote, SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
-        return replyMessage(quote, messageChain);
+    default M replyMessage(Message quote, SingleMessage... elements) {
+        return replyMessage(quote.getOriginalMessageChain(), MiraiCodeUtil.asMessageChain(elements));
     }
 
     default M replyMessage(Message quote, MessageChain messageChain) {
@@ -49,17 +41,15 @@ public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
     }
 
     default M replyMessage(MessageChain quote, String message, Object... contexts) {
-        return replyMessage(quote, format(message, contexts));
+        return replyMessage(quote, MiraiCode.deserializeMiraiCode(format(message, contexts)));
     }
 
     default M replyMessage(MessageChain quote, Sentence sentence, Object... contexts) {
-        return replyMessage(quote, format(sentence, contexts));
+        return replyMessage(quote, MiraiCode.deserializeMiraiCode(format(sentence, contexts)));
     }
 
-    default M replyMessage(MessageChain quote, SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
-        return replyMessage(quote, messageChain);
+    default M replyMessage(MessageChain quote, SingleMessage... elements) {
+        return replyMessage(quote, MiraiCodeUtil.asMessageChain(elements));
     }
 
     default M replyMessage(MessageChain quote, MessageChain messageChain) {
@@ -86,41 +76,36 @@ public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
         return sendWarning(messageChain.serializeToMiraiCode());
     }
 
-
     default M replyWarning(Message quote, String message, Object... contexts) {
-        return replyMessage(quote, format(message, contexts));
+        return replyWarning(quote.getOriginalMessageChain(), MiraiCode.deserializeMiraiCode(format(message, contexts)));
     }
 
     default M replyWarning(Message quote, Sentence sentence, Object... contexts) {
-        return replyMessage(quote, format(sentence, contexts));
+        return replyWarning(quote.getOriginalMessageChain(), MiraiCode.deserializeMiraiCode(format(sentence, contexts)));
     }
 
-    default M replyWarning(Message quote, SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
-        return replyWarning(quote, messageChain);
+    default M replyWarning(Message quote, SingleMessage... elements) {
+        return replyWarning(quote.getOriginalMessageChain(), MiraiCodeUtil.asMessageChain(elements));
     }
 
     default M replyWarning(Message quote, MessageChain messageChain) {
         return replyWarning(quote.getOriginalMessageChain(), messageChain);
     }
 
-    default M replyWarning(MessageChain quote, String miraiCode, Object... contexts) {
-        return replyMessage(quote, getXiaomingBot().getLanguageManager().getSentenceValue("warning") + " " + miraiCode, contexts);
+    default M replyWarning(MessageChain quote, String message, Object... contexts) {
+        return replyWarning(quote, MiraiCode.deserializeMiraiCode(format(message, contexts)));
     }
 
     default M replyWarning(MessageChain quote, Sentence sentence, Object... contexts) {
-        return replyWarning(quote, format(sentence, contexts));
+        return replyWarning(quote, MiraiCode.deserializeMiraiCode(format(sentence, contexts)));
     }
 
-    default M replyWarning(MessageChain quote, SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
-        return replyWarning(quote, messageChain);
+    default M replyWarning(MessageChain quote, SingleMessage... elements) {
+        return replyWarning(quote, MiraiCodeUtil.asMessageChain(elements));
     }
 
     default M replyWarning(MessageChain quote, MessageChain messageChain) {
-        return replyWarning(quote, messageChain.serializeToMiraiCode());
+        return sendMessage(new QuoteReply(quote).plus(getXiaomingBot().getLanguageManager().getSentenceValue("warning") + " ").plus(messageChain));
     }
 
 
@@ -143,38 +128,34 @@ public interface MessageSendable<M> extends XiaomingObject, FormatableObject {
     }
 
     default M replyError(Message quote, String message, Object... contexts) {
-        return replyError(quote, format(message, contexts));
+        return replyError(quote.getOriginalMessageChain(), MiraiCode.deserializeMiraiCode(format(message, contexts)));
     }
 
     default M replyError(Message quote, Sentence sentence, Object... contexts) {
-        return replyError(quote, format(sentence, contexts));
+        return replyError(quote.getOriginalMessageChain(), MiraiCode.deserializeMiraiCode(format(sentence, contexts)));
     }
 
-    default M replyError(Message quote, SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
-        return replyError(quote, messageChain);
+    default M replyError(Message quote, SingleMessage... elements) {
+        return replyError(quote.getOriginalMessageChain(), MiraiCodeUtil.asMessageChain(elements));
     }
 
     default M replyError(Message quote, MessageChain messageChain) {
         return replyError(quote.getOriginalMessageChain(), messageChain);
     }
 
-    default M replyError(MessageChain quote, String miraiCode, Object... contexts) {
-        return replyMessage(quote, getXiaomingBot().getLanguageManager().getSentenceValue("error") + " " + miraiCode, contexts);
+    default M replyError(MessageChain quote, String message, Object... contexts) {
+        return replyError(quote, MiraiCode.deserializeMiraiCode(format(message, contexts)));
     }
 
     default M replyError(MessageChain quote, Sentence sentence, Object... contexts) {
-        return replyError(quote, format(sentence, contexts));
+        return replyError(quote, MiraiCode.deserializeMiraiCode(format(sentence, contexts)));
     }
 
-    default M replyError(MessageChain quote, SingleMessage firstElement, SingleMessage... remainElements) {
-        final SingleMessage[] singleMessages = ArrayUtil.insert(remainElements, 0, firstElement);
-        final MessageChain messageChain = MiraiCodeUtil.asMessageChain(singleMessages);
-        return replyError(quote, messageChain);
+    default M replyError(MessageChain quote, SingleMessage... elements) {
+        return replyError(quote, MiraiCodeUtil.asMessageChain(elements));
     }
 
     default M replyError(MessageChain quote, MessageChain messageChain) {
-        return replyMessage(quote, messageChain.serializeToMiraiCode());
+        return sendMessage(new QuoteReply(quote).plus(getXiaomingBot().getLanguageManager().getSentenceValue("error") + " ").plus(messageChain));
     }
 }

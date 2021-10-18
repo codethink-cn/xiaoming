@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.language;
 
-import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
+import cn.chuanwise.toolkit.preservable.AbstractPreservable;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.language.sentence.Sentence;
 import cn.chuanwise.xiaoming.plugin.Plugin;
@@ -10,7 +10,7 @@ import java.beans.Transient;
 import java.util.*;
 
 @Data
-public class LanguageImpl extends FilePreservableImpl implements Language {
+public class LanguageImpl extends AbstractPreservable implements Language {
     transient XiaomingBot xiaomingBot;
     transient Plugin plugin;
 

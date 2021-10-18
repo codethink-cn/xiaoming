@@ -1,31 +1,27 @@
 package cn.chuanwise.xiaoming.util;
 
 import cn.chuanwise.api.ChineseConvertable;
+import cn.chuanwise.api.TagMarkable;
+import cn.chuanwise.toolkit.container.Container;
 import cn.chuanwise.toolkit.verify.VerifyCodeHandler;
 import cn.chuanwise.util.*;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.apply.ApplyHandler;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
-import cn.chuanwise.xiaoming.client.CenterClient;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.configuration.Statistician;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
-import cn.chuanwise.xiaoming.group.GroupRecord;
+import cn.chuanwise.xiaoming.group.GroupInformation;
 import cn.chuanwise.xiaoming.interactor.InteractorManager;
-import cn.chuanwise.xiaoming.interactor.handler.InteractorHandler;
+import cn.chuanwise.xiaoming.interactor.handler.Interactor;
 import cn.chuanwise.xiaoming.language.LanguageManager;
 import cn.chuanwise.xiaoming.language.MultipleLanguageFinder;
 import cn.chuanwise.xiaoming.language.sentence.LanguageRenderContext;
 import cn.chuanwise.xiaoming.language.sentence.Sentence;
 import cn.chuanwise.xiaoming.language.variable.VariableRequester;
-import cn.chuanwise.xiaoming.license.LicenseManager;
-import cn.chuanwise.xiaoming.limit.CallLimitConfiguration;
+
 import cn.chuanwise.xiaoming.object.XiaomingObject;
-import cn.chuanwise.xiaoming.permission.PermissionAccessible;
-import cn.chuanwise.xiaoming.permission.PermissionGroup;
-import cn.chuanwise.xiaoming.permission.PermissionManager;
-import cn.chuanwise.xiaoming.permission.PermissionUserNode;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.plugin.PluginHandler;
 import cn.chuanwise.xiaoming.plugin.PluginManager;
@@ -33,7 +29,6 @@ import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.recept.Receptionist;
 import cn.chuanwise.xiaoming.report.ReportMessage;
 import cn.chuanwise.xiaoming.schedule.FileSaver;
-import cn.chuanwise.toolkit.tag.TagMarkable;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.MemberXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
@@ -43,19 +38,19 @@ import java.util.function.BiFunction;
 
 public class LanguageConfigUtil extends StaticUtil {
     public static void config(LanguageManager languageManager) {
-        registerLicenseRelated(languageManager);
+        languageManager.registerConvertor(Optional.class, x -> Objects.toString(x.map(languageManager::convert).orElse(null)), null);
+        languageManager.registerConvertor(Container.class, x -> Objects.toString(x.map(languageManager::convert).orElse(null)), null);
+
         registerPluginRelated(languageManager);
         registerFileSaverRelated(languageManager);
         registerGlobalVariables(languageManager);
         registerApplyRelated(languageManager);
         registerUserRelated(languageManager);
         registerBotRelated(languageManager);
-        registerPermissionRelated(languageManager);
         registerAccountRelated(languageManager);
         registerDateRelated(languageManager);
         registerGroupRelated(languageManager);
         registerInteractorRelated(languageManager);
-        registerCallLimitRelated(languageManager);
         registerConfigurationRelated(languageManager);
         registerRandomRelated(languageManager);
         registerClassRelated(languageManager);
@@ -67,7 +62,6 @@ public class LanguageConfigUtil extends StaticUtil {
         registerContactRelated(languageManager);
         registerContextRelated(languageManager);
         registerReceptionistRelated(languageManager);
-        registerCenterClientRelated(languageManager);
         registerGeneric(languageManager);
         registerReportReleted(languageManager);
     }
@@ -84,7 +78,7 @@ public class LanguageConfigUtil extends StaticUtil {
         languageManager.registerOperators(ApplyHandler.class, null)
                 .addOperator("message", ApplyHandler::getMessage)
                 .addOperator("permissions", ApplyHandler::getPermissions)
-                .addOperator("submitter", handler -> FunctionalUtil.runIfArgumentNonNullOrDefault(Plugin::getName, handler.getPlugin(), "内核"))
+                .addOperator("submitter", handler -> Optional.ofNullable(handler.getPlugin()).map(Plugin::getName).orElse("内核"))
                 .addOperator("time", VerifyCodeHandler::getSubmitTime)
                 .addOperator("timeout", VerifyCodeHandler::getTimeout)
                 .addOperator("verifyCode", VerifyCodeHandler::getVerifyCode);
@@ -100,17 +94,15 @@ public class LanguageConfigUtil extends StaticUtil {
                 .addOperator("statistician", XiaomingBot::getStatistician)
                 .addOperator("config", XiaomingBot::getConfiguration)
                 .addOperator("configuration", XiaomingBot::getConfiguration)
-                .addOperator("licenseManager", XiaomingBot::getLicenseManager)
                 .addOperator("interactorManager", XiaomingBot::getInteractorManager)
                 .addOperator("fileSaver", XiaomingBot::getFileSaver)
                 .addOperator("github", XiaomingBot.GITHUB)
                 .addOperator("group", XiaomingBot.GROUP)
                 .addOperator("sponsor", XiaomingBot.SPONSOR)
-                .addOperator("version", XiaomingBot.COMPLETE_VERSION)
+                .addOperator("version", XiaomingBot.VERSION)
                 .addOperator("development-document", XiaomingBot.DEVELOPMENT_DOCUMENT)
                 .addOperator("receptionistManager", XiaomingBot::getReceptionistManager)
                 .addOperator("pluginManager", XiaomingBot::getPluginManager)
-                .addOperator("client", XiaomingBot::getCenterClient)
                 .addOperator("lang", XiaomingBot::getLanguageManager)
                 .addOperator("code", value -> value.getMiraiBot().getId())
                 .addOperator("codeString", value -> Long.toString(value.getMiraiBot().getId()));
@@ -163,64 +155,6 @@ public class LanguageConfigUtil extends StaticUtil {
                 .addOperator("simpleName", Class::getSimpleName);
     }
 
-    /** 权限相关 */
-    protected static void registerPermissionRelated(LanguageManager languageManager) {
-        final PermissionManager permissionManager = languageManager.getXiaomingBot().getPermissionManager();
-        languageManager.registerOperators(PermissionManager.class, null)
-                .addOperator(((value, identifier) -> {
-                    if (identifier.length() < 3 || identifier.charAt(1) != ':') {
-                        return null;
-                    }
-                    final char ch = identifier.charAt(0);
-                    final String content = identifier.substring(2);
-
-                    switch (ch) {
-                        case 'g':
-                            return value.forPermissionGroup(content);
-                        case 'u':
-                            final Optional<Long> optionalCode = NumberUtil.parseLong(content);
-                            if (optionalCode.isPresent()) {
-                                return value.forUserNode(optionalCode.get());
-                            }
-                            return null;
-                        default:
-                            return null;
-                    }
-                }));
-        languageManager.registerConvertor(PermissionGroup.class, PermissionGroup::getAliasAndName, null);
-
-        languageManager.registerOperators(PermissionGroup.class, null)
-                .addOperator("name", PermissionGroup::getName)
-                .addOperator("alias", PermissionGroup::getAlias)
-                .addOperator("aliasAndName", PermissionGroup::getAliasAndName)
-                .addOperator("aliasOrName", PermissionGroup::getAliasOrName)
-                .addOperator("permissions", PermissionGroup::getPermissions)
-                .addOperator("groupPermissions", PermissionGroup::getGroupPermissions)
-                .addOperator("superGroups", PermissionGroup::getSuperGroups)
-                .addOperator((value, identifier) -> parameterOperator(value, identifier, (operator, content) -> {
-                    switch (operator) {
-                        case 'h':
-                            return permissionManager.permissionGroupAccessible(value, content) == PermissionAccessible.ACCESSABLE;
-                        case 'g':
-                            return value.getGroupPermission(content);
-                        default:
-                            return null;
-                    }
-                }));
-
-        languageManager.registerOperators(PermissionUserNode.class, null)
-                .addOperator("group", PermissionUserNode::getGroup)
-                .addOperator("groupPermissions", PermissionUserNode::getGroupPermissions)
-                .addOperator((value, identifier) -> parameterOperator(value, identifier, (operator, content) -> {
-                    switch (operator) {
-                        case 'g':
-                            return value.getGroupPermission(content);
-                        default:
-                            return null;
-                    }
-                }));
-    }
-
     /** 账户相关 */
     protected static void registerAccountRelated(LanguageManager languageManager) {
         languageManager.registerConvertor(Account.class, Account::getAliasAndCode, null);
@@ -244,7 +178,7 @@ public class LanguageConfigUtil extends StaticUtil {
                 .addOperator("delay", value -> TimeUtil.futureTimeLength(value.longValue()))
                 .addOperator("after", value -> TimeUtil.after(value.longValue()))
                 .addOperator("date", value -> new Date(value.longValue()))
-                .addOperator("account", value -> languageManager.getXiaomingBot().getAccountManager().getAccount(value.longValue()))
+                .addOperator("account", value -> languageManager.getXiaomingBot().getAccountManager().createAccount(value.longValue()))
                 .addOperator("alias", value -> languageManager.getXiaomingBot().getAccountManager().getAliasOrCode(value.longValue()))
                 .addOperator("length", value -> TimeUtil.toTimeLength(value.longValue()));
         languageManager.registerOperators(Double.class, null)
@@ -258,7 +192,7 @@ public class LanguageConfigUtil extends StaticUtil {
                     final Double left = value;
 
                     // 数字格式错误时
-                    if (!optionalRight.isPresent()) {
+                    if (optionalRight.isEmpty()) {
                         return null;
                     }
 
@@ -290,7 +224,7 @@ public class LanguageConfigUtil extends StaticUtil {
                     final Integer left = value;
 
                     // 数字格式错误时
-                    if (!optionalRight.isPresent()) {
+                    if (optionalRight.isEmpty()) {
                         return null;
                     }
                     final Integer right = optionalRight.get();
@@ -318,14 +252,14 @@ public class LanguageConfigUtil extends StaticUtil {
 
         languageManager.registerOperators(XiaomingUser.class, null)
                 .addOperator("name", XiaomingUser::getName)
-                .addOperator((user, identifier) -> user.getProperty(PropertyType.valueOf(identifier)))
                 .addOperator("code", XiaomingUser::getCode)
                 .addOperator("codeString", XiaomingUser::getCodeString)
-                .addOperator("alias", XiaomingUser::getAlias)
+                .addOperator("alias", XiaomingUser::getAliasOrName)
                 .addOperator("tags", XiaomingUser::getTags)
                 .addOperator("contact", XiaomingUser::getContact)
                 .addOperator("aliasOrCode", XiaomingUser::getAliasOrCode)
-                .addOperator("aliasAndCode", XiaomingUser::getAliasAndCode);
+                .addOperator("aliasAndCode", XiaomingUser::getAliasAndCode)
+                .addOperator((user, identifier) -> user.getProperty(PropertyType.valueOf(identifier)).orElse(null));
         languageManager.registerOperators(GroupXiaomingUser.class, null)
                 .addOperator("nick", GroupXiaomingUser::getNick)
                 .addOperator("nameCard", GroupXiaomingUser::getNameCard)
@@ -360,17 +294,17 @@ public class LanguageConfigUtil extends StaticUtil {
 
     /** 群聊相关 */
     protected static void registerGroupRelated(LanguageManager languageManager) {
-        languageManager.registerConvertor(GroupRecord.class, GroupRecord::getAliasAndCode, null);
-        languageManager.registerOperators(GroupRecord.class, null)
-                .addOperator("alias", GroupRecord::getAlias)
-                .addOperator("aliasAndCode", GroupRecord::getAliasAndCode)
-                .addOperator("aliasOrCode", GroupRecord::getAlias)
+        languageManager.registerConvertor(GroupInformation.class, GroupInformation::getAliasAndCode, null);
+        languageManager.registerOperators(GroupInformation.class, null)
+                .addOperator("alias", GroupInformation::getAlias)
+                .addOperator("aliasAndCode", GroupInformation::getAliasAndCode)
+                .addOperator("aliasOrCode", GroupInformation::getAlias)
                 .addOperator("tags", TagMarkable::getTags);
 
         languageManager.registerOperators(Integer.class, null)
-                .addOperator("group", languageManager.getXiaomingBot().getGroupRecordManager()::forCode);
+                .addOperator("group", languageManager.getXiaomingBot().getGroupInformationManager()::forCode);
         languageManager.registerOperators(String.class, null)
-                .addOperator("group", languageManager.getXiaomingBot().getGroupRecordManager()::forTag);
+                .addOperator("group", languageManager.getXiaomingBot().getGroupInformationManager()::searchGroupsByTag);
     }
 
     protected static void registerGlobalVariables(LanguageManager languageManager) {
@@ -380,26 +314,17 @@ public class LanguageConfigUtil extends StaticUtil {
     protected static void registerInteractorRelated(LanguageManager languageManager) {
         languageManager.registerOperators(InteractorManager.class, null)
                 .addOperator((manager, identifier) -> {
-                    final List<InteractorHandler> interactors = manager.getInteractors();
+                    final List<Interactor> interactors = manager.getInteractors();
                     return CollectionUtil.first(interactors, interactor -> (Objects.equals(identifier, identifier.getClass().getName())));
                 });
-        languageManager.registerConvertor(InteractorHandler.class, InteractorHandler::getName, null);
+        languageManager.registerConvertor(Interactor.class, Interactor::getName, null);
 
-        languageManager.registerOperators(InteractorHandler.class, null)
-                .addOperator("name", InteractorHandler::getName)
-                .addOperator("permissionsArray", InteractorHandler::getPermissions)
-                .addOperator("permissions", InteractorHandler::listPermissions)
-                .addOperator("usage", InteractorHandler::getUsage)
-                .addOperator("requireGroupTags", InteractorHandler::getRequireGroupTags)
-                .addOperator("requireAccountTags", InteractorHandler::getRequireAccountTags);
-    }
-
-    protected static void registerCallLimitRelated(LanguageManager languageManager) {
-        languageManager.registerOperators(CallLimitConfiguration.class, null)
-                .addOperator("period", CallLimitConfiguration::getPeriod)
-                .addOperator("top", CallLimitConfiguration::getTop)
-                .addOperator("cooldown", CallLimitConfiguration::getCoolDown)
-                .addOperator("deltaNoticeTime", CallLimitConfiguration::getDeltaNoticeTime);
+        languageManager.registerOperators(Interactor.class, null)
+                .addOperator("name", Interactor::getName)
+                .addOperator("permissions", Interactor::getPermissions)
+                .addOperator("usage", Interactor::getUsage)
+                .addOperator("requireGroupTags", Interactor::getRequireGroupTags)
+                .addOperator("requireAccountTags", Interactor::getRequireAccountTags);
     }
 
     protected static void registerGeneric(LanguageManager languageManager) {
@@ -424,14 +349,9 @@ public class LanguageConfigUtil extends StaticUtil {
 
     protected static void registerConfigurationRelated(LanguageManager languageManager) {
         languageManager.registerOperators(Configuration.class, null)
-                .addOperator("groupCallConfig", Configuration::getGroupCallConfig)
                 .addOperator("savePeriod", Configuration::getSavePeriod)
                 .addOperator("saveFileDirectly", Configuration::isSaveFileDirectly)
-                .addOperator("privateCallConfig", Configuration::getPrivateCallConfig)
-                .addOperator("optimizePeriod", Configuration::getOptimizePeriod)
-                .addOperator("enableClearCall", Configuration::isEnableClearCall)
-                .addOperator("clearCallGroupTag", Configuration::getClearCallGroupTag)
-                .addOperator("clearCallPrefixs", Configuration::getClearCallPrefixes);
+                .addOperator("optimizePeriod", Configuration::getOptimizePeriod);
     }
 
     protected static void registerRandomRelated(LanguageManager languageManager) {
@@ -506,8 +426,7 @@ public class LanguageConfigUtil extends StaticUtil {
                 .addOperator("toUpperCase", String::toUpperCase)
                 .addOperator("toLowerCase", String::toLowerCase)
                 .addOperator("repeat", string -> (string + string))
-                .addOperator("tagGroups", group -> xiaomingBot.getGroupRecordManager().forTag(group))
-                .addOperator("permissionGroup", string -> xiaomingBot.getPermissionManager().forPermissionGroup(string))
+                .addOperator("tagGroups", group -> xiaomingBot.getGroupInformationManager().searchGroupsByTag(group))
                 .addOperator("reverse", StringUtil::reverse);
 
         // 映射相关
@@ -525,10 +444,10 @@ public class LanguageConfigUtil extends StaticUtil {
     protected static void registerLanguageRelated(LanguageManager languageManager) {
         languageManager.registerVariable("lang", languageManager, null);
         languageManager.registerOperators(LanguageManager.class, null)
-                .addOperator(LanguageManager::getSentence);
+                .addOperator(LanguageManager::getSentenceValue);
         languageManager.registerOperators(MultipleLanguageFinder.class, null)
                 .addOperator(MultipleLanguageFinder::getSentence);
-        languageManager.registerConvertor(Sentence.class, Sentence::getDefaultValue, null);
+        languageManager.registerConvertor(Sentence.class, Sentence::getValue, null);
         languageManager.registerOperators(Sentence.class, null)
                 .addOperator("defaultValue", Sentence::getDefaultValue)
                 .addOperator("customValues", Sentence::getCustomValues);
@@ -559,22 +478,6 @@ public class LanguageConfigUtil extends StaticUtil {
                 .addOperator("preservables", FileSaver::getPreservables)
                 .addOperator("lastSaveTime", FileSaver::getLastSaveTime)
                 .addOperator("lastValidSaveTime", FileSaver::getLastValidSaveTime);
-    }
-
-    protected static void registerLicenseRelated(LanguageManager languageManager) {
-        languageManager.registerOperators(LicenseManager.class, null)
-                .addOperator("license", LicenseManager::getLicense);
-    }
-
-    protected static void registerCenterClientRelated(LanguageManager languageManager) {
-        languageManager.registerOperators(CenterClient.class, null)
-                .addOperator("totalCallNumber", client -> {
-                    try {
-                        return client.getTotalCallNumber();
-                    } catch (Exception exception) {
-                        return null;
-                    }
-                });
     }
 
     protected static void registerReceptionistRelated(LanguageManager languageManager) {

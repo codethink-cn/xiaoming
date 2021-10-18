@@ -97,7 +97,7 @@ public class ReceptionistImpl
     public GroupXiaomingUser getGroupXiaomingUser(long groupCode) {
         return MapUtil.getOrPutSupply(groupXiaomingUsers, groupCode,
                 () -> {
-                    final GroupXiaomingUserImpl groupXiaomingUser = new GroupXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code));
+                    final GroupXiaomingUserImpl groupXiaomingUser = new GroupXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code).orElseThrow());
                     groupXiaomingUser.setReceptionist(ReceptionistImpl.this);
                     return groupXiaomingUser;
                 });
@@ -107,7 +107,7 @@ public class ReceptionistImpl
     public MemberXiaomingUser getMemberXiaomingUser(long groupCode) {
         return MapUtil.getOrPutSupply(memberXiaomingUsers, groupCode,
                 () -> {
-                    final MemberXiaomingUserImpl memberXiaomingUser = new MemberXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code));
+                    final MemberXiaomingUserImpl memberXiaomingUser = new MemberXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code).orElseThrow());
                     memberXiaomingUser.setReceptionist(ReceptionistImpl.this);
                     return memberXiaomingUser;
                 });
@@ -116,7 +116,7 @@ public class ReceptionistImpl
     @Override
     public PrivateXiaomingUser getPrivateXiaomingUser() {
         if (Objects.isNull(privateXiaomingUser)) {
-            privateXiaomingUser = new PrivateXiaomingUserImpl(getXiaomingBot().getContactManager().getPrivateContact(getCode()));
+            privateXiaomingUser = new PrivateXiaomingUserImpl(xiaomingBot.getContactManager().getPrivateContact(code).orElseThrow());
             privateXiaomingUser.setReceptionist(this);
         }
         return privateXiaomingUser;

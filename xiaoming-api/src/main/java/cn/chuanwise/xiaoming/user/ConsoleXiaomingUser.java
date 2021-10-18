@@ -1,7 +1,5 @@
 package cn.chuanwise.xiaoming.user;
 
-import cn.chuanwise.xiaoming.account.record.CommandRecord;
-import cn.chuanwise.xiaoming.account.record.PrivateCommandRecord;
 import cn.chuanwise.xiaoming.contact.contact.ConsoleContact;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import cn.chuanwise.xiaoming.object.ModuleObject;
@@ -10,12 +8,7 @@ import java.util.Optional;
 
 public interface ConsoleXiaomingUser extends ModuleObject, XiaomingUser<ConsoleContact> {
     @Override
-    default CommandRecord buildCommandRecord(String command) {
-        return new PrivateCommandRecord(command);
-    }
-
-    @Override
-    default boolean hasPermission(String require) {
+    default boolean hasPermission(String permission) {
         return true;
     }
 

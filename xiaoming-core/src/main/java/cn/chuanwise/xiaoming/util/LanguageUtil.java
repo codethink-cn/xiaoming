@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.util;
 
-import cn.chuanwise.toolkit.preservable.file.FileLoader;
+import cn.chuanwise.toolkit.preservable.loader.FileLoader;
 import cn.chuanwise.util.ResourceUtil;
 import cn.chuanwise.util.StaticUtil;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 public class LanguageUtil extends StaticUtil {
     public static Language loadOrCopy(XiaomingBot bot, File languageFile, ClassLoader classLoader, String resourcePath) throws IOException {
@@ -38,13 +39,16 @@ public class LanguageUtil extends StaticUtil {
             final Sentence value = entry.getValue();
 
             // 找到存储的语句，如果存储了，则设置默认值，否则将其添加
-            final Sentence sentence = savedLanguage.getSentence(key);
-            if (Objects.isNull(sentence)) {
+            final Optional<Sentence> optionalSentence = savedLanguage.getSentence(key);
+            if (optionalSentence.isEmpty()) {
                 savedLanguage.addSentence(key, value);
                 modified = true;
-            } else if (!Objects.equals(sentence.getDefaultValue(), value.getDefaultValue())) {
-                sentence.setDefaultValue(value.getDefaultValue());
-                modified = true;
+            } else {
+                final Sentence sentence = optionalSentence.get();
+                if (!Objects.equals(sentence.getDefaultValue(), value.getDefaultValue())) {
+                    sentence.setDefaultValue(value.getDefaultValue());
+                    modified = true;
+                }
             }
         }
 

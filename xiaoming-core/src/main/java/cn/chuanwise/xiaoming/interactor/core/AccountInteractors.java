@@ -1,9 +1,7 @@
 package cn.chuanwise.xiaoming.interactor.core;
 
-import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.account.AccountManager;
-import cn.chuanwise.xiaoming.account.record.Record;
 import cn.chuanwise.xiaoming.annotation.Name;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
@@ -11,10 +9,7 @@ import cn.chuanwise.xiaoming.annotation.Permission;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.util.CommandWords;
-import cn.chuanwise.xiaoming.util.InteractorUtil;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
-
-import java.util.*;
 
 /**
  * 和用户账号相关的指令处理器
@@ -28,96 +23,112 @@ public class AccountInteractors extends SimpleInteractors {
         accountManager = getXiaomingBot().getAccountManager();
     }
 
-    @Name("listHistory")
-    @Filter(CommandWords.HISTORY + " {qq}")
-    @Permission("account.history")
-    public void onListUserHistory(XiaomingUser user,
-                                  @FilterParameter("qq") long qq) {
-        final Account account = user.getAccount();
-        final List<Record> histories = account.getHistories();
-        if (CollectionUtil.isEmpty(histories)) {
-            user.sendWarning("{lang.userHasNoHistory}");
+    @Filter(CommandWords.LET + CommandWords.ADMINISTRATOR + " {qq}")
+    @Filter(CommandWords.LET + CommandWords.OPERATOR + " {qq}")
+    @Filter(CommandWords.OPERATOR + " {qq}")
+    @Permission("account.user.administrator.grant")
+    public void grantAdministrator(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final Account account = accountManager.createAccount(qq);
+
+        if (account.isBanned()) {
+            user.sendError("该用户已被封禁");
+        } else if (account.isAdministrator()) {
+            user.sendMessage("该用户已经是管理员了");
         } else {
-            InteractorUtil.showCollection(user, account.getCommands(), Record::getMessage, 5);
+            account.setAdministrator(true);
+            xiaomingBot.getFileSaver().readyToSave(accountManager);
+
+            user.sendMessage("成功授予" + account.getAliasAndCode() + "管理员权限");
         }
     }
 
-    @Name("unblockPlugin")
-    @Filter(CommandWords.UNBLOCK + " {插件名}")
-    @Permission("account.plugin.unblock")
-    public void onUnblockPlugin(XiaomingUser user,
-                                @FilterParameter("插件名") Plugin plugin) {
-        final Account account = user.getAccount();
-        if (account.isBlockPlugin(plugin)) {
-            if (user.hasPermission("use." + plugin)) {
-                account.unblockPlugin(plugin);
-                getXiaomingBot().getFileSaver().readyToSave(account);
-                user.sendMessage("{lang.userUnblockPluginSuccessfully}", plugin);
-            } else {
-                user.sendError("{lang.userCanNotUsePlugin}", plugin);
-            }
+    @Filter(CommandWords.REVOKE + CommandWords.ADMINISTRATOR + " {qq}")
+    @Filter(CommandWords.REVOKE + CommandWords.OPERATOR + " {qq}")
+    @Filter(CommandWords.CANCEL + CommandWords.ADMINISTRATOR + " {qq}")
+    @Filter(CommandWords.CANCEL + CommandWords.OPERATOR + " {qq}")
+    @Permission("account.user.administrator.revoke")
+    public void revokeAdministrator(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final Account account = accountManager.createAccount(qq);
+
+        if (account.isBanned()) {
+            user.sendError("该用户已被封禁");
+        } else if (account.isAdministrator()) {
+            account.setAdministrator(false);
+            xiaomingBot.getFileSaver().readyToSave(accountManager);
+            user.sendMessage("成功收回授予" + account.getAliasAndCode() + "的管理员权限");
         } else {
-            user.sendError("{lang.userHadNotEnablePlugin}", plugin);
+            user.sendMessage("该用户并不是管理员");
         }
     }
 
-    @Name("blockPlugin")
-    @Filter(CommandWords.BLOCK + " {插件名}")
-    @Permission("account.plugin.block")
-    public void onBlockPlugin(XiaomingUser user,
-                              @FilterParameter("插件名") Plugin plugin) {
-        final Account account = accountManager.getAccount(user.getCode());
-        if (account.isBlockPlugin(plugin)) {
-            user.sendError("{lang.userHadBlockedThePlugin}", plugin);
+    @Filter(CommandWords.BAN + " {qq}")
+    @Permission("account.user.ban")
+    public void banUser(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final Account account = accountManager.createAccount(qq);
+
+        if (account.isBanned()) {
+            user.sendError("该用户已被封禁");
         } else {
-            account.blockPlugin(plugin);
-            getXiaomingBot().getFileSaver().readyToSave(account);
-            user.sendMessage("{lang.userBlockPluginSuccessfully}", plugin);
+            account.setBanned(true);
+            xiaomingBot.getFileSaver().readyToSave(accountManager);
+            user.sendMessage("成功封禁" + account.getAliasAndCode());
         }
     }
 
-    @Name("setUserAlias")
+    @Filter(CommandWords.UNBAN + " {qq}")
+    @Permission("account.user.unban")
+    public void unbanUser(XiaomingUser user, @FilterParameter("qq") long qq) {
+        final Account account = accountManager.createAccount(qq);
+
+        if (account.isBanned()) {
+            account.setBanned(false);
+            xiaomingBot.getFileSaver().readyToSave(accountManager);
+            user.sendMessage("成功解禁" + account.getAliasAndCode());
+        } else {
+            user.sendError("该用户并未被封禁");
+        }
+    }
+
     @Filter(CommandWords.ALIAS + " {qq} {r:备注}")
     @Filter(CommandWords.SET + CommandWords.ALIAS + " {qq} {r:备注}")
     @Permission("account.user.alias.set")
-    public void onSetUserAlias(XiaomingUser user,
-                               @FilterParameter("qq") long qq,
-                               @FilterParameter("备注") String alias) {
-        final Account account = accountManager.getAccount(qq);
+    public void setUserAlias(XiaomingUser user,
+                             @FilterParameter("qq") long qq,
+                             @FilterParameter("备注") String alias) {
+        final Account account = accountManager.createAccount(qq);
         account.setAlias(alias);
         user.sendMessage("{lang.aliasSetSuccessfully}", alias);
-        getXiaomingBot().getFileSaver().readyToSave(account);
+        getXiaomingBot().getFileSaver().readyToSave(accountManager);
     }
 
-    @Name("lookUserAlias")
     @Filter(CommandWords.ALIAS + " {qq}")
     @Permission("account.user.alias.look")
-    public void onSetUserAlias(XiaomingUser user,
-                               @FilterParameter("qq") long qq) {
+    public void lookUserAlias(XiaomingUser user,
+                              @FilterParameter("qq") long qq) {
         user.sendMessage("{lang.aliasIs}", qq);
     }
 
     @Name("addUserTag")
     @Filter(CommandWords.TAG + " {qq} {标记}")
     @Permission("account.user.tag.add")
-    public void onAddUserTag(XiaomingUser user,
-                             @FilterParameter("qq") Account account,
-                             @FilterParameter("标记") String tag) {
+    public void addUserTag(XiaomingUser user,
+                           @FilterParameter("qq") Account account,
+                           @FilterParameter("标记") String tag) {
         if (account.hasTag(tag)) {
             user.sendError("{lang.userAlreadyHasTag}", tag);
         } else {
             account.addTag(tag);
             user.sendMessage("{lang.userTagAddSuccessfully}", tag);
-            getXiaomingBot().getFileSaver().readyToSave(account);
+            getXiaomingBot().getFileSaver().readyToSave(accountManager);
         }
     }
 
     @Name("removeUserTag")
     @Filter(CommandWords.REMOVE + CommandWords.TAG + " {qq} {标签}")
     @Permission("account.user.tag.add")
-    public void onRemoveUserTag(XiaomingUser user,
-                                @FilterParameter("qq") Account account,
-                                @FilterParameter("标签") String tag) {
+    public void removeUserTag(XiaomingUser user,
+                              @FilterParameter("qq") Account account,
+                              @FilterParameter("标签") String tag) {
         if (account.isOriginalTag(tag)) {
             user.sendError("{lang.canNotRemoveOriginalTag}", tag);
             return;
@@ -125,7 +136,7 @@ public class AccountInteractors extends SimpleInteractors {
         if (account.hasTag(tag)) {
             account.removeTag(tag);
             user.sendMessage("{lang.userTagRemoveSuccessfully}", tag);
-            getXiaomingBot().getFileSaver().readyToSave(account);
+            getXiaomingBot().getFileSaver().readyToSave(accountManager);
         } else {
             user.sendError("{lang.userHadNotTheTag}", tag);
         }
@@ -134,9 +145,8 @@ public class AccountInteractors extends SimpleInteractors {
     @Name("listUserTag")
     @Filter(CommandWords.TAG + " {qq}")
     @Permission("account.user.tag.list")
-    public void onListUserTag(XiaomingUser user,
-                              @FilterParameter("qq") long qq) {
-        final Set<String> tags = getXiaomingBot().getAccountManager().getTags(qq);
+    public void listUserTag(XiaomingUser user,
+                            @FilterParameter("qq") long qq) {
         user.sendMessage("{lang.userTagsAreAsFollows}");
     }
 }

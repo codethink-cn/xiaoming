@@ -1,15 +1,17 @@
 package cn.chuanwise.xiaoming.plugin;
 
 import cn.chuanwise.api.SimpleSetableStatusHolder;
-import cn.chuanwise.exception.UnsupportedVersionException;
-import cn.chuanwise.util.ObjectUtil;
+import cn.chuanwise.toolkit.preservable.Preservable;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
+import cn.chuanwise.xiaoming.object.PluginObject;
+import cn.chuanwise.xiaoming.preservable.SimplePreservable;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.slf4j.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 
 @Getter
@@ -38,6 +40,15 @@ public class JavaPlugin
     @Setter
     @NonNull
     File dataFolder;
+
+    @Override
+    public <T extends Preservable> T loadFileAs(Class<T> clazz, File file) throws IOException {
+        final T result = getXiaomingBot().getFileLoader().load(clazz, file);
+        if (result instanceof PluginObject) {
+            ((PluginObject) result).setPlugin(this);
+        }
+        return result;
+    }
 
     @Override
     public boolean equals(Object o) {

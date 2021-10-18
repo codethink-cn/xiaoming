@@ -1,67 +1,48 @@
 package cn.chuanwise.xiaoming.account;
 
+import cn.chuanwise.api.TagMarkable;
+import cn.chuanwise.toolkit.preservable.Preservable;
 import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.object.ModuleObject;
-import cn.chuanwise.toolkit.tag.TagMarkable;
 
 import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
-public interface AccountManager extends ModuleObject {
-    File accountFile(long code);
+public interface AccountManager extends Preservable, ModuleObject {
+    Account createAccount(long code);
 
-    Account getAccount(long code);
+    Map<Long, Account> getAccounts();
 
-    File getDirectory();
+    default Optional<Account> getAccount(long code) {
+        return Optional.ofNullable(getAccounts().get(code));
+    }
 
-    Map<Long, Account> getLoadedAccounts();
+    default Optional<String> getAlias(long code) {
+        return getAccount(code).map(Account::getAlias);
+    }
 
     default String getAliasOrCode(long code) {
-        final Account account = getAccount(code);
-        if (Objects.isNull(account)) {
-//            final List<XiaomingContact> contacts = getXiaomingBot().getContactManager().getPrivateContactPossibly(code);
-//            if (contacts.isEmpty()) {
-//                return String.valueOf(code);
-//            } else {
-//                return contacts.get(0).getName();
-//            }
-
-            return String.valueOf(code);
-        } else {
-            return account.getAliasOrCode();
-        }
+        return getAccount(code)
+                .map(Account::getAliasOrCode)
+                .orElseGet(() -> {
+                    final List<XiaomingContact> contacts = getXiaomingBot().getContactManager().getPrivateContactPossibly(code);
+                    return contacts.isEmpty() ? String.valueOf(code) : contacts.get(0).getName();
+                });
     }
 
     default String getAliasAndCode(long code) {
-        final Account account = getAccount(code);
-        if (Objects.isNull(account)) {
-//            final List<XiaomingContact> contacts = getXiaomingBot().getContactManager().getPrivateContactPossibly(code);
-//            if (contacts.isEmpty()) {
-//                return String.valueOf(code);
-//            } else {
-//                return contacts.get(0).getName() + "（" + code + "）";
-//            }
-
-            return String.valueOf(code);
-        } else {
-            return account.getAliasAndCode();
-        }
+        return getAccount(code)
+                .map(Account::getAliasAndCode)
+                .orElseGet(() -> {
+                    final List<XiaomingContact> contacts = getXiaomingBot().getContactManager().getPrivateContactPossibly(code);
+                    return contacts.isEmpty() ? String.valueOf(code) : (contacts.get(0).getName() + "（" + code + "）");
+                });
     }
 
     default Set<String> getTags(long code) {
-        final Account account = getAccount(code);
-        if (Objects.isNull(account)) {
-            return CollectionUtil.asSet(TagMarkable.RECORDED, String.valueOf(code));
-        } else {
-            return account.getTags();
-        }
-    }
-
-    default boolean hasTag(long code, String tag) {
-        return getTags(code).contains(tag);
+        return getAccount(code)
+                .map(TagMarkable::getTags)
+                .orElseGet(() -> Account.originalTagsOf(code));
     }
 }

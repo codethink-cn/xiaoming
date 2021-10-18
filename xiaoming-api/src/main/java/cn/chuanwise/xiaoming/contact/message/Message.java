@@ -21,6 +21,8 @@ public interface Message extends XiaomingObject {
 
     String serialize();
 
+    String serializeOriginalMessage();
+
     MessageChain getMessageChain();
 
     MessageChain getOriginalMessageChain();
@@ -41,6 +43,10 @@ public interface Message extends XiaomingObject {
             return true;
         });
     }
+
+    int[] getInternalMessageCode();
+
+    int[] getMessageCode();
 
     /** 撤回消息 */
     default void recall() {

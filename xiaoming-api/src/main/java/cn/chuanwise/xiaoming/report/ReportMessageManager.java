@@ -4,10 +4,9 @@ import cn.chuanwise.xiaoming.object.ModuleObject;
 import cn.chuanwise.toolkit.preservable.Preservable;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 
-import java.io.File;
 import java.util.List;
 
-public interface ReportMessageManager extends ModuleObject, Preservable<File> {
+public interface ReportMessageManager extends ModuleObject, Preservable {
     void addMessage(ReportMessage reportMessage);
 
     void addThrowableMessage(XiaomingUser user, Throwable throwable);

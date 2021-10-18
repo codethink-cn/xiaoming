@@ -5,7 +5,7 @@ import cn.chuanwise.xiaoming.user.XiaomingUser;
 import lombok.Data;
 
 @Data
-public class InteractEvent extends SimpleXiaomingCancellableEvent {
+public class InteractEvent
+        extends SimpleXiaomingCancellableEvent {
     final InteractorContext context;
-    final XiaomingUser user;
 }

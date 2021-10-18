@@ -20,7 +20,7 @@ public interface PrivateContact extends XiaomingContact<Friend> {
     }
 
     default Account getAccount() {
-        return getXiaomingBot().getAccountManager().getAccount(getCode());
+        return getXiaomingBot().getAccountManager().createAccount(getCode());
     }
 
     @Override

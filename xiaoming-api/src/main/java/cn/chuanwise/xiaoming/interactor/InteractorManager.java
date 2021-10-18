@@ -3,16 +3,13 @@ package cn.chuanwise.xiaoming.interactor;
 import cn.chuanwise.toolkit.container.Container;
 import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.util.ReflectUtil;
-import cn.chuanwise.util.ThrowableUtil;
 import cn.chuanwise.xiaoming.annotation.Filter;
-import cn.chuanwise.xiaoming.center.content.ErrorReport;
-import cn.chuanwise.xiaoming.center.content.GroupErrorReport;
-import cn.chuanwise.xiaoming.client.CenterClient;
+import cn.chuanwise.xiaoming.event.InteractorErrorEvent;
 import cn.chuanwise.xiaoming.interactor.caughter.InteractorThrowableCaughter;
-import cn.chuanwise.xiaoming.interactor.caughter.InteractorThrowableCaughterHandler;
+import cn.chuanwise.xiaoming.interactor.caughter.InteractorErrorCaughtHandler;
 import cn.chuanwise.xiaoming.interactor.context.InteractorContext;
 import cn.chuanwise.xiaoming.interactor.customizer.Customizer;
-import cn.chuanwise.xiaoming.interactor.handler.InteractorHandler;
+import cn.chuanwise.xiaoming.interactor.handler.Interactor;
 import cn.chuanwise.xiaoming.interactor.parser.InteractorParameterContext;
 import cn.chuanwise.xiaoming.interactor.parser.InteractorParameterParser;
 import cn.chuanwise.xiaoming.interactor.parser.InteractorParameterParserHandler;
@@ -20,7 +17,6 @@ import cn.chuanwise.xiaoming.object.ModuleObject;
 import cn.chuanwise.xiaoming.object.PluginObject;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.contact.message.Message;
-import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.util.MiraiCodeUtil;
 import net.mamoe.mirai.message.code.MiraiCode;
@@ -37,15 +33,15 @@ public interface InteractorManager extends ModuleObject {
      * @return 是否交互成功
      * @throws Exception 交互期间抛出的异常
      */
-    boolean interactIf(XiaomingUser user, Message message, Predicate<InteractorHandler> filter);
+    boolean interactIf(XiaomingUser user, Message message, Predicate<Interactor> filter);
 
-    boolean interactIf(XiaomingUser user, MessageChain messages, Predicate<InteractorHandler> filter);
+    boolean interactIf(XiaomingUser user, MessageChain messages, Predicate<Interactor> filter);
 
-    default boolean interactIf(XiaomingUser user, String message, Predicate<InteractorHandler> filter) {
+    default boolean interactIf(XiaomingUser user, String message, Predicate<Interactor> filter) {
         return interactIf(user, MiraiCode.deserializeMiraiCode(message), filter);
     }
 
-    default boolean interactIf(XiaomingUser user, SingleMessage singleMessage, Predicate<InteractorHandler> filter) {
+    default boolean interactIf(XiaomingUser user, SingleMessage singleMessage, Predicate<Interactor> filter) {
         return interactIf(user, MiraiCodeUtil.asMessageChain(singleMessage), filter);
     }
 
@@ -66,13 +62,13 @@ public interface InteractorManager extends ModuleObject {
     }
 
     /** 交互器 */
-    List<InteractorHandler> getInteractors();
+    List<Interactor> getInteractors();
 
-    default List<InteractorHandler> getInteractors(Plugin plugin) {
+    default List<Interactor> getInteractors(Plugin plugin) {
         return CollectionUtil.filter(getInteractors(), new ArrayList<>(), interactor -> (interactor.getPlugin() == plugin));
     }
 
-    void registerInteractor(InteractorHandler interactor);
+    void registerInteractor(Interactor interactor);
 
     default void registerInteractors(Interactors interactors, Customizer customizer, Plugin plugin) {
         if (interactors instanceof PluginObject) {
@@ -86,11 +82,11 @@ public interface InteractorManager extends ModuleObject {
             if (method.getAnnotationsByType(Filter.class).length == 0) {
                 return;
             }
-            InteractorHandler handler = new InteractorHandler(method, plugin);
+            Interactor handler = new Interactor(method, plugin);
 
             // 尝试使用自定义设置
             if (Objects.nonNull(customizer)) {
-                final InteractorHandler savedInformation = customizer.forName(handler.getName());
+                final Interactor savedInformation = customizer.forName(handler.getName());
                 if (Objects.nonNull(savedInformation)) {
                     handler = savedInformation;
                     handler.setMethod(method);
@@ -150,21 +146,21 @@ public interface InteractorManager extends ModuleObject {
     }
 
     /** 异常捕捉器 */
-    List<InteractorThrowableCaughterHandler> getThrowableCaughters();
+    List<InteractorErrorCaughtHandler> getThrowableCaughters();
 
-    <T extends Throwable> void registerThrowableCaughter(InteractorThrowableCaughterHandler<T> handler);
+    <T extends Throwable> void registerThrowableCaughter(InteractorErrorCaughtHandler<T> handler);
 
     default <T extends Throwable> void registerThrowableCaughter(Class<T> clazz, InteractorThrowableCaughter<T> caughter, boolean share, Plugin plugin) {
-        registerThrowableCaughter(new InteractorThrowableCaughterHandler<>(clazz, caughter, plugin, false));
+        registerThrowableCaughter(new InteractorErrorCaughtHandler<>(clazz, caughter, plugin, false));
     }
 
     void unregisterThrowableCaughters(Plugin plugin);
 
-    default boolean onThrowable(InteractorContext context, Throwable throwable) {
+    default void onThrowable(InteractorContext context, Throwable throwable) {
         final Plugin plugin = context.getPlugin();
         final XiaomingUser user = context.getUser();
 
-        for (InteractorThrowableCaughterHandler caughter : getThrowableCaughters()) {
+        for (InteractorErrorCaughtHandler caughter : getThrowableCaughters()) {
             if (Objects.nonNull(caughter.getPlugin()) && !caughter.isShared() && plugin != caughter.getPlugin()) {
                 continue;
             }
@@ -177,33 +173,11 @@ public interface InteractorManager extends ModuleObject {
                 throwable = nextThrowable;
             }
         }
-        final boolean caughted = Objects.nonNull(throwable);
-        if (caughted) {
-            user.sendError("{lang.internalError}");
-            getLogger().error("和用户 " + user.getCompleteName() + " 交互时出现异常", throwable);
-            getXiaomingBot().getReportMessageManager().addThrowableMessage(user, throwable);
 
-            final CenterClient centerClient = getXiaomingBot().getCenterClient();
-            if (centerClient.isConnected()) {
-                if (user instanceof GroupXiaomingUser) {
-                    centerClient.sendGroupErrorReport(new GroupErrorReport(ErrorReport.XiaomingStatus.valueOf(getXiaomingBot().getStatus().toString()),
-                            System.currentTimeMillis(),
-                            ((GroupXiaomingUser) user).getGroupCode(),
-                            user.getCode(),
-                            context.getMessage().serialize(),
-                            ThrowableUtil.writeStackTraces(throwable)
-                            ));
-                } else {
-                    centerClient.sendErrorReport(new ErrorReport(ErrorReport.XiaomingStatus.valueOf(getXiaomingBot().getStatus().toString()),
-                            System.currentTimeMillis(),
-                            user.getCode(),
-                            context.getMessage().serialize(),
-                            ThrowableUtil.writeStackTraces(throwable)
-                    ));
-                }
-            }
+        if (Objects.nonNull(throwable)) {
+            final InteractorErrorEvent event = new InteractorErrorEvent(context, throwable);
+            getXiaomingBot().getEventManager().callEventAsync(event);
         }
-        return caughted;
     }
 
     default void unregisterPlugin(Plugin plugin) {

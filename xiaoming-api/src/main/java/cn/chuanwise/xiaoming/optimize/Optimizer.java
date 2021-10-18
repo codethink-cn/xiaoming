@@ -38,7 +38,7 @@ public interface Optimizer {
      * @param plugin 提交该操作的插件
      */
     default void runOnNextOptimize(Runnable runnable, Plugin plugin) {
-        ConditionUtil.nonNull(plugin, "plugin submitted optimize tasks");
+        ConditionUtil.notNull(plugin, "plugin submitted optimize tasks");
         runWhileOptimize(new Runnable() {
             @Override
             public void run() {

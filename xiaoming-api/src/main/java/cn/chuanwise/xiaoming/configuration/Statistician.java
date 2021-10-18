@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.io.File;
 import java.util.List;
 
-public interface Statistician extends Preservable<File>, XiaomingObject {
+public interface Statistician extends Preservable, XiaomingObject {
     @AllArgsConstructor
     @NoArgsConstructor
     class RunRecord {

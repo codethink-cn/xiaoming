@@ -1,6 +1,6 @@
 package cn.chuanwise.xiaoming.resource;
 
-import cn.chuanwise.toolkit.preservable.file.FilePreservableImpl;
+import cn.chuanwise.toolkit.preservable.AbstractPreservable;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import lombok.Data;
 import lombok.Setter;
@@ -17,7 +17,7 @@ import java.util.*;
 
 @Data
 @Slf4j
-public class ResourceManagerImpl extends FilePreservableImpl implements ResourceManager {
+public class ResourceManagerImpl extends AbstractPreservable implements ResourceManager {
     transient File imagesDirectory;
 
     @Override
