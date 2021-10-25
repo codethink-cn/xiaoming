@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 
 @Getter
 public class LanguageManagerImpl extends ModuleObjectImpl implements LanguageManager {
-    final Map<String, VariableHandler> variables = new ConcurrentHashMap<>();
+    final Map<String, VariableHandler> globalVariables = new ConcurrentHashMap<>();
     final List<Language> languages = new ArrayList<>();
     final List<ConvertorHandler> convertors = new ArrayList<>();
 
@@ -103,20 +103,19 @@ public class LanguageManagerImpl extends ModuleObjectImpl implements LanguageMan
         operators.removeIf(operator -> (operator.getPlugin() == plugin));
     }
 
-    @Override
-    public Map<String, VariableHandler> getVariables() {
-        return Collections.unmodifiableMap(variables);
+    public Map<String, VariableHandler> getGlobalVariables() {
+        return Collections.unmodifiableMap(globalVariables);
     }
 
     @Override
     public void registerVariable(String name, VariableGetter<?> getter, Plugin plugin) {
-        variables.put(name, new VariableHandler(name, getter, plugin));
+        globalVariables.put(name, new VariableHandler(name, getter, plugin));
     }
 
     @Override
     public void unregisterVariables(Plugin plugin) {
         RegisterUtil.checkUnregister(getXiaomingBot(), plugin, "global variable");
-        variables.values().removeIf(handler -> (handler.getPlugin() == plugin));
+        globalVariables.values().removeIf(handler -> (handler.getPlugin() == plugin));
     }
 
     @Override

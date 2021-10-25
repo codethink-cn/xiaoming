@@ -9,7 +9,7 @@ import java.util.Objects;
 
 public interface PermissionService
         extends ModuleObject, PermissionRequester {
-    void register(PermissionRequester requester, Plugin plugin);
+    boolean register(PermissionRequester requester, Plugin plugin);
 
     Plugin getPlugin();
 
@@ -17,15 +17,23 @@ public interface PermissionService
 
     CorePermissionRequester getCorePermissionRequester();
 
-    void reset();
+    boolean reset();
 
     default boolean isSet() {
         return Objects.nonNull(getPlugin());
     }
 
-    default boolean hasPermission(long userCode, String permissionNode) {
-        return hasPermission(getXiaomingBot().getAccountManager().createAccount(userCode), permissionNode);
+    default boolean hasPermission(long authorierCode, String permission) {
+        return hasPermission(authorierCode, Permission.compile(permission));
     }
 
-    boolean hasPermission(long userCode, long groupCode, String permissionNode);
+    default boolean hasPermission(long authorierCode, Permission permission) {
+        return hasPermission(getXiaomingBot().getAccountManager().createAccount(authorierCode), permission);
+    }
+
+    boolean hasPermission(long authorierCode, long groupCode, Permission permission);
+
+    default boolean hasPermission(long authorierCode, long groupCode, String permission) {
+        return hasPermission(authorierCode, groupCode, Permission.compile(permission));
+    }
 }

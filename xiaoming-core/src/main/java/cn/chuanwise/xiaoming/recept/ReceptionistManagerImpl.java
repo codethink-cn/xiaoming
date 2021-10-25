@@ -22,6 +22,8 @@ import net.mamoe.mirai.event.events.FriendMessageEvent;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.GroupTempMessageEvent;
 import net.mamoe.mirai.event.events.MessageRecallEvent;
+import net.mamoe.mirai.message.code.MiraiCode;
+import net.mamoe.mirai.message.data.MessageChain;
 import net.mamoe.mirai.message.data.OnlineMessageSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +62,7 @@ public class ReceptionistManagerImpl
         final Receptionist receptionist = getReceptionist(accountCode);
 
         final long groupCode = group.getId();
-        final GroupXiaomingUser user = receptionist.getGroupXiaomingUser(groupCode);
+        final GroupXiaomingUser user = receptionist.getGroupXiaomingUser(groupCode).orElseThrow();
         final OnlineMessageSource.Incoming.FromGroup source = event.getSource();
         final Message message = new MessageImpl(xiaomingBot,
                 event.getMessage(),
@@ -69,6 +71,7 @@ public class ReceptionistManagerImpl
                 ((long) event.getTime()) * 1000);
 
         xiaomingBot.getEventManager().callEventAsync(new MessageEvent(user, message));
+        xiaomingBot.getStatistician().increaseCallNumber();
     }
 
     @Override
@@ -78,7 +81,7 @@ public class ReceptionistManagerImpl
 
         final long accountCode = friend.getId();
         final Receptionist receptionist = getReceptionist(accountCode);
-        final PrivateXiaomingUser user = receptionist.getPrivateXiaomingUser();
+        final PrivateXiaomingUser user = receptionist.getPrivateXiaomingUser().orElseThrow();
 
         final OnlineMessageSource.Incoming.FromFriend source = event.getSource();
         final Message message = new MessageImpl(xiaomingBot,
@@ -88,6 +91,7 @@ public class ReceptionistManagerImpl
                 ((long) event.getTime()) * 1000);
 
         xiaomingBot.getEventManager().callEventAsync(new MessageEvent(user, message));
+        xiaomingBot.getStatistician().increaseCallNumber();
     }
 
     @Override
@@ -100,7 +104,7 @@ public class ReceptionistManagerImpl
         final Receptionist receptionist = getReceptionist(accountCode);
 
         final long groupCode = group.getId();
-        final MemberXiaomingUser user = receptionist.getMemberXiaomingUser(groupCode);
+        final MemberXiaomingUser user = receptionist.getMemberXiaomingUser(groupCode).orElseThrow();
         final OnlineMessageSource.Incoming.FromTemp source = event.getSource();
         final Message message = new MessageImpl(xiaomingBot,
                 event.getMessage(),
@@ -109,17 +113,28 @@ public class ReceptionistManagerImpl
                 ((long) event.getTime()) * 1000);
 
         xiaomingBot.getEventManager().callEventAsync(new MessageEvent(user, message));
+        xiaomingBot.getStatistician().increaseCallNumber();
     }
 
-    @EventListener(priority = ListenerPriority.LOW)
+    @EventListener
     public void onMessageEvent(MessageEvent messageEvent) {
         final Message message = messageEvent.getMessage();
         final XiaomingUser user = messageEvent.getUser();
+
+        if (xiaomingBot.getConfiguration().isTrimMessage()) {
+            final String beforeTrim = message.serialize();
+            final String afterTrim = beforeTrim.trim();
+
+            if (!Objects.equals(beforeTrim, afterTrim)) {
+                message.setMessageChain(MiraiCode.deserializeMiraiCode(afterTrim));
+            }
+        }
 
         // 唤醒正在等待这一条消息的线程
         xiaomingBot.getContactManager().onNextMessageEvent(messageEvent);
 
         if (Objects.nonNull(user.getInteractorContext())) {
+            xiaomingBot.getStatistician().increaseEffectiveCallNumber();
             getLogger().info(user.getCompleteName() + "已有交互上下文，不再启动新的接待任务");
             return;
         }

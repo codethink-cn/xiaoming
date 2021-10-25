@@ -138,7 +138,7 @@ public interface InteractorManager extends ModuleObject {
             final Container<T> result = (Container<T>) handler.getParser().parse(context);
             if (Objects.isNull(result)) {
                 return null;
-            } else if (result.hasValue()) {
+            } else if (result.isPresent()) {
                 return result;
             }
         }

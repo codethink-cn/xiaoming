@@ -19,10 +19,10 @@ import java.util.List;
 public class SimpleCorePermissionRequester
         extends SimplePreservable
         implements CorePermissionRequester {
-    List<String> userPermissions = new ArrayList<>();
+    List<Permission> userPermissions = new ArrayList<>();
 
     @Override
-    public boolean hasPermission(XiaomingUser user, String permission) {
+    public boolean hasPermission(XiaomingUser user, Permission permission) {
         final Account account = user.getAccount();
         if (user instanceof GroupXiaomingUser) {
             final GroupXiaomingUser groupXiaomingUser = (GroupXiaomingUser) user;
@@ -33,29 +33,33 @@ public class SimpleCorePermissionRequester
     }
 
     @Override
-    public boolean hasPermission(Account account, String permission) {
+    public boolean hasPermission(Account account, Permission permission) {
         return account.isAdministrator() || userHasPermission(permission);
     }
 
     @Override
-    public boolean hasPermission(Account account, GroupInformation groupInformation, String permission) {
+    public boolean hasPermission(Account account, GroupInformation groupInformation, Permission permission) {
         return account.isAdministrator() || userHasPermission(permission);
     }
 
-    protected boolean userHasPermission(String permission) {
+    protected boolean userHasPermission(Permission permission) {
         // check user permission
-        if (CollectionUtil.findFirst(userPermissions, owned -> PermissionUtil.isAccessible(owned, permission))
-                .isPresent()) {
-            return true;
+        for (Permission userPermission : userPermissions) {
+            final Accessible acceptable = userPermission.acceptable(permission);
+            if (acceptable != Accessible.UNKNOWN) {
+                return acceptable == Accessible.ACCESSIBLE;
+            }
         }
 
         // check plugin permissions
         final Collection<Plugin> plugins = xiaomingBot.getPluginManager().getPlugins().values();
         for (Plugin plugin : plugins) {
-            final String[] userPermissions = plugin.getHandler().getUserPermissions();
-            if (ArrayUtil.findFirst(userPermissions, owned -> PermissionUtil.isAccessible(owned, permission))
-                    .isPresent()) {
-                return true;
+            final Permission[] userPermissions = plugin.getHandler().getUserPermissions();
+            for (Permission userPermission : userPermissions) {
+                final Accessible acceptable = userPermission.acceptable(permission);
+                if (acceptable != Accessible.UNKNOWN) {
+                    return acceptable == Accessible.ACCESSIBLE;
+                }
             }
         }
         return false;

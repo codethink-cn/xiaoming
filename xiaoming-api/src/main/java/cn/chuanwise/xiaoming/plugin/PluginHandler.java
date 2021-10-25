@@ -4,6 +4,7 @@ import cn.chuanwise.toolkit.map.TypePathGetter;
 import cn.chuanwise.toolkit.map.PathSetter;
 import cn.chuanwise.util.ArrayUtil;
 import cn.chuanwise.util.LambdaUtil;
+import cn.chuanwise.xiaoming.permission.Permission;
 
 import java.io.File;
 import java.util.Arrays;
@@ -24,8 +25,8 @@ public interface PluginHandler extends TypePathGetter, PathSetter {
 
     Map<String, Object> getValues();
 
-    default String[] getUserPermissions() {
-        return getAsStringArrayContainer(USER_PERMISSIONS).orElse(ArrayUtil.emptyArray(String.class));
+    default Permission[] getUserPermissions() {
+        return getAsArrayContainer(USER_PERMISSIONS, Permission.class).orElse(ArrayUtil.emptyArray(Permission.class));
     }
 
     default String getName() {

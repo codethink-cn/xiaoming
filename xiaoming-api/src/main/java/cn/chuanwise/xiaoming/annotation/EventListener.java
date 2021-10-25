@@ -16,5 +16,5 @@ import java.lang.annotation.Target;
 public @interface EventListener {
     ListenerPriority priority() default ListenerPriority.NORMAL;
     
-    boolean ignoreCancelled() default true;
+    boolean listenCancelledEvent() default false;
 }

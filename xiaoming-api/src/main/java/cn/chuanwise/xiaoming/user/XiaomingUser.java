@@ -4,6 +4,7 @@ import cn.chuanwise.api.OriginalTagMarkable;
 import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.util.TagUtil;
 import cn.chuanwise.xiaoming.account.Account;
+import cn.chuanwise.xiaoming.permission.Permission;
 import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.contact.message.Message;
@@ -142,6 +143,10 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
         return getXiaomingBot().getPermissionService().hasPermission(this, permission);
     }
 
+    default boolean hasPermission(Permission permission) {
+        return getXiaomingBot().getPermissionService().hasPermission(this, permission);
+    }
+
     default boolean hasPermissions(String... permissions) {
         for (String node : permissions) {
             if (!hasPermission(node)) {
@@ -195,6 +200,8 @@ public interface XiaomingUser<C extends XiaomingContact<?>>
             if (Objects.equals(serializedMessage, "退出")) {
                 throw new InteractExitedException();
             } else {
+                getXiaomingBot().getStatistician().increaseCallNumber();
+
                 return optional;
             }
         } else {

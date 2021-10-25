@@ -1,9 +1,9 @@
-package cn.chuanwise.xiaoming.interactor.core;
+package cn.chuanwise.xiaoming.interactor.interactors;
 
 import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
-import cn.chuanwise.xiaoming.annotation.Permission;
+import cn.chuanwise.xiaoming.annotation.Required;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
 import cn.chuanwise.xiaoming.recept.Receptionist;
 import cn.chuanwise.xiaoming.recept.ReceptionistManager;
@@ -28,7 +28,7 @@ public class ReceptionistInteractors
     }
 
     @Filter(CommandWords.RECEPTIONIST)
-    @Permission("core.receptionist.list")
+    @Required("core.receptionist.list")
     public void listReceptionists(XiaomingUser user) {
         final Map<Long, Receptionist> receptionists = receptionistManager.getReceptionists();
         if (receptionists.isEmpty()) {
@@ -40,18 +40,18 @@ public class ReceptionistInteractors
     }
 
     @Filter(CommandWords.RECEPTIONIST + " {qq}")
-    @Permission("core.receptionist.look")
+    @Required("core.receptionist.look")
     public void lookReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
         final Receptionist receptionist = receptionistManager.getReceptionist(qq);
         final Map<Long, GroupXiaomingUser> groupXiaomingUsers = receptionist.getGroupXiaomingUsers();
-        final PrivateXiaomingUser privateXiaomingUser = receptionist.getPrivateXiaomingUser();
+        final Optional<PrivateXiaomingUser> optionalPrivateUser = receptionist.getPrivateXiaomingUser();
         final Map<Long, MemberXiaomingUser> memberXiaomingUsers = receptionist.getMemberXiaomingUsers();
 
-        final Function<XiaomingUser, String> statusFunction = xiaomingUser -> (Objects.isNull(xiaomingUser.getInteractorContext()) ? "空闲" : "阻塞");
+        final Function<XiaomingUser, String> statusFunction = xiaomingUser -> (Objects.isNull(xiaomingUser.getInteractorContext()) ? "空闲" : "忙碌");
 
         user.sendMessage("「接待员详情」\n" +
                 "目标：" + xiaomingBot.getAccountManager().getAliasAndCode(qq) + "\n" +
-                "私聊：" + statusFunction.apply(privateXiaomingUser) + "\n" +
+                "私聊：" + optionalPrivateUser.map(statusFunction).orElse("（非小明好友）") + "\n" +
                 "群聊：" + Optional.ofNullable(CollectionUtil.toIndexString(groupXiaomingUsers.values(), statusFunction::apply))
                                 .map(x -> "共 " + groupXiaomingUsers.size() + " 个实体：\n" + x)
                                 .orElse("（无）") + "\n" +
@@ -62,7 +62,7 @@ public class ReceptionistInteractors
 
     @Filter(CommandWords.DISABLE + CommandWords.RECEPTIONIST + " {qq}")
     @Filter(CommandWords.FORCE + CommandWords.DISABLE + CommandWords.RECEPTIONIST + " {qq}")
-    @Permission("core.receptionist.disable")
+    @Required("core.receptionist.disable")
     public void disableReceptionist(XiaomingUser user, @FilterParameter("qq") long qq) {
         receptionistManager.removeReceptionist(qq)
                 .ifPresentOrElse(receptionist -> {

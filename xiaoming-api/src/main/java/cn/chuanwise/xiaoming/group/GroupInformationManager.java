@@ -7,8 +7,10 @@ import cn.chuanwise.toolkit.preservable.Preservable;
 
 import java.io.File;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public interface GroupInformationManager extends XiaomingObject, Preservable {
     @Deprecated
@@ -17,17 +19,13 @@ public interface GroupInformationManager extends XiaomingObject, Preservable {
     }
 
     default Optional<GroupInformation> getGroupInformation(long group) {
-        return CollectionUtil.findFirst(getGroups(), groupRecord -> groupRecord.getCode() == group);
+        return CollectionUtil.findFirst(getGroups(), groupInformation -> groupInformation.getCode() == group).toOptional();
     }
 
-    default Set<GroupInformation> searchGroupsByTag(String tag) {
-        Set<GroupInformation> result = new HashSet<>();
-        for (GroupInformation group : getGroups()) {
-            if (group.hasTag(tag)) {
-                result.add(group);
-            }
-        }
-        return result;
+    default List<GroupInformation> searchGroupsByTag(String tag) {
+        return getGroups().stream()
+                .filter(information -> information.hasTag(tag))
+                .collect(Collectors.toUnmodifiableList());
     }
 
     default Set<String> getTags(long group) {

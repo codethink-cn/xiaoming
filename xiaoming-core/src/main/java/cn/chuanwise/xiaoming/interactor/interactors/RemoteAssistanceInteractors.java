@@ -1,4 +1,4 @@
-package cn.chuanwise.xiaoming.interactor.core;
+package cn.chuanwise.xiaoming.interactor.interactors;
 
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
 

@@ -27,7 +27,6 @@ import cn.chuanwise.xiaoming.plugin.PluginHandler;
 import cn.chuanwise.xiaoming.plugin.PluginManager;
 import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.recept.Receptionist;
-import cn.chuanwise.xiaoming.report.ReportMessage;
 import cn.chuanwise.xiaoming.schedule.FileSaver;
 import cn.chuanwise.xiaoming.user.GroupXiaomingUser;
 import cn.chuanwise.xiaoming.user.MemberXiaomingUser;
@@ -63,7 +62,7 @@ public class LanguageConfigUtil extends StaticUtil {
         registerContextRelated(languageManager);
         registerReceptionistRelated(languageManager);
         registerGeneric(languageManager);
-        registerReportReleted(languageManager);
+        registerSystemRelated(languageManager);
     }
 
     protected static <T> Object parameterOperator(T value, String identifier, BiFunction<Character, String, Object> consumer) {
@@ -71,6 +70,12 @@ public class LanguageConfigUtil extends StaticUtil {
             return null;
         }
         return consumer.apply(identifier.charAt(0), identifier.substring(2));
+    }
+
+    protected static void registerSystemRelated(LanguageManager languageManager) {
+        languageManager.registerVariable("property", System.getProperties(), null);
+        languageManager.registerOperators(Properties.class, null)
+                .addOperator(Properties::getProperty);
     }
 
     /** 申请相关 */
@@ -104,8 +109,8 @@ public class LanguageConfigUtil extends StaticUtil {
                 .addOperator("receptionistManager", XiaomingBot::getReceptionistManager)
                 .addOperator("pluginManager", XiaomingBot::getPluginManager)
                 .addOperator("lang", XiaomingBot::getLanguageManager)
-                .addOperator("code", value -> value.getMiraiBot().getId())
-                .addOperator("codeString", value -> Long.toString(value.getMiraiBot().getId()));
+                .addOperator("code", value -> value.getCode())
+                .addOperator("codeString", value -> Long.toString(value.getCode()));
     }
 
     /** 插件相关 */
@@ -171,6 +176,7 @@ public class LanguageConfigUtil extends StaticUtil {
     /** 数学相关 */
     protected static void registerMathRelated(LanguageManager languageManager) {
         languageManager.registerVariable("number", 0, null);
+        languageManager.registerVariable("num", 0, null);
 
         languageManager.registerOperators(Number.class, null)
                 .addOperator("int", Number::intValue)
@@ -274,12 +280,11 @@ public class LanguageConfigUtil extends StaticUtil {
         languageManager.registerConvertor(XiaomingContact.class, XiaomingContact::getAliasAndCode, null);
 
         languageManager.registerOperators(XiaomingContact.class, null)
+                .addOperator("tags", XiaomingContact::getTags)
                 .addOperator("name", XiaomingContact::getName)
                 .addOperator("code", XiaomingContact::getCode)
                 .addOperator("codeString", XiaomingContact::getCodeString)
                 .addOperator("alias", XiaomingContact::getAlias);
-        languageManager.registerOperators(GroupContact.class, null)
-                .addOperator("tags", GroupContact::getTags);
     }
 
     /** 日期相关 */
@@ -456,7 +461,8 @@ public class LanguageConfigUtil extends StaticUtil {
     protected static void registerStatisticianRelated(LanguageManager languageManager) {
         languageManager.registerOperators(Statistician.class, null)
                 .addOperator("startTime", Statistician::getBeginTime)
-                .addOperator("callNumber", Statistician::getCallNumber);
+                .addOperator("callNumber", Statistician::getCallNumber)
+                .addOperator("effectiveCallNumber", Statistician::getEffectiveCallNumber);
     }
 
     protected static void registerContextRelated(LanguageManager languageManager) {
@@ -488,15 +494,6 @@ public class LanguageConfigUtil extends StaticUtil {
         languageManager.registerConvertor(Receptionist.class, receptionist -> {
             return xiaomingBot.getAccountManager().getAliasAndCode(receptionist.getCode());
         }, null);
-    }
-
-    protected static void registerReportReleted(LanguageManager languageManager) {
-        languageManager.registerOperators(ReportMessage.class, null)
-                .addOperator("code", ReportMessage::getCode)
-                .addOperator("group", ReportMessage::getGroup)
-                .addOperator("message", ReportMessage::getMessage)
-                .addOperator("time", ReportMessage::getTime)
-                .addOperator("lastInputs", ReportMessage::getInput);
     }
 
     protected static void printMethodNames() {

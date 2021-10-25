@@ -8,6 +8,7 @@ import cn.chuanwise.xiaoming.object.ModuleObject;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public interface AccountManager extends Preservable, ModuleObject {
     Account createAccount(long code);
@@ -44,5 +45,11 @@ public interface AccountManager extends Preservable, ModuleObject {
         return getAccount(code)
                 .map(TagMarkable::getTags)
                 .orElseGet(() -> Account.originalTagsOf(code));
+    }
+
+    default List<Account> searchAccountsByTag(String tag) {
+        return getAccounts().values().stream()
+                .filter(account -> account.hasTag(tag))
+                .collect(Collectors.toUnmodifiableList());
     }
 }

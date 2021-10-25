@@ -37,4 +37,8 @@ public class SimplePreservable<T extends Plugin>
     public void setXiaomingBot(XiaomingBot xiaomingBot) {
         this.xiaomingBot = xiaomingBot;
     }
+
+    public void readyToSave() {
+        xiaomingBot.getFileSaver().readyToSave(this);
+    }
 }

@@ -16,7 +16,6 @@ import cn.chuanwise.xiaoming.interactor.handler.Interactor;
 import cn.chuanwise.xiaoming.interactor.parser.InteractorParameterParserHandler;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.plugin.PluginHandler;
-import cn.chuanwise.xiaoming.report.ReportMessage;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import cn.chuanwise.xiaoming.util.AtUtil;
@@ -162,7 +161,7 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
             if (optionalGroupCode.isPresent()) {
                 final GroupInformation groupInformation = getXiaomingBot().getGroupInformationManager().forCode(optionalGroupCode.get());
                 if (Objects.isNull(groupInformation)) {
-                    user.sendError("{lang.groupRecordNotFound}", inputValue);
+                    user.sendError("{lang.groupInformationNotFound}", inputValue);
                     return null;
                 } else {
                     return Container.of(groupInformation);
@@ -191,31 +190,6 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
                     return Container.of(ArgumentUtil.split(context.getMessage().serialize()).toArray(new String[0]));
                 default:
                     return null;
-            }
-        }, true, null);
-        registerParameterParser(ReportMessage.class, context -> {
-            final List<ReportMessage> reportMessages = xiaomingBot.getReportMessageManager().getReportMessages();
-            final String inputValue = context.getInputValue();
-            final XiaomingUser user = context.getUser();
-
-            if (reportMessages.isEmpty()) {
-                user.sendError("{lang.noAnyReports}");
-                return null;
-            }
-
-            final Optional<Integer> optionalIndex = NumberUtil.parseIndex(inputValue, 1, reportMessages.size());
-
-            if (reportMessages.size() == 1) {
-                final ReportMessage target = reportMessages.get(0);
-                user.sendWarning("{lang.onlyOneReports}");
-                return Container.of(target);
-            }
-
-            if (optionalIndex.isPresent()) {
-                return Container.of(reportMessages.get(optionalIndex.get() - 1));
-            } else {
-                user.sendError("{lang.illegalIndex}", inputValue);
-                return null;
             }
         }, true, null);
     }

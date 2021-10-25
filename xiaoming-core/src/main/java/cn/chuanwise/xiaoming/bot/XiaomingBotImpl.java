@@ -14,7 +14,7 @@ import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.configuration.Statistician;
 import cn.chuanwise.xiaoming.contact.ContactManager;
 import cn.chuanwise.xiaoming.group.GroupInformationManagerImpl;
-import cn.chuanwise.xiaoming.interactor.core.*;
+import cn.chuanwise.xiaoming.interactor.interactors.*;
 import cn.chuanwise.xiaoming.language.LanguageManager;
 import cn.chuanwise.xiaoming.language.LanguageManagerImpl;
 import cn.chuanwise.xiaoming.listener.CoreListeners;
@@ -24,7 +24,6 @@ import cn.chuanwise.xiaoming.optimize.Optimizer;
 import cn.chuanwise.xiaoming.optimize.OptimizerImpl;
 import cn.chuanwise.xiaoming.permission.PermissionService;
 import cn.chuanwise.xiaoming.permission.PermissionServiceImpl;
-import cn.chuanwise.xiaoming.report.ReportMessageManager;
 import cn.chuanwise.xiaoming.exception.NoSuchBotException;
 import cn.chuanwise.xiaoming.exception.XiaomingInitializeException;
 import cn.chuanwise.xiaoming.exception.XiaomingRuntimeException;
@@ -40,7 +39,6 @@ import cn.chuanwise.xiaoming.plugin.PluginManager;
 import cn.chuanwise.xiaoming.account.AccountManagerImpl;
 import cn.chuanwise.xiaoming.contact.ContactManagerImpl;
 import cn.chuanwise.xiaoming.contact.contact.ConsoleContactImpl;
-import cn.chuanwise.xiaoming.report.ReportMessageManagerImpl;
 import cn.chuanwise.xiaoming.interactor.InteractorManagerImpl;
 import cn.chuanwise.xiaoming.schedule.FileSaverImpl;
 import cn.chuanwise.xiaoming.thread.ConsoleInputThread;
@@ -66,7 +64,6 @@ import net.mamoe.mirai.event.EventChannel;
 import net.mamoe.mirai.event.EventHandler;
 import net.mamoe.mirai.event.ListenerHost;
 import net.mamoe.mirai.event.events.BotEvent;
-import net.mamoe.mirai.event.events.MessageRecallEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +75,6 @@ import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 /**
@@ -203,6 +199,7 @@ public class XiaomingBotImpl
         checkIfCanDeleteAndLog.accept(new File(workingDirectory, "accounts"), "账户文件夹");
         checkIfCanDeleteAndLog.accept(new File(configurationDirectory, "permissions.json"), "权限文件");
         checkIfCanDeleteAndLog.accept(new File(configurationDirectory, "license.json"), "协议文件");
+        checkIfCanDeleteAndLog.accept(new File(configurationDirectory, "reports.json"), "错误报告文件");
 
         initializer.put("eventManager", () -> {
             eventManager = new EventManagerImpl(this);
@@ -299,15 +296,6 @@ public class XiaomingBotImpl
             receptionistManager = new ReceptionistManagerImpl(this);
         });
 
-        initializer.put("reportMessageManager", () -> {
-            final File file = new File(configurationDirectory, "reports.json");
-            checkIfExistAndLog.accept(file, "反馈和错误报告文件");
-
-            reportMessageManager = fileLoader
-                    .loadOrSupply(ReportMessageManagerImpl.class, file, ReportMessageManagerImpl::new);
-            reportMessageManager.setXiaomingBot(this);
-        });
-
         initializer.put("resourceManager", () -> {
             final File file = new File(resourceDirectory, "resources.json");
             checkIfExistAndLog.accept(file, "资源概况文件");
@@ -335,6 +323,11 @@ public class XiaomingBotImpl
 
         if (!resourceDirectory.isDirectory() && !resourceDirectory.mkdirs()) {
             final String message = "无法创建本地资源文件夹：" + resourceDirectory.getAbsolutePath();
+            throw new XiaomingInitializeException(message);
+        }
+
+        if (!reportDirectory.isDirectory() && !reportDirectory.mkdirs()) {
+            final String message = "无法创建错误报告文件夹：" + resourceDirectory.getAbsolutePath();
             throw new XiaomingInitializeException(message);
         }
 
@@ -366,11 +359,11 @@ public class XiaomingBotImpl
         interactorManager.registerInteractors(new ReceptionistInteractors(), null);
         interactorManager.registerInteractors(new ResourceInteractors(), null);
         interactorManager.registerInteractors(new AccountInteractors(), null);
-        interactorManager.registerInteractors(new ReportInteractors(), null);
         interactorManager.registerInteractors(new CoreInteractors(), null);
         interactorManager.registerInteractors(new ConfigurationInteractors(), null);
         interactorManager.registerInteractors(new GroupRecordInteractors(), null);
-        interactorManager.registerInteractors(new LanguageIterator(), null);
+        interactorManager.registerInteractors(new LanguageIterators(), null);
+        interactorManager.registerInteractors(new PermissionInteractors(), null);
 
         // 注册内核监听器
         eventManager.registerListeners(receptionistManager, null);
@@ -455,6 +448,7 @@ public class XiaomingBotImpl
         }
 
         getLogger().info("正在启动小明机器人……");
+        getLogger().info("登录 QQ 过程可能卡顿，请耐心等待 ……");
         translateArguments();
 
         // 登录机器人
@@ -490,6 +484,8 @@ public class XiaomingBotImpl
     }
 
     File workingDirectory = new File(System.getProperty("user.dir"));
+
+    File reportDirectory = new File(workingDirectory, "reports");
 
     /**
      * 统一权限管理器
@@ -547,11 +543,6 @@ public class XiaomingBotImpl
      * 用户交互线程管理器
      */
     ReceptionistManager receptionistManager;
-
-    /**
-     * 错误记录器
-     */
-    ReportMessageManager reportMessageManager;
 
     /**
      * 本地资源管理器
@@ -627,8 +618,9 @@ public class XiaomingBotImpl
         }
 
         fileSaver.readyToSave(accountManager);
-        fileSaver.readyToSave(configuration);
         fileSaver.readyToSave(groupInformationManager);
+        fileSaver.readyToSave(configuration);
+        fileSaver.readyToSave(statistician);
 
         setStatus(Status.DISABLING);
 

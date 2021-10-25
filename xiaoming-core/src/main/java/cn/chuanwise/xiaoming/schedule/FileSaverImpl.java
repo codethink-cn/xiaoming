@@ -4,12 +4,9 @@ import cn.chuanwise.toolkit.preservable.Preservable;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.io.File;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,8 +39,8 @@ public class FileSaverImpl extends ModuleObjectImpl implements FileSaver {
             final File file = entry.getKey();
             final Preservable preservable = entry.getValue();
 
-            if (Objects.isNull(preservable.getMedium())) {
-                preservable.setMedium(file);
+            if (Objects.isNull(preservable.getFile())) {
+                preservable.setFile(file);
             }
 
             if (saveOrFail(preservable)) {

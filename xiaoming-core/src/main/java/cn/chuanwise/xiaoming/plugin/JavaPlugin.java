@@ -42,10 +42,12 @@ public class JavaPlugin
     File dataFolder;
 
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends Preservable> T loadFileAs(Class<T> clazz, File file) throws IOException {
         final T result = getXiaomingBot().getFileLoader().load(clazz, file);
         if (result instanceof PluginObject) {
             ((PluginObject) result).setPlugin(this);
+            ((PluginObject<?>) result).setXiaomingBot(xiaomingBot);
         }
         return result;
     }

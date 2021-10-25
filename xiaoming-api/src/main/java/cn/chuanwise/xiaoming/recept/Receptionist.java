@@ -7,6 +7,7 @@ import cn.chuanwise.xiaoming.user.PrivateXiaomingUser;
 import cn.chuanwise.xiaoming.user.MemberXiaomingUser;
 
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * 小明接待员
@@ -22,9 +23,9 @@ public interface Receptionist extends ModuleObject, PropertyHandler {
 
     Map<Long, MemberXiaomingUser> getMemberXiaomingUsers();
 
-    PrivateXiaomingUser getPrivateXiaomingUser();
+    Optional<PrivateXiaomingUser> getPrivateXiaomingUser();
 
-    GroupXiaomingUser getGroupXiaomingUser(long groupCode);
+    Optional<GroupXiaomingUser> getGroupXiaomingUser(long groupCode);
 
-    MemberXiaomingUser getMemberXiaomingUser(long code);
+    Optional<MemberXiaomingUser> getMemberXiaomingUser(long code);
 }

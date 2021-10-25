@@ -44,10 +44,10 @@ public interface LanguageManager extends ModuleObject {
     }
 
     /** 全局变量表 */
-    Map<String, VariableHandler> getVariables();
+    Map<String, VariableHandler> getGlobalVariables();
 
-    default List<VariableHandler> getVariables(Plugin plugin) {
-        return CollectionUtil.filter(getVariables().values(), new ArrayList<>(), variable -> (variable.getPlugin() == plugin));
+    default List<VariableHandler> getGlobalVariables(Plugin plugin) {
+        return CollectionUtil.filter(getGlobalVariables().values(), new ArrayList<>(), variable -> (variable.getPlugin() == plugin));
     }
 
     void registerVariable(String name, VariableGetter<?> getter, Plugin plugin);
@@ -59,7 +59,7 @@ public interface LanguageManager extends ModuleObject {
     void unregisterVariables(Plugin plugin);
 
     default VariableHandler getGlobalVariableHandler(String name) {
-        return getVariables().get(name);
+        return getGlobalVariables().get(name);
     }
 
     default Object getGlobalVariable(String name) {

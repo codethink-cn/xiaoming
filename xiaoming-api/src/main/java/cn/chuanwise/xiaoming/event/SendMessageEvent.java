@@ -1,7 +1,7 @@
 package cn.chuanwise.xiaoming.event;
 
+import cn.chuanwise.toolkit.box.Box;
 import cn.chuanwise.toolkit.container.Container;
-import cn.chuanwise.toolkit.container.WaitableContainer;
 import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.contact.message.Message;
 import lombok.Data;
@@ -14,5 +14,5 @@ public class SendMessageEvent
     final MessageChain messageChain;
 
     final long time = System.currentTimeMillis();
-    final Container<Message> messageContainer = Container.empty();
+    final Box<Message> messageBox = Box.empty();
 }

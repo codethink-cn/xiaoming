@@ -1,12 +1,13 @@
 package cn.chuanwise.xiaoming.recept;
 
-import cn.chuanwise.exception.UnsupportedVersionException;
 import cn.chuanwise.toolkit.container.Container;
 import cn.chuanwise.toolkit.sized.SizedResidentConcurrentHashMap;
 import cn.chuanwise.util.MapUtil;
 import cn.chuanwise.util.ObjectUtil;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.configuration.Configuration;
+import cn.chuanwise.xiaoming.contact.contact.MemberContact;
+import cn.chuanwise.xiaoming.contact.contact.PrivateContact;
 import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.user.*;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
@@ -83,43 +84,59 @@ public class ReceptionistImpl
     @Override
     public <T> Container<T> waitProperty(PropertyType<T> type, long timeout) throws InterruptedException {
         final Object conditionalVariable = MapUtil.getOrPutSupply(conditionalVariables, type, Object::new);
-        switch (ObjectUtil.wait(conditionalVariable, timeout)) {
-            case NOTIFY:
-                return Container.of((T) properties.get(type));
-            case TIMEOUT:
-                return Container.empty();
-            default:
-                throw new UnsupportedVersionException();
+        if (ObjectUtil.wait(conditionalVariable, timeout)) {
+            return Container.of((T) properties.get(type));
+        } else {
+            return Container.empty();
         }
     }
 
     @Override
-    public GroupXiaomingUser getGroupXiaomingUser(long groupCode) {
-        return MapUtil.getOrPutSupply(groupXiaomingUsers, groupCode,
-                () -> {
-                    final GroupXiaomingUserImpl groupXiaomingUser = new GroupXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code).orElseThrow());
-                    groupXiaomingUser.setReceptionist(ReceptionistImpl.this);
-                    return groupXiaomingUser;
-                });
+    public Optional<GroupXiaomingUser> getGroupXiaomingUser(long groupCode) {
+        final Optional<GroupXiaomingUser> optionalUser = MapUtil.get(groupXiaomingUsers, groupCode).toOptional();
+        if (optionalUser.isPresent()) {
+            return optionalUser;
+        }
+
+        final Optional<MemberContact> optionalContact = getXiaomingBot().getContactManager().getMemberContact(groupCode, code);
+        if (optionalContact.isEmpty()) {
+            return Optional.empty();
+        }
+
+        final GroupXiaomingUser groupXiaomingUser = new GroupXiaomingUserImpl(optionalContact.get());
+        groupXiaomingUser.setReceptionist(this);
+        return Optional.of(groupXiaomingUser);
     }
 
     @Override
-    public MemberXiaomingUser getMemberXiaomingUser(long groupCode) {
-        return MapUtil.getOrPutSupply(memberXiaomingUsers, groupCode,
-                () -> {
-                    final MemberXiaomingUserImpl memberXiaomingUser = new MemberXiaomingUserImpl(getXiaomingBot().getContactManager().getMemberContact(groupCode, code).orElseThrow());
-                    memberXiaomingUser.setReceptionist(ReceptionistImpl.this);
-                    return memberXiaomingUser;
-                });
+    public Optional<MemberXiaomingUser> getMemberXiaomingUser(long groupCode) {
+        final Optional<MemberXiaomingUser> optionalUser = MapUtil.get(memberXiaomingUsers, groupCode).toOptional();
+        if (optionalUser.isPresent()) {
+            return optionalUser;
+        }
+
+        final Optional<MemberContact> optionalContact = getXiaomingBot().getContactManager().getMemberContact(groupCode, code);
+        if (optionalContact.isEmpty()) {
+            return Optional.empty();
+        }
+
+        final MemberXiaomingUser groupXiaomingUser = new MemberXiaomingUserImpl(optionalContact.get());
+        groupXiaomingUser.setReceptionist(this);
+        return Optional.of(groupXiaomingUser);
     }
 
     @Override
-    public PrivateXiaomingUser getPrivateXiaomingUser() {
+    public Optional<PrivateXiaomingUser> getPrivateXiaomingUser() {
         if (Objects.isNull(privateXiaomingUser)) {
-            privateXiaomingUser = new PrivateXiaomingUserImpl(xiaomingBot.getContactManager().getPrivateContact(code).orElseThrow());
+            final Optional<PrivateContact> optionalContact = xiaomingBot.getContactManager().getPrivateContact(code);
+            if (optionalContact.isEmpty()) {
+                return Optional.empty();
+            }
+
+            privateXiaomingUser = new PrivateXiaomingUserImpl(optionalContact.get());
             privateXiaomingUser.setReceptionist(this);
         }
-        return privateXiaomingUser;
+        return Optional.of(privateXiaomingUser);
     }
 
     @Override

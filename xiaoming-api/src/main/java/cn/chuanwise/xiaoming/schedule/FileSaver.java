@@ -5,7 +5,6 @@ import cn.chuanwise.toolkit.serialize.serializer.Serializer;
 import cn.chuanwise.util.ConditionUtil;
 import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.object.ModuleObject;
-import cn.chuanwise.xiaoming.preservable.SimplePreservable;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,7 +42,7 @@ public interface FileSaver extends ModuleObject {
      * @param preservable 文件
      */
     default void readyToSave(Preservable preservable) {
-        final File file = preservable.getMedium();
+        final File file = preservable.getFile();
         ConditionUtil.checkArgument(Objects.nonNull(file), "medium can not be null!");
 
         // 是否直接保存文件
@@ -64,7 +63,7 @@ public interface FileSaver extends ModuleObject {
      * @param preservable 文件
      */
     default void planToSave(Preservable preservable) {
-        final File file = preservable.getMedium();
+        final File file = preservable.getFile();
         ConditionUtil.checkArgument(Objects.nonNull(file), "medium can not be null!");
 
         getPreservables().put(file, preservable);
@@ -72,7 +71,7 @@ public interface FileSaver extends ModuleObject {
 
     default void save(Preservable preservable) throws IOException {
         final Serializer serializer = preservable.getSerializer();
-        serializer.serialize(preservable, preservable.getMedium(), getEncode());
+        serializer.serialize(preservable, preservable.getFile(), getEncode());
     }
 
     default boolean saveOrFail(Preservable preservable) {

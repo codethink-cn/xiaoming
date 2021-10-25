@@ -57,7 +57,7 @@ public interface PrivateContact extends XiaomingContact<Friend> {
     }
 
     default PrivateXiaomingUser getUser() {
-        return getXiaomingBot().getReceptionistManager().getReceptionist(getCode()).getPrivateXiaomingUser();
+        return getXiaomingBot().getReceptionistManager().getReceptionist(getCode()).getPrivateXiaomingUser().orElseThrow();
     }
 
     @Override

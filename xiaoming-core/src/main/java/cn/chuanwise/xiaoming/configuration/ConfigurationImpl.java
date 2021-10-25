@@ -24,6 +24,8 @@ public class ConfigurationImpl extends AbstractPreservable implements Configurat
     boolean autoAcceptFriendAddRequest = true;
     boolean autoAcceptGroupInvite = false;
 
+    boolean trimMessage = true;
+
     /** 主线程池最大容量 */
     int maxMainThreadPoolSize = 10;
 

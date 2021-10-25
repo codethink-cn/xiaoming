@@ -172,8 +172,14 @@ public interface Plugin
      * @param <T> 配置类类型
      * @return 从文件中导入的值，或由默认配置生成器生成的值
      */
+    @SuppressWarnings("unchecked")
     default <T extends Preservable> T loadFileOrSupply(Class<T> clazz, File file, Supplier<T> supplier) {
-        return getXiaomingBot().getFileLoader().loadOrSupply(clazz, file, supplier);
+        final T data = getXiaomingBot().getFileLoader().loadOrSupply(clazz, file, supplier);
+        if (data instanceof PluginObject) {
+            ((PluginObject) data).setPlugin(this);
+            ((PluginObject<?>) data).setXiaomingBot(getXiaomingBot());
+        }
+        return data;
     }
 
     default <T extends Preservable> T loadFileOrSupply(Class<T> clazz, String fileName, Supplier<T> supplier) {

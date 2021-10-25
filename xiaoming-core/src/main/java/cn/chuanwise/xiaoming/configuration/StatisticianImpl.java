@@ -1,32 +1,28 @@
 package cn.chuanwise.xiaoming.configuration;
 
-import cn.chuanwise.toolkit.preservable.AbstractPreservable;
-import cn.chuanwise.xiaoming.bot.XiaomingBot;
+import cn.chuanwise.xiaoming.preservable.SimplePreservable;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.LinkedList;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
-public class StatisticianImpl extends AbstractPreservable implements Statistician {
-    volatile long callNumber = 0;
+public class StatisticianImpl
+        extends SimplePreservable
+        implements Statistician {
+    volatile long callNumber;
+    volatile long effectiveCallNumber;
 
     List<RunRecord> runRecords = new LinkedList<>();
     transient long beginTime = System.currentTimeMillis();
 
-    @Setter
-    transient XiaomingBot xiaomingBot;
-
-    public StatisticianImpl(XiaomingBot xiaomingBot) {
-        this.xiaomingBot = xiaomingBot;
+    @Override
+    public synchronized void increaseCallNumber() {
+        callNumber++;
     }
 
     @Override
-    public void increaseCallCounter() {
-        callNumber++;
-        getXiaomingBot().getFileSaver().readyToSave(this);
+    public synchronized void increaseEffectiveCallNumber() {
+        effectiveCallNumber++;
     }
 }

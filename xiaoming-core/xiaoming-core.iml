@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
-  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_11">
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
     <content url="file://$MODULE_DIR$">
@@ -11,10 +11,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: cn.chuanwise:chuanwise-toolkit-generic:3.0" level="project" />
-    <orderEntry type="library" name="Maven: cn.chuanwise:xiaoming-center-client:1.0-exp" level="project" />
-    <orderEntry type="library" name="Maven: cn.chuanwise:xiaoming-center-protocol:1.0-exp" level="project" />
-    <orderEntry type="library" name="Maven: cn.chuanwise:chuanwise-toolkit-net:3.0" level="project" />
     <orderEntry type="module" module-name="xiaoming-api" />
     <orderEntry type="library" name="Maven: net.mamoe:mirai-core-api-jvm:2.7.1-dev-1" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-reflect:1.5.10" level="project" />
@@ -51,7 +47,7 @@
     <orderEntry type="library" scope="RUNTIME" name="Maven: io.netty:netty-all:4.1.63.Final" level="project" />
     <orderEntry type="library" scope="RUNTIME" name="Maven: org.bouncycastle:bcprov-jdk15on:1.64" level="project" />
     <orderEntry type="library" name="Maven: org.jline:jline:3.20.0" level="project" />
-    <orderEntry type="module" module-name="chuanwise-toolkit-generic" />
+    <orderEntry type="library" name="Maven: cn.chuanwise:chuanwise-toolkit-generic:3.1-exp" level="project" />
     <orderEntry type="library" name="Maven: com.alibaba:fastjson:1.2.75" level="project" />
     <orderEntry type="library" name="Maven: org.yaml:snakeyaml:1.27" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.projectlombok:lombok:1.18.20" level="project" />

@@ -123,7 +123,7 @@ public interface MemberContact extends XiaomingContact<NormalMember> {
     }
 
     default MemberXiaomingUser getUser() {
-        return getXiaomingBot().getReceptionistManager().getReceptionist(getCode()).getMemberXiaomingUser(getGroupCode());
+        return getXiaomingBot().getReceptionistManager().getReceptionist(getCode()).getMemberXiaomingUser(getGroupCode()).orElseThrow();
     }
 
     @Override

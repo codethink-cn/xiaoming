@@ -1,6 +1,7 @@
 package cn.chuanwise.xiaoming.contact;
 
 import cn.chuanwise.exception.UnsupportedVersionException;
+import cn.chuanwise.toolkit.box.Box;
 import cn.chuanwise.toolkit.container.Container;
 import cn.chuanwise.toolkit.sized.SizedCopyOnWriteArrayList;
 import cn.chuanwise.util.MapUtil;
@@ -24,7 +25,6 @@ import net.mamoe.mirai.message.data.OnlineMessageSource;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Future;
 import java.util.function.Predicate;
@@ -50,16 +50,16 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
         recentSentMessageEvents = Collections.synchronizedList(new SizedCopyOnWriteArrayList<>(xiaomingBot.getConfiguration().getMaxRecentMessageBufferSize()));
     }
 
-    final Container<Thread> sendMessageLoop = Container.empty();
+    final Box<Thread> sendMessageLoop = Box.empty();
 
     @Override
     public Future<Optional<Message>> readyToSend(SendMessageEvent event) {
         recentSentMessageEvents.add(event);
         sendMessageList.add(event);
 
-        sendMessageLoop.ifHasNotValue(() -> getXiaomingBot().getScheduler().run(() -> {
+        sendMessageLoop.ifEmpty(() -> getXiaomingBot().getScheduler().run(() -> {
             try {
-                sendMessageLoop.setValue(Thread.currentThread());
+                sendMessageLoop.set(Thread.currentThread());
 
                 while (!sendMessageList.isEmpty()) {
                     final SendMessageEvent cursor = sendMessageList.remove(0);
@@ -71,7 +71,7 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
                         final MessageReceipt messageReceipt = miraiContact.sendMessage(cursor.getMessageChain());
                         final OnlineMessageSource.Outgoing source = messageReceipt.getSource();
 
-                        cursor.getMessageContainer().setValue(new MessageImpl(xiaomingBot, source.getOriginalMessage(), source.getTime()));
+                        cursor.getMessageBox().set(new MessageImpl(xiaomingBot, source.getOriginalMessage(), source.getTime()));
                     }
 
                     synchronized (cursor) {
@@ -91,13 +91,11 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
         }));
 
         return getXiaomingBot().getScheduler().run(() -> {
-            switch (ObjectUtil.wait(event)) {
-                case NOTIFY:
-                    return event.getMessageContainer().toOptional();
-                case TIMEOUT:
-                    throw new IllegalStateException();
-                default:
-                    throw new UnsupportedVersionException();
+            final Box<Message> messageBox = event.getMessageBox();
+            if (messageBox.isPresent()) {
+                return messageBox.toOptional();
+            } else {
+                return messageBox.nextValue().toOptional();
             }
         });
     }
@@ -122,13 +120,10 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
 
     @Override
     public Optional<MessageEvent> nextMessageEvent(long timeout, Predicate<MessageEvent> filter) throws InterruptedException {
-        switch (ObjectUtil.wait(recentMessageConditionalVariable, timeout, () -> filter.test(recentMessageEvents.get(recentMessageEvents.size() - 1)))) {
-            case NOTIFY:
-                return Optional.of(recentMessageEvents.get(recentMessageEvents.size() - 1));
-            case TIMEOUT:
-                return Optional.empty();
-            default:
-                throw new UnsupportedVersionException();
+        if (ObjectUtil.waitUtil(recentMessageConditionalVariable, timeout, () -> filter.test(recentMessageEvents.get(recentMessageEvents.size() - 1)))) {
+            return Optional.of(recentMessageEvents.get(recentMessageEvents.size() - 1));
+        } else {
+            return Optional.empty();
         }
     }
 
@@ -221,12 +216,12 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
         final Map<Long, MemberContact> memberContacts = MapUtil.getOrPutSupply(this.memberContacts, code, ConcurrentHashMap::new);
 
         final long qq = miraiMember.getId();
-        final Container<MemberContact> memberContactContainer = MapUtil.get(memberContacts, qq);
+        final Box<MemberContact> memberContactContainer = MapUtil.get(memberContacts, qq).toBox();
 
         // 记录了本群，但还没记录这个成员
         if (memberContactContainer.isEmpty()) {
             final MemberContact memberContact = new MemberContactImpl(getGroupContact(code).orElseThrow(), miraiMember);
-            memberContactContainer.setValue(memberContact);
+            memberContactContainer.set(memberContact);
             memberContacts.put(qq, memberContact);
         }
 

@@ -79,6 +79,10 @@ public interface Configuration extends Preservable, XiaomingObject {
 
     void setAutoAcceptGroupInvite(boolean autoAcceptGroupInvite);
 
+    boolean isTrimMessage();
+
+    void setTrimMessage(boolean trimMessage);
+
     int getMaxMainThreadPoolSize();
 
     long getSendMessagePeriod();

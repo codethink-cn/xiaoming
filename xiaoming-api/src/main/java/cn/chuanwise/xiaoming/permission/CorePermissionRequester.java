@@ -6,5 +6,5 @@ import java.util.List;
 
 public interface CorePermissionRequester
         extends PermissionRequester, Preservable {
-    List<String> getUserPermissions();
+    List<Permission> getUserPermissions();
 }

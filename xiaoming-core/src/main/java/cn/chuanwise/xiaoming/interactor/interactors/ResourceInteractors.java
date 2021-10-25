@@ -1,9 +1,9 @@
-package cn.chuanwise.xiaoming.interactor.core;
+package cn.chuanwise.xiaoming.interactor.interactors;
 
 import cn.chuanwise.util.TimeUtil;
 import cn.chuanwise.xiaoming.annotation.Name;
 import cn.chuanwise.xiaoming.annotation.Filter;
-import cn.chuanwise.xiaoming.annotation.Permission;
+import cn.chuanwise.xiaoming.annotation.Required;
 import cn.chuanwise.xiaoming.resource.ResourceManager;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.util.CommandWords;
@@ -22,7 +22,7 @@ public class ResourceInteractors extends SimpleInteractors {
 
     @Name("lookResource")
     @Filter(CommandWords.RESOURCE)
-    @Permission("resource.look")
+    @Required("resource.look")
     public void onLookResource(XiaomingUser user) {
         final Map<String, Long> imageVisitTimes = resourceManager.getImageLastVisitTimes();
         if (imageVisitTimes.isEmpty()) {
@@ -41,7 +41,7 @@ public class ResourceInteractors extends SimpleInteractors {
 
     @Name("removeBefore")
     @Filter(CommandWords.REMOVE + CommandWords.RESOURCE)
-    @Permission("resource.remove")
+    @Required("resource.remove")
     public void onRemoveBefore(XiaomingUser user) {
         user.sendMessage("{lang.queryDeleteResourceBefore}");
 

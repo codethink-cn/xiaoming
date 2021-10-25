@@ -9,6 +9,7 @@ import cn.chuanwise.xiaoming.event.Listeners;
 import cn.chuanwise.xiaoming.object.PluginObject;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.object.ModuleObjectImpl;
+import cn.chuanwise.xiaoming.util.RegisterUtil;
 import lombok.Getter;
 import net.mamoe.mirai.event.Event;
 
@@ -74,15 +75,14 @@ public class EventManagerImpl extends ModuleObjectImpl implements EventManager {
                 } catch (InvocationTargetException exception) {
                     getLogger().error("监听函数 " + method.getName() + " 响应事件 " + event + " 时出现异常", exception.getCause());
                 }
-            }, handler.ignoreCancelled(), plugin));
+            }, handler.listenCancelledEvent(), plugin));
         });
     }
 
     @Override
     public void registerListener(ListenerHandler<?> handler) {
         final Plugin plugin = handler.getPlugin();
-        ConditionUtil.checkState(getXiaomingBot().getStatus() == XiaomingBot.Status.ENABLING || Objects.nonNull(plugin),
-                "can not register listener as xiaoming core");
+        RegisterUtil.checkRegister(xiaomingBot, plugin, "listener");
         final List<ListenerHandler> samePriorityListeners = MapUtil.getOrPutSupply(listeners, handler.getPriority(), CopyOnWriteArrayList::new);
         samePriorityListeners.add(handler);
     }

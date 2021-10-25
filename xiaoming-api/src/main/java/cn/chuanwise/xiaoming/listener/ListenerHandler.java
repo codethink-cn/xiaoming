@@ -9,6 +9,6 @@ public class ListenerHandler<T extends Event> {
     final ListenerPriority priority;
     final Class<T> eventClass;
     final Listener<T> listener;
-    final boolean ignoreCancelled;
+    final boolean listenCancelledEvent;
     final Plugin plugin;
 }

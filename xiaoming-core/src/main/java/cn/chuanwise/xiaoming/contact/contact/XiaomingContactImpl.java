@@ -2,14 +2,11 @@ package cn.chuanwise.xiaoming.contact.contact;
 
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
 import cn.chuanwise.xiaoming.contact.message.Message;
-import cn.chuanwise.xiaoming.contact.message.MessageImpl;
 import cn.chuanwise.xiaoming.event.SendMessageEvent;
 import cn.chuanwise.xiaoming.object.XiaomingObjectImpl;
 import lombok.Getter;
 import net.mamoe.mirai.contact.Contact;
-import net.mamoe.mirai.message.MessageReceipt;
 import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.OnlineMessageSource;
 
 import java.util.Optional;
 
@@ -31,7 +28,7 @@ public abstract class XiaomingContactImpl<C extends Contact> extends XiaomingObj
         if (event.isCancelled()) {
             return Optional.empty();
         } else {
-            return event.getMessageContainer().toOptional();
+            return event.getMessageBox().toOptional();
         }
     }
 }

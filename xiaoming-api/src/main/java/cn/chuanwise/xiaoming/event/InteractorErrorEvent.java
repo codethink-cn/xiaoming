@@ -9,6 +9,4 @@ public class InteractorErrorEvent
         extends SimpleXiaomingEvent {
     final InteractorContext context;
     final Throwable throwable;
-
-    boolean reported = false;
 }

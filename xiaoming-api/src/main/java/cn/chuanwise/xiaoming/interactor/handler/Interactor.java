@@ -7,7 +7,6 @@ import cn.chuanwise.util.*;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.annotation.*;
 import cn.chuanwise.xiaoming.bot.XiaomingBot;
-import cn.chuanwise.xiaoming.configuration.Configuration;
 import cn.chuanwise.xiaoming.contact.contact.GroupContact;
 import cn.chuanwise.xiaoming.contact.contact.XiaomingContact;
 import cn.chuanwise.xiaoming.contact.message.Message;
@@ -21,6 +20,7 @@ import cn.chuanwise.xiaoming.interactor.context.InteractorContext;
 import cn.chuanwise.xiaoming.interactor.filter.FilterMatcher;
 import cn.chuanwise.xiaoming.interactor.filter.ParameterFilterMatcher;
 import cn.chuanwise.xiaoming.interactor.parser.InteractorParameterContext;
+import cn.chuanwise.xiaoming.permission.Permission;
 import cn.chuanwise.xiaoming.plugin.Plugin;
 import cn.chuanwise.xiaoming.property.PropertyType;
 import cn.chuanwise.xiaoming.user.*;
@@ -44,7 +44,7 @@ import java.util.stream.Stream;
 public class Interactor {
     String name;
     String[] formats = ArrayUtil.emptyArray(String.class);
-    String[] permissions = ArrayUtil.emptyArray(String.class);
+    Permission[] permissions = ArrayUtil.emptyArray(Permission.class);
     String usage = null;
     String[] requireGroupTags = ArrayUtil.emptyArray(String.class);
     String[] requireAccountTags = ArrayUtil.emptyArray(String.class);
@@ -98,9 +98,9 @@ public class Interactor {
         filterMatchers = ArrayUtil.copyAs(filters, FilterMatcher.class, FilterMatcher::filterMatcher);
 
         // 获得相关权限
-        final Permission[] permissionAnnotations = method.getAnnotationsByType(Permission.class);
+        final Required[] permissionAnnotations = method.getAnnotationsByType(Required.class);
         if (permissionAnnotations.length != 0) {
-            permissions = ArrayUtil.copyAs(permissionAnnotations, String.class, Permission::value);
+            permissions = ArrayUtil.copyAs(permissionAnnotations, Permission.class, x -> Permission.compile(x.value()));
         }
 
         // 获得指令用法
@@ -119,7 +119,7 @@ public class Interactor {
     public Interactor(Plugin plugin,
                       String name,
                       String[] formats,
-                      String[] permissions,
+                      Permission[] permissions,
                       String[] requireGroupTags,
                       String[] requireAccountTags,
                       boolean nonNext) {
@@ -202,9 +202,9 @@ public class Interactor {
         try {
             user.setInteractorContext(interactorContext);
             // 替换所有的权限变量，检查权限
-            for (String permission : permissions) {
+            for (Permission permission : permissions) {
                 if (!user.hasPermission(permission)) {
-                    return new SimpleValueWithMessage<>(InteractResult.LACK_PERMISSIONS, permission);
+                    return new SimpleValueWithMessage<>(InteractResult.LACK_PERMISSIONS, permission.toString());
                 }
             }
 
@@ -213,6 +213,8 @@ public class Interactor {
             xiaomingBot.getEventManager().callEvent(interactEvent);
             if (interactEvent.isCancelled()) {
                 return new SimpleValueWithMessage<>(InteractResult.EVENT_CANCELLED);
+            } else {
+                xiaomingBot.getStatistician().increaseEffectiveCallNumber();
             }
 
             // 填充参数
@@ -289,10 +291,10 @@ public class Interactor {
                     }
 
                     // 检查匹配结果
-                    if (Objects.isNull(container) || !container.hasValue()) {
+                    if (Objects.isNull(container) || !container.isPresent()) {
                         return new SimpleValueWithMessage<>(InteractResult.PARSE_FAILED, parameterName);
                     }
-                    final Object argument = container.getValue();
+                    final Object argument = container.get();
                     if (Objects.nonNull(argument)) {
                         final Class<?> argumentClass = argument.getClass();
 

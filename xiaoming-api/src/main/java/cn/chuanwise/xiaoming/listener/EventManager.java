@@ -49,28 +49,27 @@ public interface EventManager extends ModuleObject {
             return false;
         }
 
-        boolean interacted = false;
+        boolean listened = false;
         for (ListenerHandler handler : handlers) {
-            // 如果这个事件可以被取消
-            // 则只有事件没有被取消，且监听器监听取消了的事件时才执行
             boolean isCancelled = false;
             if (event instanceof Cancellable) {
                 isCancelled = ((Cancellable) event).isCancelled();
             }
-
-            if (isCancelled && !handler.isIgnoreCancelled()) {
-                continue;
+            if (!isCancelled && event instanceof CancellableEvent) {
+                isCancelled = ((CancellableEvent) event).isCancelled();
             }
 
-            try {
-                handler.getListener().listen(event);
-                interacted = true;
-            } catch (Exception exception) {
-                getLogger().error("响应事件 " + event + " 时出现异常", exception);
+            if (!isCancelled || handler.isListenCancelledEvent()) {
+                try {
+                    handler.getListener().listen(event);
+                    listened = true;
+                } catch (Exception exception) {
+                    getLogger().error("响应事件 " + event + " 时出现异常", exception);
+                }
             }
         }
 
-        return interacted;
+        return listened;
     }
 
     /** 由调用线程立即响应一个事件 */
@@ -127,17 +126,17 @@ public interface EventManager extends ModuleObject {
      * @param <T> 事件类型参数
      */
     default <T extends Event> void registerListener(Class<T> clazz, Listener<T> listener, Plugin plugin) {
-        registerListener(clazz, ListenerPriority.NORMAL, true, listener, plugin);
+        registerListener(clazz, ListenerPriority.NORMAL, false, listener, plugin);
     }
 
     void registerListener(ListenerHandler<?> handler);
 
-    default <T extends Event> void registerListener(Class<T> clazz, ListenerPriority priority, boolean ignoreCancelled, Listener<T> listener, Plugin plugin) {
-        registerListener(new ListenerHandler<>(priority, clazz, listener, ignoreCancelled, plugin));
+    default <T extends Event> void registerListener(Class<T> clazz, ListenerPriority priority, boolean listenCancelledEvent, Listener<T> listener, Plugin plugin) {
+        registerListener(new ListenerHandler<>(priority, clazz, listener, listenCancelledEvent, plugin));
     }
 
     default <T extends Event> void registerListener(Class<T> clazz, ListenerPriority priority, Listener<T> listener, Plugin plugin) {
-        registerListener(clazz, priority, true, listener, plugin);
+        registerListener(clazz, priority, false, listener, plugin);
     }
 
     /** 监听函数的参数只能是事件、XiaomingBot、注册插件这三种之一 */

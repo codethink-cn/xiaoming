@@ -1,15 +1,16 @@
-package cn.chuanwise.xiaoming.interactor.core;
+package cn.chuanwise.xiaoming.interactor.interactors;
 
+import cn.chuanwise.util.CollectionUtil;
 import cn.chuanwise.xiaoming.account.Account;
 import cn.chuanwise.xiaoming.account.AccountManager;
-import cn.chuanwise.xiaoming.annotation.Name;
 import cn.chuanwise.xiaoming.annotation.Filter;
 import cn.chuanwise.xiaoming.annotation.FilterParameter;
-import cn.chuanwise.xiaoming.annotation.Permission;
-import cn.chuanwise.xiaoming.plugin.Plugin;
+import cn.chuanwise.xiaoming.annotation.Required;
 import cn.chuanwise.xiaoming.user.XiaomingUser;
 import cn.chuanwise.xiaoming.util.CommandWords;
 import cn.chuanwise.xiaoming.interactor.SimpleInteractors;
+
+import java.util.List;
 
 /**
  * 和用户账号相关的指令处理器
@@ -26,8 +27,8 @@ public class AccountInteractors extends SimpleInteractors {
     @Filter(CommandWords.LET + CommandWords.ADMINISTRATOR + " {qq}")
     @Filter(CommandWords.LET + CommandWords.OPERATOR + " {qq}")
     @Filter(CommandWords.OPERATOR + " {qq}")
-    @Permission("account.user.administrator.grant")
-    public void grantAdministrator(XiaomingUser user, @FilterParameter("qq") long qq) {
+    @Required("account.user.administrator.grant")
+    public void op(XiaomingUser user, @FilterParameter("qq") long qq) {
         final Account account = accountManager.createAccount(qq);
 
         if (account.isBanned()) {
@@ -46,8 +47,9 @@ public class AccountInteractors extends SimpleInteractors {
     @Filter(CommandWords.REVOKE + CommandWords.OPERATOR + " {qq}")
     @Filter(CommandWords.CANCEL + CommandWords.ADMINISTRATOR + " {qq}")
     @Filter(CommandWords.CANCEL + CommandWords.OPERATOR + " {qq}")
-    @Permission("account.user.administrator.revoke")
-    public void revokeAdministrator(XiaomingUser user, @FilterParameter("qq") long qq) {
+    @Filter(CommandWords.DEOPERATOR + " {qq}")
+    @Required("account.user.administrator.revoke")
+    public void deop(XiaomingUser user, @FilterParameter("qq") long qq) {
         final Account account = accountManager.createAccount(qq);
 
         if (account.isBanned()) {
@@ -62,7 +64,7 @@ public class AccountInteractors extends SimpleInteractors {
     }
 
     @Filter(CommandWords.BAN + " {qq}")
-    @Permission("account.user.ban")
+    @Required("account.user.ban")
     public void banUser(XiaomingUser user, @FilterParameter("qq") long qq) {
         final Account account = accountManager.createAccount(qq);
 
@@ -76,7 +78,7 @@ public class AccountInteractors extends SimpleInteractors {
     }
 
     @Filter(CommandWords.UNBAN + " {qq}")
-    @Permission("account.user.unban")
+    @Required("account.user.unban")
     public void unbanUser(XiaomingUser user, @FilterParameter("qq") long qq) {
         final Account account = accountManager.createAccount(qq);
 
@@ -91,7 +93,7 @@ public class AccountInteractors extends SimpleInteractors {
 
     @Filter(CommandWords.ALIAS + " {qq} {r:备注}")
     @Filter(CommandWords.SET + CommandWords.ALIAS + " {qq} {r:备注}")
-    @Permission("account.user.alias.set")
+    @Required("account.user.alias.set")
     public void setUserAlias(XiaomingUser user,
                              @FilterParameter("qq") long qq,
                              @FilterParameter("备注") String alias) {
@@ -102,15 +104,14 @@ public class AccountInteractors extends SimpleInteractors {
     }
 
     @Filter(CommandWords.ALIAS + " {qq}")
-    @Permission("account.user.alias.look")
+    @Required("account.user.alias.look")
     public void lookUserAlias(XiaomingUser user,
                               @FilterParameter("qq") long qq) {
         user.sendMessage("{lang.aliasIs}", qq);
     }
 
-    @Name("addUserTag")
     @Filter(CommandWords.TAG + " {qq} {标记}")
-    @Permission("account.user.tag.add")
+    @Required("account.user.tag.add")
     public void addUserTag(XiaomingUser user,
                            @FilterParameter("qq") Account account,
                            @FilterParameter("标记") String tag) {
@@ -123,9 +124,8 @@ public class AccountInteractors extends SimpleInteractors {
         }
     }
 
-    @Name("removeUserTag")
     @Filter(CommandWords.REMOVE + CommandWords.TAG + " {qq} {标签}")
-    @Permission("account.user.tag.add")
+    @Required("account.user.tag.add")
     public void removeUserTag(XiaomingUser user,
                               @FilterParameter("qq") Account account,
                               @FilterParameter("标签") String tag) {
@@ -142,11 +142,16 @@ public class AccountInteractors extends SimpleInteractors {
         }
     }
 
-    @Name("listUserTag")
-    @Filter(CommandWords.TAG + " {qq}")
-    @Permission("account.user.tag.list")
-    public void listUserTag(XiaomingUser user,
-                            @FilterParameter("qq") long qq) {
-        user.sendMessage("{lang.userTagsAreAsFollows}");
+    @Filter(CommandWords.TAGGED + CommandWords.ACCEPT + " {r:标签}")
+    @Filter(CommandWords.TAGGED + CommandWords.USER + " {r:标签}")
+    @Required("account.tag.search")
+    public void searchAccountsByTag(XiaomingUser user, @FilterParameter("标签") String tag) {
+        final List<Account> informations = accountManager.searchAccountsByTag(tag);
+        if (informations.isEmpty()) {
+            user.sendError("没有用「" + tag + "」找到任何账户");
+        } else {
+            user.sendMessage("用「" + tag + "」找到下列用户：\n" +
+                    CollectionUtil.toIndexString(informations, Account::getAliasAndCode));
+        }
     }
 }

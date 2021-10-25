@@ -1,4 +1,4 @@
-package cn.chuanwise.xiaoming.interactor.core;
+package cn.chuanwise.xiaoming.interactor.interactors;
 
 import cn.chuanwise.util.MapUtil;
 import cn.chuanwise.xiaoming.annotation.*;
@@ -20,7 +20,7 @@ public class PluginInteractors extends SimpleInteractors {
     }
 
     @Filter(CommandWords.PLUGIN)
-    @Permission("plugin.list")
+    @Required("plugin.list")
     public void onListPlugins(XiaomingUser user) {
         final Map<String, Plugin> plugins = getXiaomingBot().getPluginManager().getPlugins();
         final Map<Plugin.Status, Set<Plugin>> status = new HashMap<>();
@@ -36,13 +36,13 @@ public class PluginInteractors extends SimpleInteractors {
     }
 
     @Filter(CommandWords.PLUGIN + " {插件名}")
-    @Permission("plugin.look")
+    @Required("plugin.look")
     public void onLookPlugin(XiaomingUser user, @FilterParameter("插件名") Plugin plugin) {
         user.sendMessage("{lang.pluginDetail}", plugin);
     }
 
     @Filter(CommandWords.LOAD + CommandWords.PLUGIN + " {插件名}")
-    @Permission("plugin.load")
+    @Required("plugin.load")
     public void onLoadPlugin(XiaomingUser user, @FilterParameter("插件名") PluginHandler handler) {
         if (handler.isLoaded()) {
             user.sendError("{lang.pluginAlreadyLoaded}", handler.getPlugin());
@@ -57,7 +57,7 @@ public class PluginInteractors extends SimpleInteractors {
     }
 
     @Filter(CommandWords.UNLOAD + CommandWords.PLUGIN + " {插件名}")
-    @Permission("plugin.unload")
+    @Required("plugin.unload")
     public void onUnloadPlugin(XiaomingUser user, @FilterParameter("插件名") PluginHandler handler) {
         if (!handler.isLoaded()) {
             user.sendError("{lang.pluginHadNotLoad}", handler.getName());
@@ -72,7 +72,7 @@ public class PluginInteractors extends SimpleInteractors {
     }
 
     @Filter(CommandWords.ENABLE + CommandWords.PLUGIN + " {插件名}")
-    @Permission("plugin.enable")
+    @Required("plugin.enable")
     public void onEnablePlugin(XiaomingUser user, @FilterParameter("插件名") PluginHandler handler) {
         final Plugin plugin = handler.getPlugin();
         if (handler.isEnabled()) {
@@ -85,7 +85,7 @@ public class PluginInteractors extends SimpleInteractors {
     }
 
     @Filter(CommandWords.DISABLE + CommandWords.PLUGIN + " {插件名}")
-    @Permission("plugin.disable")
+    @Required("plugin.disable")
     public void onDisablePlugin(XiaomingUser user, @FilterParameter("插件名") Plugin plugin) {
         if (!plugin.getHandler().isEnabled()) {
             user.sendError("{lang.pluginHadNotEnabled}", plugin);
@@ -97,7 +97,7 @@ public class PluginInteractors extends SimpleInteractors {
     }
 
     @Filter(CommandWords.RELOAD + CommandWords.PLUGIN + " {插件名}")
-    @Permission("plugin.reload")
+    @Required("plugin.reload")
     public void onReloadPlugin(XiaomingUser user, @FilterParameter("插件名") Plugin plugin) {
         final PluginHandler handler = plugin.getHandler();
         if (pluginManager.reloadPlugin(handler)) {
@@ -108,7 +108,7 @@ public class PluginInteractors extends SimpleInteractors {
     }
 
     @Filter(CommandWords.REENABLE + CommandWords.PLUGIN + " {插件名}")
-    @Permission("plugin.reenable")
+    @Required("plugin.reenable")
     public void onReenablePlugin(XiaomingUser user, @FilterParameter("插件名") Plugin plugin) {
         if (!plugin.getHandler().isEnabled()) {
             user.sendError("{lang.pluginHadNotEnabled}", plugin);

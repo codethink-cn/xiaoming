@@ -10,7 +10,6 @@ import cn.chuanwise.xiaoming.group.GroupInformationManager;
 import cn.chuanwise.xiaoming.language.LanguageManager;
 import cn.chuanwise.xiaoming.listener.EventManager;
 import cn.chuanwise.xiaoming.permission.PermissionService;
-import cn.chuanwise.xiaoming.report.ReportMessageManager;
 import cn.chuanwise.xiaoming.schedule.FileSaver;
 import cn.chuanwise.xiaoming.interactor.InteractorManager;
 import cn.chuanwise.xiaoming.plugin.PluginManager;
@@ -38,7 +37,7 @@ public interface XiaomingBot extends StatusHolder<XiaomingBot.Status> {
         DISABLED
     }
 
-    String VERSION = "3.9.2-exp";
+    String VERSION = "4.0.6-exp";
 
     String SPONSOR = "Chuanwise";
     String GITHUB = "https://github.com/Chuanwise/xiaoming-bot";
@@ -56,6 +55,10 @@ public interface XiaomingBot extends StatusHolder<XiaomingBot.Status> {
     File getWorkingDirectory();
 
     void setWorkingDirectory(File workingDirectory);
+
+    File getReportDirectory();
+
+    void setReportDirectory(File workingDirectory);
 
     Bot getMiraiBot();
 
@@ -107,6 +110,10 @@ public interface XiaomingBot extends StatusHolder<XiaomingBot.Status> {
 
     void setConfiguration(Configuration configuration);
 
+    File getConfigurationDirectory();
+
+    void setConfigurationDirectory(File configurationDirectory);
+
     Statistician getStatistician();
 
     void setStatistician(Statistician statistician);
@@ -126,10 +133,6 @@ public interface XiaomingBot extends StatusHolder<XiaomingBot.Status> {
     GroupInformationManager getGroupInformationManager();
 
     void setGroupInformationManager(GroupInformationManager groupInformationManager);
-
-    ReportMessageManager getReportMessageManager();
-
-    void setReportMessageManager(ReportMessageManager reportMessageManager);
 
     ReceptionistManager getReceptionistManager();
 

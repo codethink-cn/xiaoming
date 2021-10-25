@@ -18,7 +18,11 @@ public interface Statistician extends Preservable, XiaomingObject {
 
     long getCallNumber();
 
-    void increaseCallCounter();
+    void increaseCallNumber();
+
+    long getEffectiveCallNumber();
+
+    void increaseEffectiveCallNumber();
 
     List<RunRecord> getRunRecords();
 
