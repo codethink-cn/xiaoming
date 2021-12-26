@@ -133,13 +133,12 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
             }
 
             final XiaomingUser user = context.getUser();
-            final Plugin plugin = getXiaomingBot().getPluginManager().getPlugin(inputValue);
-
-            if (Objects.isNull(plugin)) {
+            final Optional<Plugin> optionalPlugin = getXiaomingBot().getPluginManager().getPlugin(inputValue);
+            if (optionalPlugin.isEmpty()) {
                 user.sendError("{lang.pluginHadNotLoad}", inputValue);
                 return null;
             } else {
-                return Container.of(plugin);
+                return Container.ofOptional(optionalPlugin);
             }
         }, true, null);
         registerParameterParser(double.class, context -> {
@@ -174,13 +173,13 @@ public class InteractorManagerImpl extends ModuleObjectImpl implements Interacto
         registerParameterParser(PluginHandler.class, context -> {
             final String inputValue = context.getInputValue();
             final XiaomingUser user = context.getUser();
-            final PluginHandler handler = getXiaomingBot().getPluginManager().getPluginHandler(inputValue);
+            final Optional<PluginHandler> optionalHandler = getXiaomingBot().getPluginManager().getPluginHandler(inputValue);
 
-            if (Objects.isNull(handler)) {
+            if (optionalHandler.isEmpty()) {
                 user.sendError("{lang.pluginHadNotLoad}", inputValue);
                 return null;
             } else {
-                return Container.of(handler);
+                return Container.ofOptional(optionalHandler);
             }
         }, true, null);
         registerParameterParser(String[].class, context -> {

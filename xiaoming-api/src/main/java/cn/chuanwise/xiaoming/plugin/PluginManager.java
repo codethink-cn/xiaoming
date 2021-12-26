@@ -4,10 +4,7 @@ import cn.chuanwise.xiaoming.object.ModuleObject;
 import cn.chuanwise.xiaoming.object.XiaomingObject;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 插件管理器是小明所有插件的管理者、加载者和卸载者
@@ -26,8 +23,7 @@ public interface PluginManager extends XiaomingObject, ModuleObject {
     boolean isExists(String pluginName);
 
     default boolean testStatus(String pluginName, Plugin.Status status) {
-        final Plugin plugin = getPlugin(pluginName);
-        return Objects.nonNull(plugin) && plugin.getStatus() == status;
+        return getPlugin(pluginName).map(x -> x.isStatus(status)).orElse(false);
     }
 
     /** 判断插件是否加载 */
@@ -40,16 +36,15 @@ public interface PluginManager extends XiaomingObject, ModuleObject {
      * @param name 插件名
      * @return 该插件本体。如果插件未加载返回 {@code null}
      */
-    Plugin getPlugin(String name);
+    Optional<Plugin> getPlugin(String name);
 
     /** 判断插件是否加载 */
     default boolean isLoaded(String pluginName) {
-        final Plugin plugin = getPlugin(pluginName);
-        return Objects.nonNull(plugin) && plugin.getHandler().isLoaded();
+        return getPlugin(pluginName).map(x -> x.getHandler().isLoaded()).orElse(false);
     }
 
     /** 获取插件控制器 */
-    PluginHandler getPluginHandler(String pluginName);
+    Optional<PluginHandler> getPluginHandler(String pluginName);
 
     Set<PluginHandler> getPluginHandlers();
 
@@ -76,11 +71,13 @@ public interface PluginManager extends XiaomingObject, ModuleObject {
     boolean loadPlugin(PluginHandler handler);
 
     default boolean loadPlugin(String pluginName) {
-        return loadPlugin(getPluginHandler(pluginName));
+        return getPluginHandler(pluginName).map(this::loadPlugin).orElse(false);
     }
 
     /** 尝试启动所有的插件 */
     void initialize();
+
+    void reload();
 
     void flushPluginHandlers();
 
@@ -92,15 +89,14 @@ public interface PluginManager extends XiaomingObject, ModuleObject {
     }
 
     default boolean enablePlugin(String pluginName) {
-        return enablePlugin(getPlugin(pluginName));
+        return getPlugin(pluginName).map(this::enablePlugin).orElse(false);
     }
 
     /** 关闭插件。插件仍然会在插件表中 */
     boolean disablePlugin(Plugin plugin);
 
     default boolean disablePlugin(String pluginName) {
-        final Plugin plugin = getPlugin(pluginName);
-        return Objects.nonNull(plugin) && disablePlugin(plugin);
+        return getPlugin(pluginName).map(this::disablePlugin).orElse(false);
     }
 
     default boolean disablePlugin(PluginHandler information) {
@@ -120,14 +116,14 @@ public interface PluginManager extends XiaomingObject, ModuleObject {
     }
 
     default boolean reenablePlugin(String pluginName) {
-        return reenablePlugin(getPlugin(pluginName));
+        return getPlugin(pluginName).map(this::reenablePlugin).orElse(false);
     }
 
     /** 卸载插件 */
     boolean unloadPlugin(Plugin plugin);
 
     default boolean unloadPlugin(String pluginName) {
-        return unloadPlugin(getPlugin(pluginName));
+        return getPlugin(pluginName).map(this::unloadPlugin).orElse(false);
     }
 
     default boolean unloadPlugin(PluginHandler handler) {
@@ -164,7 +160,7 @@ public interface PluginManager extends XiaomingObject, ModuleObject {
     }
 
     default boolean reloadPlugin(String pluginName) {
-        return reloadPlugin(getPlugin(pluginName));
+        return getPlugin(pluginName).map(this::reloadPlugin).orElse(false);
     }
 
     File getDirectory();

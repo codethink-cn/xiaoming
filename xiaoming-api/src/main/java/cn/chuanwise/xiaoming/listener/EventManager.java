@@ -75,7 +75,6 @@ public interface EventManager extends ModuleObject {
     /** 由调用线程立即响应一个事件 */
     default boolean callEvent(Event event) {
         if (getXiaomingBot().isDisabled()) {
-            getLogger().error("小明已经关闭，不再响应事件：" + event);
             return false;
         }
         if (event instanceof XiaomingObject) {
@@ -103,7 +102,6 @@ public interface EventManager extends ModuleObject {
         if (getXiaomingBot().isEnabled()) {
             return getXiaomingBot().getScheduler().run(() -> callEvent(event));
         } else {
-            getLogger().error("小明已经关闭，无法异步响应事件：" + event);
             return null;
         }
     }

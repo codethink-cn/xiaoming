@@ -1,17 +1,20 @@
 package cn.chuanwise.xiaoming.plugin;
 
+import cn.chuanwise.api.OriginalTagMarkable;
+import cn.chuanwise.exception.IllegalOperationException;
 import cn.chuanwise.toolkit.map.TypePathGetter;
 import cn.chuanwise.toolkit.map.PathSetter;
 import cn.chuanwise.util.ArrayUtil;
-import cn.chuanwise.util.LambdaUtil;
+import cn.chuanwise.util.CollectionUtil;
+import cn.chuanwise.util.TagUtil;
 import cn.chuanwise.xiaoming.permission.Permission;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
-public interface PluginHandler extends TypePathGetter, PathSetter {
+public interface PluginHandler
+        extends TypePathGetter, PathSetter, OriginalTagMarkable {
     String DEFAULT_VERSION = "unknown";
 
     String MAIN_CLASS_NAME_PATH = "main";
@@ -21,12 +24,13 @@ public interface PluginHandler extends TypePathGetter, PathSetter {
     String SOFT_DEPENDS_PATH = "soft-depends";
     String NAME_PATH = "name";
     String VERSION_PATH = "version";
-    String USER_PERMISSIONS = "user-permissions";
+    String USER_PERMISSIONS_PATH = "user-permissions";
+    String TAGS_PATH = "tags";
 
     Map<String, Object> getValues();
 
     default Permission[] getUserPermissions() {
-        return getAsArrayContainer(USER_PERMISSIONS, Permission.class).orElse(ArrayUtil.emptyArray(Permission.class));
+        return getAsArrayContainer(USER_PERMISSIONS_PATH, Permission.class).orElse(ArrayUtil.emptyArray(Permission.class));
     }
 
     default String getName() {
@@ -98,10 +102,14 @@ public interface PluginHandler extends TypePathGetter, PathSetter {
         final PluginManager pluginManager = getPlugin().getXiaomingBot().getPluginManager();
         for (String depend : getSoftDepends()) {
             if (pluginManager.isExists(depend)) {
-                final PluginHandler handler = pluginManager.getPluginHandler(depend);
-                if (Objects.isNull(handler.getPlugin()) ||
-                        (handler.getPlugin().getStatus() != Plugin.Status.ENABLED &&
-                                handler.getPlugin().getStatus() != Plugin.Status.ERROR)) {
+                final Optional<PluginHandler> optionalHandler = pluginManager.getPluginHandler(depend);
+                if (optionalHandler.isEmpty()) {
+                    return false;
+                }
+
+                final PluginHandler handler = optionalHandler.get();
+                if (handler.getPlugin().getStatus() != Plugin.Status.ENABLED
+                        && handler.getPlugin().getStatus() != Plugin.Status.ERROR) {
                     return false;
                 }
             }
@@ -129,6 +137,42 @@ public interface PluginHandler extends TypePathGetter, PathSetter {
         }
 
         return plugin.getStatus() != Plugin.Status.CONSTRUCTED;
+    }
+
+    @Override
+    default Set<String> getOriginalTags() {
+        return CollectionUtil.asSet(TagUtil.ALL, getName());
+    }
+
+    @Override
+    default void flush() {}
+
+    @Override
+    default Set<String> getTags() {
+        final Set<String> originalTags = getOriginalTags();
+        return getAsStringListContainer(TAGS_PATH)
+                .map(x -> x.stream().collect(Collectors.toSet()))
+                .map(x -> {
+                    x.addAll(originalTags);
+                    return x;
+                })
+                .map(Collections::unmodifiableSet)
+                .orElse(originalTags);
+    }
+
+    @Override
+    default boolean addTag(String tag) {
+        throw new IllegalOperationException("can not modify plugin.json at run time!");
+    }
+
+    @Override
+    default boolean hasTag(String tag) {
+        return getTags().contains(tag);
+    }
+
+    @Override
+    default boolean removeTag(String tag) {
+        throw new IllegalOperationException("can not modify plugin.json at run time!");
     }
 
     File getFile();

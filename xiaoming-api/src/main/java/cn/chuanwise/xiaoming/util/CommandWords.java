@@ -4,7 +4,7 @@ import cn.chuanwise.util.StaticUtil;
 
 public class CommandWords extends StaticUtil {
     public static final String
-            ALL = "(全部|全|all)",
+            ALL = "(全部|全|所有|all)",
             TEST = "(测试|test)",
             GLOBAL = "(全局|全|公共|global)",
             VARIABLE = "(变量|variable)",

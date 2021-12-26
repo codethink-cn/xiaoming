@@ -139,22 +139,19 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
 
     /** 获取插件信息 */
     @Override
-    public PluginHandler getPluginHandler(String pluginName) {
-        final PluginHandler information = pluginHandlers.get(pluginName);
-        if (Objects.nonNull(information)) {
-            return information;
+    public Optional<PluginHandler> getPluginHandler(String pluginName) {
+        final PluginHandler handler = pluginHandlers.get(pluginName);
+        if (Objects.nonNull(handler)) {
+            return Optional.of(handler);
         } else {
             flushPluginHandlers();
-            return pluginHandlers.get(pluginName);
+            return Optional.ofNullable(pluginHandlers.get(pluginName));
         }
     }
 
     @Override
-    public Plugin getPlugin(String pluginName) {
-        if (Objects.isNull(pluginName)) {
-            return null;
-        }
-        return plugins.get(pluginName);
+    public Optional<Plugin> getPlugin(String pluginName) {
+        return Optional.ofNullable(plugins.get(pluginName));
     }
 
     /**
@@ -421,6 +418,14 @@ public class PluginManagerImpl extends ModuleObjectImpl implements PluginManager
     public void initialize() {
         ConditionUtil.checkState(getXiaomingBot().getStatus() == XiaomingBot.Status.ENABLING,
                 "can not call the initialize method when xiaoming is not enabling");
+        reload();
+    }
+
+    @Override
+    public void reload() {
+        pluginHandlers.clear();
+        plugins.clear();
+
         tryLoadPlugins();
         tryEnablePlugins();
     }

@@ -32,25 +32,22 @@ import java.util.stream.Collectors;
 
 @Getter
 public class ContactManagerImpl extends ModuleObjectImpl implements ContactManager {
-    final Map<Long, PrivateContact> privateContacts = new HashMap<>();
-
-    final Map<Long, Map<Long, MemberContact>> memberContacts = new HashMap<>();
-
-    final Map<Long, GroupContact> groupContacts = new HashMap<>();
-
     final List<MessageEvent> recentMessageEvents;
 
     final List<SendMessageEvent> recentSentMessageEvents;
 
     final List<SendMessageEvent> sendMessageList = new CopyOnWriteArrayList<>();
 
+    final Box<Thread> sendMessageLoop = Box.empty();
+    final PrivateContact botPrivateContact;
+
     public ContactManagerImpl(XiaomingBot xiaomingBot) {
         super(xiaomingBot);
         recentMessageEvents = Collections.synchronizedList(new SizedCopyOnWriteArrayList<>(xiaomingBot.getConfiguration().getMaxRecentMessageBufferSize()));
         recentSentMessageEvents = Collections.synchronizedList(new SizedCopyOnWriteArrayList<>(xiaomingBot.getConfiguration().getMaxRecentMessageBufferSize()));
-    }
 
-    final Box<Thread> sendMessageLoop = Box.empty();
+        botPrivateContact = new PrivateContactImpl(xiaomingBot, xiaomingBot.getMiraiBot().getAsFriend());
+    }
 
     @Override
     public Future<Optional<Message>> readyToSend(SendMessageEvent event) {
@@ -95,7 +92,7 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
             if (messageBox.isPresent()) {
                 return messageBox.toOptional();
             } else {
-                return messageBox.nextValue().toOptional();
+                return Optional.ofNullable(messageBox.nextValue());
             }
         });
     }
@@ -128,104 +125,28 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
     }
 
     @Override
-    public void clear() {
-        privateContacts.clear();
-        memberContacts.clear();
-        groupContacts.clear();
-    }
-
-    @Override
-    public PrivateContact getBotPrivateContact() {
-        final Bot miraiBot = getXiaomingBot().getMiraiBot();
-
-        final long qq = miraiBot.getId();
-        PrivateContact privateContact = privateContacts.get(qq);
-        Friend friend = miraiBot.getAsFriend();
-
-        // 没有记录过，就创建新的记录
-        if (Objects.isNull(privateContact) && Objects.nonNull(friend)) {
-            privateContact = new PrivateContactImpl(getXiaomingBot(), friend);
-            privateContacts.put(qq, privateContact);
-        }
-
-        // 记录过但是本次 get 不到，说明人没了
-        if (Objects.isNull(friend) && Objects.nonNull(privateContact)) {
-            privateContacts.remove(qq);
-            privateContact = null;
-        }
-
-        return privateContact;
-    }
-
-    @Override
     public Optional<PrivateContact> getPrivateContact(long code) {
-        PrivateContact privateContact = privateContacts.get(code);
-        Friend friend = getXiaomingBot().getMiraiBot().getFriend(code);
-
-        // 没有记录过，就创建新的记录
-        if (Objects.isNull(privateContact) && Objects.nonNull(friend)) {
-            privateContact = new PrivateContactImpl(getXiaomingBot(), friend);
-            privateContacts.put(code, privateContact);
-        }
-
-        // 记录过但是本次 get 不到，说明人没了
-        if (Objects.isNull(friend) && Objects.nonNull(privateContact)) {
-            privateContacts.remove(code);
-            privateContact = null;
-        }
-
-        return Optional.ofNullable(privateContact);
+        return Optional.ofNullable(getXiaomingBot().getMiraiBot().getFriend(code))
+                .map(contact -> new PrivateContactImpl(xiaomingBot, contact));
     }
 
     @Override
     public Optional<GroupContact> getGroupContact(long code) {
-        GroupContact groupContact = groupContacts.get(code);
-        Group group = getXiaomingBot().getMiraiBot().getGroup(code);
-
-        // 没有记录过，就创建新的记录
-        if (Objects.isNull(groupContact) && Objects.nonNull(group)) {
-            groupContact = new GroupContactImpl(getXiaomingBot(), group);
-            groupContacts.put(code, groupContact);
-        }
-
-        // 记录过但是本次 get 不到，说明人没了
-        if (Objects.isNull(group) && Objects.nonNull(groupContact)) {
-            groupContacts.remove(code);
-            groupContact = null;
-        }
-
-        return Optional.ofNullable(groupContact);
+        return Optional.ofNullable(getXiaomingBot().getMiraiBot().getGroup(code))
+                .map(contact -> new GroupContactImpl(xiaomingBot, contact));
     }
 
     @Override
-    public Optional<MemberContact> getMemberContact(long group, long code) {
-        final Optional<GroupContact> optionalGroupContact = getGroupContact(group);
+    public Optional<MemberContact> getMemberContact(long groupCode, long accountCode) {
+        final Optional<GroupContact> optionalGroupContact = getGroupContact(groupCode);
         if (optionalGroupContact.isEmpty()) {
             return Optional.empty();
         }
-
         final GroupContact groupContact = optionalGroupContact.get();
 
-        final NormalMember member = groupContact.getMiraiContact().get(code);
-        return Objects.nonNull(member) ? getMemberContact(groupContact, member) : Optional.empty();
-    }
 
-    @Override
-    public Optional<MemberContact> getMemberContact(GroupContact groupContact, NormalMember miraiMember) {
-        final long code = groupContact.getCode();
-        final Map<Long, MemberContact> memberContacts = MapUtil.getOrPutSupply(this.memberContacts, code, ConcurrentHashMap::new);
-
-        final long qq = miraiMember.getId();
-        final Box<MemberContact> memberContactContainer = MapUtil.get(memberContacts, qq).toBox();
-
-        // 记录了本群，但还没记录这个成员
-        if (memberContactContainer.isEmpty()) {
-            final MemberContact memberContact = new MemberContactImpl(getGroupContact(code).orElseThrow(), miraiMember);
-            memberContactContainer.set(memberContact);
-            memberContacts.put(qq, memberContact);
-        }
-
-        return memberContactContainer.toOptional();
+        return Optional.ofNullable(groupContact.getMiraiContact().get(accountCode))
+                .map(x -> new MemberContactImpl(groupContact, x));
     }
 
     @Override
@@ -237,6 +158,24 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
     }
 
     @Override
+    public List<GroupContact> getGroupContacts() {
+        return xiaomingBot.getMiraiBot()
+                .getGroups()
+                .stream()
+                .map(contact -> new GroupContactImpl(xiaomingBot, contact))
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+    @Override
+    public List<PrivateContact> getPrivateContacts() {
+        return xiaomingBot.getMiraiBot()
+                .getFriends()
+                .stream()
+                .map(contact -> new PrivateContactImpl(xiaomingBot, contact))
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+    @Override
     public List<XiaomingContact> getPrivateContactPossibly(long code) {
         final List<XiaomingContact> results = new ArrayList<>();
 
@@ -244,10 +183,8 @@ public class ContactManagerImpl extends ModuleObjectImpl implements ContactManag
         getPrivateContact(code).ifPresent(results::add);
 
         // iterate all groups and get this member
-        final List<MemberContact> memberContacts = getXiaomingBot().getMiraiBot()
-                .getGroups()
+        final List<MemberContact> memberContacts = getGroupContacts()
                 .stream()
-                .map(contact -> new GroupContactImpl(xiaomingBot, contact))
                 .map(contact -> contact.getMember(code))
                 .filter(Optional::isPresent)
                 .map(Optional::get)

@@ -21,7 +21,7 @@ public class ColorPatternLayout extends PatternLayout {
         return ConsoleColor.valueOf(name).toString();
     }
 
-    static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-mm-dd HH:mm:ss");
+    static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     Map<String, String> classNameMap = new HashMap<>();
 

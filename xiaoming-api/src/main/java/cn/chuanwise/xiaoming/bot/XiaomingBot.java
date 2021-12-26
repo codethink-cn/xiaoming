@@ -37,7 +37,7 @@ public interface XiaomingBot extends StatusHolder<XiaomingBot.Status> {
         DISABLED
     }
 
-    String VERSION = "4.0.6-exp";
+    String VERSION = "4.2-rel";
 
     String SPONSOR = "Chuanwise";
     String GITHUB = "https://github.com/Chuanwise/xiaoming-bot";

@@ -121,17 +121,12 @@ public interface Scheduler extends ModuleObject {
 
         finalTasks.forEach((name, runnable) -> {
             getLogger().info("正在执行关闭前任务：" + name);
-            futures.add(run(runnable, null));
-        });
-        for (Future<?> future : futures) {
             try {
-                future.get();
-            } catch (InterruptedException exception) {
-                getLogger().error("等待任务执行结束时出现异常", exception);
-            } catch (ExecutionException e) {
-                getLogger().error("执行关闭前任务时出现异常", e);
+                runnable.run();
+            } catch (Exception exception) {
+                getLogger().error("执行关闭前任务 " + name + " 时出现异常", exception);
             }
-        }
+        });
         getThreadPool().shutdownNow();
     }
 

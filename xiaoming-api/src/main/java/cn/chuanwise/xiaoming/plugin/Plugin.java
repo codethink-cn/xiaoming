@@ -1,6 +1,7 @@
 package cn.chuanwise.xiaoming.plugin;
 
 import cn.chuanwise.api.ChineseConvertable;
+import cn.chuanwise.api.OriginalTagMarkable;
 import cn.chuanwise.api.SetableStatusHolder;
 import cn.chuanwise.exception.UnsupportedVersionException;
 import cn.chuanwise.util.ResourceUtil;
@@ -29,7 +30,7 @@ import java.util.function.Supplier;
  * @author Chuanwise
  */
 public interface Plugin
-        extends XiaomingObject, SetableStatusHolder<Plugin.Status> {
+        extends XiaomingObject, SetableStatusHolder<Plugin.Status>, OriginalTagMarkable {
     /** 小明插件的各种状态，默认 UNLOADED */
     enum Status implements ChineseConvertable {
         CONSTRUCTED,

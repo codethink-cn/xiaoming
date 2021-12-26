@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 public class JavaPlugin
@@ -64,5 +65,35 @@ public class JavaPlugin
     @Override
     public int hashCode() {
         return Objects.hash(getName());
+    }
+
+    @Override
+    public Set<String> getOriginalTags() {
+        return handler.getOriginalTags();
+    }
+
+    @Override
+    public void flush() {
+        handler.flush();
+    }
+
+    @Override
+    public Set<String> getTags() {
+        return handler.getTags();
+    }
+
+    @Override
+    public boolean addTag(String tag) {
+        return handler.addTag(tag);
+    }
+
+    @Override
+    public boolean hasTag(String tag) {
+        return handler.hasTag(tag);
+    }
+
+    @Override
+    public boolean removeTag(String tag) {
+        return handler.removeTag(tag);
     }
 }

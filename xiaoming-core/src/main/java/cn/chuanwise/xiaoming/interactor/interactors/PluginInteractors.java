@@ -21,7 +21,7 @@ public class PluginInteractors extends SimpleInteractors {
 
     @Filter(CommandWords.PLUGIN)
     @Required("plugin.list")
-    public void onListPlugins(XiaomingUser user) {
+    public void listPlugins(XiaomingUser user) {
         final Map<String, Plugin> plugins = getXiaomingBot().getPluginManager().getPlugins();
         final Map<Plugin.Status, Set<Plugin>> status = new HashMap<>();
 
@@ -37,8 +37,12 @@ public class PluginInteractors extends SimpleInteractors {
 
     @Filter(CommandWords.PLUGIN + " {插件名}")
     @Required("plugin.look")
-    public void onLookPlugin(XiaomingUser user, @FilterParameter("插件名") Plugin plugin) {
-        user.sendMessage("{lang.pluginDetail}", plugin);
+    public void lookPlugin(XiaomingUser user, @FilterParameter("插件名") Plugin plugin) {
+        if (Objects.isNull(plugin)) {
+            user.sendError("想偷看内核机密，这思想很危险嗷！");
+        } else {
+            user.sendMessage("{lang.pluginDetail}", plugin);
+        }
     }
 
     @Filter(CommandWords.LOAD + CommandWords.PLUGIN + " {插件名}")
@@ -117,5 +121,12 @@ public class PluginInteractors extends SimpleInteractors {
         } else {
             user.sendError("{lang.failToReenablePlugin}", plugin);
         }
+    }
+
+    @Filter(CommandWords.RELOAD + CommandWords.ALL + CommandWords.PLUGIN)
+    @Required("plugin.reload.all")
+    public void reloadAllPlugins(XiaomingUser user) {
+        xiaomingBot.getPluginManager().reload();
+        user.sendMessage("成功重载所有插件");
     }
 }

@@ -169,7 +169,7 @@ public class CoreInteractors extends SimpleInteractors {
 
     @Filter(CommandWords.SEARCH + CommandWords.COMMAND + " {r:关键字}")
     public void searchCommands(XiaomingUser user, @FilterParameter("关键字") String keyword) {
-        final List<Interactor> interactors = getXiaomingBot().getInteractorManager().getInteractors(plugin);
+        final List<Interactor> interactors = getXiaomingBot().getInteractorManager().getInteractors();
         final List<String> commandFormats = interactors.stream()
                 .map(Interactor::getUsage)
                 .filter(StringUtil::notEmpty)
@@ -205,7 +205,6 @@ public class CoreInteractors extends SimpleInteractors {
         if (Objects.equals(user.nextMessageOrExit(TimeUnit.MINUTES.toMillis(1)).serialize(), "确定")) {
             final long delay = TimeUnit.SECONDS.toMillis(10);
             getXiaomingBot().getScheduler().runLater(delay, xiaomingBot::stop);
-
             user.sendMessage("{lang.xiaomingWillBeClosedLater}", delay);
         } else {
             user.sendError("{lang.xiaomingWillNotBeClosedLater}");
@@ -213,8 +212,9 @@ public class CoreInteractors extends SimpleInteractors {
     }
 
     @Filter(CommandWords.STOP)
-    public void onConsoleClose(ConsoleXiaomingUser user) {
-        getXiaomingBot().stop();
+    public void consoleClose(ConsoleXiaomingUser user) {
+        user.sendMessage("小明将在 10 秒后关闭");
+        xiaomingBot.getScheduler().runLater(TimeUnit.SECONDS.toMillis(10), xiaomingBot::stop);
     }
 
     @Filter(CommandWords.EXCEPTION + CommandWords.TEST)

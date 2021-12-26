@@ -27,8 +27,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public interface ContactManager extends ModuleObject {
-    void clear();
-
     List<MessageEvent> getRecentMessageEvents();
 
     PrivateContact getBotPrivateContact();
@@ -37,9 +35,7 @@ public interface ContactManager extends ModuleObject {
 
     Optional<GroupContact> getGroupContact(long code);
 
-    Optional<MemberContact> getMemberContact(long group, long code);
-
-    Optional<MemberContact> getMemberContact(GroupContact groupContact, NormalMember normalMember);
+    Optional<MemberContact> getMemberContact(long groupCode, long accountCode);
 
     void onNextMessageEvent(MessageEvent messageEvent);
 
@@ -228,6 +224,10 @@ public interface ContactManager extends ModuleObject {
     }
 
     List<XiaomingContact> getPrivateContactPossibly(long code);
+
+    List<GroupContact> getGroupContacts();
+
+    List<PrivateContact> getPrivateContacts();
 
     default Optional<XiaomingContact> sendPrivateMessagePossibly(long code, MessageChain messageChain) {
         // try send private message
