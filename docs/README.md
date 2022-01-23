@@ -1,7 +1,7 @@
 # 小明机器人框架
 小明机器人是一款基于 `Mirai` 的插件化、便于上手、简单小巧的通用 QQ 机器人框架。
 
-> 开发者交流 QQ 群：[1028959718](https://jq.qq.com/?_wv=1027&k=sjBXo6xh)<br>
+> `QQ` 群：[1028959718](https://jq.qq.com/?_wv=1027&k=sjBXo6xh)<br>
 > 项目发起人：`椽子`
 
 ## 声明
@@ -12,13 +12,14 @@
 
 ## 文档
 小明尚处在非常初级的发展阶段，欢迎你加入我们和我们一起助力小明的发展。
-* 使用文档：[MANUAL](/manual.md)
-* 开发文档：[DEVELOPMENT](/development/)
-* 插件开发文档：[DEVELOPMENT](/development/plugin.md)
-* 插件中心：[PLUGINS](/plugin-center.md)
-* 发布版本：[RELEASE](https://github.com/Chuanwise/xiaoming-bot/releases/)
-* 开发者交流 `QQ` 群：[1028959718](https://jq.qq.com/?_wv=1027&k=sjBXo6xh)
+* 使用文档：[MANUAL](/manual)
+* 开发文档：[DEVELOPMENT](/dev/)
+* 插件开发文档：[DEVELOPMENT](/dev/plugin)
+* 插件中心：[PLUGINS](/plugin/)
+* 发布版本：[RELEASE](https://github.com/Chuanwise/XiaoMingBot/releases/)
+* `QQ` 群 `小明练剑场`：[1028959718](https://jq.qq.com/?_wv=1027&k=sjBXo6xh)
 
 ## 鸣谢
+1. [ThymeChen](https://github.com/ThymeChen)：为小明编写了很多有趣的插件
 1. [ExerciseBook](https://github.com/ExerciseBook)：让我对 `QQ` 机器人产生了兴趣。
 1. [lclbm](https://github.com/lclbm)：让我产生了动手写一个机器人的想法。

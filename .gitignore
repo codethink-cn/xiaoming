@@ -22,8 +22,8 @@
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
 
-/xiaoming-api/target/
-/xiaoming-core/target/
+/XiaoMingApi/target/
+/XiaoMingCore/target/
 /accounts/
 /cache/
 /configurations/
@@ -31,8 +31,8 @@ hs_err_pid*
 /logs/
 /plugins/
 /.idea/
-/xiaoming-api/src/test/
-/xiaoming-core/src/test/
+/XiaoMingApi/src/test/
+/XiaoMingCore/src/test/
 /texts/
 /resources/
 docs/_backup.md

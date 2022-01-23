@@ -1,127 +1,1 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-    <groupId>cn.chuanwise</groupId>
-    <artifactId>xiaoming-bot</artifactId>
-    <packaging>pom</packaging>
-
-    <version>4.2-rel</version>
-    <url>https://github.com/Chuanwise/xiaoming-bot</url>
-
-    <modules>
-        <module>xiaoming-api</module>
-        <module>xiaoming-core</module>
-    </modules>
-
-    <properties>
-        <github.global.server>github</github.global.server>
-        <xiaoming.version>${project.version}</xiaoming.version>
-    </properties>
-
-    <dependencies>
-        <dependency>
-            <groupId>cn.chuanwise</groupId>
-            <artifactId>WiseToolkitGeneric</artifactId>
-            <version>3.1-exp</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.18.22</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-collections4</artifactId>
-            <version>4.4</version>
-        </dependency>
-
-        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>1.7.32</version>
-        </dependency>
-
-        <!-- use jackjson for json string serialization -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-core</artifactId>
-            <version>2.13.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-annotations</artifactId>
-            <version>2.13.0</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.13.0</version>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.7</version>
-                <configuration>
-                    <altDeploymentRepository>internal.repo::default::file://${project.build.directory}/xiaoming-bot</altDeploymentRepository>
-                </configuration>
-            </plugin>
-
-            <plugin>
-                <groupId>com.github.github</groupId>
-                <artifactId>site-maven-plugin</artifactId>
-                <version>0.12</version>
-                <configuration>
-                    <message>Maven artifacts for ${project.version}</message>
-                    <noJekyll>true</noJekyll>
-                    <outputDirectory>${project.build.directory}/xiaoming-bot</outputDirectory><!--本地jar地址-->
-                    <branch>refs/origin/main</branch><!--分支的名称-->
-                    <merge>true</merge>
-                    <includes>
-                        <include>**/*</include>
-                    </includes>
-                    <repositoryName>xiaoming-bot</repositoryName><!--对应github上创建的仓库名称 name-->
-                    <repositoryOwner>Chuanwise</repositoryOwner><!--github 仓库所有者即登录用户名-->
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>site</goal>
-                        </goals>
-                        <phase>deploy</phase>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <configuration>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>make-assembly</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-</project>
+<?xml version="1.0" encoding="UTF-8"?><project xmlns="http://maven.apache.org/POM/4.0.0"         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">    <modelVersion>4.0.0</modelVersion>    <groupId>cn.chuanwise</groupId>    <artifactId>XiaoMingBot</artifactId>    <packaging>pom</packaging>    <version>4.5</version>    <url>https://github.com/Chuanwise/XiaoMingBot</url>    <modules>        <module>XiaoMingApi</module>        <module>XiaoMingCore</module>    </modules>    <properties>        <github.global.connection>github</github.global.connection>    </properties>    <dependencies>        <dependency>            <groupId>cn.chuanwise</groupId>            <artifactId>WiseToolkitGeneric</artifactId>            <version>3.3-SNAPSHORT</version>        </dependency>        <dependency>            <groupId>org.projectlombok</groupId>            <artifactId>lombok</artifactId>            <version>1.18.20</version>            <scope>provided</scope>        </dependency>        <!-- https://mvnrepository.com/artifact/org.fusesource.jansi/jansi -->        <dependency>            <groupId>org.fusesource.jansi</groupId>            <artifactId>jansi</artifactId>            <version>2.4.0</version>        </dependency>        <dependency>            <groupId>org.apache.commons</groupId>            <artifactId>commons-collections4</artifactId>            <version>4.4</version>        </dependency>        <!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-log4j12 -->        <dependency>            <groupId>org.slf4j</groupId>            <artifactId>slf4j-log4j12</artifactId>            <version>2.0.0-alpha5</version>        </dependency>        <!-- use jackjson for json string serialization -->        <dependency>            <groupId>com.fasterxml.jackson.core</groupId>            <artifactId>jackson-core</artifactId>            <version>2.13.0</version>        </dependency>        <dependency>            <groupId>com.fasterxml.jackson.core</groupId>            <artifactId>jackson-annotations</artifactId>            <version>2.13.0</version>        </dependency>        <dependency>            <groupId>com.fasterxml.jackson.core</groupId>            <artifactId>jackson-databind</artifactId>            <version>2.13.0</version>        </dependency>    </dependencies>    <build>        <plugins>            <plugin>                <groupId>org.apache.maven.plugins</groupId>                <artifactId>maven-deploy-plugin</artifactId>                <version>2.7</version>                <configuration>                    <altDeploymentRepository>internal.repo::default::file://${project.build.directory}/XiaoMingBot</altDeploymentRepository>                </configuration>            </plugin>            <plugin>                <groupId>com.github.github</groupId>                <artifactId>site-maven-plugin</artifactId>                <version>0.12</version>                <configuration>                    <message>Maven artifacts for ${project.version}</message>                    <noJekyll>true</noJekyll>                    <outputDirectory>${project.build.directory}/</outputDirectory><!--本地jar地址-->                    <branch>refs/origin/master</branch><!--分支的名称-->                    <merge>true</merge>                    <includes>                        <include>**/*</include>                    </includes>                    <repositoryName>MavenCenter</repositoryName><!--对应github上创建的仓库名称 name-->                    <repositoryOwner>Chuanwise</repositoryOwner><!--github 仓库所有者即登录用户名-->                </configuration>                <executions>                    <execution>                        <goals>                            <goal>site</goal>                        </goals>                        <phase>deploy</phase>                    </execution>                </executions>            </plugin>            <plugin>                <artifactId>maven-assembly-plugin</artifactId>                <configuration>                    <descriptorRefs>                        <descriptorRef>jar-with-dependencies</descriptorRef>                    </descriptorRefs>                </configuration>                <executions>                    <execution>                        <id>make-assembly</id>                        <phase>package</phase>                        <goals>                            <goal>single</goal>                        </goals>                    </execution>                </executions>            </plugin>        </plugins>    </build></project>

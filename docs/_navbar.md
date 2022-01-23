@@ -1,5 +1,6 @@
 * [文档首页](/)
 * [用户手册](/manual)
-* [插件中心](/plugin-center)
-* [插件开发](/development/plugin)
+* [插件中心](/plugin/)
+* [插件开发](/dev/plugin)
 * [常见问题](/question)
+* [加入QQ群](https://jq.qq.com/?_wv=1027&k=sjBXo6xh)

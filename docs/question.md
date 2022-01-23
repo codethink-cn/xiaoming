@@ -40,15 +40,11 @@
 }
 ```
 
-#### 显示「无法完成滑块验证」怎么办？
-请将 `launcher/launcher.json` 中的登陆方式 `protocol` 改为手机登录：`ANDROID_PHONE`，再为启动脚本添加启动参数 `Dmirai.slider.captcha.supported`，也就是把机器人的启动脚本改成类似这样：
-```bash
-java -Dfile.encoding=UTF-8 -Dmirai.slider.captcha.supported -jar xiaoming-host-xxxx.jar
-```
-之后重新启动该脚本。在群内，或[这里](https://github.com/mzdluo123/TxCaptchaHelper)下载滑块验证助手，并将其安装在**安卓手机**上，将启动机器人时显示的弹框内容复制到滑块验证助手中，再将获得的一串文字复制回弹框下方的白色输入框（**这行白色的框不是装饰**）后关闭弹框即可。
 
 #### 显示「设备异常，禁止登陆」怎么办？
-将 `xiaoming-host-xxx` 复制到自己的设备上登录小明后，找到 `launcher/device.json`。将该文件替换服务器那边的 `launcher/device.json`，随后重新启动小明。
+请删除 `小明根目录/launcher/device.json` 重新进行安全验证。
+
+如果还不行，参照 [为什么机器人只处理私聊消息，不处理群聊消息？](#为什么机器人只处理私聊消息，不处理群聊消息？)。
 
 #### 设备锁验证界面打不开
 请点击蓝色的设备锁验证按钮，将打开的网址中的 `verify` 改为 `qrcode` 后刷新。
@@ -60,9 +56,7 @@ java -Dfile.encoding=UTF-8 -Dmirai.slider.captcha.supported -jar xiaoming-host-x
 若启动遇到问题，请移步[无法启动机器人怎么办？](#无法启动机器人怎么办？)。
 
 #### 为什么机器人只处理私聊消息，不处理群聊消息？
-这是腾讯风控你的机器人导致，新机器人偶尔出现该问题，让机器人账号登录一下[QQ安全中心](https://aq.qq.com/cn2/index)即可。
-
-未完待续
+这是腾讯风控你的机器人导致，新机器人偶尔出现该问题。使用机器人账号登录一下[QQ安全中心](https://aq.qq.com/cn2/index)即可。
 
 ## 开发者问题
 ### 为什么我的插件抛出 `NoSuchMethodError` 或 `ClassNotFoundError`，且缺少的类类名以 `cn.chuanwise.xiaoming` 开头？
