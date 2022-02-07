@@ -18,6 +18,11 @@
 1. 你使用小明框架机器人所做的包括但不限于开发、交互等行为，均与小明框架本身和作者无关。由此产生的一切后果，均由你承担。
 1. 鉴于项目的特殊性，我们可能在**任何时间**停止更新或删除项目。
 
+## Python？
+小明通过接管Python的输入输出达到实现Python的效果，得益于Python的asyncio机制，小明的Python插件拥有着强大的异步功能保障。
+
+如需查看这些插件，请访问[小明Python插件repo](https://github.com/XiaoMingProject/xiaoming-python-plugins)。
+
 ## 文档
 小明尚处在非常初级的发展阶段，欢迎你加入我们和我们一起助力小明的发展。
 * **文档**：[DOCS](http://chuanwise.cn:10074/#/)
