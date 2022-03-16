@@ -57,10 +57,22 @@ public abstract class AbstractBot
     protected EventManager eventManager;
     
     public AbstractBot() {
-        // 注册关闭钩子，关闭时关闭 Bot
+        // 关闭 jvm 时如果还没有关闭 Bot，则关闭
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            if (Objects.nonNull(scheduler)) {
-                scheduler.shutdownGracefully();
+            switch (state) {
+                case IDLE:
+                    break;
+                case STARTED:
+                case STARTING:
+                case STOP_ERROR:
+                    stop();
+                    break;
+                case STOPPING:
+                    break;
+                case FATAL_ERROR:
+                case START_ERROR:
+                default:
+                    throw new IllegalStateException();
             }
         }));
     }
