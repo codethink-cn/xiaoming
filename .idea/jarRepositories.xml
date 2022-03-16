@@ -16,5 +16,10 @@
       <option name="name" value="JBoss Community repository" />
       <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="codethink maven center" />
+      <option name="name" value="codethink maven center" />
+      <option name="url" value="https://gitee.com/codethink-cn/maven/raw/master/repository" />
+    </remote-repository>
   </component>
 </project>
