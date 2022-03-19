@@ -13,7 +13,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/xiaoming-api" />
-            <option value="$PROJECT_DIR$/xiaoming-implement-mirai" />
+            <option value="$PROJECT_DIR$/xiaoming-core-mirai" />
           </set>
         </option>
       </GradleProjectSettings>

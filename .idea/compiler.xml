@@ -9,10 +9,10 @@
         </processorPath>
         <module name="xiaoming.test" />
         <module name="xiaoming.main" />
-        <module name="xiaoming.xiaoming-implement-mirai.test" />
         <module name="xiaoming.xiaoming-api.main" />
+        <module name="cn.codethink.xiaoming.xiaoming-core-mirai.main" />
         <module name="xiaoming.xiaoming-api.test" />
-        <module name="xiaoming.xiaoming-implement-mirai.main" />
+        <module name="cn.codethink.xiaoming.xiaoming-core-mirai.test" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8" />

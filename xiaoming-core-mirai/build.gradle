@@ -6,10 +6,10 @@ plugins {
 }
 
 dependencies {
+
     // api
     api project(':xiaoming-api')
 
     // mirai
     api 'net.mamoe:mirai-core-api:2.10.0'
-    runtimeOnly 'net.mamoe:mirai-core-api:2.10.0'
 }
