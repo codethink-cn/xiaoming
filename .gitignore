@@ -115,4 +115,4 @@ gradle-app.setting
 
 ### Chuanwise deploy script
 
-/deploy-to-codethink-maven.gradle
+/publish-script.gradle

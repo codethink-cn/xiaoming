@@ -1,35 +1,15 @@
 plugins {
-    id "java"
-    id "java-library"
+    id 'java'
+
+    // mirai
     id 'org.jetbrains.kotlin.jvm' version '1.5.30'
 }
 
-group "cn.codethink"
-version "5.0-SNAPSHOT"
-
-repositories {
-    mavenCentral()
-
-    maven {
-        name("codethink maven")
-        allowInsecureProtocol(true)
-        url("http://121.4.253.187:8081/repository/maven-public/")
-    }
-}
-
 dependencies {
-    api(project(":xiaoming-api"))
+    // api
+    api project(':xiaoming-api')
 
-    compileOnly("org.projectlombok:lombok:1.18.22")
-    api("cn.codethink:codethink-common:1.0-SNAPSHOT")
-
-    api("net.mamoe:mirai-core-api:2.10.0")
-    runtimeOnly("net.mamoe:mirai-core-api:2.10.0")
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
-}
-
-test {
-    useJUnitPlatform()
+    // mirai
+    api 'net.mamoe:mirai-core-api:2.10.0'
+    runtimeOnly 'net.mamoe:mirai-core-api:2.10.0'
 }

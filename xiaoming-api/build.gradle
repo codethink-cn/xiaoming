@@ -1,33 +1,12 @@
 plugins {
-    id "java"
-    id "java-library"
-}
-
-group "cn.codethink"
-version "5.0-SNAPSHOT"
-
-repositories {
-    mavenCentral()
-
-    maven {
-        name("codethink maven")
-        allowInsecureProtocol(true)
-        url("http://121.4.253.187:8081/repository/maven-public/")
-    }
+    id 'java'
 }
 
 dependencies {
-    api("org.slf4j:slf4j-api:1.7.36")
+    // logger
+    api 'org.slf4j:slf4j-api:1.7.36'
 
-    api("cn.codethink:codethink-common:1.0-SNAPSHOT")
 
-    compileOnly("org.projectlombok:lombok:1.18.22")
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 }
-
-test {
-    useJUnitPlatform()
-}
-

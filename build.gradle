@@ -1,12 +1,61 @@
 plugins {
-    id "java"
+    id 'java'
 }
 
-group "cn.codethink"
-version "5.0-SNAPSHOT"
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
 
-sourceCompatibility = "1.8"
-targetCompatibility = "1.8"
+// scripts in root project directory
+def mirrorScriptFile = new File('use-mirror.gradle')
+def publishScriptFile = new File('publish-script.gradle')
 
-apply from: "./deploy-to-codethink-maven.gradle"
-apply from: "./use-mirror.gradle"
+allprojects {
+    apply plugin: 'java-library'
+    apply plugin: 'java'
+
+    group 'cn.codethink'
+    version '5.0-SNAPSHOT'
+
+    // if there is a mirror script, apply it
+    if (mirrorScriptFile.isFile()) {
+        apply from: mirrorScriptFile.getAbsolutePath()
+    }
+
+    // if there is a publish script, apply it
+    if (publishScriptFile.isFile()) {
+        apply from: publishScriptFile.getAbsolutePath()
+    }
+
+    repositories {
+        mavenCentral()
+
+        // codethink maven
+        maven {
+            name('codethink maven')
+
+            // set to true for ignoring warning
+            allowInsecureProtocol(true)
+
+            url('http://121.4.253.187:8081/repository/maven-public/')
+        }
+    }
+
+    dependencies {
+        // lombok
+        compileOnly 'org.projectlombok:lombok:1.18.22'
+        annotationProcessor 'org.projectlombok:lombok:1.18.22'
+        testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+        testCompileOnly 'org.projectlombok:lombok:1.18.22'
+
+        // common
+        api 'cn.codethink:codethink-common:1.0-SNAPSHOT'
+
+        // junit
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+}
