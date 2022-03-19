@@ -21,8 +21,17 @@ XiaoMing is a generic, effective and simple lib for IM bots, based on [Mirai](ht
 
 writing...
 
+## special appreciations
+
+[IntelliJ IDEA](https://zh.wikipedia.org/zh-hans/IntelliJ_IDEA) 
+Is an IDE maximizing developer productivity in all aspects.
+
+Appreciate to [JetBrains](https://www.jetbrains.com/?from=XiaoMingBot) provides free [IntelliJ IDEA] for this open source projects.
+
+[<img src=".github/jetbrains-variant-3.png" width="200"/>](https://www.jetbrains.com/?from=XiaoMingBot)
+
 ## appreciations
 1. [ThymeChen](https://github.com/ThymeChen): He developed a lot of plugins for elder xiaoming.
-1. [HornCopper](https://github.com/HornCopper)：He developed some plugins for elder xiaoming.
-1. [ExerciseBook](https://github.com/ExerciseBook): He make me be interested in QQ bot.
-1. [lclbm](https://github.com/lclbm)
+2. [HornCopper](https://github.com/HornCopper):He developed some plugins for elder xiaoming.
+3. [ExerciseBook](https://github.com/ExerciseBook): He make me be interested in QQ bot.
+4. [lclbm](https://github.com/lclbm)
