@@ -15,12 +15,12 @@ public class BotNestedException
     public BotNestedException(Bot bot, Throwable cause) {
         super(bot, cause);
     
-        Preconditions.namedArgumentNonNull(cause, "cause");
+        Preconditions.nonNull(cause, "cause");
     }
     
     public BotNestedException(Bot bot, String message, Throwable cause) {
         super(bot, message, cause);
         
-        Preconditions.namedArgumentNonNull(cause, "cause");
+        Preconditions.nonNull(cause, "cause");
     }
 }

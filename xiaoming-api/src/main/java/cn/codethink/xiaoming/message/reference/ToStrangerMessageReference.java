@@ -1,0 +1,20 @@
+package cn.codethink.xiaoming.message.reference;
+
+import cn.codethink.xiaoming.contact.Stranger;
+
+/**
+ * 发送到陌生人的消息引用
+ *
+ * @author Chuanwise
+ */
+public interface ToStrangerMessageReference
+    extends OutgoingOnlineMessageReference {
+    
+    /**
+     * 获取消息接收方
+     *
+     * @return 消息接收方
+     */
+    @Override
+    Stranger getTarget();
+}

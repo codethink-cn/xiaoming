@@ -1,11 +1,10 @@
 package cn.codethink.xiaoming.concurrent;
 
-import cn.codethink.common.util.Executors;
+import cn.codethink.common.util.Objects;
 import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.Bot;
 import lombok.Getter;
 
-import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -78,7 +77,7 @@ public class ThreadBotFuture<T>
     public ThreadBotFuture(Bot bot, Callable<T> action) {
         super(bot);
     
-        Preconditions.namedArgumentNonNull(action, "action");
+        Preconditions.nonNull(action, "action");
         
         this.action = action;
     }
@@ -159,7 +158,7 @@ public class ThreadBotFuture<T>
             case INITIALIZED:
             case EXECUTING:
     
-                Executors.await(mutex);
+                Objects.await(mutex);
                 
                 break;
             case SUCCESS:
@@ -177,7 +176,7 @@ public class ThreadBotFuture<T>
             case INITIALIZED:
             case EXECUTING:
     
-                Executors.awaitUninterruptibly(mutex);
+                Objects.awaitUninterruptibly(mutex);
     
                 break;
             case SUCCESS:
@@ -195,7 +194,7 @@ public class ThreadBotFuture<T>
             case INITIALIZED:
             case EXECUTING:
     
-                return Executors.await(mutex, timeout);
+                return Objects.await(mutex, timeout);
     
             case SUCCESS:
             case FAILURE:
@@ -212,7 +211,7 @@ public class ThreadBotFuture<T>
             case INITIALIZED:
             case EXECUTING:
     
-                return Executors.awaitUninterruptibly(mutex, timeout);
+                return Objects.awaitUninterruptibly(mutex, timeout);
     
             case SUCCESS:
             case FAILURE:

@@ -115,4 +115,4 @@ gradle-app.setting
 
 ### Chuanwise deploy script
 
-/publish-script.gradle
+/publish.gradle

@@ -15,7 +15,7 @@ public class MiraiGroupConfiguration
     private final MiraiGroup group;
     
     public MiraiGroupConfiguration(MiraiGroup group) {
-        Preconditions.namedArgumentNonNull(group, "group");
+        Preconditions.nonNull(group, "group");
         
         this.group = group;
     }
@@ -23,60 +23,60 @@ public class MiraiGroupConfiguration
     @Override
     public String getName() {
         group.assertBotIsInGroup();
-        return group.getMiraiGroup().getName();
+        return group.miraiGroup.getName();
     }
     
     @Override
     public void setName(String name) {
         group.assertBotIsInGroup();
-        group.getMiraiGroup().setName(name);
+        group.miraiGroup.setName(name);
     }
     
     @Override
     public boolean isAllowMemberInvite() {
         group.assertBotIsInGroup();
-        return group.getMiraiGroup().getSettings().isAllowMemberInvite();
+        return group.miraiGroup.getSettings().isAllowMemberInvite();
     }
     
     @Override
     public void setAllowMemberInvite(boolean allowMemberInvite) {
         group.assertBotIsInGroup();
-        group.getMiraiGroup().getSettings().setAllowMemberInvite(allowMemberInvite);
+        group.miraiGroup.getSettings().setAllowMemberInvite(allowMemberInvite);
     }
     
     @Override
     public boolean isAllowAnonymousChat() {
         group.assertBotIsInGroup();
-        return group.getMiraiGroup().getSettings().isAnonymousChatEnabled();
+        return group.miraiGroup.getSettings().isAnonymousChatEnabled();
     }
     
     @Override
     public void setAllowAnonymousChat(boolean allowAnonymousChat) {
         group.assertBotIsInGroup();
-        group.getMiraiGroup().getSettings().setAnonymousChatEnabled(allowAnonymousChat);
+        group.miraiGroup.getSettings().setAnonymousChatEnabled(allowAnonymousChat);
     }
     
     @Override
     public boolean isAutoAcceptMemberAddRequest() {
         group.assertBotIsInGroup();
-        return group.getMiraiGroup().getSettings().isAutoApproveEnabled();
+        return group.miraiGroup.getSettings().isAutoApproveEnabled();
     }
-    
+
 //    @Override
 //    public void setAutoAcceptMemberAddRequest(boolean autoAcceptMemberAddRequest) {
 //        group.assertBotIsInGroup();
-//        group.getMiraiGroup().getSettings().setA(muteAll);
+//        group.miraiGroup.getSettings().setA(muteAll);
 //    }
     
     @Override
     public boolean isMuteAll() {
         group.assertBotIsInGroup();
-        return group.getMiraiGroup().getSettings().isMuteAll();
+        return group.miraiGroup.getSettings().isMuteAll();
     }
     
     @Override
     public void setMuteAll(boolean muteAll) {
         group.assertBotIsInGroup();
-        group.getMiraiGroup().getSettings().setMuteAll(muteAll);
+        group.miraiGroup.getSettings().setMuteAll(muteAll);
     }
 }

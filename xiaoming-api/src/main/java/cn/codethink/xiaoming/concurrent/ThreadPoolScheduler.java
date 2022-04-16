@@ -31,7 +31,7 @@ public class ThreadPoolScheduler
     
     @Override
     public BotTask submit(Runnable action) {
-        Preconditions.namedArgumentNonNull(action, "action");
+        Preconditions.nonNull(action, "action");
     
         final ThreadBotTask botTask = new ThreadBotTask(bot, action);
         threadPool.submit(botTask);
@@ -41,7 +41,7 @@ public class ThreadPoolScheduler
     
     @Override
     public BotTask schedule(Runnable action, long delay) {
-        Preconditions.namedArgumentNonNull(action, "action");
+        Preconditions.nonNull(action, "action");
     
         final ThreadBotTask botTask = new ThreadBotTask(bot, action);
         threadPool.schedule(botTask, delay, TimeUnit.MILLISECONDS);
@@ -51,7 +51,7 @@ public class ThreadPoolScheduler
     
     @Override
     public <T> BotFuture<T> submit(Callable<T> action) {
-        Preconditions.namedArgumentNonNull(action, "action");
+        Preconditions.nonNull(action, "action");
     
         final ThreadBotFuture<T> future = new ThreadBotFuture<>(bot, action);
         threadPool.submit(future);
@@ -61,7 +61,7 @@ public class ThreadPoolScheduler
     
     @Override
     public <T> BotFuture<T> schedule(Callable<T> action, long delay) {
-        Preconditions.namedArgumentNonNull(action, "action");
+        Preconditions.nonNull(action, "action");
         Preconditions.argument(delay > 0, "delay must be bigger than 0!");
     
         final ThreadBotFuture<T> task = new ThreadBotFuture<>(bot, action);
@@ -80,7 +80,7 @@ public class ThreadPoolScheduler
     
     @Override
     public PeriodBotTask scheduleWithFixedDelay(Runnable action, long period) {
-        Preconditions.namedArgumentNonNull(action, "action");
+        Preconditions.nonNull(action, "action");
         Preconditions.argument(period > 0, "period must be bigger than 0!");
         
         final PeriodThreadBotTask task = new PeriodThreadBotTask(bot, action);
@@ -99,7 +99,7 @@ public class ThreadPoolScheduler
     
     @Override
     public PeriodBotTask scheduleAtFixedRate(Runnable action, long period) {
-        Preconditions.namedArgumentNonNull(action, "action");
+        Preconditions.nonNull(action, "action");
         Preconditions.argument(period > 0, "period must be bigger than 0!");
     
         final PeriodThreadBotTask task = new PeriodThreadBotTask(bot, action);

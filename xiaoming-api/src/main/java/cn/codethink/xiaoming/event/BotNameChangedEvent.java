@@ -13,17 +13,23 @@ import lombok.Data;
 @Data
 @SuppressWarnings("all")
 public class BotNameChangedEvent
-        extends AbstractBotObject {
+    extends AbstractBotEvent {
     
+    /**
+     * 修改前的名称
+     */
     private final String previousName;
     
+    /**
+     * 修改后的名称
+     */
     private final String currentName;
     
     public BotNameChangedEvent(Bot bot, String previousName, String currentName) {
         super(bot);
     
-        Preconditions.namedArgumentNonEmpty(previousName, "previous name");
-        Preconditions.namedArgumentNonEmpty(currentName, "current name");
+        Preconditions.objectArgumentNonEmpty(previousName, "previous name");
+        Preconditions.objectArgumentNonEmpty(currentName, "current name");
         
         this.previousName = previousName;
         this.currentName = currentName;

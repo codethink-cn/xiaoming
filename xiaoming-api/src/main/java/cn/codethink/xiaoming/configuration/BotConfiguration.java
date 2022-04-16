@@ -3,6 +3,7 @@ package cn.codethink.xiaoming.configuration;
 import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.logger.LoggerFactory;
 import cn.codethink.xiaoming.logger.Slf4jLoggerFactory;
+import cn.codethink.xiaoming.protocol.Protocol;
 import lombok.Data;
 
 import java.io.File;
@@ -16,7 +17,8 @@ import java.util.Objects;
 @Data
 public class BotConfiguration {
     
-    private final String DEVICE_INFO_FILE_NAME = "device.json";
+    private static final String DEVICE_INFO_FILE_NAME = "device.json";
+    
     /**
      * 核心线程池大小
      */
@@ -32,8 +34,13 @@ public class BotConfiguration {
      */
     protected File deviceInfoFile = new File(workingDirectory, DEVICE_INFO_FILE_NAME);
     
+    /**
+     * 登录协议
+     */
+    protected Protocol protocol = Protocol.ANDROID_PHONE;
+    
     public void setWorkingDirectory(File workingDirectory) {
-        Preconditions.namedArgumentNonNull(workingDirectory, "working directory");
+        Preconditions.nonNull(workingDirectory, "working directory");
     
         if (Objects.equals(workingDirectory, this.workingDirectory)) {
             return;

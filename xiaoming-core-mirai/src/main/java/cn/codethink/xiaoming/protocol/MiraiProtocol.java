@@ -22,7 +22,7 @@ public class MiraiProtocol
      * @return Mirai 协议
      */
     public static BotConfiguration.MiraiProtocol toMiraiProtocol(Protocol protocol) {
-        Preconditions.namedArgumentNonNull(protocol, "protocol");
+        Preconditions.nonNull(protocol, "protocol");
     
         switch (protocol) {
             case ANDROID_PAD:
@@ -43,7 +43,7 @@ public class MiraiProtocol
      * @return 小明协议
      */
     public static Protocol fromMiraiProtocol(BotConfiguration.MiraiProtocol protocol) {
-        Preconditions.namedArgumentNonNull(protocol, "protocol");
+        Preconditions.nonNull(protocol, "protocol");
     
         switch (protocol) {
             case ANDROID_PAD:

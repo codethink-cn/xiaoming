@@ -9,7 +9,7 @@ import cn.codethink.xiaoming.AbstractBotObject;
  * @author Chuanwise
  */
 public class BotStopEvent
-        extends AbstractBotObject {
+        extends AbstractBotEvent {
     
     public BotStopEvent(Bot bot) {
         super(bot);

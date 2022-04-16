@@ -1,0 +1,10 @@
+package cn.codethink.xiaoming.message.reference;
+
+/**
+ * 入站在线消息源，表示 Bot 收到的一条消息的消息源。
+ *
+ * @author Chuanwise
+ */
+public interface IncomingOnlineMessageReference
+    extends OnlineMessageReference {
+}

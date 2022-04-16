@@ -18,7 +18,7 @@ public class BotRuntimeException
     protected final Bot bot;
     
     public BotRuntimeException(Bot bot) {
-        Preconditions.namedArgumentNonNull(bot, "bot");
+        Preconditions.nonNull(bot, "bot");
         
         this.bot = bot;
     }
@@ -26,7 +26,7 @@ public class BotRuntimeException
     public BotRuntimeException(Bot bot, Throwable cause) {
         super(cause);
         
-        Preconditions.namedArgumentNonNull(bot, "bot");
+        Preconditions.nonNull(bot, "bot");
         
         this.bot = bot;
     }
@@ -34,7 +34,7 @@ public class BotRuntimeException
     public BotRuntimeException(Bot bot, String message) {
         super(message);
         
-        Preconditions.namedArgumentNonNull(bot, "bot");
+        Preconditions.nonNull(bot, "bot");
         
         this.bot = bot;
     }
@@ -42,7 +42,7 @@ public class BotRuntimeException
     public BotRuntimeException(Bot bot, String message, Throwable cause) {
         super(message, cause);
         
-        Preconditions.namedArgumentNonNull(bot, "bot");
+        Preconditions.nonNull(bot, "bot");
         
         this.bot = bot;
     }

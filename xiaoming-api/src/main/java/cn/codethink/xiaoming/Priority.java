@@ -1,11 +1,11 @@
 package cn.codethink.xiaoming;
 
-import cn.codethink.xiaoming.event.Listener;
+import cn.codethink.xiaoming.event.EventHandler;
 
 /**
  * 用来表示某种优先级
  *
- * @see Listener
+ * @see EventHandler
  * @author Chuanwise
  */
 public enum Priority {

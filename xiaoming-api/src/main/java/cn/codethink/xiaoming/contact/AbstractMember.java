@@ -1,17 +1,37 @@
 package cn.codethink.xiaoming.contact;
 
-import cn.codethink.xiaoming.AbstractBotObject;
+import cn.chuanwise.common.util.Preconditions;
 import cn.codethink.xiaoming.Bot;
+import lombok.Getter;
 
 /**
- * @see Friend
+ * @see Member
  * @author Chuanwise
  */
+@Getter
 public abstract class AbstractMember
-    extends AbstractBotObject
+    extends AbstractContact
     implements Member {
     
-    public AbstractMember(Bot bot) {
-        super(bot);
+    /**
+     * 账号所在的集体
+     */
+    protected final Mass mass;
+    
+    public AbstractMember(Mass mass) {
+        super(mass.getBot());
+        Preconditions.objectNonNull(mass, "mass");
+        
+        this.mass = mass;
+    }
+    
+    @Override
+    public Friend asFriend() {
+        return bot.getFriend(getCode());
+    }
+    
+    @Override
+    public Stranger asStranger() {
+        return bot.getStranger(getCode());
     }
 }

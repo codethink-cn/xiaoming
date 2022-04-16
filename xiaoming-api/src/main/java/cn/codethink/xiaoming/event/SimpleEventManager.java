@@ -1,6 +1,6 @@
 package cn.codethink.xiaoming.event;
 
-import cn.codethink.common.api.ExceptionConsumer;
+import cn.chuanwise.common.api.ExceptionConsumer;
 import cn.codethink.common.util.*;
 import cn.codethink.xiaoming.AbstractBot;
 import cn.codethink.xiaoming.AbstractBotObject;
@@ -27,7 +27,7 @@ public class SimpleEventManager
     
     private final Logger logger;
     
-    private final Map<Priority, List<Listener>> listeners = new ConcurrentHashMap<>();
+    private final Map<Priority, List<cn.codethink.xiaoming.event.EventHandler>> listeners = new ConcurrentHashMap<>();
     
     public SimpleEventManager(AbstractBot bot) {
         super(bot);
@@ -36,28 +36,39 @@ public class SimpleEventManager
     }
     
     @Override
-    public BotFuture<Boolean> handleEvent(Object event) {
-        Preconditions.namedArgumentNonNull(event, "event");
+    public BotFuture<Boolean> broadcastEvent(Event event) {
+        Preconditions.nonNull(event, "event");
     
-        return ((AbstractBot) bot).getScheduler().submit(() -> {
-            final boolean highest = handleEvent(event, Priority.HIGHEST);
-            final boolean high = handleEvent(event, Priority.HIGH);
-            final boolean normal = handleEvent(event, Priority.NORMAL);
-            final boolean low = handleEvent(event, Priority.LOW);
-            final boolean lowest = handleEvent(event, Priority.LOWEST);
-    
-            return highest || high || normal || low || lowest;
-        });
+        return ((AbstractBot) bot).getScheduler().submit(() -> broadcastEventSync(event));
     }
     
-    private boolean handleEvent(Object event, Priority priority) {
-        final List<Listener> listeners = this.listeners.get(priority);
+    @Override
+    public boolean broadcastEventSync(Event event) {
+        Preconditions.nonNull(event, "event");
+    
+        final boolean highest = broadcastEvent(event, Priority.HIGHEST);
+        final boolean high = broadcastEvent(event, Priority.HIGH);
+        final boolean normal = broadcastEvent(event, Priority.NORMAL);
+        final boolean low = broadcastEvent(event, Priority.LOW);
+        final boolean lowest = broadcastEvent(event, Priority.LOWEST);
+    
+        return highest || high || normal || low || lowest;
+    }
+    
+    private boolean broadcastEvent(Event event, Priority priority) {
+        final List<cn.codethink.xiaoming.event.EventHandler> eventHandlers = this.listeners.get(priority);
         
         boolean handled = false;
-        if (Collections.nonEmpty(listeners)) {
-            for (Listener listener : listeners) {
+        if (Collections.nonEmpty(eventHandlers)) {
+            for (cn.codethink.xiaoming.event.EventHandler eventHandler : eventHandlers) {
+                
+                // interception means stop listening immediately
+                if (event.isIntercepted()) {
+                    return handled;
+                }
+                
                 try {
-                    listener.handleEvent(event);
+                    eventHandler.handleEvent(event);
                     handled = true;
                 } catch (Throwable throwable) {
                     logger.error("监听事件时出现异常", throwable);
@@ -70,7 +81,7 @@ public class SimpleEventManager
     
     @Override
     public void registerListeners(Object object) {
-        Preconditions.namedArgumentNonNull(object, "object");
+        Preconditions.nonNull(object, "object");
     
         final Method[] methods = object.getClass().getDeclaredMethods();
     
@@ -83,57 +94,57 @@ public class SimpleEventManager
             }
     
             // 生成监听器
-            final Listener listener;
+            final cn.codethink.xiaoming.event.EventHandler eventHandler;
             if (Modifiers.isStatic(method)) {
-                listener = MethodListener.ofStaticMethod(method, annotation.priority(), annotation.alwaysValid());
+                eventHandler = MethodEventHandler.ofStaticMethod(method, annotation.priority(), annotation.alwaysValid());
             } else {
-                listener = MethodListener.ofMethod(object, method, annotation.priority(), annotation.alwaysValid());
+                eventHandler = MethodEventHandler.ofMethod(object, method, annotation.priority(), annotation.alwaysValid());
             }
     
             // 添加到监听器列表中
-            final List<Listener> samePriorityListeners = Maps.getOrPutGet(listeners, listener.getPriority(), CopyOnWriteArrayList::new);
-            samePriorityListeners.add(listener);
+            final List<cn.codethink.xiaoming.event.EventHandler> samePriorityEventHandlers = Maps.getOrPutGet(listeners, eventHandler.getPriority(), CopyOnWriteArrayList::new);
+            samePriorityEventHandlers.add(eventHandler);
         }
     }
     
     @Override
     public <T> void registerListener(Class<T> eventClass, ExceptionConsumer<T> action, Priority priority, boolean alwaysValid) {
-        Preconditions.namedArgumentNonNull(eventClass, "event class");
-        Preconditions.namedArgumentNonNull(action, "action");
-        Preconditions.namedArgumentNonNull(priority, "priority");
+        Preconditions.nonNull(eventClass, "event class");
+        Preconditions.nonNull(action, "action");
+        Preconditions.nonNull(priority, "priority");
     
-        final List<Listener> samePriorityListeners = Maps.getOrPutGet(listeners, priority, CopyOnWriteArrayList::new);
-        samePriorityListeners.add(new SimpleListener<>(eventClass, priority, alwaysValid, action));
+        final List<cn.codethink.xiaoming.event.EventHandler> samePriorityEventHandlers = Maps.getOrPutGet(listeners, priority, CopyOnWriteArrayList::new);
+        samePriorityEventHandlers.add(new SimpleEventHandler<>(eventClass, priority, alwaysValid, action));
     }
     
     @Override
     public boolean unregisterEvents(Class<?> eventClass) {
-        Preconditions.namedArgumentNonNull(eventClass, "event class");
+        Preconditions.nonNull(eventClass, "event class");
     
         return unregisterAllListeners(x -> eventClass.isAssignableFrom(x.getEventClass()));
     }
     
     @Override
     public boolean unregisterListeners(Object listeners) {
-        Preconditions.namedArgumentNonNull(listeners, "listeners");
+        Preconditions.nonNull(listeners, "listeners");
     
-        return unregisterAllListeners(x -> x instanceof MethodListener && Objects.equals(((MethodListener) x).source, listeners));
+        return unregisterAllListeners(x -> x instanceof MethodEventHandler && Objects.equals(((MethodEventHandler) x).source, listeners));
     }
     
     @Override
     public boolean unregisterListeners(Class<?> listenersClass) {
-        Preconditions.namedArgumentNonNull(listenersClass, "listeners class");
+        Preconditions.nonNull(listenersClass, "listeners class");
     
-        return unregisterAllListeners(x -> x instanceof MethodListener && listenersClass.isInstance(((MethodListener) x).source));
+        return unregisterAllListeners(x -> x instanceof MethodEventHandler && listenersClass.isInstance(((MethodEventHandler) x).source));
     }
     
-    private boolean unregisterListeners(Priority priority, Predicate<Listener> filter) {
-        final List<Listener> listeners = this.listeners.get(priority);
+    private boolean unregisterListeners(Priority priority, Predicate<cn.codethink.xiaoming.event.EventHandler> filter) {
+        final List<cn.codethink.xiaoming.event.EventHandler> eventHandlers = this.listeners.get(priority);
         
         boolean removed = false;
-        if (Collections.nonEmpty(listeners)) {
-            removed = listeners.removeIf(filter);
-            if (listeners.isEmpty()) {
+        if (Collections.nonEmpty(eventHandlers)) {
+            removed = eventHandlers.removeIf(filter);
+            if (eventHandlers.isEmpty()) {
                 this.listeners.remove(priority);
             }
         }
@@ -141,7 +152,7 @@ public class SimpleEventManager
         return removed;
     }
     
-    private boolean unregisterAllListeners(Predicate<Listener> filter) {
+    private boolean unregisterAllListeners(Predicate<cn.codethink.xiaoming.event.EventHandler> filter) {
     
         final boolean highest = unregisterListeners(Priority.HIGHEST, filter);
         final boolean high = unregisterListeners(Priority.HIGH, filter);

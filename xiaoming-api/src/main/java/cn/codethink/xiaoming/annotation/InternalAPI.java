@@ -1,5 +1,6 @@
 package cn.codethink.xiaoming.annotation;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -11,6 +12,7 @@ import java.lang.annotation.RetentionPolicy;
  *
  * @author Chuanwise
  */
+@Documented
 @Retention(RetentionPolicy.CLASS)
 public @interface InternalAPI {
 }

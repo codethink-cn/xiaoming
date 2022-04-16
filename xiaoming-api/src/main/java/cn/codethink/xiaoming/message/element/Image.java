@@ -1,33 +1,34 @@
 package cn.codethink.xiaoming.message.element;
 
-import cn.codethink.xiaoming.code.Code;
-import cn.codethink.common.util.Preconditions;
-import lombok.Data;
+import cn.codethink.xiaoming.resource.Resource;
+
+import java.net.URL;
 
 /**
  * 图片消息
  *
  * @author Chuanwise
  */
-@Data
-public class Image
-        extends AbstractMessageElement {
+public interface Image
+    extends BasicMessage, Resource {
     
-    protected final Code code;
+    /**
+     * 获取图片的 URL
+     *
+     * @return 图片的 URL
+     */
+    String getUrlString();
     
-    public Image(Code code) {
-        Preconditions.namedArgumentNonNull(code, "code");
-        
-        this.code = code;
-    }
+    /**
+     * 获取图片的 URL
+     *
+     * @return 图片的 URL
+     */
+    URL getUrl();
     
     @Override
-    public String toMessageCode() {
-        return "[image:code=" + code.toMessageCode() + "]";
-    }
-    
-    @Override
-    public String toContent() {
+    @SuppressWarnings("all")
+    default String serializeToSummary() {
         return "[图片]";
     }
 }

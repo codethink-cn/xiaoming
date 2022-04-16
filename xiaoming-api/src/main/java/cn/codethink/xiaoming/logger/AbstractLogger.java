@@ -19,14 +19,14 @@ public abstract class AbstractLogger
     protected LoggerLevel level = LoggerLevel.INFO;
 
     public AbstractLogger(String name) {
-        Preconditions.namedArgumentNonEmpty(name, "logger name");
+        Preconditions.objectArgumentNonEmpty(name, "logger name");
 
         this.name = name;
     }
 
     public AbstractLogger(String name, LoggerLevel level) {
-        Preconditions.namedArgumentNonEmpty(name, "logger name");
-        Preconditions.namedArgumentNonNull(level, "logger level");
+        Preconditions.objectArgumentNonEmpty(name, "logger name");
+        Preconditions.nonNull(level, "logger level");
 
         this.name = name;
         this.level = level;
@@ -37,7 +37,7 @@ public abstract class AbstractLogger
      * @param name 日志名
      */
     public void setName(String name) {
-        Preconditions.namedArgumentNonEmpty(name, "logger name");
+        Preconditions.objectArgumentNonEmpty(name, "logger name");
 
         this.name = name;
     }
@@ -48,7 +48,7 @@ public abstract class AbstractLogger
      */
     @Override
     public void setLevel(LoggerLevel level) {
-        Preconditions.namedArgumentNonNull(level, "logger level");
+        Preconditions.nonNull(level, "logger level");
 
         this.level = level;
     }

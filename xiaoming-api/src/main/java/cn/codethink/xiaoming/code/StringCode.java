@@ -1,5 +1,6 @@
 package cn.codethink.xiaoming.code;
 
+import cn.codethink.common.util.Numbers;
 import cn.codethink.common.util.Preconditions;
 import lombok.Data;
 
@@ -12,26 +13,40 @@ import lombok.Data;
 public class StringCode
     implements Code, Comparable<StringCode> {
     
-    protected final String code;
+    protected final String value;
     
-    public StringCode(String code) {
-        Preconditions.namedArgumentNonNull(code, "code");
+    public StringCode(String value) {
+        Preconditions.nonNull(value, "value");
         
-        this.code = code;
+        this.value = value;
     }
     
     @Override
     public int compareTo(StringCode stringCode) {
-        return this.code.compareTo(stringCode.code);
+        return this.value.compareTo(stringCode.value);
     }
     
     @Override
-    public String toMessageCode() {
-        return "string:" + code;
+    public long asLong() {
+        final Long value = Numbers.parseLong(this.value);
+        Preconditions.operationNonNull(value);
+        return value;
     }
     
     @Override
-    public String toContent() {
-        return code;
+    public int asInt() {
+        final Integer value = Numbers.parseInt(this.value);
+        Preconditions.operationNonNull(value);
+        return value;
+    }
+    
+    @Override
+    public String asString() {
+        return value;
+    }
+    
+    @Override
+    public String toString() {
+        return "s:" + value;
     }
 }

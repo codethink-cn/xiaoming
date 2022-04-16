@@ -18,40 +18,40 @@ public class Bots
     /**
      * 机器人驱动表
      */
-    private static final Map<InstantMessenger, BotDriver> DRIVERS = new ConcurrentHashMap<>();
+    private static final Map<IM, BotDriver> DRIVERS = new ConcurrentHashMap<>();
     
     /**
      * 获取机器人驱动表
      *
      * @return 机器人驱动表
      */
-    public static Map<InstantMessenger, BotDriver> getDrivers() {
+    public static Map<IM, BotDriver> getDrivers() {
         return Collections.unmodifiableMap(DRIVERS);
     }
     
     /**
      * 获取某通讯软件的机器人驱动
      *
-     * @param instantMessenger 通讯软件
+     * @param IM 通讯软件
      * @return 如果存在该平台的驱动，返回驱动，否则返回 null
      */
-    public static BotDriver getDriver(InstantMessenger instantMessenger) {
-        Preconditions.namedArgumentNonNull(instantMessenger, "instant messenger");
+    public static BotDriver getDriver(IM IM) {
+        Preconditions.nonNull(IM, "instant messenger");
         
-        return DRIVERS.get(instantMessenger);
+        return DRIVERS.get(IM);
     }
     
     /**
      * 注册某通讯软件的机器人驱动
      *
-     * @param instantMessenger 通讯软件
+     * @param IM 通讯软件
      * @param botDriver 机器人驱动
      * @return 如果之前有一个同平台驱动，则返回之前的驱动，否则返回 null
      */
-    public static BotDriver registerDriver(InstantMessenger instantMessenger, BotDriver botDriver) {
-        Preconditions.namedArgumentNonNull(instantMessenger, "instant messenger");
-        Preconditions.namedArgumentNonNull(botDriver, "bot driver");
+    public static BotDriver registerDriver(IM IM, BotDriver botDriver) {
+        Preconditions.nonNull(IM, "instant messenger");
+        Preconditions.nonNull(botDriver, "bot driver");
     
-        return DRIVERS.put(instantMessenger, botDriver);
+        return DRIVERS.put(IM, botDriver);
     }
 }

@@ -1,6 +1,6 @@
 package cn.codethink.xiaoming.event;
 
-import cn.codethink.common.api.ExceptionConsumer;
+import cn.chuanwise.common.api.ExceptionConsumer;
 import cn.codethink.xiaoming.BotObject;
 import cn.codethink.xiaoming.Priority;
 import cn.codethink.xiaoming.concurrent.BotFuture;
@@ -19,7 +19,15 @@ public interface EventManager
      * @param event 事件
      * @return 是否有事件监听器捕捉该事件
      */
-    BotFuture<Boolean> handleEvent(Object event);
+    BotFuture<Boolean> broadcastEvent(Event event);
+    
+    /**
+     * 同步监听某个事件
+     *
+     * @param event 事件
+     * @return 是否有事件监听器捕捉该事件
+     */
+    boolean broadcastEventSync(Event event);
     
     /**
      * 注册一些监听器
@@ -50,6 +58,19 @@ public interface EventManager
     default <T> void registerListener(Class<T> eventClass, ExceptionConsumer<T> action, Priority priority) {
         registerListener(eventClass, action, priority, false);
     }
+    
+    /**
+     * 注册一个默认的监听器
+     *
+     * @param eventClass  事件类型
+     * @param action      监听行为
+     * @param alwaysValid 是否该监听器总是生效
+     * @param <T>         事件类型
+     */
+    default <T> void registerListener(Class<T> eventClass, ExceptionConsumer<T> action, boolean alwaysValid) {
+        registerListener(eventClass, action, Priority.NORMAL, alwaysValid);
+    }
+    
     
     /**
      * 注册一个默认的监听器

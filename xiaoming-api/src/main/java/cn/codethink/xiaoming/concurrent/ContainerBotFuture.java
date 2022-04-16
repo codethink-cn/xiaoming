@@ -1,10 +1,9 @@
 package cn.codethink.xiaoming.concurrent;
 
-import cn.codethink.common.util.Executors;
+import cn.codethink.common.util.Objects;
 import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.Bot;
 
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
@@ -62,7 +61,7 @@ public class ContainerBotFuture<T>
         switch (state) {
             case INITIALIZED:
                 
-                Executors.await(mutex);
+                Objects.await(mutex);
                 
                 break;
             case SUCCESS:
@@ -79,7 +78,7 @@ public class ContainerBotFuture<T>
         switch (state) {
             case INITIALIZED:
             
-                Executors.awaitUninterruptibly(mutex);
+                Objects.awaitUninterruptibly(mutex);
             
                 break;
             case SUCCESS:
@@ -98,7 +97,7 @@ public class ContainerBotFuture<T>
         switch (state) {
             case INITIALIZED:
     
-                return Executors.await(mutex, timeout);
+                return Objects.await(mutex, timeout);
                 
             case SUCCESS:
             case FAILURE:
@@ -116,7 +115,7 @@ public class ContainerBotFuture<T>
         switch (state) {
             case INITIALIZED:
             
-                return Executors.awaitUninterruptibly(mutex, timeout);
+                return Objects.awaitUninterruptibly(mutex, timeout);
         
             case SUCCESS:
             case FAILURE:
@@ -157,7 +156,7 @@ public class ContainerBotFuture<T>
     }
     
     public void setCause(Throwable cause) {
-        Preconditions.namedArgumentNonNull(cause, "cause");
+        Preconditions.nonNull(cause, "cause");
         Preconditions.state(state == State.INITIALIZED, "state of the bot future is not INITIALIZED");
         
         this.cause = cause;

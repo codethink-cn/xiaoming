@@ -38,7 +38,7 @@ public abstract class AbstractBotTask
     
     @Override
     public void addListener(BotTaskListener botTaskListener) {
-        Preconditions.namedArgumentNonNull(botTaskListener, "bot listener");
+        Preconditions.nonNull(botTaskListener, "bot listener");
         
         listeners.add(botTaskListener);
         
@@ -59,7 +59,7 @@ public abstract class AbstractBotTask
     
     @Override
     public boolean await(long timeout, TimeUnit timeUnit) throws InterruptedException {
-        Preconditions.namedArgumentNonNull(timeUnit, "time unit");
+        Preconditions.nonNull(timeUnit, "time unit");
         Preconditions.argument(timeout >= 0, "duration must be bigger than or equals to 0!");
         
         return await(timeUnit.toMillis(timeout));
@@ -67,7 +67,7 @@ public abstract class AbstractBotTask
     
     @Override
     public void awaitUninterruptibly(long timeout, TimeUnit timeUnit) {
-        Preconditions.namedArgumentNonNull(timeUnit, "time unit");
+        Preconditions.nonNull(timeUnit, "time unit");
         Preconditions.argument(timeout >= 0, "duration must be bigger than or equals to 0!");
         
         awaitUninterruptibly(timeUnit.toMillis(timeout));

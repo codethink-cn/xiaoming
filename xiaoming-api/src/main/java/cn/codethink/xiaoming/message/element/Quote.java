@@ -1,32 +1,29 @@
 package cn.codethink.xiaoming.message.element;
 
-import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.element.AbstractMessageElement;
-import cn.codethink.common.util.Preconditions;
+import cn.codethink.xiaoming.message.MessageCode;
+import cn.codethink.xiaoming.message.reference.MessageReference;
+import lombok.Data;
 
 /**
  * 引用某条消息
  *
  * @author Chuanwise
  */
+@Data
 public class Quote
-        extends AbstractMessageElement {
+    implements MetadataMessage {
     
-    protected final Message message;
+    private final MessageReference messageReference;
     
-    public Quote(Message message) {
-        Preconditions.namedArgumentNonNull(message, "message");
-        
-        this.message = message;
+    @Override
+    public String serializeToMessageCode() {
+        return MessageCode.builder("quote")
+            .argument(messageReference.serializeToMessageCode())
+            .build();
     }
     
     @Override
-    public String toMessageCode() {
-        return "[quote:code=" + message.getCode() + "]";
-    }
-    
-    @Override
-    public String toContent() {
-        return "[回复]";
+    public MessageMetadataType<Quote> getMetadataType() {
+        return MessageMetadataType.QUOTE;
     }
 }

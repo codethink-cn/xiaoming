@@ -20,7 +20,7 @@ public class BotFutureAdapter<T>
     private final BotFuture<T> future;
     
     public BotFutureAdapter(BotFuture<T> future) {
-        Preconditions.namedArgumentNonNull(future, "future");
+        Preconditions.nonNull(future, "future");
         
         this.future = future;
     }

@@ -20,16 +20,16 @@ public class MiraiLogger
     public MiraiLogger(MiraiBot bot) {
         super(NAME);
         
-        Preconditions.namedArgumentNonNull(bot, "bot");
+        Preconditions.nonNull(bot, "bot");
         
         this.bot = bot;
     }
     
     @Override
     public void log(LoggerLevel level, Object message, Object... arguments) {
-        Preconditions.namedArgumentNonNull(level, "level");
-        Preconditions.namedArgumentNonNull(message, "message");
-        Preconditions.namedArgumentNonNull(arguments, "arguments");
+        Preconditions.nonNull(level, "level");
+        Preconditions.nonNull(message, "message");
+        Preconditions.nonNull(arguments, "arguments");
     }
     
     @Nullable

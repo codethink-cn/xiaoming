@@ -1,4 +1,5 @@
 rootProject.name = 'xiaoming'
 include 'xiaoming-api'
 include 'xiaoming-core-mirai'
+include 'xiaoming-core'
 

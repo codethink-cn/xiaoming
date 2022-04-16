@@ -5,21 +5,8 @@ package cn.codethink.xiaoming.contact;
  *
  * @author Chuanwise
  */
-public interface GroupConfiguration {
-    
-    /**
-     * 询问群名
-     *
-     * @return 群名
-     */
-    String getName();
-    
-    /**
-     * 设置群名
-     *
-     * @param name 群名
-     */
-    void setName(String name);
+public interface GroupConfiguration
+    extends MassConfiguration {
     
     /**
      * 询问是否允许群员邀请加入

@@ -15,7 +15,7 @@ public abstract class AbstractBotObject
     protected transient final Bot bot;
     
     public AbstractBotObject(Bot bot) {
-        Preconditions.namedArgumentNonNull(bot, "bot");
+        Preconditions.nonNull(bot, "bot");
         
         this.bot = bot;
     }

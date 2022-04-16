@@ -22,7 +22,7 @@ public abstract class AbstractBotFuture<T>
     
     @Override
     public T get(long timeout, TimeUnit timeUnit) throws InterruptedException, ExecutionException, TimeoutException {
-        Preconditions.namedArgumentNonNull(timeUnit, "time unit");
+        Preconditions.nonNull(timeUnit, "time unit");
         Preconditions.argument(timeout >= 0, "timeout must be bigger than or equals to 0!");
         
         return get(timeUnit.toMillis(timeout));

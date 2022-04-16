@@ -15,7 +15,7 @@ public class BotNestedRuntimeException
     public BotNestedRuntimeException(Bot bot, Throwable cause) {
         super(bot, cause);
     
-        Preconditions.namedArgumentNonNull(cause, "cause");
+        Preconditions.nonNull(cause, "cause");
     }
     
     public BotNestedRuntimeException(Bot bot) {
@@ -25,6 +25,6 @@ public class BotNestedRuntimeException
     public BotNestedRuntimeException(Bot bot, String message, Throwable cause) {
         super(bot, message, cause);
         
-        Preconditions.namedArgumentNonNull(cause, "cause");
+        Preconditions.nonNull(cause, "cause");
     }
 }

@@ -1,6 +1,5 @@
 package cn.codethink.xiaoming.event;
 
-import cn.codethink.xiaoming.AbstractBotObject;
 import cn.codethink.xiaoming.Bot;
 import lombok.Data;
 
@@ -12,8 +11,11 @@ import lombok.Data;
 @Data
 @SuppressWarnings("all")
 public class BotOfflineEvent
-        extends AbstractBotObject {
+        extends AbstractBotEvent {
     
+    /**
+     * 是否需要重新登录 Bot
+     */
     private final boolean relogin;
     
     public BotOfflineEvent(Bot bot, boolean relogin) {

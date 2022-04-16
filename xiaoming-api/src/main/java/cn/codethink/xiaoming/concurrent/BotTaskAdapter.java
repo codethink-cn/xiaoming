@@ -18,7 +18,7 @@ public class BotTaskAdapter
     protected final BotTask task;
     
     public BotTaskAdapter(BotTask task) {
-        Preconditions.namedArgumentNonNull(task, "task");
+        Preconditions.nonNull(task, "task");
         
         this.task = task;
     }

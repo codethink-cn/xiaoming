@@ -1,42 +1,44 @@
 plugins {
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 // scripts in root project directory
-def mirrorScriptFile = new File('use-mirror.gradle')
-def publishScriptFile = new File('publish-script.gradle')
+def mirrorScriptFile = new File('mirrors.gradle')
+def publishScriptFile = new File('publish.gradle')
 
-allprojects {
+subprojects {
     apply plugin: 'java-library'
     apply plugin: 'java'
+    apply plugin: 'com.github.johnrengelman.shadow'
 
     group 'cn.codethink'
     version '5.0-SNAPSHOT'
 
-    // if there is a mirror script, apply it
+    // install script if the file is exists
     if (mirrorScriptFile.isFile()) {
         apply from: mirrorScriptFile.getAbsolutePath()
     }
-
-    // if there is a publish script, apply it
     if (publishScriptFile.isFile()) {
         apply from: publishScriptFile.getAbsolutePath()
     }
 
     repositories {
+        mavenLocal()
+
         mavenCentral()
 
         // codethink maven
         maven {
-            name('codethink maven')
+            name 'codethink maven'
 
             // set to true for ignoring warning
-            allowInsecureProtocol(true)
+            allowInsecureProtocol true
 
-            url('http://121.4.253.187:8081/repository/maven-public/')
+            url 'http://121.4.253.187:8081/repository/maven-public/'
         }
     }
 
@@ -58,4 +60,13 @@ allprojects {
     test {
         useJUnitPlatform()
     }
+
+//    shadowJar {
+//        exclude "META-INF/*.SF"
+//        exclude "META-INF/*.DSA"
+//        exclude "META-INF/*.RSA"
+//        exclude "META-INF/LICENSE"
+//
+//        archiveName project.name + '-' + version + '.' + extension
+//    }
 }

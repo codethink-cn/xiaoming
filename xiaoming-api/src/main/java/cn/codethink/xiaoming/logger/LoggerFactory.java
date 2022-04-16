@@ -34,7 +34,7 @@ public abstract class LoggerFactory {
      * @return 具备该名字的日志
      */
     public Logger getLogger(String name) {
-        Preconditions.namedArgumentNonEmpty(name, "logger name");
+        Preconditions.objectArgumentNonEmpty(name, "logger name");
     
         return Maps.getOrPutGet(LOGGERS, name, () -> generateLogger(name));
     }

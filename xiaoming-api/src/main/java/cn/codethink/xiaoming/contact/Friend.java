@@ -1,26 +1,15 @@
 package cn.codethink.xiaoming.contact;
 
 /**
- * 对某个人的私聊会话。
- *
- *
+ * 表示某位好友，可以用于发起私聊会话。
  *
  * @author Chuanwise
  */
 public interface Friend
-        extends Contact {
+    extends Contact, Cached, User {
     
     /**
-     * 检测该用户现在是否是朋友
-     *
-     * @return 该用户现在是否是朋友
+     * 删除好友
      */
-    boolean isFriendNow();
-    
-    /**
-     * 获取头像 URL
-     *
-     * @return 头像 URL
-     */
-    String getAvatarUrl();
+    void delete();
 }

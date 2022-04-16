@@ -10,7 +10,6 @@ import cn.codethink.xiaoming.event.EventManager;
 import cn.codethink.xiaoming.event.SimpleEventManager;
 import cn.codethink.xiaoming.exception.BotStopException;
 import cn.codethink.xiaoming.logger.Logger;
-import cn.codethink.xiaoming.message.ResourcePool;
 import lombok.Data;
 
 import java.io.File;
@@ -35,7 +34,7 @@ public abstract class AbstractBot
     
     @Override
     public void setBotConfiguration(BotConfiguration botConfiguration) {
-        Preconditions.namedArgumentNonNull(botConfiguration, "core configuration");
+        Preconditions.nonNull(botConfiguration, "core configuration");
         
         this.botConfiguration = botConfiguration;
         setupBotConfiguration(botConfiguration);
@@ -54,11 +53,6 @@ public abstract class AbstractBot
     protected Scheduler scheduler;
     
     /**
-     * 资源池
-     */
-    protected ResourcePool resourcePool;
-    
-    /**
      * 日志记录器
      */
     protected Logger logger;
@@ -74,7 +68,7 @@ public abstract class AbstractBot
     
     @SuppressWarnings("all")
     public AbstractBot(BotConfiguration botConfiguration) {
-        Preconditions.namedArgumentNonNull(botConfiguration, "bot configuration");
+        Preconditions.nonNull(botConfiguration, "bot configuration");
         
         this.botConfiguration = botConfiguration;
         
@@ -127,29 +121,25 @@ public abstract class AbstractBot
     
         try {
             state = State.STARTING;
-        
-            // 设置日志记录器
+            
+            // logger
             logger = botConfiguration.getLoggerFactory().getLogger("bot");
-        
             logger.info("正在启动机器人");
+    
+            // setup config
+            setupBotConfiguration(botConfiguration);
     
             final File workingDirectory = botConfiguration.getWorkingDirectory();
             if (!workingDirectory.isDirectory() && !workingDirectory.mkdirs()) {
                 logger.error("can not create working directory: " + workingDirectory.getAbsolutePath());
-                logger.error("无法创建实现文件夹");
+                logger.error("无法创建工作目录");
 
                 state = State.STOP_ERROR;
                 return false;
             }
-    
-            // setup config
-            setupBotConfiguration(botConfiguration);
-        
+            
             // 设置核心线程池
             scheduler = new ThreadPoolScheduler(this, botConfiguration.getThreadCount());
-        
-            // 设置资源池
-            resourcePool = new ResourcePool(this);
         
             // 设置事件管理器
             eventManager = new SimpleEventManager(this);
@@ -161,7 +151,7 @@ public abstract class AbstractBot
         
             // 发出事件
             final BotStartEvent botStartEvent = new BotStartEvent(this);
-            eventManager.handleEvent(botStartEvent);
+            eventManager.broadcastEvent(botStartEvent);
         
             logger.info("成功启动机器人");
             
@@ -199,7 +189,7 @@ public abstract class AbstractBot
         
             // 发出事件
             final BotStopEvent botStopEvent = new BotStopEvent(this);
-            eventManager.handleEvent(botStopEvent);
+            eventManager.broadcastEvent(botStopEvent);
         
             // 关闭 Bot
             stop0();
@@ -207,9 +197,6 @@ public abstract class AbstractBot
             // 关闭线程池
             scheduler.shutdownGracefully();
             scheduler = null;
-        
-            // 清空资源池
-            resourcePool = null;
         
             // 关闭事件管理器
             eventManager = null;
@@ -230,4 +217,9 @@ public abstract class AbstractBot
     }
     
     protected abstract void stop0() throws Exception;
+    
+    @Override
+    public Bot getBot() {
+        return this;
+    }
 }

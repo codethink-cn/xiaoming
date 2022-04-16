@@ -1,6 +1,6 @@
 package cn.codethink.xiaoming.concurrent;
 
-import cn.codethink.common.util.Executors;
+import cn.codethink.common.util.Objects;
 import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.Bot;
 
@@ -68,7 +68,7 @@ public class PeriodThreadBotTask
     public PeriodThreadBotTask(Bot bot, Runnable action) {
         super(bot);
     
-        Preconditions.namedArgumentNonNull(action, "action");
+        Preconditions.nonNull(action, "action");
         
         this.action = action;
     }
@@ -188,7 +188,7 @@ public class PeriodThreadBotTask
             case SKIPPING:
             case EXECUTING:
                 
-                Executors.await(mutex);
+                Objects.await(mutex);
                 
                 break;
             case FAILURE:
@@ -206,7 +206,7 @@ public class PeriodThreadBotTask
             case SKIPPING:
             case EXECUTING:
             
-                Executors.awaitUninterruptibly(mutex);
+                Objects.awaitUninterruptibly(mutex);
             
                 break;
             case FAILURE:
@@ -226,7 +226,7 @@ public class PeriodThreadBotTask
             case SKIPPING:
             case EXECUTING:
     
-                return Executors.await(mutex, timeout);
+                return Objects.await(mutex, timeout);
                 
             case FAILURE:
             case CANCELLED:
@@ -245,7 +245,7 @@ public class PeriodThreadBotTask
             case SKIPPING:
             case EXECUTING:
             
-                return Executors.awaitUninterruptibly(mutex, timeout);
+                return Objects.awaitUninterruptibly(mutex, timeout);
         
             case FAILURE:
             case CANCELLED:

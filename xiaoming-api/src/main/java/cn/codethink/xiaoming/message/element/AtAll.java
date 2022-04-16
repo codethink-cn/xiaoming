@@ -1,35 +1,39 @@
 package cn.codethink.xiaoming.message.element;
 
-import cn.codethink.xiaoming.message.element.AbstractMessageElement;
-import cn.codethink.xiaoming.message.element.At;
-
 /**
  * 用于 @ 全体成员的 AtAll
  *
  * @author Chuanwise
  */
 public class AtAll
-        extends AbstractMessageElement
-        implements At {
+    extends AbstractBasicMessage
+    implements At, BasicMessage {
     
-    @SuppressWarnings("all")
-    public static final String MESSAGE_CODE = "[atall]";
+    /**
+     * 消息码
+     */
+    private static final String MESSAGE_CODE = "[at:all]";
     
-    public static final String CONTENT = "@全体成员";
+    /**
+     * AtAll 的全局唯一单例
+     */
+    public static final AtAll INSTANCE = new AtAll();
     
-    private static final AtAll INSTANCE = new AtAll();
+    /**
+     * 摘要消息
+     */
+    private static final String SUMMARY = "@全体成员";
     
-    public static AtAll getInstance() {
-        return INSTANCE;
+    private AtAll() {
     }
     
     @Override
-    public String toMessageCode() {
+    public String serializeToMessageCode() {
         return MESSAGE_CODE;
     }
     
     @Override
-    public String toContent() {
-        return CONTENT;
+    public String serializeToSummary() {
+        return SUMMARY;
     }
 }

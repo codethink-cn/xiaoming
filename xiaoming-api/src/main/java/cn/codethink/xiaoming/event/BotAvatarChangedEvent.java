@@ -13,17 +13,23 @@ import lombok.Data;
 @Data
 @SuppressWarnings("all")
 public class BotAvatarChangedEvent
-        extends AbstractBotObject {
+        extends AbstractBotEvent {
     
+    /**
+     * 修改前的头像
+     */
     private final String previousAvatarUrl;
     
+    /**
+     * 修改后的头像
+     */
     private final String currentAvatarUrl;
     
     public BotAvatarChangedEvent(Bot bot, String previousAvatarUrl, String currentAvatarUrl) {
         super(bot);
     
-        Preconditions.namedArgumentNonEmpty(previousAvatarUrl, "previous avatar url");
-        Preconditions.namedArgumentNonEmpty(currentAvatarUrl, "current avatar url");
+        Preconditions.objectArgumentNonEmpty(previousAvatarUrl, "previous avatar url");
+        Preconditions.objectArgumentNonEmpty(currentAvatarUrl, "current avatar url");
         
         this.previousAvatarUrl = previousAvatarUrl;
         this.currentAvatarUrl = currentAvatarUrl;

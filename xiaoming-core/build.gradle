@@ -1,0 +1,4 @@
+dependencies {
+    // api
+    api project(':xiaoming-api')
+}

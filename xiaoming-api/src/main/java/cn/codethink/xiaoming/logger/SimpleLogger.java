@@ -34,8 +34,8 @@ public class SimpleLogger
      */
     @Override
     public void log(LoggerLevel level, Object message, Object... arguments) {
-        Preconditions.namedArgumentNonNull(level, "logger level");
-        Preconditions.namedArgumentNonNull(arguments, "logger arguments");
+        Preconditions.nonNull(level, "logger level");
+        Preconditions.nonNull(arguments, "logger arguments");
 
         if (this.level.compareTo(level) > 0) {
             return;

@@ -1,27 +1,25 @@
 package cn.codethink.xiaoming.contact;
 
+import cn.chuanwise.common.util.Lazy;
 import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.MiraiBot;
 import cn.codethink.xiaoming.annotation.InternalAPI;
 import cn.codethink.xiaoming.code.Code;
 import cn.codethink.xiaoming.code.LongCode;
-import cn.codethink.xiaoming.concurrent.BotFuture;
-import cn.codethink.xiaoming.concurrent.Scheduler;
-import cn.codethink.xiaoming.concurrent.SucceedBotFuture;
+import cn.codethink.xiaoming.event.*;
 import cn.codethink.xiaoming.exception.NoSuchFriendException;
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.MiraiMessage;
 import cn.codethink.xiaoming.message.MiraiMessageChain;
-import cn.codethink.xiaoming.message.ResourcePool;
-import cn.codethink.xiaoming.message.content.MessageContent;
-import net.mamoe.mirai.Bot;
-import net.mamoe.mirai.contact.ContactList;
+import cn.codethink.xiaoming.message.compound.CompoundMessage;
+import cn.codethink.xiaoming.message.reference.*;
+import cn.codethink.xiaoming.util.MiraiContacts;
+import lombok.Getter;
 import net.mamoe.mirai.contact.Friend;
-import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.NormalMember;
+import net.mamoe.mirai.contact.Stranger;
 import net.mamoe.mirai.message.MessageReceipt;
-import net.mamoe.mirai.message.data.MessageChain;
 
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -30,88 +28,126 @@ import java.util.Objects;
  * @author Chuanwise
  */
 @InternalAPI
+@Getter
 public class MiraiFriend
-        extends AbstractFriend {
+    extends AbstractFriend {
     
+    /**
+     * Mirai 的 Friend
+     */
     private final Friend miraiFriend;
     
+    /**
+     * QQ
+     */
     private final LongCode code;
+    
+    /**
+     * 账户信息
+     */
+    private final MiraiProfile profile;
     
     public MiraiFriend(MiraiBot bot, Friend miraiFriend) {
         super(bot);
-        Preconditions.namedArgumentNonNull(miraiFriend, "mirai friend");
+        Preconditions.nonNull(miraiFriend, "mirai friend");
         
         this.miraiFriend = miraiFriend;
         
-        code = LongCode.valueOf(miraiFriend.getId());
+        this.code = LongCode.valueOf(miraiFriend.getId());
+        
+        this.profile = new MiraiProfile(bot, miraiFriend.queryProfile());
     }
     
     @Override
-    public boolean isFriendNow() {
-        final Bot miraiBot = ((MiraiBot) bot).getMiraiBot();
-        return Objects.nonNull(miraiBot.getFriend(code.getCode()));
+    public String getAccountName() {
+        return miraiFriend.getNick();
     }
     
-    protected void assertIsFriend() {
-        if (!isFriendNow()) {
+    @Override
+    public void delete() {
+        miraiFriend.delete();
+    }
+    
+    @Override
+    public String getRemarkName() {
+        return miraiFriend.getRemark();
+    }
+    
+    protected void assertAvailable() {
+        if (!isAvailable()) {
             throw new NoSuchFriendException(bot, code);
         }
+    }
+    
+    @Override
+    public boolean isAvailable() {
+        return available;
     }
     
     @Override
     public String getAvatarUrl() {
-        assertIsFriend();
+        assertAvailable();
         return miraiFriend.getAvatarUrl();
     }
     
     @Override
-    public BotFuture<Message> sendMessage(MessageContent messageContent) {
-        Preconditions.namedArgumentNonNull(messageContent, "message content");
-    
-        final MiraiBot bot = (MiraiBot) this.bot;
-        final Scheduler scheduler = bot.getScheduler();
-        
-        // 检查这个好友现在还是不是好友
-        final Bot miraiBot = bot.getMiraiBot();
-    
-        final MessageChain messageChain = MiraiMessageChain.serialize(messageContent);
-        final ResourcePool resourcePool = bot.getResourcePool();
-        if (isFriendNow()) {
-            return scheduler.submit(() -> {
-                final MessageReceipt<Friend> receipt = this.miraiFriend.sendMessage(messageChain);
-                
-                final Code code = resourcePool.allocateMessageCode();
-                final MiraiMessage miraiMessage = new MiraiMessage(code, messageContent, receipt.getSource().getTime(), messageChain);
-                
-                return resourcePool.cacheMessage(miraiMessage);
-            });
-        } else {
-            // 如果不是好友，则尝试直接发送，然后立即封号
-            // 在所有群里尝试发起临时会话
-    
-            // TODO: 2022/3/16 当群聊禁止临时会话时发送，会被封号
-            final ContactList<Group> groups = miraiBot.getGroups();
-    
-            for (Group group : groups) {
-                final NormalMember member = group.get(code.getCode());
-        
-                if (Objects.isNull(member)) {
-                    continue;
-                }
-        
-                final MessageReceipt<Friend> receipt = this.miraiFriend.sendMessage(messageChain);
-                final Code code = resourcePool.allocateMessageCode();
-                final MiraiMessage message = new MiraiMessage(code, messageContent, receipt.getSource().getTime(), messageChain);
-        
-                return new SucceedBotFuture<>(bot, resourcePool.cacheMessage(message));
-            }
-    
-            throw new NoSuchFriendException(bot, code);
-        }
+    public String getSenderName() {
+        return miraiFriend.getNick();
     }
     
     @Override
-    public Code getCode() {
-        return code;
+    public cn.codethink.xiaoming.message.receipt.MessageReceipt sendMessage(Message message) {
+        Preconditions.nonNull(message, "message");
+        final MiraiBot bot = (MiraiBot) this.bot;
+        
+        // try to send as friend
+        if (isAvailable()) {
+            return MiraiContacts.sendFriendMessage(message, this);
+        }
+    
+        // if he is not friend now
+        // find him in all groups
+        // try to send member message
+        // because there's no sendable checking before send
+        // so if member sending is banned in this group
+        // bot will be banned immediately
+        // TODO: 2022/4/16 do sendable checking before send after mirai updated
+    
+        final Collection<MiraiGroup> masses = bot.getMasses().values();
+        for (MiraiGroup mass : masses) {
+            final MiraiMember member = mass.getMember(code);
+            if (Objects.isNull(member)) {
+                continue;
+            }
+    
+            return MiraiContacts.sendGroupMemberMessage(message, member);
+        }
+    
+        // if he's not a member of joined groups
+        // find as stranger
+        final MiraiStranger stranger = asStranger();
+        if (Objects.nonNull(stranger)) {
+            return MiraiContacts.sendStrangerMessage(message, stranger);
+        }
+    
+        throw new NoSuchFriendException(bot, code);
+    }
+    
+    @Override
+    public MiraiStranger asStranger() {
+        return (MiraiStranger) super.asStranger();
+    }
+    
+    @Override
+    public MiraiFriend asFriend() {
+        return this;
+    }
+    
+    @Override
+    public String toString() {
+        return "Friend(" +
+            "code=" + code + "," +
+            "name=" + getAccountName() + "," +
+            "remark=" + getRemarkName() + ")";
     }
 }

@@ -5,122 +5,184 @@ import cn.codethink.xiaoming.MiraiBot;
 import cn.codethink.xiaoming.annotation.InternalAPI;
 import cn.codethink.xiaoming.code.Code;
 import cn.codethink.xiaoming.code.LongCode;
-import cn.codethink.xiaoming.concurrent.BotFuture;
-import cn.codethink.xiaoming.concurrent.Scheduler;
-import cn.codethink.xiaoming.exception.NoSuchGroupException;
+import cn.codethink.xiaoming.event.*;
+import cn.codethink.xiaoming.exception.NoSuchFriendException;
 import cn.codethink.xiaoming.exception.NoSuchMemberException;
+import cn.codethink.xiaoming.exception.NotYetImplementedException;
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.MiraiMessage;
 import cn.codethink.xiaoming.message.MiraiMessageChain;
-import cn.codethink.xiaoming.message.ResourcePool;
-import cn.codethink.xiaoming.message.content.MessageContent;
+import cn.codethink.xiaoming.message.compound.CompoundMessage;
+import cn.codethink.xiaoming.message.receipt.MessageReceipt;
+import cn.codethink.xiaoming.message.reference.*;
+import cn.codethink.xiaoming.util.MiraiContacts;
 import lombok.Data;
-import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.contact.*;
-import net.mamoe.mirai.contact.Friend;
-import net.mamoe.mirai.contact.Group;
-import net.mamoe.mirai.contact.Member;
-import net.mamoe.mirai.message.MessageReceipt;
-import net.mamoe.mirai.message.data.MessageChain;
+import net.mamoe.mirai.contact.Stranger;
 
+import java.util.Collection;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
- * mirai 的 Friend
+ * mirai 的 Member
  *
  * @author Chuanwise
  */
 @InternalAPI
-@Data
 @SuppressWarnings("all")
+@Data
 public class MiraiMember
-        extends AbstractMember {
+    extends AbstractMember
+    implements GroupMember {
     
-    private final Member member;
+    /**
+     * Mirai 群成员
+     */
+    private final net.mamoe.mirai.contact.NormalMember miraiMember;
     
+    /**
+     * 账户所在的群
+     */
     private final MiraiGroup group;
     
+    /**
+     * 个人资料
+     */
+    private final MiraiProfile profile;
+    
+    /**
+     * QQ
+     */
     private final LongCode code;
     
-    public MiraiMember(MiraiBot bot, MiraiGroup group, Member member) {
-        super(bot);
-        Preconditions.namedArgumentNonNull(member, "member");
+    protected MiraiMember(MiraiGroup group,
+                          net.mamoe.mirai.contact.NormalMember miraiMember) {
+        super(group);
+        Preconditions.nonNull(miraiMember, "member");
         
-        this.member = member;
         this.group = group;
-        
-        code = LongCode.valueOf(member.getId());
+        this.code = (LongCode) Code.ofLong(miraiMember.getId());
+    
+        this.miraiMember = miraiMember;
+        this.profile = new MiraiProfile(getBot(), miraiMember.queryProfile());
+    }
+    
+//    {
+//        miraiMember.getLastSpeakTimestamp();
+//
+//        AnonymousMember member;
+//        MessageReference source;
+//
+//    }
+    
+    public boolean isAvailable() {
+        return group.isAvailable() && available;
     }
     
     @Override
-    public BotFuture<Message> sendMessage(MessageContent messageContent) {
-        Preconditions.namedArgumentNonNull(messageContent, "message content");
+    public MiraiGroup getMass() {
+        return group;
+    }
     
-        final MiraiBot bot = (MiraiBot) this.bot;
-        final Bot miraiBot = bot.getMiraiBot();
-        final Scheduler scheduler = bot.getScheduler();
+    @Override
+    public void setSpecialTitle(String title) {
+        miraiMember.setSpecialTitle(title);
+    }
     
-        final MessageChain messageChain = MiraiMessageChain.serialize(messageContent);
+    @Override
+    public String getMassNick() {
+        return miraiMember.getNameCard();
+    }
     
-        // 检查是否是好友
-        final Friend friend = miraiBot.getFriend(code.getCode());
-        final ResourcePool resourcePool = bot.getResourcePool();
-        if (Objects.nonNull(friend)) {
-            return scheduler.submit(() -> {
-                final MessageReceipt<?> receipt = friend.sendMessage(messageChain);
-                
-                final Code code = resourcePool.allocateMessageCode();
-                final MiraiMessage miraiMessage = new MiraiMessage(code, messageContent, receipt.getSource().getTime(), messageChain);
-                
-                return resourcePool.cacheMessage(miraiMessage);
-            });
+    @Override
+    public long getJoinTimestamp() {
+        return TimeUnit.SECONDS.toMillis(miraiMember.getJoinTimestamp());
+    }
+    
+    @Override
+    public void setMassNick(String massNick) {
+        miraiMember.setNameCard(massNick);
+    }
+    
+    @Override
+    public Role getRole() {
+        return MiraiRole.fromMirai(miraiMember.getPermission());
+    }
+    
+    @Override
+    public void setRole(Role role) {
+        Preconditions.objectNonNull(role, "role");
+    
+        switch (role) {
+            case ADMIN:
+                miraiMember.modifyAdmin(false);
+                break;
+            case MEMBER:
+                miraiMember.modifyAdmin(false);
+                break;
+            case OWNER:
+                throw new NotYetImplementedException(getBot());
+            default:
+                throw new NoSuchElementException();
         }
+    }
     
-        // 检查 Bot 是否还在本群
-        if (!isBotInGroup()) {
-            throw new NoSuchGroupException(bot, code);
-        }
-        
-        // 检查该成员是否还在本群
-        final NormalMember member = group.getMiraiGroup().get(code.getCode());
-        if (Objects.isNull(member)) {
-            // 在群里找
-            final ContactList<Group> groups = miraiBot.getGroups();
-            for (Group group : groups) {
-                // 不重复检查本群
-                if (group.getId() == code.getCode()) {
-                    continue;
-                }
-                
-                // 检查本群是否存在该成员
-                final NormalMember normalMember = group.get(code.getCode());
-                if (Objects.isNull(normalMember)) {
-                    continue;
-                }
+    @Override
+    public void mute(long time) {
+        mute(time, TimeUnit.MILLISECONDS);
+    }
     
-                // 直接发送消息
-                return scheduler.submit(() -> {
-                    final MessageReceipt<?> receipt = normalMember.sendMessage(messageChain);
-                    
-                    final Code code = resourcePool.allocateMessageCode();
-                    final MiraiMessage miraiMessage = new MiraiMessage(code, messageContent, receipt.getSource().getTime(), messageChain);
-                    
-                    return resourcePool.cacheMessage(miraiMessage);
-                });
-            }
+    @Override
+    public void mute(long time, TimeUnit timeUnit) {
+        Preconditions.objectNonNull(timeUnit, "time unit");
+        Preconditions.argument(time >= 0, "mute time must be bigger than or equals to 0!");
     
-            throw new NoSuchMemberException(bot, group, code);
+        if (time == 0) {
+            miraiMember.unmute();
         } else {
-            // 直接发送消息
-            return scheduler.submit(() -> {
-                final MessageReceipt<?> receipt = member.sendMessage(messageChain);
-                
-                final Code code = resourcePool.allocateMessageCode();
-                final MiraiMessage miraiMessage = new MiraiMessage(code, messageContent, receipt.getSource().getTime(), messageChain);
-                
-                return resourcePool.cacheMessage(miraiMessage);
-            });
+            miraiMember.mute((int) timeUnit.toSeconds(time));
         }
+    }
+    
+    @Override
+    public void unmute() {
+        miraiMember.unmute();
+    }
+    
+    @Override
+    public long getMuteTimeRemaining() {
+        return TimeUnit.SECONDS.toMinutes(miraiMember.getMuteTimeRemaining());
+    }
+    
+    @Override
+    public boolean isMuted() {
+        return miraiMember.isMuted();
+    }
+    
+    @Override
+    public String getAvatarUrl() {
+        return miraiMember.getAvatarUrl();
+    }
+    
+    @Override
+    public String getSenderName() {
+        return miraiMember.getNameCard();
+    }
+    
+    @Override
+    public String getRemarkName() {
+        return miraiMember.getRemark();
+    }
+    
+    @Override
+    public String getAccountName() {
+        return miraiMember.getNick();
+    }
+    
+    @Override
+    public MiraiProfile getProfile() {
+        return profile;
     }
     
     @Override
@@ -129,29 +191,69 @@ public class MiraiMember
     }
     
     @Override
-    public boolean isFriendNow() {
-        final Bot miraiBot = ((MiraiBot) bot).getMiraiBot();
-        return Objects.nonNull(miraiBot.getFriend(code.getCode()));
+    public MiraiFriend asFriend() {
+        return (MiraiFriend) super.asFriend();
     }
     
     @Override
-    public boolean isMemberNow() {
-        if (!isBotInGroup()) {
-            throw new NoSuchGroupException(bot, code);
+    public void flapInGroup() {
+        miraiMember.nudge().sendTo(miraiMember.getGroup());
+    }
+    
+    @Override
+    public void flapInMember() {
+        miraiMember.nudge().sendTo(miraiMember);
+    }
+    
+    @Override
+    public MessageReceipt sendMessage(Message message) {
+        Preconditions.nonNull(message, "message");
+        final MiraiBot bot = (MiraiBot) this.bot;
+        
+        // send as friend
+        final MiraiFriend friend = asFriend();
+        if (Objects.nonNull(friend)) {
+            return MiraiContacts.sendFriendMessage(message, friend);
         }
-        return Objects.nonNull(group.getMiraiGroup().get(code.getCode()));
-    }
     
-    public boolean isBotInGroup() {
-        return group.isBotInGroup();
-    }
+        // send as group member
+        if (isAvailable()) {
+            return MiraiContacts.sendGroupMemberMessage(message, this);
+        }
+        
+        // send as others group member
+        // find him in all groups
+        // try to send member message
+        // because there's no sendable checking before send
+        // so if member sending is banned in this group
+        // bot will be banned immediately
+        // TODO: 2022/4/16 do sendable checking before send after mirai updated
     
-    public MiraiGroup getGroup() {
-        return group;
+        final Collection<MiraiGroup> masses = bot.getMasses().values();
+        for (MiraiGroup mass : masses) {
+            if (masses == this) {
+                continue;
+            }
+            final MiraiMember member = mass.getMember(code);
+            if (Objects.isNull(member)) {
+                continue;
+            }
+    
+            return MiraiContacts.sendGroupMemberMessage(message, member);
+        }
+    
+        // if he's not a member of joined groups
+        // find as stranger
+        final MiraiStranger stranger = asStranger();
+        if (Objects.nonNull(stranger)) {
+            return MiraiContacts.sendStrangerMessage(message, stranger);
+        }
+    
+        throw new NoSuchMemberException(mass, code);
     }
     
     @Override
-    public Scope getScope() {
-        return group;
+    public MiraiStranger asStranger() {
+        return (MiraiStranger) super.asStranger();
     }
 }

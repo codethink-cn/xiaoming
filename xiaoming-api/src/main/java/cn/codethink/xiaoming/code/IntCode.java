@@ -1,6 +1,7 @@
 package cn.codethink.xiaoming.code;
 
 import cn.codethink.common.util.Maps;
+import cn.chuanwise.common.util.SoftMap;
 import lombok.Data;
 
 import java.util.HashMap;
@@ -15,12 +16,12 @@ import java.util.Map;
 public class IntCode
     implements Code, Comparable<IntCode> {
     
-    protected final int code;
+    protected final int value;
     
-    private static final Map<Integer, IntCode> INSTANCES = new HashMap<>();
+    private static final Map<Integer, IntCode> INSTANCES = new SoftMap<>(new HashMap<>());
     
-    private IntCode(int code) {
-        this.code = code;
+    private IntCode(int value) {
+        this.value = value;
     }
     
     public static IntCode valueOf(int code) {
@@ -29,16 +30,31 @@ public class IntCode
     
     @Override
     public int compareTo(IntCode longCode) {
-        return Integer.compare(this.code, longCode.code);
+        return Integer.compare(this.value, longCode.value);
     }
     
     @Override
-    public String toMessageCode() {
-        return "int:" + code;
+    public long asLong() {
+        return value;
     }
     
     @Override
-    public String toContent() {
-        return String.valueOf(code);
+    public int asInt() {
+        return value;
+    }
+    
+    @Override
+    public String asString() {
+        return String.valueOf(value);
+    }
+    
+    @Override
+    public String toString() {
+        return "i:" + value;
+    }
+    
+    @Override
+    public Integer getValue() {
+        return value;
     }
 }

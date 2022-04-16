@@ -19,7 +19,7 @@ public class Codes
      * @param code 码
      */
     public static void requiredLongCode(Code code) {
-        Preconditions.namedArgumentNonNull(code, "code");
+        Preconditions.nonNull(code, "code");
         Preconditions.argument(code instanceof LongCode, "code should be long code");
     }
 }

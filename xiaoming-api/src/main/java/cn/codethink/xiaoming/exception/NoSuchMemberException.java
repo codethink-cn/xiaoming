@@ -2,9 +2,12 @@ package cn.codethink.xiaoming.exception;
 
 import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.Bot;
+import cn.codethink.xiaoming.BotObject;
 import cn.codethink.xiaoming.code.Code;
-import cn.codethink.xiaoming.contact.Scope;
+import cn.codethink.xiaoming.contact.Mass;
 import lombok.Data;
+
+import java.util.NoSuchElementException;
 
 /**
  * 和好友相关的异常
@@ -14,19 +17,24 @@ import lombok.Data;
 @Data
 @SuppressWarnings("all")
 public class NoSuchMemberException
-        extends BotRuntimeException {
+    extends NoSuchElementException
+    implements BotObject {
     
-    private final Scope scope;
+    private final Mass mass;
     
     private final Code code;
     
-    public NoSuchMemberException(Bot bot, Scope scope, Code code) {
-        super(bot, "can not find the member with code: " + code);
+    public NoSuchMemberException(Mass mass, Code code) {
+        super("can not find the member with code: " + code);
     
-        Preconditions.namedArgumentNonNull(scope, "scope");
-        Preconditions.namedArgumentNonNull(code, "code");
+        Preconditions.nonNull(code, "code");
         
-        this.scope = scope;
+        this.mass = mass;
         this.code = code;
+    }
+    
+    @Override
+    public Bot getBot() {
+        return mass.getBot();
     }
 }

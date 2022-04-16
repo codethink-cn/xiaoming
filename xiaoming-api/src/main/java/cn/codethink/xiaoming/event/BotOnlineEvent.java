@@ -12,7 +12,7 @@ import lombok.Data;
 @Data
 @SuppressWarnings("all")
 public class BotOnlineEvent
-        extends AbstractBotObject {
+        extends AbstractBotEvent {
     
     public BotOnlineEvent(Bot bot) {
         super(bot);

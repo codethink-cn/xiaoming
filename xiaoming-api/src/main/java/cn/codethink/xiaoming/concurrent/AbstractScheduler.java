@@ -32,8 +32,8 @@ public abstract class AbstractScheduler
     
     @Override
     public PeriodBotTask scheduleWithFixedDelay(Runnable action, long period, TimeUnit timeUnit) {
-        Preconditions.namedArgumentNonNull(action, "action");
-        Preconditions.namedArgumentNonNull(timeUnit, "time unit");
+        Preconditions.nonNull(action, "action");
+        Preconditions.nonNull(timeUnit, "time unit");
         Preconditions.argument(period > 0, "period must be bigger than 0!");
 
         return scheduleWithFixedDelay(action, timeUnit.toMillis(period));
@@ -41,8 +41,8 @@ public abstract class AbstractScheduler
     
     @Override
     public PeriodBotTask scheduleAtFixedRate(Runnable action, long period, TimeUnit timeUnit) {
-        Preconditions.namedArgumentNonNull(action, "action");
-        Preconditions.namedArgumentNonNull(timeUnit, "time unit");
+        Preconditions.nonNull(action, "action");
+        Preconditions.nonNull(timeUnit, "time unit");
         Preconditions.argument(period > 0, "period must be bigger than 0!");
         
         return scheduleAtFixedRate(action, timeUnit.toMillis(period));
@@ -50,7 +50,7 @@ public abstract class AbstractScheduler
     
     @Override
     public boolean awaitTermination(long timeout, TimeUnit timeUnit) throws InterruptedException {
-        Preconditions.namedArgumentNonNull(timeUnit, "time unit");
+        Preconditions.nonNull(timeUnit, "time unit");
         Preconditions.argument(timeout >= 0, "timeout must be bigger than or equals to 0!");
     
         return awaitTermination(timeUnit.toMillis(timeout));
@@ -92,7 +92,7 @@ public abstract class AbstractScheduler
     
     @Override
     public boolean awaitTerminationUninterruptibly(long timeout, TimeUnit timeUnit) {
-        Preconditions.namedArgumentNonNull(timeUnit, "time unit");
+        Preconditions.nonNull(timeUnit, "time unit");
         Preconditions.argument(timeout >= 0, "timeout must be bigger than or equals to 0!");
     
         return awaitTerminationUninterruptibly(timeUnit.toMillis(timeout));
@@ -114,7 +114,7 @@ public abstract class AbstractScheduler
     
     @Override
     public boolean shutdownSync(long timeout, TimeUnit timeUnit) throws InterruptedException {
-        Preconditions.namedArgumentNonNull(timeUnit, "time unit");
+        Preconditions.nonNull(timeUnit, "time unit");
         Preconditions.argument(timeout >= 0, "timeout must be bigger than or equals to 0!");
         
         shutdownGracefully();
@@ -131,7 +131,7 @@ public abstract class AbstractScheduler
     
     @Override
     public boolean shutdownUninterruptibly(long timeout, TimeUnit timeUnit) {
-        Preconditions.namedArgumentNonNull(timeUnit, "time unit");
+        Preconditions.nonNull(timeUnit, "time unit");
         Preconditions.argument(timeout >= 0, "timeout must be bigger than or equals to 0!");
     
         shutdownGracefully();

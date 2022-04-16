@@ -1,6 +1,6 @@
 package cn.codethink.xiaoming.message.element;
 
-import cn.codethink.xiaoming.message.element.MessageElement;
+import cn.codethink.xiaoming.message.SummarizableMessage;
 
 /**
  * At 消息
@@ -8,5 +8,5 @@ import cn.codethink.xiaoming.message.element.MessageElement;
  * @author Chuanwise
  */
 public interface At
-        extends MessageElement {
+    extends BasicMessage, SummarizableMessage {
 }

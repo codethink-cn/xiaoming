@@ -1,6 +1,5 @@
 package cn.codethink.xiaoming.logger;
 
-import cn.codethink.common.util.Arguments;
 import cn.codethink.common.util.Preconditions;
 import lombok.Data;
 
@@ -27,9 +26,9 @@ public class Slf4jLogger
     
     @Override
     public void log(LoggerLevel level, Object message, Object... arguments) {
-        Preconditions.namedArgumentNonNull(level, "level");
-        Preconditions.namedArgumentNonNull(message, "message");
-        Preconditions.namedArgumentNonNull(arguments, "arguments");
+        Preconditions.nonNull(level, "level");
+        Preconditions.nonNull(message, "message");
+        Preconditions.nonNull(arguments, "arguments");
     
         final String finalMessage = Objects.toString(message);
     

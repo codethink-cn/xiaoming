@@ -30,7 +30,7 @@ public class SucceedBotFuture<T>
     
     @Override
     public void addListener(BotTaskListener botTaskListener) {
-        Preconditions.namedArgumentNonNull(botTaskListener, "bot listener");
+        Preconditions.nonNull(botTaskListener, "bot listener");
         
         botTaskListener.listen(this);
     }
@@ -99,7 +99,7 @@ public class SucceedBotFuture<T>
     
     @Override
     public T get(long timeout, TimeUnit unit) {
-        Preconditions.namedArgumentNonNull(unit, "time unit");
+        Preconditions.nonNull(unit, "time unit");
         Preconditions.argument(timeout >= 0, "timeout must be bigger than or equals to 0!");
         
         return value;

@@ -1,33 +1,56 @@
 package cn.codethink.xiaoming.message.element;
 
-import cn.codethink.xiaoming.code.Code;
-import cn.codethink.common.util.Preconditions;
-import lombok.Data;
+import cn.chuanwise.common.util.Preconditions;
+import cn.codethink.xiaoming.message.MessageCode;
+
+import java.io.InputStream;
+import java.net.URL;
 
 /**
  * 闪照消息
  *
  * @author Chuanwise
  */
-@Data
 public class FlashImage
-        extends AbstractMessageElement {
+    extends AbstractBasicMessage
+    implements BasicMessage, Image {
     
-    protected final Code code;
+    private final Image image;
     
-    public FlashImage(Code code) {
-        Preconditions.namedArgumentNonNull(code, "code");
-        
-        this.code = code;
+    public FlashImage(Image image) {
+        Preconditions.objectNonNull(image, "image");
+    
+        // guarantee the image is an actual image
+        while (image instanceof FlashImage) {
+            image = ((FlashImage) image).image;
+        }
+        this.image = image;
     }
     
     @Override
-    public String toMessageCode() {
-        return "[flash:code=" + code.toMessageCode() + "]";
+    public String serializeToMessageCode() {
+        return MessageCode.builder("flash")
+            .argument(image.serializeToMessageCode())
+            .build();
     }
     
     @Override
-    public String toContent() {
+    public String getUrlString() {
+        return image.getUrlString();
+    }
+    
+    @Override
+    public URL getUrl() {
+        return image.getUrl();
+    }
+    
+    @Override
+    public InputStream open() throws Exception {
+        return image.open();
+    }
+    
+    @Override
+    public String serializeToSummary() {
         return "[闪照]";
     }
 }

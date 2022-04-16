@@ -24,7 +24,7 @@ public interface Logger {
      * @throws IllegalArgumentException cause 为 null 时
      */
     default void trace(Object message, Throwable cause) {
-        trace(message + "\n" + Exceptions.writeStackTrace(cause));
+        trace(message + "\n" + Exceptions.readStackTrace(cause));
     }
 
     /**
@@ -43,7 +43,7 @@ public interface Logger {
      * @throws IllegalArgumentException cause 为 null 时
      */
     default void info(Object message, Throwable cause) {
-        info(message + "\n" + Exceptions.writeStackTrace(cause));
+        info(message + "\n" + Exceptions.readStackTrace(cause));
     }
 
     /**
@@ -62,7 +62,7 @@ public interface Logger {
      * @throws IllegalArgumentException cause 为 null 时
      */
     default void warn(Object message, Throwable cause) {
-        warn(message + "\n" + Exceptions.writeStackTrace(cause));
+        warn(message + "\n" + Exceptions.readStackTrace(cause));
     }
 
     /**
@@ -72,7 +72,7 @@ public interface Logger {
      * @throws IllegalArgumentException cause 为 null 时
      */
     default void error(Object message, Throwable cause) {
-        error(message + "\n" + Exceptions.writeStackTrace(cause));
+        error(message + "\n" + Exceptions.readStackTrace(cause));
     }
 
     /**
@@ -91,7 +91,7 @@ public interface Logger {
      * @throws IllegalArgumentException cause 为 null 时
      */
     default void debug(Object message, Throwable cause) {
-        debug(message + "\n" + Exceptions.writeStackTrace(cause));
+        debug(message + "\n" + Exceptions.readStackTrace(cause));
     }
 
     /**
@@ -110,7 +110,7 @@ public interface Logger {
      * @throws IllegalArgumentException cause 为 null 时
      */
     default void fatal(Object message, Throwable cause) {
-        fatal(message + "\n" + Exceptions.writeStackTrace(cause));
+        fatal(message + "\n" + Exceptions.readStackTrace(cause));
     }
 
     /**
@@ -137,7 +137,7 @@ public interface Logger {
      * @param cause 异常
      */
     default void log(LoggerLevel level, Object message, Throwable cause) {
-        log(level, message + "\n" + Exceptions.writeStackTrace(cause));
+        log(level, message + "\n" + Exceptions.readStackTrace(cause));
     }
 
     /** 获取日志等级 */
