@@ -4,11 +4,10 @@ import cn.chuanwise.common.util.Arrays;
 import cn.chuanwise.common.util.EmptyIterator;
 import cn.chuanwise.common.util.SingletonIterator;
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.element.BasicMessage;
+import cn.codethink.xiaoming.message.basic.BasicMessage;
 import cn.codethink.common.util.Preconditions;
-import cn.codethink.xiaoming.message.element.MessageMetadataType;
-import cn.codethink.xiaoming.message.element.MetadataMessage;
-import lombok.Data;
+import cn.codethink.xiaoming.message.basic.MessageMetadataType;
+import cn.codethink.xiaoming.message.basic.MessageMetadata;
 
 import java.util.*;
 
@@ -17,18 +16,17 @@ import java.util.*;
  *
  * @author Chuanwise
  */
-@Data
 @SuppressWarnings("all")
 public class SingletonCompoundMessage
     extends AbstractCompoundMessage
     implements CompoundMessage {
     
-    protected final Message message;
+    protected final BasicMessage basicMessage;
     
-    public SingletonCompoundMessage(Message message) {
-        Preconditions.nonNull(message, "message");
+    public SingletonCompoundMessage(BasicMessage basicMessage) {
+        Preconditions.nonNull(basicMessage, "message");
         
-        this.message = message;
+        this.basicMessage = basicMessage;
     }
     
     @Override
@@ -38,86 +36,81 @@ public class SingletonCompoundMessage
     
     @Override
     public CompoundMessage plus(Message message) {
-        cn.chuanwise.common.util.Preconditions.objectNonNull(message, "message");
+        Preconditions.objectNonNull(message, "message");
     
         return new SimpleCompoundMessageBuilder(2)
-            .plus(this.message)
+            .plus(this.basicMessage)
             .plus(message)
             .build();
     }
     
     @Override
     public CompoundMessage plus(String text) {
-        cn.chuanwise.common.util.Preconditions.objectArgumentNonEmpty(text, "text");
+        Preconditions.objectArgumentNonEmpty(text, "text");
     
         return new SimpleCompoundMessageBuilder(2)
-            .plus(this.message)
+            .plus(this.basicMessage)
             .plus(text)
             .build();
     }
     
     @Override
+    public CompoundMessage plus(MessageMetadata messageMetadata) {
+        Preconditions.objectNonNull(basicMessage, "message");
+    
+        return new SimpleCompoundMessageBuilder(2)
+            .plus(this.basicMessage)
+            .plus(messageMetadata)
+            .build();
+    }
+    
+    @Override
     public CompoundMessage plus(Message... messages) {
-        cn.chuanwise.common.util.Preconditions.objectNonNull(messages, "messages");
+        Preconditions.objectNonNull(messages, "messages");
         
         if (Arrays.isEmpty(messages)) {
             return this;
         }
     
         return new SimpleCompoundMessageBuilder()
-            .plus(this.message)
+            .plus(this.basicMessage)
             .plus(messages)
             .build();
     }
     
     @Override
     public CompoundMessage plus(Iterable<? extends Message> iterable) {
-        cn.chuanwise.common.util.Preconditions.objectNonNull(iterable, "iterable");
+        Preconditions.objectNonNull(iterable, "iterable");
     
         return new SimpleCompoundMessageBuilder()
-            .plus(this.message)
+            .plus(this.basicMessage)
             .plus(iterable)
             .build();
     }
     
     @Override
     public Iterator<BasicMessage> iterator() {
-        if (message instanceof BasicMessage) {
-            final BasicMessage basicMessage = (BasicMessage) message;
-            return new SingletonIterator<>(basicMessage);
-        } else {
-            return EmptyIterator.getInstance();
-        }
+        return EmptyIterator.getInstance();
     }
     
     @Override
     public int size() {
-        return message instanceof MetadataMessage
-            ? 0
-            : 1;
+        return 1;
     }
     
     @Override
-    public <T> T getMetadata(MessageMetadataType<T> type) {
-        Preconditions.objectNonNull(type, "type");
-    
-        if (message instanceof MetadataMessage) {
-            final MetadataMessage metadataMessage = (MetadataMessage) message;
-            if (metadataMessage.getMetadataType() == type) {
-                return (T) metadataMessage;
-            }
-        }
-        
+    public <T extends MessageMetadata> T getMetadata(MessageMetadataType<T> type) {
         return null;
     }
     
     @Override
-    public Map<MessageMetadataType<?>, Object> getMetadata() {
-        if (message instanceof MetadataMessage) {
-            final MetadataMessage metadataMessage = (MetadataMessage) message;
-            return Collections.singletonMap(metadataMessage.getMetadataType(), metadataMessage);
-        } else {
-            return Collections.emptyMap();
-        }
+    public Map<MessageMetadataType<? extends MessageMetadata>, MessageMetadata> getMetadata() {
+        return Collections.emptyMap();
+    }
+    
+    @Override
+    public BasicMessage get(int index) {
+        Preconditions.objectIndex(index, 1, "basic message");
+        return basicMessage;
     }
 }

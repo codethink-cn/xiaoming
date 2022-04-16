@@ -1,23 +1,14 @@
 package cn.codethink.xiaoming.contact;
 
-import cn.chuanwise.common.util.Lazy;
 import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.MiraiBot;
 import cn.codethink.xiaoming.annotation.InternalAPI;
-import cn.codethink.xiaoming.code.Code;
 import cn.codethink.xiaoming.code.LongCode;
-import cn.codethink.xiaoming.event.*;
 import cn.codethink.xiaoming.exception.NoSuchFriendException;
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.MiraiMessageChain;
-import cn.codethink.xiaoming.message.compound.CompoundMessage;
-import cn.codethink.xiaoming.message.reference.*;
 import cn.codethink.xiaoming.util.MiraiContacts;
 import lombok.Getter;
 import net.mamoe.mirai.contact.Friend;
-import net.mamoe.mirai.contact.NormalMember;
-import net.mamoe.mirai.contact.Stranger;
-import net.mamoe.mirai.message.MessageReceipt;
 
 import java.util.Collection;
 import java.util.Objects;

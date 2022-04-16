@@ -2,7 +2,7 @@ package cn.codethink.xiaoming.message;
 
 import cn.chuanwise.common.util.Preconditions;
 import cn.chuanwise.common.util.StaticUtilities;
-import cn.codethink.xiaoming.message.element.Face;
+import cn.codethink.xiaoming.message.basic.Face;
 
 import java.util.NoSuchElementException;
 

@@ -8,6 +8,8 @@ import cn.codethink.xiaoming.configuration.BotConfiguration;
 import cn.codethink.xiaoming.contact.*;
 import cn.codethink.xiaoming.event.EventForwarder;
 import cn.codethink.xiaoming.logger.MiraiLogger;
+import cn.codethink.xiaoming.message.MiraiMessageParsers;
+import cn.codethink.xiaoming.message.parser.MessageParsers;
 import cn.codethink.xiaoming.protocol.MiraiProtocol;
 import cn.codethink.xiaoming.util.Codes;
 import lombok.Data;
@@ -33,6 +35,9 @@ public class MiraiBot
     
     static {
 //        Bots.registerDriver(IM.QQ, )
+    
+        // register message parsers
+        MessageParsers.registerParsers(new MiraiMessageParsers());
     }
     
     /**

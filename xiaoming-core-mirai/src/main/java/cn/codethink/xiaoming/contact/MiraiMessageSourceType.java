@@ -1,7 +1,7 @@
 package cn.codethink.xiaoming.contact;
 
 import cn.chuanwise.common.util.StaticUtilities;
-import cn.codethink.xiaoming.message.reference.MessageSourceType;
+import cn.codethink.xiaoming.message.metadata.MessageSourceType;
 import net.mamoe.mirai.message.data.MessageSource;
 import net.mamoe.mirai.message.data.MessageSourceKind;
 import net.mamoe.mirai.message.data.OfflineMessageSource;

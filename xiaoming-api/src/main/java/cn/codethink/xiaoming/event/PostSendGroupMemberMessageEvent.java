@@ -4,7 +4,7 @@ import cn.chuanwise.common.util.Preconditions;
 import cn.codethink.xiaoming.Bot;
 import cn.codethink.xiaoming.contact.*;
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.reference.ToGroupMemberMessageReference;
+import cn.codethink.xiaoming.message.metadata.ToGroupMemberMessageReference;
 import lombok.Data;
 
 /**

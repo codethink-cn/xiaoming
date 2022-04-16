@@ -1,9 +1,9 @@
 package cn.codethink.xiaoming.message;
 
+import cn.codethink.xiaoming.message.basic.MessageMetadata;
 import cn.codethink.xiaoming.message.compound.ListCompoundMessage;
-import cn.codethink.xiaoming.message.element.BasicMessage;
-import cn.codethink.xiaoming.message.element.MessageMetadataType;
-import lombok.Data;
+import cn.codethink.xiaoming.message.basic.BasicMessage;
+import cn.codethink.xiaoming.message.basic.MessageMetadataType;
 import net.mamoe.mirai.message.data.MessageChain;
 
 import java.util.List;
@@ -15,7 +15,6 @@ import java.util.Map;
  *
  * @author Chuanwise
  */
-@Data
 @SuppressWarnings("all")
 public class MiraiCompoundMessage
     extends ListCompoundMessage {
@@ -23,7 +22,7 @@ public class MiraiCompoundMessage
     // TODO: 2022/4/16 confirm if this class can be saved
     private final MessageChain messageChain = null;
 
-    public MiraiCompoundMessage(List<BasicMessage> basicMessages, Map<MessageMetadataType<?>, Object> metadata) {
+    public MiraiCompoundMessage(List<BasicMessage> basicMessages, Map<MessageMetadataType<? extends MessageMetadata>, MessageMetadata> metadata) {
         super(basicMessages, metadata);
         
         

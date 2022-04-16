@@ -3,7 +3,6 @@ package cn.codethink.xiaoming.message.parser;
 import cn.chuanwise.common.util.*;
 import cn.codethink.xiaoming.Bot;
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.element.BasicMessage;
 import lombok.Data;
 
 import java.lang.reflect.InvocationTargetException;
@@ -116,7 +115,7 @@ public class MessageParsers
                 final Parameter parameter = parameters[i];
                 final Class<?> parameterType = parameter.getType();
     
-                if (parameter.isAnnotationPresent(BasicMessageArgument.class)) {
+                if (parameter.isAnnotationPresent(ParserArgument.class)) {
                     wirers[i] = new ArgumentWirer(formatArgumentOffsets.get(argumentOffsetIndex) - 1);
                     argumentOffsetIndex++;
                     continue;
@@ -220,7 +219,7 @@ public class MessageParsers
         Preconditions.objectNonNull(parsers, "parsers");
     
         for (Method method : parsers.getClass().getDeclaredMethods()) {
-            final BasicMessageParser parser = method.getAnnotation(BasicMessageParser.class);
+            final MessageParser parser = method.getAnnotation(MessageParser.class);
             if (Objects.isNull(parser)) {
                 continue;
             }

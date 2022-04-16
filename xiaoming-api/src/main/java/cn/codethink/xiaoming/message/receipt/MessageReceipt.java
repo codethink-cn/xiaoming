@@ -1,7 +1,7 @@
 package cn.codethink.xiaoming.message.receipt;
 
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.reference.OutgoingOnlineMessageReference;
+import cn.codethink.xiaoming.message.metadata.OutgoingOnlineMessageReference;
 
 /**
  * 消息回执，调用 {@link cn.codethink.xiaoming.contact.Contact#sendMessage(Message)} 后获得。

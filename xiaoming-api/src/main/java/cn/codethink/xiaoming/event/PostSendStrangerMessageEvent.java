@@ -6,7 +6,7 @@ import cn.codethink.xiaoming.contact.Contact;
 import cn.codethink.xiaoming.contact.Stranger;
 import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.message.receipt.MessageReceipt;
-import cn.codethink.xiaoming.message.reference.ToStrangerMessageReference;
+import cn.codethink.xiaoming.message.metadata.ToStrangerMessageReference;
 import lombok.Data;
 
 /**

@@ -13,7 +13,7 @@ import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.message.MiraiMessageChain;
 import cn.codethink.xiaoming.message.compound.CompoundMessage;
 import cn.codethink.xiaoming.message.receipt.MessageReceipt;
-import cn.codethink.xiaoming.message.reference.*;
+import cn.codethink.xiaoming.message.metadata.*;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.NormalMember;

@@ -2,13 +2,15 @@ package cn.codethink.xiaoming.message.compound;
 
 import cn.chuanwise.common.util.Preconditions;
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.element.Text;
+import cn.codethink.xiaoming.message.basic.MessageMetadata;
+import cn.codethink.xiaoming.message.basic.Text;
 
 /**
  * 复合消息构建器
  *
  * @author Chuanwise
  */
+@SuppressWarnings("all")
 public interface CompoundMessageBuilder
     extends CompoundMessage {
     
@@ -20,8 +22,11 @@ public interface CompoundMessageBuilder
         Preconditions.objectNonNull(text, "text");
         Preconditions.argument(text.length() > 0, "text is empty");
     
-        return plus(new Text(text.toString()));
+        return plus((Message) new Text(text.toString()));
     }
+    
+    @Override
+    CompoundMessageBuilder plus(MessageMetadata messageMetadata);
     
     @Override
     CompoundMessageBuilder plus(Message message);

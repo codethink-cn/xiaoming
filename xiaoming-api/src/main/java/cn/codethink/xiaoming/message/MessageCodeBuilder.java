@@ -23,7 +23,7 @@ public class MessageCodeBuilder {
      */
     private final List<Object> arguments = new ArrayList<>();
     
-    protected MessageCodeBuilder(String type) {
+    public MessageCodeBuilder(String type) {
         Preconditions.objectArgumentNonEmpty(type, "type");
         
         this.type = type;
@@ -61,10 +61,10 @@ public class MessageCodeBuilder {
      */
     public String build() {
         if (arguments.isEmpty()) {
-            return "[" + Texts.serializeText(type) + "]";
+            return "[" + Texts.escape(type) + "]";
         } else {
-            return "[" + Texts.serializeText(type) + ":" +
-                Collections.toString(arguments, x -> Texts.serializeText(Objects.toString(x)), ",") + "]";
+            return "[" + Texts.escape(type) + ":" +
+                Collections.toString(arguments, x -> Texts.escape(Objects.toString(x)), ",") + "]";
         }
     }
     

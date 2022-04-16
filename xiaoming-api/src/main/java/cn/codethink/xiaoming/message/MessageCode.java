@@ -6,9 +6,8 @@ import cn.codethink.common.util.Preconditions;
 import cn.codethink.common.util.StaticUtilities;
 import cn.codethink.xiaoming.message.compound.CompoundMessage;
 import cn.codethink.xiaoming.message.compound.CompoundMessageBuilder;
-import cn.codethink.xiaoming.message.compound.ListCompoundMessage;
-import cn.codethink.xiaoming.message.element.BasicMessage;
-import cn.codethink.xiaoming.message.element.Text;
+import cn.codethink.xiaoming.message.basic.BasicMessage;
+import cn.codethink.xiaoming.message.basic.Text;
 import cn.codethink.xiaoming.message.parser.MessageParsers;
 import cn.codethink.xiaoming.message.parser.DefaultBasicMessageParser;
 
@@ -78,22 +77,42 @@ public class MessageCode
         State state = State.TEXT;
         final int length = messageCode.length();
         
-        boolean translated = false;
+        boolean escaped = false;
         
         // buffer
         String type = null;
         for (int i = 0; i < length; i++) {
             final char ch = messageCode.charAt(i);
     
-            // translation
-            if (translated) {
-                stringBuilder.append(ch);
-                translated = false;
+            // escape
+            if (escaped) {
+                switch (ch) {
+                    case 'b':
+                        stringBuilder.append("\b");
+                        break;
+                    case 'f':
+                        stringBuilder.append("\f");
+                        break;
+                    case 'n':
+                        stringBuilder.append("\n");
+                        break;
+                    case 'r':
+                        stringBuilder.append("\r");
+                        break;
+                    case 't':
+                        stringBuilder.append("\t");
+                        break;
+                    case '\\':
+                        stringBuilder.append("\\");
+                        break;
+                    default:
+                        stringBuilder.append(ch);
+                }
+                escaped = false;
                 continue;
             }
             if (ch == TRANSLATED_CHARACTER) {
-                stringBuilder.append(ch);
-                translated = true;
+                escaped = true;
                 continue;
             }
     

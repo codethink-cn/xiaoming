@@ -5,19 +5,28 @@ import cn.chuanwise.common.util.StaticUtilities;
 import cn.codethink.xiaoming.MiraiBot;
 import cn.codethink.xiaoming.code.Code;
 import cn.codethink.xiaoming.contact.*;
+import cn.codethink.xiaoming.message.basic.MessageMetadata;
 import cn.codethink.xiaoming.message.compound.CompoundMessage;
 import cn.codethink.xiaoming.message.compound.CompoundMessageBuilder;
-import cn.codethink.xiaoming.message.element.*;
-import cn.codethink.xiaoming.message.element.AtAll;
-import cn.codethink.xiaoming.message.reference.*;
+import cn.codethink.xiaoming.message.basic.*;
+import cn.codethink.xiaoming.message.basic.AtAll;
+import cn.codethink.xiaoming.message.metadata.*;
+import cn.codethink.xiaoming.util.MiraiConvertors;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.message.code.CodableMessage;
 import net.mamoe.mirai.message.data.*;
 import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.Dice;
 import net.mamoe.mirai.message.data.Face;
+import net.mamoe.mirai.message.data.FlashImage;
+import net.mamoe.mirai.message.data.ForwardMessage;
+import net.mamoe.mirai.message.data.Image;
+import net.mamoe.mirai.message.data.MusicShare;
+import net.mamoe.mirai.message.data.VipFace;
 import net.mamoe.mirai.utils.ExternalResource;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -203,8 +212,8 @@ public class MiraiMessageChain
             return fromBasicMessage(basicMessage, contact);
         }
     
-        if (message instanceof SerializableMessage) {
-            throw new NoSuchElementException("can not convert message: " + ((SerializableMessage) message).serializeToMessageCode() + " to mirai single message");
+        if (message instanceof Serializable) {
+            throw new NoSuchElementException("can not convert message: " + ((Serializable) message).serializeToMessageCode() + " to mirai single message");
         } else {
             throw new NoSuchElementException("can not convert message: " + message + " to mirai single message");
         }
@@ -223,11 +232,11 @@ public class MiraiMessageChain
      */
     public static MessageChain fromCompoundMessage(CompoundMessage compoundMessage, Contact contact) {
     
-        final Map<MessageMetadataType<?>, Object> metadata = compoundMessage.getMetadata();
+        final Map<MessageMetadataType<? extends MessageMetadata>, MessageMetadata> metadata = compoundMessage.getMetadata();
         final List<SingleMessage> singleMessages = new ArrayList<>(compoundMessage.size() + metadata.size());
     
         // metadata
-        for (Map.Entry<MessageMetadataType<?>, Object> entry : metadata.entrySet()) {
+        for (Map.Entry<MessageMetadataType<? extends MessageMetadata>, MessageMetadata> entry : metadata.entrySet()) {
             final MessageMetadataType<?> messageMetadataType = entry.getKey();
             
             // convert reference
@@ -256,57 +265,119 @@ public class MiraiMessageChain
         return messageChainBuilder.asMessageChain();
     }
     
-    public static BasicMessage toBasicMessage(MessageContent singleMessage, Contact contact) {
-        Preconditions.objectNonNull(singleMessage, "single message");
+    /**
+     * 将 mirai 消息内容转化为小明的基础消息。
+     *
+     * @param messageContent mirai 消息内容
+     * @param contact 相关会话
+     * @return 小明的基础消息
+     */
+    public static BasicMessage toBasicMessage(MessageContent messageContent, Contact contact) {
+        Preconditions.objectNonNull(messageContent, "message content");
     
-        if (singleMessage instanceof PlainText) {
-            final PlainText plainText = (PlainText) singleMessage;
+        // TODO: 2022/4/16 check if contact is useful
+        
+        if (messageContent instanceof PlainText) {
+            final PlainText plainText = (PlainText) messageContent;
             return new Text(plainText.getContent());
         }
         
-        if (singleMessage instanceof At) {
-            final At at = (At) singleMessage;
+        if (messageContent instanceof At) {
+            final At at = (At) messageContent;
             return new AtSingleton(Code.ofLong(at.getTarget()));
         }
     
-        if (singleMessage instanceof net.mamoe.mirai.message.data.AtAll) {
+        if (messageContent instanceof net.mamoe.mirai.message.data.AtAll) {
             return AtAll.INSTANCE;
         }
         
-        if (singleMessage instanceof Face) {
-            final Face face = (Face) singleMessage;
-            return cn.codethink.xiaoming.message.element.Face.of(face.getId());
+        if (messageContent instanceof Face) {
+            final Face face = (Face) messageContent;
+            return cn.codethink.xiaoming.message.basic.Face.of(face.getId());
         }
     
-        if (singleMessage instanceof Dice) {
-            final Dice dice = (Dice) singleMessage;
-            return cn.codethink.xiaoming.message.element.Dice.of(dice.getValue());
+        if (messageContent instanceof Dice) {
+            final Dice dice = (Dice) messageContent;
+            return cn.codethink.xiaoming.message.basic.Dice.of(dice.getValue());
         }
     
-        if (singleMessage instanceof CodableMessage) {
-            throw new NoSuchElementException("can not convert message: " + ((CodableMessage) singleMessage).serializeToMiraiCode() + " to basic message");
+        if (messageContent instanceof Image) {
+            final Image image = (Image) messageContent;
+            
+            final String url = Image.queryUrl(image);
+            try {
+                return new UrlImage(new URL(url));
+            } catch (MalformedURLException exception) {
+                throw new RuntimeException(exception);
+            }
+        }
+        
+        if (messageContent instanceof FlashImage) {
+            final FlashImage flashImage = (FlashImage) messageContent;
+            
+            final String url = Image.queryUrl(flashImage.getImage());
+            try {
+                return new cn.codethink.xiaoming.message.basic.FlashImage(new UrlImage(new URL(url)));
+            } catch (MalformedURLException exception) {
+                throw new RuntimeException(exception);
+            }
+        }
+    
+        if (messageContent instanceof ForwardMessage) {
+            final ForwardMessage forwardMessage = (ForwardMessage) messageContent;
+            forwardMessage.getSource();
+            // TODO: 2022/4/16 finish forward message
+        }
+        
+        if (messageContent instanceof MusicShare) {
+            final MusicShare musicShare = (MusicShare) messageContent;
+            return new cn.codethink.xiaoming.message.basic.MusicShare(
+                MiraiMusicSoftwareType.fromMirai(musicShare.getKind()),
+                musicShare.getTitle(),
+                musicShare.getSummary(),
+                musicShare.getJumpUrl(),
+                musicShare.getPictureUrl(),
+                musicShare.getMusicUrl(),
+                musicShare.getBrief()
+            );
+        }
+    
+        if (messageContent instanceof VipFace) {
+            final VipFace vipFace = (VipFace) messageContent;
+            return new cn.codethink.xiaoming.message.basic.VipFace(
+                MiraiConvertors.fromMirai(vipFace.getKind()),
+                vipFace.getCount()
+            );
+        }
+    
+        if (messageContent instanceof LightApp) {
+            // TODO: 2022/4/16 finish it
+        }
+    
+        if (messageContent instanceof CodableMessage) {
+            throw new NoSuchElementException("can not convert message: " + ((CodableMessage) messageContent).serializeToMiraiCode() + " to basic message");
         } else {
-            throw new NoSuchElementException("can not convert message: " + singleMessage + " to basic message");
+            throw new NoSuchElementException("can not convert message: " + messageContent + " to basic message");
         }
     }
     
-    public static MessageMetadata fromMetadataMessage(MetadataMessage metadataMessage, Contact contact) {
-        Preconditions.objectNonNull(metadataMessage, "metadata message");
+    public static net.mamoe.mirai.message.data.MessageMetadata fromMetadataMessage(MessageMetadata messageMetadata, Contact contact) {
+        Preconditions.objectNonNull(messageMetadata, "metadata message");
     
-        if (metadataMessage instanceof Quote) {
-            final Quote quote = (Quote) metadataMessage;
+        if (messageMetadata instanceof Quote) {
+            final Quote quote = (Quote) messageMetadata;
             return new QuoteReply(fromMessageReference(quote.getMessageReference(), contact));
         }
         
-        if (metadataMessage instanceof MessageReference) {
-            final MessageReference messageReference = (MessageReference) metadataMessage;
+        if (messageMetadata instanceof MessageReference) {
+            final MessageReference messageReference = (MessageReference) messageMetadata;
             return fromMessageReference(messageReference, contact);
         }
     
-        throw new NoSuchElementException("can not convert the metadata message source: " + metadataMessage);
+        throw new NoSuchElementException("can not convert the metadata message source: " + messageMetadata);
     }
     
-    public static MetadataMessage toMetadataMessage(MessageMetadata messageMetadata, Contact contact, MiraiBot bot) {
+    public static MessageMetadata toMetadataMessage(net.mamoe.mirai.message.data.MessageMetadata messageMetadata, Contact contact, MiraiBot bot) {
         Preconditions.objectNonNull(messageMetadata, "message metadata");
         Preconditions.objectNonNull(bot, "bot");
     
@@ -321,29 +392,6 @@ public class MiraiMessageChain
         }
     
         throw new NoSuchElementException("can not convert the metadata message source: " + messageMetadata);
-    }
-    
-    public static Message toMessage(net.mamoe.mirai.message.data.Message message, Contact contact, MiraiBot bot) {
-        Preconditions.objectNonNull(message, "message");
-    
-        if (message instanceof MessageMetadata) {
-            final MessageMetadata messageMetadata = (MessageMetadata) message;
-            return toMetadataMessage(messageMetadata, contact, bot);
-        }
-        if (message instanceof MessageContent) {
-            final MessageContent messageContent = (MessageContent) message;
-            return toBasicMessage(messageContent, contact);
-        }
-        if (message instanceof MessageChain) {
-            final MessageChain messageChain = (MessageChain) message;
-            return toCompoundMessage(messageChain, contact, bot);
-        }
-    
-        if (message instanceof CodableMessage) {
-            throw new NoSuchElementException("can not convert message: " + ((CodableMessage) message).serializeToMiraiCode() + " to message");
-        } else {
-            throw new NoSuchElementException("can not convert message: " + message + " to message");
-        }
     }
     
     public static SingleMessage fromBasicMessage(BasicMessage basicMessage, Contact contact) {
@@ -376,11 +424,11 @@ public class MiraiMessageChain
         final CompoundMessageBuilder compoundMessageBuilder = CompoundMessageBuilder.builder();
     
         for (SingleMessage singleMessage : messageChain) {
-            if (singleMessage instanceof MessageMetadata) {
+            if (singleMessage instanceof net.mamoe.mirai.message.data.MessageMetadata) {
                 Preconditions.objectNonNull(bot, "bot");
                 
-                final MessageMetadata messageMetadata = (MessageMetadata) singleMessage;
-                final MetadataMessage metadataMessage = toMetadataMessage(messageMetadata, contact, bot);
+                final net.mamoe.mirai.message.data.MessageMetadata messageMetadata = (net.mamoe.mirai.message.data.MessageMetadata) singleMessage;
+                final MessageMetadata metadataMessage = toMetadataMessage(messageMetadata, contact, bot);
                 compoundMessageBuilder.plus(metadataMessage);
                 continue;
             }

@@ -1,14 +1,15 @@
 package cn.codethink.xiaoming.message.compound;
 
 import cn.chuanwise.common.api.Emptiable;
-import cn.chuanwise.common.util.Collections;
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.SerializableMessage;
-import cn.codethink.xiaoming.message.SummarizableMessage;
-import cn.codethink.xiaoming.message.element.BasicMessage;
-import cn.codethink.xiaoming.message.element.MessageMetadataType;
+import cn.codethink.xiaoming.message.Serializable;
+import cn.codethink.xiaoming.message.Summarizable;
+import cn.codethink.xiaoming.message.basic.BasicMessage;
+import cn.codethink.xiaoming.message.basic.MessageMetadata;
+import cn.codethink.xiaoming.message.basic.MessageMetadataType;
 
 import java.util.Map;
+import java.util.RandomAccess;
 
 /**
  * <h1>复合消息</h1>
@@ -25,7 +26,7 @@ import java.util.Map;
  * @author Chuanwise
  */
 public interface CompoundMessage
-    extends Message, Iterable<BasicMessage>, Emptiable, SerializableMessage, SummarizableMessage {
+    extends Message, Iterable<BasicMessage>, Emptiable, Serializable, Summarizable, RandomAccess {
     
     /**
      * 获取复合消息长度
@@ -41,14 +42,14 @@ public interface CompoundMessage
      * @param <T>  元数据信息类型
      * @return 元数据信息
      */
-    <T> T getMetadata(MessageMetadataType<T> type);
+    <T extends MessageMetadata> T getMetadata(MessageMetadataType<T> type);
     
     /**
      * 获取所有消息元数据
      *
      * @return 所有消息元数据
      */
-    Map<MessageMetadataType<?>, Object> getMetadata();
+    Map<MessageMetadataType<? extends MessageMetadata>, MessageMetadata> getMetadata();
     
     /**
      * 创建一个惰性消息构建器
@@ -68,4 +69,13 @@ public interface CompoundMessage
     default CompoundMessage asCompoundMessage() {
         return this;
     }
+    
+    /**
+     * 获取指定位置处的基础消息
+     *
+     * @param index 索引
+     * @return 基础消息
+     * @throws IndexOutOfBoundsException index < 0 或 index >= {@link #size()}
+     */
+    BasicMessage get(int index);
 }

@@ -11,5 +11,8 @@ dependencies {
     implementation project(':xiaoming-api')
 
     // mirai
-    api 'net.mamoe:mirai-core-api:2.10.0'
+    api 'net.mamoe:mirai-core-api:2.10.1'
+
+    // collection
+    implementation 'org.apache.commons:commons-collections4:4.4'
 }

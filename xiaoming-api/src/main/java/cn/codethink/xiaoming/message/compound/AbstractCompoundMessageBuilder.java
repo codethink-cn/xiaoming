@@ -1,8 +1,8 @@
 package cn.codethink.xiaoming.message.compound;
 
 import cn.chuanwise.common.util.Collections;
-import cn.codethink.xiaoming.message.SerializableMessage;
-import cn.codethink.xiaoming.message.SummarizableMessage;
+import cn.codethink.xiaoming.message.Serializable;
+import cn.codethink.xiaoming.message.Summarizable;
 
 /**
  * @author Chuanwise
@@ -16,11 +16,11 @@ public abstract class AbstractCompoundMessageBuilder
     
     @Override
     public String serializeToMessageCode() {
-        return Collections.toString(this, SerializableMessage::serializeToMessageCode, "");
+        return Collections.toString(this, Serializable::serializeToMessageCode, "");
     }
     
     @Override
     public String serializeToSummary() {
-        return Collections.toString(this, SummarizableMessage::serializeToSummary, "");
+        return Collections.toString(this, Summarizable::serializeToSummary, "");
     }
 }

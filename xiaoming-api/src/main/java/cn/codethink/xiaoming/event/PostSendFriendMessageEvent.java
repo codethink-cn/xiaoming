@@ -5,7 +5,7 @@ import cn.codethink.xiaoming.Bot;
 import cn.codethink.xiaoming.contact.Friend;
 import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.message.receipt.MessageReceipt;
-import cn.codethink.xiaoming.message.reference.ToFriendMessageReference;
+import cn.codethink.xiaoming.message.metadata.ToFriendMessageReference;
 import lombok.Data;
 
 /**

@@ -1,8 +1,9 @@
 package cn.codethink.xiaoming.message;
 
 import cn.chuanwise.common.util.Preconditions;
+import cn.codethink.xiaoming.message.basic.MessageMetadata;
 import cn.codethink.xiaoming.message.compound.CompoundMessage;
-import cn.codethink.xiaoming.message.element.Text;
+import cn.codethink.xiaoming.message.basic.Text;
 
 /**
  * 一个可以被发送的消息
@@ -39,6 +40,14 @@ public interface Message {
      * @return 连接形成的复合消息
      */
     CompoundMessage plus(String text);
+    
+    /**
+     * 为来消息添加一个元数据
+     *
+     * @param messageMetadata 消息元数据
+     * @return 连接形成的复合消息
+     */
+    CompoundMessage plus(MessageMetadata messageMetadata);
     
     /**
      * 在该消息结尾添加一些新的消息

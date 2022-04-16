@@ -2,7 +2,6 @@ package cn.codethink.xiaoming.event;
 
 import cn.codethink.xiaoming.contact.ContactOrBot;
 import cn.codethink.xiaoming.contact.Sender;
-import cn.codethink.xiaoming.message.reference.MessageReference;
 
 /**
  * 和在线消息相关的事件

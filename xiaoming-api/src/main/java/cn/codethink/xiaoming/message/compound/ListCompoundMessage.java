@@ -3,8 +3,9 @@ package cn.codethink.xiaoming.message.compound;
 import cn.chuanwise.common.util.Arrays;
 import cn.chuanwise.common.util.Preconditions;
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.element.BasicMessage;
-import cn.codethink.xiaoming.message.element.MessageMetadataType;
+import cn.codethink.xiaoming.message.basic.BasicMessage;
+import cn.codethink.xiaoming.message.basic.MessageMetadata;
+import cn.codethink.xiaoming.message.basic.MessageMetadataType;
 
 import java.util.*;
 
@@ -19,11 +20,11 @@ public class ListCompoundMessage
     extends AbstractCompoundMessage
     implements CompoundMessage {
     
-    private final Map<MessageMetadataType<?>, Object> metadata;
+    private final Map<MessageMetadataType<? extends MessageMetadata>, MessageMetadata> metadata;
     
     private final List<BasicMessage> basicMessages;
     
-    public ListCompoundMessage(List<BasicMessage> basicMessages, Map<MessageMetadataType<?>, Object> metadata) {
+    public ListCompoundMessage(List<BasicMessage> basicMessages, Map<MessageMetadataType<? extends MessageMetadata>, MessageMetadata> metadata) {
         Preconditions.objectArgumentNonEmpty(basicMessages, "basic messages");
         Preconditions.objectNonNull(metadata, "metadata");
     
@@ -46,6 +47,15 @@ public class ListCompoundMessage
     
         return new SimpleCompoundMessageBuilder(this)
             .plus(text)
+            .build();
+    }
+    
+    @Override
+    public CompoundMessage plus(MessageMetadata messageMetadata) {
+        Preconditions.objectNonNull(messageMetadata, "message metadata");
+    
+        return new SimpleCompoundMessageBuilder(this)
+            .plus(messageMetadata)
             .build();
     }
     
@@ -78,14 +88,20 @@ public class ListCompoundMessage
     
     @Override
     @SuppressWarnings("all")
-    public <T> T getMetadata(MessageMetadataType<T> type) {
+    public <T extends MessageMetadata> T getMetadata(MessageMetadataType<T> type) {
         Preconditions.objectNonNull(type, "type");
         return (T) metadata.get(type);
     }
     
     @Override
-    public Map<MessageMetadataType<?>, Object> getMetadata() {
+    public Map<MessageMetadataType<? extends MessageMetadata>, MessageMetadata> getMetadata() {
         return Collections.unmodifiableMap(metadata);
+    }
+    
+    @Override
+    public BasicMessage get(int index) {
+        Preconditions.objectIndex(index, basicMessages.size(), "basic message");
+        return basicMessages.get(index);
     }
     
     @Override

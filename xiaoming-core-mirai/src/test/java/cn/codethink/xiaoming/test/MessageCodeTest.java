@@ -3,8 +3,8 @@ package cn.codethink.xiaoming.test;
 import cn.codethink.xiaoming.message.MessageCode;
 import cn.codethink.xiaoming.message.MiraiMessageChain;
 import cn.codethink.xiaoming.message.compound.CompoundMessage;
-import cn.codethink.xiaoming.message.element.Text;
 import net.mamoe.mirai.message.data.*;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -27,13 +27,18 @@ public class MessageCodeTest {
     @Test
     void testConvert() {
         final MessageChain messageChain = asMessageChain(
-            new PlainText("test plain text"),
+            new PlainText("test\\ [ ; \n: plain text"),
             new At(1437100907),
             AtAll.INSTANCE,
             new Face(Face.DA_KU)
         );
         final CompoundMessage compoundMessage = MiraiMessageChain.toCompoundMessage(messageChain, null, null);
-        System.out.println(compoundMessage.serializeToMessageCode());
+        final String messageCode = compoundMessage.serializeToMessageCode();
+        
+        System.out.println(messageCode);
         System.out.println(compoundMessage.serializeToSummary());
+    
+        final CompoundMessage deserializedCompoundMessage = MessageCode.deserializeToCompoundMessage(messageCode, null);
+        Assertions.assertEquals(compoundMessage, deserializedCompoundMessage);
     }
 }

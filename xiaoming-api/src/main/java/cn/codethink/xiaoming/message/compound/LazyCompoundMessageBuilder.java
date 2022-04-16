@@ -2,10 +2,9 @@ package cn.codethink.xiaoming.message.compound;
 
 import cn.chuanwise.common.util.Preconditions;
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.SerializableMessage;
-import cn.codethink.xiaoming.message.SummarizableMessage;
-import cn.codethink.xiaoming.message.element.BasicMessage;
-import cn.codethink.xiaoming.message.element.MessageMetadataType;
+import cn.codethink.xiaoming.message.basic.BasicMessage;
+import cn.codethink.xiaoming.message.basic.MessageMetadata;
+import cn.codethink.xiaoming.message.basic.MessageMetadataType;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -57,9 +56,22 @@ public class LazyCompoundMessageBuilder
     }
     
     @Override
+    public CompoundMessageBuilder plus(MessageMetadata messageMetadata) {
+        Preconditions.objectNonNull(messageMetadata, "message metadata");
+        
+        ready().plus(messageMetadata);
+        
+        return this;
+    }
+    
+    @Override
     public CompoundMessageBuilder plus(Message... messages) {
         Preconditions.objectNonNull(messages, "messages");
     
+        if (messages.length == 0) {
+            return this;
+        }
+        
         ready().plus(messages);
     
         return this;
@@ -69,7 +81,10 @@ public class LazyCompoundMessageBuilder
     public CompoundMessageBuilder plus(Iterable<? extends Message> iterable) {
         Preconditions.objectNonNull(iterable, "iterable");
     
-        ready().plus(iterable);
+        final Iterator<? extends Message> iterator = iterable.iterator();
+        if (iterator.hasNext()) {
+            ready().plus(iterable);
+        }
     
         return this;
     }
@@ -91,7 +106,7 @@ public class LazyCompoundMessageBuilder
     }
     
     @Override
-    public <T> T getMetadata(MessageMetadataType<T> type) {
+    public <T extends MessageMetadata> T getMetadata(MessageMetadataType<T> type) {
         Preconditions.objectNonNull(type, "type");
         
         if (Objects.isNull(compoundMessageBuilder)) {
@@ -102,11 +117,20 @@ public class LazyCompoundMessageBuilder
     }
     
     @Override
-    public Map<MessageMetadataType<?>, Object> getMetadata() {
+    public Map<MessageMetadataType<? extends MessageMetadata>, MessageMetadata> getMetadata() {
         if (Objects.isNull(compoundMessageBuilder)) {
             return compoundMessage.getMetadata();
         } else {
             return Collections.unmodifiableMap(compoundMessageBuilder.getMetadata());
+        }
+    }
+    
+    @Override
+    public BasicMessage get(int index) {
+        if (Objects.nonNull(compoundMessageBuilder)) {
+            return compoundMessageBuilder.get(index);
+        } else {
+            return compoundMessage.get(index);
         }
     }
     
