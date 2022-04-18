@@ -14,6 +14,7 @@ import cn.codethink.xiaoming.util.CachedContactMap;
 import cn.codethink.xiaoming.util.MiraiContacts;
 import lombok.Getter;
 import net.mamoe.mirai.contact.AnonymousMember;
+import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.contact.ContactList;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.NormalMember;
@@ -30,7 +31,8 @@ import java.util.Map;
 @SuppressWarnings("all")
 @Getter
 public class MiraiGroup
-    extends AbstractGroup {
+    extends AbstractGroup
+    implements MiraiContact {
     
     /**
      * Mirai 群
@@ -89,6 +91,11 @@ public class MiraiGroup
         final NormalMember botAsMember = miraiGroup.getBotAsMember();
         this.botAsMember = new MiraiMember(this, botAsMember);
         this.members.getAvailable().put(bot.getCode(), this.botAsMember);
+    }
+    
+    @Override
+    public Group getMiraiContact() {
+        return miraiGroup;
     }
     
     @Override

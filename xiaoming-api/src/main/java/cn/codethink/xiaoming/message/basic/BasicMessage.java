@@ -5,9 +5,10 @@ import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.message.Serializable;
 import cn.codethink.xiaoming.message.Summarizable;
 import cn.codethink.xiaoming.message.compound.CompoundMessage;
+import cn.codethink.xiaoming.message.metadata.MessageMetadata;
 
 /**
- * 基础是消息不可再分的各个组成部分，如文本 {@link Text} 和 At {@link At}。
+ * 基础是消息不可再分的各个组成部分，如文本 {@link Text} 和 Mention {@link Mention}。
  *
  * @author Chuanwise
  */

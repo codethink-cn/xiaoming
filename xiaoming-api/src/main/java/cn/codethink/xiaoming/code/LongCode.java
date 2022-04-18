@@ -1,14 +1,14 @@
 package cn.codethink.xiaoming.code;
 
 import cn.codethink.common.util.Maps;
-import cn.chuanwise.common.util.SoftMap;
 import lombok.Data;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
- * long 用户编码
+ * long 码
  *
  * @author Chuanwise
  */
@@ -21,7 +21,7 @@ public class LongCode
     /**
      * LongCode 缓存池，应该是 SoftHashMap，但因为 JDK8，所以没有使用
      */
-    private static final Map<Long, LongCode> INSTANCES = new SoftMap<>(new HashMap<>());
+    private static final Map<Long, LongCode> INSTANCES = new WeakHashMap<>();
     
     private LongCode(long value) {
         this.value = value;
@@ -53,7 +53,7 @@ public class LongCode
     
     @Override
     public String toString() {
-        return "l:" + value;
+        return "l," + value;
     }
     
     @Override

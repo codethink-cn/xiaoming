@@ -3,8 +3,8 @@ package cn.codethink.xiaoming.event;
 import cn.chuanwise.common.util.Preconditions;
 import cn.codethink.xiaoming.Bot;
 import cn.codethink.xiaoming.contact.*;
-import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.metadata.ToGroupMemberMessageReference;
+import cn.codethink.xiaoming.message.compound.CompoundMessage;
+import cn.codethink.xiaoming.message.metadata.ToGroupMemberMessageSource;
 import lombok.Data;
 
 /**
@@ -19,17 +19,17 @@ public class PostSendGroupMemberMessageEvent
     
     private final GroupMember member;
     
-    private final Message message;
+    private final CompoundMessage message;
     
-    private final ToGroupMemberMessageReference messageReference;
+    private final ToGroupMemberMessageSource messageSource;
     
-    public PostSendGroupMemberMessageEvent(GroupMember member, Message message, ToGroupMemberMessageReference messageReference) {
+    public PostSendGroupMemberMessageEvent(GroupMember member, CompoundMessage message, ToGroupMemberMessageSource messageSource) {
         Preconditions.objectNonNull(member, "member");
         Preconditions.objectNonNull(message, "message");
         
         this.member = member;
         this.message = message;
-        this.messageReference = messageReference;
+        this.messageSource = messageSource;
     }
     
     @Override
@@ -43,13 +43,13 @@ public class PostSendGroupMemberMessageEvent
     }
     
     @Override
-    public Message getMessage() {
+    public CompoundMessage getMessage() {
         return message;
     }
     
     @Override
     public long getTimestamp() {
-        return messageReference.getTimestamp();
+        return messageSource.getTimestamp();
     }
     
     @Override

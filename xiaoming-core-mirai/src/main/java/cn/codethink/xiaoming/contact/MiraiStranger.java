@@ -6,7 +6,10 @@ import cn.codethink.xiaoming.code.Code;
 import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.message.receipt.MessageReceipt;
 import lombok.Getter;
+import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.contact.Stranger;
+
+import java.util.Objects;
 
 /**
  * @author Chuanwise
@@ -15,11 +18,12 @@ import net.mamoe.mirai.contact.Stranger;
  */
 @Getter
 public class MiraiStranger
-    extends AbstractStranger {
+    extends AbstractStranger
+    implements MiraiContact {
     
     private final Stranger miraiStranger;
     
-    private final MiraiProfile profile;
+    private MiraiProfile profile;
     
     private final Code code;
     
@@ -30,13 +34,17 @@ public class MiraiStranger
         
         this.miraiStranger = stranger;
         this.code = Code.ofLong(stranger.getId());
-        this.profile = new MiraiProfile(miraiBot, stranger.queryProfile());
     }
     
     @Override
     public MessageReceipt sendMessage(Message message) {
         // TODO: 2022/4/16 send message
         return null;
+    }
+    
+    @Override
+    public Contact getMiraiContact() {
+        return miraiStranger;
     }
     
     @Override
@@ -61,6 +69,9 @@ public class MiraiStranger
     
     @Override
     public Profile getProfile() {
+        if (Objects.isNull(profile)) {
+            profile = new MiraiProfile(getBot(), miraiStranger.queryProfile());
+        }
         return profile;
     }
     

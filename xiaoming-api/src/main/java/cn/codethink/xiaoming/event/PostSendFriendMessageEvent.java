@@ -3,9 +3,9 @@ package cn.codethink.xiaoming.event;
 import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.Bot;
 import cn.codethink.xiaoming.contact.Friend;
-import cn.codethink.xiaoming.message.Message;
+import cn.codethink.xiaoming.message.compound.CompoundMessage;
+import cn.codethink.xiaoming.message.metadata.ToFriendMessageSource;
 import cn.codethink.xiaoming.message.receipt.MessageReceipt;
-import cn.codethink.xiaoming.message.metadata.ToFriendMessageReference;
 import lombok.Data;
 
 /**
@@ -20,18 +20,18 @@ public class PostSendFriendMessageEvent
     
     private final Friend friend;
     
-    private final Message message;
+    private final CompoundMessage message;
     
-    private final ToFriendMessageReference messageReference;
+    private final ToFriendMessageSource messageSource;
     
-    public PostSendFriendMessageEvent(Friend friend, Message message, ToFriendMessageReference messageReference) {
+    public PostSendFriendMessageEvent(Friend friend, CompoundMessage message, ToFriendMessageSource messageSource) {
         Preconditions.objectNonNull(friend, "friend");
         Preconditions.objectNonNull(message, "message");
         Preconditions.objectNonNull(message, "message reference");
         
         this.friend = friend;
         this.message = message;
-        this.messageReference = messageReference;
+        this.messageSource = messageSource;
     }
     
     @Override
@@ -45,13 +45,13 @@ public class PostSendFriendMessageEvent
     }
     
     @Override
-    public Message getMessage() {
+    public CompoundMessage getMessage() {
         return message;
     }
     
     @Override
     public long getTimestamp() {
-        return messageReference.getTimestamp();
+        return messageSource.getTimestamp();
     }
     
     @Override

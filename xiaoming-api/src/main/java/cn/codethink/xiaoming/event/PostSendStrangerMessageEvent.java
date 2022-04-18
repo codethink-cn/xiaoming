@@ -4,9 +4,9 @@ import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.Bot;
 import cn.codethink.xiaoming.contact.Contact;
 import cn.codethink.xiaoming.contact.Stranger;
-import cn.codethink.xiaoming.message.Message;
+import cn.codethink.xiaoming.message.compound.CompoundMessage;
 import cn.codethink.xiaoming.message.receipt.MessageReceipt;
-import cn.codethink.xiaoming.message.metadata.ToStrangerMessageReference;
+import cn.codethink.xiaoming.message.metadata.ToStrangerMessageSource;
 import lombok.Data;
 
 /**
@@ -21,18 +21,18 @@ public class PostSendStrangerMessageEvent
     
     private final Stranger stranger;
     
-    private final Message message;
+    private final CompoundMessage message;
     
-    private final ToStrangerMessageReference messageReference;
+    private final ToStrangerMessageSource messageSource;
     
-    public PostSendStrangerMessageEvent(Stranger stranger, Message message, ToStrangerMessageReference messageReference) {
+    public PostSendStrangerMessageEvent(Stranger stranger, CompoundMessage message, ToStrangerMessageSource messageSource) {
         Preconditions.objectNonNull(stranger, "stranger");
         Preconditions.objectNonNull(message, "message");
         Preconditions.objectNonNull(message, "message reference");
         
         this.stranger = stranger;
         this.message = message;
-        this.messageReference = messageReference;
+        this.messageSource = messageSource;
     }
     
     @Override
@@ -41,13 +41,13 @@ public class PostSendStrangerMessageEvent
     }
     
     @Override
-    public Message getMessage() {
+    public CompoundMessage getMessage() {
         return message;
     }
     
     @Override
     public long getTimestamp() {
-        return messageReference.getTimestamp();
+        return messageSource.getTimestamp();
     }
     
     @Override

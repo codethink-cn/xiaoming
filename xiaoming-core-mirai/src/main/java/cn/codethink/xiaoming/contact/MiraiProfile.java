@@ -24,7 +24,7 @@ public class MiraiProfile
     
     @Override
     public Sex getSex() {
-        return MiraiSex.fromMirai(profile.getSex());
+        return MiraiSex.toXiaoMing(profile.getSex());
     }
     
     @Override

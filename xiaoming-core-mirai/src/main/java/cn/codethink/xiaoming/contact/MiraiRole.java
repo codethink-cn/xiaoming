@@ -20,7 +20,7 @@ public class MiraiRole
      * @param permission Mirai 群员权限
      * @return 小明角色
      */
-    public static Role fromMirai(MemberPermission permission) {
+    public static Role toXiaoMing(MemberPermission permission) {
         Preconditions.nonNull(permission, "permission");
 
         switch (permission) {

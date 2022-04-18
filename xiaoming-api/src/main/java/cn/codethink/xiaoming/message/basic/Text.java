@@ -1,56 +1,67 @@
 package cn.codethink.xiaoming.message.basic;
 
 import cn.chuanwise.common.util.Preconditions;
-import cn.codethink.xiaoming.message.Summarizable;
-import cn.codethink.xiaoming.util.Texts;
-import lombok.Data;
+import cn.codethink.xiaoming.message.AutoSerializable;
+import cn.codethink.xiaoming.message.AutoSummarizable;
+import cn.codethink.xiaoming.spi.XiaoMing;
+import cn.codethink.xiaoming.message.Serializable;
+
+import java.util.Objects;
 
 /**
- * 普通文本消息元素
+ * <h1>文本消息</h1>
+ *
+ * <p>表示一段普通的文本。</p>
+ *
+ * <p>序列化为消息码 {@link Serializable#serializeToMessageCode()} 时，文本消息中的 {@code \n \r \s \t} 等符号会被转义。</p>
  *
  * @author Chuanwise
  */
-@Data
-public class Text
-    extends AbstractBasicMessage
-    implements BasicMessage, Summarizable {
+public interface Text
+    extends BasicMessage, AutoSummarizable, AutoSerializable {
     
     /**
-     * 一个空格
+     * 一个空格文本消息
      */
-    public static final Text SPACE = new Text(" ");
+    Text SPACE = of(" ");
     
     /**
-     * 原始文本
-     */
-    private final String text;
-    
-    /**
-     * 序列化后的文本
-     */
-    private final String serializedText;
-    
-    /**
-     * 构造一个文本基础消息
+     * 构建一个文本消息
      *
-     * @param text 原始文本
+     * @param text 文本
+     * @return 文本消息
      * @throws NullPointerException text 为 null
      * @throws IllegalArgumentException text 为 ""
      */
-    public Text(String text) {
-        Preconditions.objectArgumentNonEmpty(text, "text");
+    // for ignore magic value warning
+    @SuppressWarnings("all")
+    static Text of(String text) {
+        if (Objects.equals(text, " ") && Objects.nonNull(SPACE)) {
+            return SPACE;
+        } else {
+            return XiaoMing.get().newText(text);
+        }
+    }
+    
+    /**
+     * 构建一个文本消息
+     *
+     * @param charSequence 字符串
+     * @return 文本消息
+     * @throws NullPointerException text 为 null
+     * @throws IllegalArgumentException text 为 ""
+     */
+    static Text of(CharSequence charSequence) {
+        Preconditions.objectNonNull(charSequence, "char sequence");
+        Preconditions.argument(charSequence.length() > 0, "char sequence is empty!");
         
-        this.text = text;
-        this.serializedText = Texts.escape(text);
+        return of(charSequence.toString());
     }
     
-    @Override
-    public String serializeToMessageCode() {
-        return serializedText;
-    }
-    
-    @Override
-    public String serializeToSummary() {
-        return text;
-    }
+    /**
+     * 获取文本内容
+     *
+     * @return 文本内容
+     */
+    String getText();
 }

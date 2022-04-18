@@ -2,8 +2,8 @@ package cn.codethink.xiaoming.event;
 
 import cn.codethink.xiaoming.Bot;
 import cn.codethink.xiaoming.contact.Group;
-import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.metadata.ToGroupMessageReference;
+import cn.codethink.xiaoming.message.compound.CompoundMessage;
+import cn.codethink.xiaoming.message.metadata.ToGroupMessageSource;
 import lombok.Data;
 
 /**
@@ -18,9 +18,9 @@ public class PostSendGroupMessageEvent
     
     private final Group mass;
     
-    private final Message message;
+    private final CompoundMessage message;
     
-    private final ToGroupMessageReference messageReference;
+    private final ToGroupMessageSource messageSource;
     
     @Override
     public Bot getBot() {
@@ -34,6 +34,6 @@ public class PostSendGroupMessageEvent
     
     @Override
     public long getTimestamp() {
-        return messageReference.getTimestamp();
+        return messageSource.getTimestamp();
     }
 }

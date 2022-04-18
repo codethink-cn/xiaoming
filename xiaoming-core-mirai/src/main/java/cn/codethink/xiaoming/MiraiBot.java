@@ -8,22 +8,16 @@ import cn.codethink.xiaoming.configuration.BotConfiguration;
 import cn.codethink.xiaoming.contact.*;
 import cn.codethink.xiaoming.event.EventForwarder;
 import cn.codethink.xiaoming.logger.MiraiLogger;
-import cn.codethink.xiaoming.message.MiraiMessageParsers;
-import cn.codethink.xiaoming.message.parser.MessageParsers;
+import cn.codethink.xiaoming.message.module.MessageModule;
+import cn.codethink.xiaoming.message.modules.MiraiModules;
 import cn.codethink.xiaoming.protocol.MiraiProtocol;
-import cn.codethink.xiaoming.util.Codes;
 import lombok.Data;
 import net.mamoe.mirai.Bot;
-import net.mamoe.mirai.contact.ContactList;
-import net.mamoe.mirai.event.ListenerHost;
-import net.mamoe.mirai.event.events.StrangerRelationChangeEvent;
 
 import java.io.File;
 import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author Chuanwise
@@ -35,9 +29,9 @@ public class MiraiBot
     
     static {
 //        Bots.registerDriver(IM.QQ, )
-    
-        // register message parsers
-        MessageParsers.registerParsers(new MiraiMessageParsers());
+        
+        // register message module
+        MessageModule.registerModule(new MiraiModules());
     }
     
     /**
@@ -46,7 +40,7 @@ public class MiraiBot
     protected final Bot miraiBot;
     
     /**
-     * Bot 自身的编码
+     * Bot 自身的序列化
      */
     protected final LongCode code;
     
@@ -103,13 +97,14 @@ public class MiraiBot
             miraiBot.login();
         }
         
-        // register event forwarder
-        miraiBot.getEventChannel().registerListenerHost(new EventForwarder(this));
-    
         // fetch contacts
         contactManager = new MiraiContactManager(this);
     
+        // bot profile
         profile = asFriend().getProfile();
+    
+        // register event forwarder
+        miraiBot.getEventChannel().registerListenerHost(new EventForwarder(this));
     }
     
     @Override

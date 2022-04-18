@@ -18,13 +18,20 @@ public class PreSendFriendMessageEvent
     
     private final Friend friend;
     
-    private final Message message;
+    private Message message;
     
     public PreSendFriendMessageEvent(Friend friend, Message message) {
         Preconditions.objectNonNull(friend, "friend");
         Preconditions.objectNonNull(message, "message");
         
         this.friend = friend;
+        this.message = message;
+    }
+    
+    @Override
+    public void setMessage(Message message) {
+        Preconditions.objectNonNull(message, "message");
+        
         this.message = message;
     }
     

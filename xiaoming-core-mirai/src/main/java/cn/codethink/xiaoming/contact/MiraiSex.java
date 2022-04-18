@@ -18,7 +18,7 @@ public class MiraiSex
      * @param sex Mirai 性别
      * @return 小明性别
      */
-    public static Sex fromMirai(UserProfile.Sex sex) {
+    public static Sex toXiaoMing(UserProfile.Sex sex) {
         Preconditions.nonNull(sex, "sex");
         
         switch (sex) {

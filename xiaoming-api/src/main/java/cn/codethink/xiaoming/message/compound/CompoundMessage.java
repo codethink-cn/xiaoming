@@ -5,10 +5,14 @@ import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.message.Serializable;
 import cn.codethink.xiaoming.message.Summarizable;
 import cn.codethink.xiaoming.message.basic.BasicMessage;
-import cn.codethink.xiaoming.message.basic.MessageMetadata;
-import cn.codethink.xiaoming.message.basic.MessageMetadataType;
+import cn.codethink.xiaoming.message.metadata.MessageMetadata;
+import cn.codethink.xiaoming.message.metadata.MessageMetadataType;
+import cn.codethink.xiaoming.message.metadata.MessageSource;
+import cn.codethink.xiaoming.message.metadata.OnlineMessageSource;
+import cn.codethink.xiaoming.property.Property;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.RandomAccess;
 
 /**
@@ -42,14 +46,32 @@ public interface CompoundMessage
      * @param <T>  元数据信息类型
      * @return 元数据信息
      */
-    <T extends MessageMetadata> T getMetadata(MessageMetadataType<T> type);
+    <T extends MessageMetadata> T getMetadata(Property<T> type);
+    
+    /**
+     * 查询是否具备某一类型的消息元数据
+     *
+     * @param type 消息元数据类型
+     * @return 元数据信息
+     */
+    boolean containsMetadata(Property<?> type);
+    
+    /**
+     * 获取消息元数据
+     *
+     * @param type 消息元数据类型
+     * @param <T>  元数据信息类型
+     * @return 元数据信息
+     * @throws java.util.NoSuchElementException 消息元数据不存在
+     */
+    <T extends MessageMetadata> T getMetadataOrFail(Property<T> type);
     
     /**
      * 获取所有消息元数据
      *
      * @return 所有消息元数据
      */
-    Map<MessageMetadataType<? extends MessageMetadata>, MessageMetadata> getMetadata();
+    Map<Property<?>, MessageMetadata> getMetadata();
     
     /**
      * 创建一个惰性消息构建器
@@ -78,4 +100,24 @@ public interface CompoundMessage
      * @throws IndexOutOfBoundsException index < 0 或 index >= {@link #size()}
      */
     BasicMessage get(int index);
+    
+    /**
+     * 撤回消息
+     *
+     * @return 当消息不是在线消息，缺少权限，或已经被撤回，返回 false。其他情况返回 true
+     * @throws cn.codethink.xiaoming.exception.PermissionDeniedException 缺少权限时
+     */
+    default boolean recall() {
+        final MessageSource reference = getMetadata(MessageMetadataType.SOURCE);
+        if (Objects.isNull(reference)) {
+            return false;
+        }
+    
+        if (!(reference instanceof OnlineMessageSource)) {
+            return false;
+        }
+        final OnlineMessageSource onlineMessageSource = (OnlineMessageSource) reference;
+    
+        return onlineMessageSource.recall();
+    }
 }

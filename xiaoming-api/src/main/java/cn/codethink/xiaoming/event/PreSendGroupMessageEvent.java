@@ -2,7 +2,6 @@ package cn.codethink.xiaoming.event;
 
 import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.Bot;
-import cn.codethink.xiaoming.contact.Contact;
 import cn.codethink.xiaoming.contact.Group;
 import cn.codethink.xiaoming.message.Message;
 import lombok.Data;
@@ -19,13 +18,20 @@ public class PreSendGroupMessageEvent
     
     private final Group group;
     
-    private final Message message;
+    private Message message;
     
     public PreSendGroupMessageEvent(Group group, Message message) {
         Preconditions.objectNonNull(group, "group");
         Preconditions.objectNonNull(message, "message");
         
         this.group = group;
+        this.message = message;
+    }
+    
+    @Override
+    public void setMessage(Message message) {
+        Preconditions.objectNonNull(message, "message");
+        
         this.message = message;
     }
     

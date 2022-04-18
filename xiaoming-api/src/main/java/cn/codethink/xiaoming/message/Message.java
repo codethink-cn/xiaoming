@@ -1,7 +1,6 @@
 package cn.codethink.xiaoming.message;
 
-import cn.chuanwise.common.util.Preconditions;
-import cn.codethink.xiaoming.message.basic.MessageMetadata;
+import cn.codethink.xiaoming.message.metadata.MessageMetadata;
 import cn.codethink.xiaoming.message.compound.CompoundMessage;
 import cn.codethink.xiaoming.message.basic.Text;
 
@@ -21,16 +20,23 @@ public interface Message {
     CompoundMessage plus(Message message);
     
     /**
+     * 在该消息结尾添加一些复合消息
+     *
+     * @param compoundMessage 追加的复合消息
+     * @return 连接形成的复合消息
+     */
+    default CompoundMessage plus(CompoundMessage compoundMessage) {
+        return plus((Iterable<? extends Message>) compoundMessage);
+    }
+    
+    /**
      * 在该消息结尾添加一些新的文本
      *
      * @param text 追加的文本
      * @return 连接形成的复合消息
      */
     default CompoundMessage plus(CharSequence text) {
-        Preconditions.objectNonNull(text, "text");
-        Preconditions.argument(text.length() > 0, "text is empty");
-        
-        return plus(new Text(text.toString()));
+        return plus(Text.of(text));
     }
     
     /**

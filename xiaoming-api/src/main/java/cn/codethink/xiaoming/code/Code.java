@@ -51,7 +51,7 @@ public interface Code {
     static Code parseCode(String input) {
         Preconditions.objectArgumentNonEmpty(input, "input");
     
-        final int delimiter = input.indexOf(':');
+        final int delimiter = input.indexOf(',');
         Preconditions.argument(delimiter != -1, "code type required");
         Preconditions.argument(delimiter != input.length(), "code value required");
         

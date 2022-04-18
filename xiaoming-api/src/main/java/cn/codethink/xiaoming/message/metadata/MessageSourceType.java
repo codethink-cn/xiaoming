@@ -1,7 +1,7 @@
 package cn.codethink.xiaoming.message.metadata;
 
 import cn.codethink.xiaoming.IM;
-import cn.codethink.xiaoming.annotation.PartiallySupported;
+import cn.codethink.xiaoming.annotation.ExpectantAPI;
 
 /**
  * 消息源类型，只用于离线消息源
@@ -18,7 +18,7 @@ public enum MessageSourceType {
     /**
      * 群消息
      */
-    @PartiallySupported(IM.QQ)
+    @ExpectantAPI(IM.QQ)
     GROUP,
     
     /**

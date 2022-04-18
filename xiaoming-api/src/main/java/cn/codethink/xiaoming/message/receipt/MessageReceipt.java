@@ -1,7 +1,8 @@
 package cn.codethink.xiaoming.message.receipt;
 
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.metadata.OutgoingOnlineMessageReference;
+import cn.codethink.xiaoming.message.compound.CompoundMessage;
+import cn.codethink.xiaoming.message.metadata.OutgoingOnlineMessageSource;
 
 /**
  * 消息回执，调用 {@link cn.codethink.xiaoming.contact.Contact#sendMessage(Message)} 后获得。
@@ -15,12 +16,22 @@ public interface MessageReceipt {
      *
      * @return 发送后的消息
      */
-    Message getMessage();
+    CompoundMessage getMessage();
     
     /**
-     * 获取消息引用
+     * 获取消息源
      *
-     * @return 消息引用
+     * @return 消息源
      */
-    OutgoingOnlineMessageReference getMessageReference();
+    OutgoingOnlineMessageSource getMessageSource();
+    
+    /**
+     * 撤回相关消息
+     *
+     * @return 是否成功撤回消息
+     * @throws cn.codethink.xiaoming.exception.PermissionDeniedException 缺少权限
+     */
+    default boolean recall() {
+        return getMessageSource().recall();
+    }
 }

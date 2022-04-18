@@ -10,7 +10,9 @@ import cn.codethink.xiaoming.exception.NotYetImplementedException;
 import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.message.receipt.MessageReceipt;
 import cn.codethink.xiaoming.util.MiraiContacts;
-import lombok.Data;
+import lombok.Getter;
+import net.mamoe.mirai.contact.Contact;
+import net.mamoe.mirai.contact.NormalMember;
 
 import java.util.Collection;
 import java.util.NoSuchElementException;
@@ -22,12 +24,12 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Chuanwise
  */
+@Getter
 @InternalAPI
 @SuppressWarnings("all")
-@Data
 public class MiraiMember
     extends AbstractMember
-    implements GroupMember {
+    implements GroupMember, MiraiContact {
     
     /**
      * Mirai 群成员
@@ -42,7 +44,7 @@ public class MiraiMember
     /**
      * 个人资料
      */
-    private final MiraiProfile profile;
+    private MiraiProfile profile;
     
     /**
      * QQ
@@ -58,16 +60,22 @@ public class MiraiMember
         this.code = (LongCode) Code.ofLong(miraiMember.getId());
     
         this.miraiMember = miraiMember;
-        this.profile = new MiraiProfile(getBot(), miraiMember.queryProfile());
     }
     
 //    {
 //        miraiMember.getLastSpeakTimestamp();
 //
 //        AnonymousMember member;
-//        MessageReference source;
+//        MessageSource source;
+    // TODO: 2022/4/18 clear
 //
 //    }
+    
+    
+    @Override
+    public NormalMember getMiraiContact() {
+        return miraiMember;
+    }
     
     public boolean isAvailable() {
         return group.isAvailable() && available;
@@ -100,7 +108,7 @@ public class MiraiMember
     
     @Override
     public Role getRole() {
-        return MiraiRole.fromMirai(miraiMember.getPermission());
+        return MiraiRole.toXiaoMing(miraiMember.getPermission());
     }
     
     @Override
@@ -175,6 +183,9 @@ public class MiraiMember
     
     @Override
     public MiraiProfile getProfile() {
+        if (Objects.isNull(profile)) {
+            profile = new MiraiProfile(getBot(), miraiMember.queryProfile());
+        }
         return profile;
     }
     

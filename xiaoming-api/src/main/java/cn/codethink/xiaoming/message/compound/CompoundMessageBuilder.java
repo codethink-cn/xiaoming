@@ -1,8 +1,9 @@
 package cn.codethink.xiaoming.message.compound;
 
 import cn.chuanwise.common.util.Preconditions;
+import cn.codethink.xiaoming.spi.XiaoMing;
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.basic.MessageMetadata;
+import cn.codethink.xiaoming.message.metadata.MessageMetadata;
 import cn.codethink.xiaoming.message.basic.Text;
 
 /**
@@ -22,7 +23,7 @@ public interface CompoundMessageBuilder
         Preconditions.objectNonNull(text, "text");
         Preconditions.argument(text.length() > 0, "text is empty");
     
-        return plus((Message) new Text(text.toString()));
+        return plus((Message) Text.of(text.toString()));
     }
     
     @Override
@@ -42,8 +43,8 @@ public interface CompoundMessageBuilder
      *
      * @return 消息构建器
      */
-    static CompoundMessageBuilder builder() {
-        return new SimpleCompoundMessageBuilder();
+    static CompoundMessageBuilder newInstance() {
+        return XiaoMing.get().newCompoundMessageBuilder();
     }
     
     /**
@@ -53,7 +54,7 @@ public interface CompoundMessageBuilder
      * @return 消息构建器
      */
     static CompoundMessageBuilder reserve(int capacity) {
-        return new SimpleCompoundMessageBuilder(capacity);
+        return XiaoMing.get().newCompoundMessageBuilder(capacity);
     }
     
     /**
@@ -61,9 +62,10 @@ public interface CompoundMessageBuilder
      *
      * @param compoundMessage 复合消息
      * @return 消息构建器
+     * @throws NullPointerException compoundMessage 为 null
      */
     static CompoundMessageBuilder copy(CompoundMessage compoundMessage) {
-        return new SimpleCompoundMessageBuilder(compoundMessage);
+        return XiaoMing.get().copyAsCompoundMessageBuilder(compoundMessage);
     }
     
     /**
@@ -71,12 +73,12 @@ public interface CompoundMessageBuilder
      *
      * @param compoundMessage 复合消息
      * @return 消息构建器
-     * @see LazyCompoundMessageBuilder
+     * @throws NullPointerException compoundMessage 为 null
      */
     static CompoundMessageBuilder lazy(CompoundMessage compoundMessage) {
         Preconditions.objectNonNull(compoundMessage, "compound message");
         
-        return new LazyCompoundMessageBuilder(compoundMessage);
+        return XiaoMing.get().newLazyCompoundMessageBuilder(compoundMessage);
     }
     
     /**

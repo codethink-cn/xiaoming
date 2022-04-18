@@ -1,38 +1,24 @@
 package cn.codethink.xiaoming.event;
 
-import cn.codethink.common.util.Collections;
-import cn.codethink.xiaoming.AbstractBot;
 import cn.codethink.xiaoming.AbstractBotObject;
 import cn.codethink.xiaoming.Bot;
-import cn.codethink.xiaoming.MiraiBot;
 import cn.codethink.xiaoming.code.Code;
 import cn.codethink.xiaoming.contact.*;
-import cn.codethink.xiaoming.exception.NoSuchFriendException;
-import cn.codethink.xiaoming.exception.NoSuchGroupException;
-import cn.codethink.xiaoming.exception.NoSuchMemberException;
-import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.MiraiCompoundMessage;
-import cn.codethink.xiaoming.message.MiraiMessageChain;
 import cn.codethink.xiaoming.message.compound.CompoundMessage;
+import cn.codethink.xiaoming.property.Property;
+import cn.codethink.xiaoming.util.Mirais;
+import lombok.Data;
 import net.mamoe.mirai.contact.AnonymousMember;
 import net.mamoe.mirai.contact.NormalMember;
 import net.mamoe.mirai.event.EventHandler;
 import net.mamoe.mirai.event.ListenerHost;
-import net.mamoe.mirai.event.events.*;
 import net.mamoe.mirai.event.events.BotAvatarChangedEvent;
 import net.mamoe.mirai.event.events.BotOfflineEvent;
 import net.mamoe.mirai.event.events.BotOnlineEvent;
-import net.mamoe.mirai.event.events.BotReloginEvent;
-import net.mamoe.mirai.event.events.FriendMessageEvent;
-import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.MessageRecallEvent;
-import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.OnlineMessageSource;
+import net.mamoe.mirai.event.events.*;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -51,6 +37,10 @@ public class EventForwarder
         
         avatarUrl = bot.asFriend().getAvatarUrl();
     }
+    
+    ///////////////////////////////////////////////////////////////////////////
+    // bot event
+    ///////////////////////////////////////////////////////////////////////////
     
     @EventHandler
     public void onBotOnline(BotOnlineEvent event) {
@@ -89,6 +79,30 @@ public class EventForwarder
         bot.getEventManager().broadcastEvent(newEvent);
     }
     
+    ///////////////////////////////////////////////////////////////////////////
+    // message event
+    ///////////////////////////////////////////////////////////////////////////
+    
+    /**
+     * 缓存消息。
+     * <p>
+     * 每收到或发送一条消息，都将增加一条消息缓存。由于缓存消息使用的是虚哈希表 {@link WeakHashMap}，将在内存不足时
+     * 自动释放，不需担心内存问题。
+     * <p>
+     * 缓存消息的主要用途是在消息撤回时寻找被撤回的消息。
+     */
+    private final Map<IntArray, CompoundMessage> messageCache = new WeakHashMap<>();
+    
+    /**
+     * 专门用来重写和 int[] 可以相互比较的 IntArray。
+     * 是为了解决 int[] 作为键无法查找的问题。
+     */
+    @Data
+    private static class IntArray {
+        
+        private final int[] value;
+    }
+    
     @EventHandler
     public void onGroupMessageEvent(GroupMessageEvent event) {
         // get group
@@ -107,12 +121,16 @@ public class EventForwarder
             throw new NoSuchElementException("unknown member class: " + member.getClass());
         }
     
-        final CompoundMessage compoundMessage = MiraiMessageChain.toCompoundMessage(event.getMessage(), event.getGroup(), (MiraiBot) bot);
+        final CompoundMessage compoundMessage = Mirais.toXiaoMing(event.getMessage(), Collections.singletonMap(Property.CONTACT, group));
         final Event newEvent = new ReceiveGroupMessageEvent(
             sender,
             compoundMessage,
             TimeUnit.SECONDS.toMillis(event.getTime())
         );
+        
+        // cache message
+        messageCache.put(new IntArray(event.getSource().getIds()), compoundMessage);
+        
         bot.getEventManager().broadcastEvent(newEvent);
     }
     
@@ -121,78 +139,76 @@ public class EventForwarder
         final GroupMember member = bot.getGroupOrFail(Code.ofLong(event.getGroup().getId()))
             .getMemberOrFail(Code.ofLong(event.getSender().getId()));
     
-        final CompoundMessage compoundMessage = MiraiMessageChain.toCompoundMessage(event.getMessage(), event.getSender(), (MiraiBot) bot);
+        final CompoundMessage compoundMessage = Mirais.toXiaoMing(event.getMessage(), Collections.singletonMap(Property.CONTACT, member));
         final Event newEvent = new ReceiveGroupMemberMessageEvent(
             member,
             compoundMessage,
             TimeUnit.SECONDS.toMillis(event.getTime())
         );
+        
+        // cache message
+        messageCache.put(new IntArray(event.getSource().getIds()), compoundMessage);
+    
         bot.getEventManager().broadcastEvent(newEvent);
     }
     
     @EventHandler
     public void onFriendMessageEvent(FriendMessageEvent event) {
         final Friend friend = bot.getFriendOrFail(Code.ofLong(event.getFriend().getId()));
-        final CompoundMessage compoundMessage = MiraiMessageChain.toCompoundMessage(event.getMessage(), event.getSender(), (MiraiBot) bot);
+        final CompoundMessage compoundMessage = Mirais.toXiaoMing(event.getMessage(), Collections.singletonMap(Property.CONTACT, friend));
         
         final Event newEvent = new ReceiveFriendMessageEvent(
             friend,
             compoundMessage,
             TimeUnit.SECONDS.toMillis(event.getTime())
         );
+        
+        // cache message
+        messageCache.put(new IntArray(event.getSource().getIds()), compoundMessage);
+    
         bot.getEventManager().broadcastEvent(newEvent);
     }
     
-//    @EventHandler
-//    public void onGroupMessageRecallEvent(MessageRecallEvent.GroupRecall event) {
-//        // find a msg
-//        final AbstractBot abstractBot = (AbstractBot) this.bot;
-//        final Collection<Message> messages = abstractBot.getResourcePool().getMessages().values();
-//
-//        // find the recalled message
-//        final Message message = Collections.firstIf(messages, msg -> {
-//            final MiraiCompoundMessage miraiCompoundMessage = (MiraiCompoundMessage) msg;
-//            return Arrays.equals(miraiCompoundMessage.getMessageSource().getIds(), event.getMessageIds());
-//        });
-//
-//        // find group
-//        final Code groupCode = Code.ofLong(event.getGroup().getId());
-//        final Group group = (Group) bot.getMass(groupCode);
-//        if (Objects.isNull(group)) {
-//            throw new NoSuchGroupException(bot, groupCode);
-//        }
-//
-//        // find operator
-//        final GroupMember member;
-//        final net.mamoe.mirai.contact.Member operator = event.getOperator();
-//        if (Objects.nonNull(operator)) {
-//            final Code operatorCode = Code.ofLong(operator.getId());
-//            member = group.getMember(operatorCode);
-//            if (Objects.isNull(member)) {
-//                throw new NoSuchMemberException(group, operatorCode);
-//            }
-//        } else {
-//            member = group.getBotAsMember();
-//        }
-//
-//        bot.getEventManager().broadcastEvent(new GroupMessageRecallEvent(message, member));
-//    }
-//
-//    @EventHandler
-//    public void onFriendMessageRecallEvent(MessageRecallEvent.FriendRecall event) {
-//        // find a msg
-//        final MiraiBot miraiBot = (MiraiBot) this.bot;
-//        final Collection<Message> messages = miraiBot.getResourcePool().getMessages().values();
-//
-//        // find the recalled message
-//        final Message message = Collections.firstIf(messages, msg -> {
-//            final MiraiCompoundMessage miraiCompoundMessage = (MiraiCompoundMessage) msg;
-//            return Arrays.equals(miraiCompoundMessage.getMessageSource().getIds(), event.getMessageIds());
-//        });
-//
-//        final FriendMessageRecallEvent newEvent = new FriendMessageRecallEvent(message);
-//        bot.getEventManager().broadcastEvent(newEvent);
-//    }
+    ///////////////////////////////////////////////////////////////////////////
+    // recall event
+    ///////////////////////////////////////////////////////////////////////////
     
+    @EventHandler
+    public void onGroupMessageRecallEvent(MessageRecallEvent.GroupRecall event) {
+        // group
+        final Group group = bot.getGroupOrFail(Code.ofLong(event.getGroup().getId()));
+        
+        // operator
+        final UserOrBot operator;
+        final net.mamoe.mirai.contact.Member miraiOperator = event.getOperator();
+        if (Objects.isNull(miraiOperator)) {
+            operator = bot;
+        } else {
+            operator = group.getMemberOrFail(Code.ofLong(miraiOperator.getId()));
+        }
     
+        final GroupMember sender = group.getMemberOrFail(Code.ofLong(event.getAuthorId()));
+    
+        final Event newEvent = new GroupMessageRecallEvent(
+            group,
+            messageCache.remove(new IntArray(event.getMessageIds())),
+            sender,
+            operator,
+            TimeUnit.SECONDS.toMillis(event.getMessageTime())
+        );
+        bot.getEventManager().broadcastEvent(newEvent);
+    }
+    
+    @EventHandler
+    public void onFriendMessageRecallEvent(MessageRecallEvent.FriendRecall event) {
+        // friend
+        final Friend friend = bot.getFriendOrFail(Code.ofLong(event.getAuthorId()));
+        
+        final Event newEvent = new FriendMessageRecallEvent(
+            friend,
+            messageCache.remove(new IntArray(event.getMessageIds())),
+            TimeUnit.SECONDS.toMillis(event.getMessageTime())
+        );
+        bot.getEventManager().broadcastEvent(newEvent);
+    }
 }

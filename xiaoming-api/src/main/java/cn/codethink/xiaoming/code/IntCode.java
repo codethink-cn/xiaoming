@@ -1,14 +1,14 @@
 package cn.codethink.xiaoming.code;
 
 import cn.codethink.common.util.Maps;
-import cn.chuanwise.common.util.SoftMap;
 import lombok.Data;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.WeakHashMap;
 
 /**
- * long 用户编码
+ * long 码
  *
  * @author Chuanwise
  */
@@ -18,7 +18,7 @@ public class IntCode
     
     protected final int value;
     
-    private static final Map<Integer, IntCode> INSTANCES = new SoftMap<>(new HashMap<>());
+    private static final Map<Integer, IntCode> INSTANCES = new WeakHashMap<>();
     
     private IntCode(int value) {
         this.value = value;
@@ -50,7 +50,7 @@ public class IntCode
     
     @Override
     public String toString() {
-        return "i:" + value;
+        return "i," + value;
     }
     
     @Override

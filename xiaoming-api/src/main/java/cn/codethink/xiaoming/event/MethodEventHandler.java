@@ -38,28 +38,28 @@ public class MethodEventHandler
     /**
      * 用方法构造一个事件处理器
      *
-     * @param source               方法所属类的对象
+     * @param invoker               方法所属类的对象
      * @param method               方法
      * @param alwaysValid 是否监听已经被取消的事件
      * @return 事件处理器
      */
     @InternalAPI
     @SuppressWarnings("all")
-    public static MethodEventHandler ofMethod(Object source, Method method, Priority priority, boolean alwaysValid) {
-        Preconditions.nonNull(source, "source");
+    public static MethodEventHandler ofMethod(Object invoker, Method method, Priority priority, boolean alwaysValid) {
+        Preconditions.nonNull(invoker, "invoker");
         Preconditions.nonNull(method, "method");
         Preconditions.nonNull(priority, "priority");
         
-        // 检查 Method 是否是 source 类的方法
+        // 检查 Method 是否是 invoker 类的方法
         final Class<?> methodClass = method.getDeclaringClass();
         final int modifiers = method.getModifiers();
         
-        // 只有 source 是 Class<?> 且 method 是 static
-        // 或 source 是方法定义类的实例时才能调用
-        Preconditions.argument((Modifier.isStatic(modifiers) && Objects.equals(source, methodClass))
-                || methodClass.isInstance(source),
-            "method should be static and source object equals to the declaring class of method, " +
-                "or the source object must be a instance of the declaring class of method.");
+        // 只有 invoker 是 Class<?> 且 method 是 static
+        // 或 invoker 是方法定义类的实例时才能调用
+        Preconditions.argument((Modifier.isStatic(modifiers) && Objects.equals(invoker, methodClass))
+                || methodClass.isInstance(invoker),
+            "method should be static and invoker object equals to the declaring class of method, " +
+                "or the invoker object must be a instance of the declaring class of method.");
     
         // 判断参数个数
         final Parameter[] parameters = method.getParameters();
@@ -68,7 +68,7 @@ public class MethodEventHandler
     
         // 构造并返回
         final Class<?> eventClass = parameter.getType();
-        return new MethodEventHandler((Class<? extends Event>) eventClass, source, method, priority, alwaysValid);
+        return new MethodEventHandler((Class<? extends Event>) eventClass, invoker, method, priority, alwaysValid);
     }
     
     /**

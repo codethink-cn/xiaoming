@@ -5,7 +5,7 @@ import cn.codethink.common.util.Preconditions;
 import lombok.Data;
 
 /**
- * long 用户编码
+ * long 码
  *
  * @author Chuanwise
  */
@@ -47,6 +47,6 @@ public class StringCode
     
     @Override
     public String toString() {
-        return "s:" + value;
+        return "s," + value;
     }
 }

@@ -20,13 +20,20 @@ public class PreSendGroupMemberMessageEvent
     
     private final GroupMember member;
     
-    private final Message message;
+    private Message message;
     
     public PreSendGroupMemberMessageEvent(GroupMember member, Message message) {
         Preconditions.objectNonNull(member, "member");
         Preconditions.objectNonNull(message, "message");
         
         this.member = member;
+        this.message = message;
+    }
+    
+    @Override
+    public void setMessage(Message message) {
+        Preconditions.objectNonNull(message, "message");
+        
         this.message = message;
     }
     

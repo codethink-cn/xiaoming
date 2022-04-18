@@ -2,8 +2,11 @@ package cn.codethink.xiaoming.contact;
 
 import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.MessageCode;
+import cn.codethink.xiaoming.property.Property;
+import cn.codethink.xiaoming.util.MessageCode;
 import cn.codethink.xiaoming.message.receipt.MessageReceipt;
+
+import java.util.Collections;
 
 /**
  * 某种可以用来发送消息的对象
@@ -32,7 +35,7 @@ public interface Contact
     default MessageReceipt sendMessage(String messageCode) {
         Preconditions.objectArgumentNonEmpty(messageCode, "message code");
         
-        return sendMessage(MessageCode.deserializeToCompoundMessage(messageCode, getBot()));
+        return sendMessage(MessageCode.deserializeMessageCode(messageCode, Collections.singletonMap(Property.BOT, getBot())));
     }
     
     // TODO: 2022/4/16 add nextMessage, nextFlap, nextEvent(), nextEvent(ContactEvent.class), nextCompoundMessage and etc.

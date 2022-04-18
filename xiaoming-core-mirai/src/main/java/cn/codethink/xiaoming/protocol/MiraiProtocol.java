@@ -42,7 +42,7 @@ public class MiraiProtocol
      * @param protocol Mirai 协议
      * @return 小明协议
      */
-    public static Protocol fromMiraiProtocol(BotConfiguration.MiraiProtocol protocol) {
+    public static Protocol toXiaoMingProtocol(BotConfiguration.MiraiProtocol protocol) {
         Preconditions.nonNull(protocol, "protocol");
     
         switch (protocol) {

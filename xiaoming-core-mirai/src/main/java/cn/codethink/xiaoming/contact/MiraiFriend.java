@@ -8,6 +8,7 @@ import cn.codethink.xiaoming.exception.NoSuchFriendException;
 import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.util.MiraiContacts;
 import lombok.Getter;
+import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.contact.Friend;
 
 import java.util.Collection;
@@ -21,7 +22,8 @@ import java.util.Objects;
 @InternalAPI
 @Getter
 public class MiraiFriend
-    extends AbstractFriend {
+    extends AbstractFriend
+    implements MiraiContact {
     
     /**
      * Mirai 的 Friend
@@ -36,7 +38,7 @@ public class MiraiFriend
     /**
      * 账户信息
      */
-    private final MiraiProfile profile;
+    private MiraiProfile profile;
     
     public MiraiFriend(MiraiBot bot, Friend miraiFriend) {
         super(bot);
@@ -45,8 +47,11 @@ public class MiraiFriend
         this.miraiFriend = miraiFriend;
         
         this.code = LongCode.valueOf(miraiFriend.getId());
-        
-        this.profile = new MiraiProfile(bot, miraiFriend.queryProfile());
+    }
+    
+    @Override
+    public Friend getMiraiContact() {
+        return miraiFriend;
     }
     
     @Override
@@ -84,6 +89,14 @@ public class MiraiFriend
     @Override
     public String getSenderName() {
         return miraiFriend.getNick();
+    }
+    
+    @Override
+    public MiraiProfile getProfile() {
+        if (Objects.isNull(profile)) {
+            profile = new MiraiProfile(getBot(), miraiFriend.queryProfile());
+        }
+        return profile;
     }
     
     @Override

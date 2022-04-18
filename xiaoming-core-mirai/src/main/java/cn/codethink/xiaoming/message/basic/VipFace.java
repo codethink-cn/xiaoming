@@ -1,6 +1,8 @@
 package cn.codethink.xiaoming.message.basic;
 
 import cn.chuanwise.common.util.Preconditions;
+import cn.codethink.xiaoming.message.AutoSerializable;
+import cn.codethink.xiaoming.message.AutoSummarizable;
 import cn.codethink.xiaoming.message.MessageCodeBuilder;
 import lombok.Data;
 
@@ -12,7 +14,7 @@ import lombok.Data;
 @Data
 public class VipFace
     extends AbstractBasicMessage
-    implements SingletonMessage {
+    implements SingletonMessage, AutoSerializable, AutoSummarizable {
     
     /**
      * Vip 表情类型
@@ -30,19 +32,5 @@ public class VipFace
         
         this.type = type;
         this.count = count;
-    }
-    
-    @Override
-    public String serializeToMessageCode() {
-        return new MessageCodeBuilder("vip")
-            .argument("face")
-            .argument(type.getCode())
-            .argument(count)
-            .build();
-    }
-    
-    @Override
-    public String serializeToSummary() {
-        return "[" + type.getName() + "] × " + count;
     }
 }

@@ -1,5 +1,6 @@
 package cn.codethink.xiaoming.util;
 
+import cn.chuanwise.common.util.Maps;
 import cn.chuanwise.common.util.Preconditions;
 import cn.chuanwise.common.util.StaticUtilities;
 import cn.codethink.xiaoming.MiraiBot;
@@ -10,15 +11,18 @@ import cn.codethink.xiaoming.contact.MiraiMember;
 import cn.codethink.xiaoming.contact.MiraiStranger;
 import cn.codethink.xiaoming.event.*;
 import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.MiraiMessageChain;
 import cn.codethink.xiaoming.message.compound.CompoundMessage;
 import cn.codethink.xiaoming.message.receipt.MessageReceipt;
 import cn.codethink.xiaoming.message.metadata.*;
+import cn.codethink.xiaoming.property.Property;
 import net.mamoe.mirai.contact.Friend;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.contact.NormalMember;
 import net.mamoe.mirai.contact.Stranger;
 import net.mamoe.mirai.message.data.OnlineMessageSource;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * 和 mirai 会话相关的工具
@@ -55,12 +59,14 @@ public class MiraiContacts
         }
     
         // send
-        final net.mamoe.mirai.message.MessageReceipt<Friend> messageReceipt = miraiFriend.sendMessage(MiraiMessageChain.fromMessage(message, miraiFriend));
-        final ToFriendMessageReference messageReference = new MiraiToFriendMessageReference((OnlineMessageSource.Outgoing.ToFriend) messageReceipt.getSource(), friend);
-        final CompoundMessage compoundMessage = message.plus(messageReference);
+        final Map<Property<?>, Object> properties = Collections.singletonMap(Property.CONTACT, friend);
+        final net.mamoe.mirai.message.MessageReceipt<Friend> messageReceipt =
+            miraiFriend.sendMessage(Mirais.toMirai(message.asCompoundMessage(), properties));
+        final ToFriendMessageSource messageSource = new MiraiToFriendMessageSource((OnlineMessageSource.Outgoing.ToFriend) messageReceipt.getSource(), friend, properties);
+        final CompoundMessage compoundMessage = message.plus(messageSource);
     
         // post send
-        final PostSendMessageEvent postSendMessageEvent = new PostSendFriendMessageEvent(friend, compoundMessage, messageReference);
+        final PostSendMessageEvent postSendMessageEvent = new PostSendFriendMessageEvent(friend, compoundMessage, messageSource);
         bot.getEventManager().broadcastEvent(postSendMessageEvent);
         return postSendMessageEvent;
     }
@@ -89,14 +95,17 @@ public class MiraiContacts
         if (event.isCancelled()) {
             throw new CancelledException(bot);
         }
-        
+        message = event.getMessage();
+    
         // send message
-        final net.mamoe.mirai.message.MessageReceipt<Group> messageReceipt = miraiGroup.sendMessage(MiraiMessageChain.fromMessage(message, miraiGroup));
-        final ToGroupMessageReference messageReference = new MiraiToGroupMessageReference((OnlineMessageSource.Outgoing.ToGroup) messageReceipt.getSource(), group);
-        final CompoundMessage compoundMessage = message.plus(messageReference);
+        final Map<Property<?>, Object> properties = Collections.singletonMap(Property.CONTACT, group);
+        final net.mamoe.mirai.message.MessageReceipt<Group> messageReceipt =
+            miraiGroup.sendMessage(Mirais.toMirai(message.asCompoundMessage(), properties));
+        final ToGroupMessageSource messageSource = new MiraiToGroupMessageSource((OnlineMessageSource.Outgoing.ToGroup) messageReceipt.getSource(), group, properties);
+        final CompoundMessage compoundMessage = message.plus(messageSource);
     
         // post send
-        final PostSendMessageEvent postSendMessageEvent = new PostSendGroupMessageEvent(group, compoundMessage, messageReference);
+        final PostSendMessageEvent postSendMessageEvent = new PostSendGroupMessageEvent(group, compoundMessage, messageSource);
         bot.getEventManager().broadcastEvent(postSendMessageEvent);
         return postSendMessageEvent;
     }
@@ -125,14 +134,17 @@ public class MiraiContacts
         if (event.isCancelled()) {
             throw new CancelledException(bot);
         }
-        
+        message = event.getMessage();
+    
         // send message
-        final net.mamoe.mirai.message.MessageReceipt<NormalMember> messageReceipt = miraiMember.sendMessage(MiraiMessageChain.fromMessage(message, miraiMember));
-        final ToGroupMemberMessageReference messageReference = new MiraiToGroupMemberMessageReference((OnlineMessageSource.Outgoing.ToTemp) messageReceipt.getSource(), member);
-        final CompoundMessage compoundMessage = message.plus(messageReference);
+        final Map<Property<?>, Object> properties = Collections.singletonMap(Property.CONTACT, member);
+        final net.mamoe.mirai.message.MessageReceipt<NormalMember> messageReceipt =
+            miraiMember.sendMessage(Mirais.toMirai(message.asCompoundMessage(), properties));
+        final ToGroupMemberMessageSource messageSource = new MiraiToGroupMemberMessageSource((OnlineMessageSource.Outgoing.ToTemp) messageReceipt.getSource(), member, properties);
+        final CompoundMessage compoundMessage = message.plus(messageSource);
     
         // post send
-        final PostSendMessageEvent postSendMessageEvent = new PostSendGroupMemberMessageEvent(member, compoundMessage, messageReference);
+        final PostSendMessageEvent postSendMessageEvent = new PostSendGroupMemberMessageEvent(member, compoundMessage, messageSource);
         bot.getEventManager().broadcastEvent(postSendMessageEvent);
         return postSendMessageEvent;
     }
@@ -161,14 +173,17 @@ public class MiraiContacts
         if (event.isCancelled()) {
             throw new CancelledException(bot);
         }
+        message = event.getMessage();
         
         // send message
-        final net.mamoe.mirai.message.MessageReceipt<Stranger> messageReceipt = miraiStranger.sendMessage(MiraiMessageChain.fromMessage(message, miraiStranger));
-        final ToStrangerMessageReference messageReference = new MiraiToStrangerMessageReference(messageReceipt.getSource(), stranger);
-        final CompoundMessage compoundMessage = message.plus(messageReference);
+        final Map<Property<?>, Object> properties = Collections.singletonMap(Property.CONTACT, stranger);
+        final net.mamoe.mirai.message.MessageReceipt<Stranger> messageReceipt =
+            miraiStranger.sendMessage(Mirais.toMirai(message.asCompoundMessage(), properties));
+        final ToStrangerMessageSource messageSource = new MiraiToStrangerMessageSource(messageReceipt.getSource(), stranger, properties);
+        final CompoundMessage compoundMessage = message.plus(messageSource);
     
         // post
-        final PostSendMessageEvent postSendMessageEvent = new PostSendStrangerMessageEvent(stranger, compoundMessage, messageReference);
+        final PostSendMessageEvent postSendMessageEvent = new PostSendStrangerMessageEvent(stranger, compoundMessage, messageSource);
         bot.getEventManager().broadcastEvent(postSendMessageEvent);
         return postSendMessageEvent;
     }

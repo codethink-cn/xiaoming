@@ -1,31 +1,31 @@
 package cn.codethink.xiaoming.message.metadata;
 
-import cn.codethink.xiaoming.message.MessageCode;
-import cn.codethink.xiaoming.message.MessageCodeBuilder;
-import cn.codethink.xiaoming.message.basic.MessageMetadataType;
-import cn.codethink.xiaoming.message.basic.MessageMetadata;
-import lombok.Data;
+import cn.codethink.xiaoming.message.AutoSerializable;
+import cn.codethink.xiaoming.spi.XiaoMing;
 
 /**
  * 引用某条消息
  *
  * @author Chuanwise
  */
-@Data
-public class Quote
-    implements MessageMetadata {
+public interface Quote
+    extends MessageMetadata, AutoSerializable {
     
-    private final MessageReference messageReference;
-    
-    @Override
-    public String serializeToMessageCode() {
-        return new MessageCodeBuilder("quote")
-            .argument(messageReference.serializeToMessageCode())
-            .build();
+    /**
+     * 构造指向消息源的回复信息
+     * 
+     * @param source 消息源
+     * @return 引用回复
+     * @throws NullPointerException source 为 null
+     */
+    static Quote of(MessageSource source) {
+        return XiaoMing.get().newQuote(source);
     }
     
-    @Override
-    public MessageMetadataType<Quote> getMetadataType() {
-        return MessageMetadataType.QUOTE;
-    }
+    /**
+     * 获取引用的目标
+     *
+     * @return 引用的目标
+     */
+    MessageSource getMessageSource();
 }

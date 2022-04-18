@@ -7,12 +7,31 @@
         <processorPath useClasspath="false">
           <entry name="$PROJECT_DIR$/../../../tool/gradle/home/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.22/9c08ea24c6eb714e2d6170e8122c069a0ba9aacf/lombok-1.18.22.jar" />
         </processorPath>
-        <module name="xiaoming.xiaoming-api.main" />
-        <module name="xiaoming.xiaoming-core.main" />
-        <module name="cn.codethink.xiaoming.xiaoming-core-mirai.main" />
         <module name="xiaoming.xiaoming-api.test" />
+        <module name="xiaoming.xiaoming-api.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$PROJECT_DIR$/../../../tool/gradle/home/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.22/9c08ea24c6eb714e2d6170e8122c069a0ba9aacf/lombok-1.18.22.jar" />
+          <entry name="$PROJECT_DIR$/../../../tool/gradle/home/caches/modules-2/files-2.1/com.google.auto.service/auto-service-annotations/1.0.1/ac86dacc0eb9285ea9d42eee6aad8629ca3a7432/auto-service-annotations-1.0.1.jar" />
+        </processorPath>
         <module name="xiaoming.xiaoming-core.test" />
+        <module name="xiaoming.xiaoming-core.main" />
+      </profile>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$PROJECT_DIR$/../../../tool/gradle/home/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.22/9c08ea24c6eb714e2d6170e8122c069a0ba9aacf/lombok-1.18.22.jar" />
+          <entry name="$PROJECT_DIR$/xiaoming-core/build/libs/xiaoming-core-5.0-SNAPSHOT.jar" />
+          <entry name="$PROJECT_DIR$/xiaoming-api/build/libs/xiaoming-api-5.0-SNAPSHOT.jar" />
+          <entry name="$PROJECT_DIR$/../../../tool/maven/repository/cn/codethink/codethink-common/1.0-SNAPSHOT/codethink-common-1.0-SNAPSHOT.jar" />
+          <entry name="$PROJECT_DIR$/../../../tool/maven/repository/cn/chuanwise/chuanwise-common/1.0-SNAPSHOT/chuanwise-common-1.0-SNAPSHOT.jar" />
+          <entry name="$PROJECT_DIR$/../../../tool/gradle/home/caches/modules-2/files-2.1/org.slf4j/slf4j-api/1.7.36/6c62681a2f655b49963a5983b8b0950a6120ae14/slf4j-api-1.7.36.jar" />
+          <entry name="$PROJECT_DIR$/../../../tool/gradle/home/caches/modules-2/files-2.1/org.apache.commons/commons-collections4/4.4/62ebe7544cb7164d87e0637a2a6a2bdc981395e8/commons-collections4-4.4.jar" />
+        </processorPath>
         <module name="cn.codethink.xiaoming.xiaoming-core-mirai.test" />
+        <module name="cn.codethink.xiaoming.xiaoming-core-mirai.main" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8" />

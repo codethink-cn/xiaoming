@@ -3,7 +3,6 @@ package cn.codethink.xiaoming.contact;
 import cn.chuanwise.common.util.Preconditions;
 import cn.codethink.xiaoming.code.Code;
 import cn.codethink.xiaoming.exception.NoSuchAnonymousSenderException;
-import cn.codethink.xiaoming.exception.NoSuchMemberException;
 
 import java.util.Map;
 import java.util.Objects;

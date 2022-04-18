@@ -1,4 +1,13 @@
 dependencies {
     // api
     api project(':xiaoming-api')
+
+    // for parsing image metadata
+//    implementation 'com.drewnoakes:metadata-extractor:2.17.0'
+
+    // auto service
+    testAnnotationProcessor 'com.google.auto.service:auto-service-annotations:1.0.1'
+    testCompileOnly 'com.google.auto.service:auto-service:1.0.1'
+    annotationProcessor 'com.google.auto.service:auto-service-annotations:1.0.1'
+    compileOnly 'com.google.auto.service:auto-service:1.0.1'
 }

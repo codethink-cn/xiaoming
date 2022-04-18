@@ -1,20 +1,25 @@
 package cn.codethink.xiaoming.message.basic;
 
-import cn.chuanwise.common.util.Randoms;
-import cn.codethink.common.util.Preconditions;
+import cn.chuanwise.common.util.Preconditions;
+import cn.codethink.xiaoming.message.AutoSerializable;
+import cn.codethink.xiaoming.message.AutoSummarizable;
 import cn.codethink.xiaoming.message.compound.CompoundMessage;
-import cn.codethink.xiaoming.message.compound.SingletonCompoundMessage;
+import cn.codethink.xiaoming.spi.XiaoMing;
 import lombok.Getter;
 
+import java.util.Map;
 import java.util.Objects;
 
 /**
- * 骰子
+ * <h1>骰子</h1>
+ *
+ * <p>消息码：{@code [dice:$value]}</p>
+ * <p>摘要：{@code [骰子]}</p>
  *
  * @author Chuanwise
  */
 public enum Dice
-    implements MarketFace, SingletonMessage {
+    implements MarketFace, SingletonMessage, AutoSerializable, AutoSummarizable {
     
     /**
      * 值为 1 的骰子
@@ -27,7 +32,7 @@ public enum Dice
     TWO(2),
     
     /**
-     * 值为 3 的骰子
+     * 值为 31 的骰子
      */
     THREE(3),
     
@@ -53,75 +58,40 @@ public enum Dice
     private final int value;
     
     /**
-     * 骰子的摘要
+     * 缓存的复合消息
      */
-    private static final String SUMMARY = "[骰子]";
+    private CompoundMessage compoundMessage;
     
-    /**
-     * 骰子的名称
-     */
-    private static final String NAME = "骰子";
+    private static final Dice[] INSTANCES = values();
     
-    /**
-     * 复合消息内容
-     */
-    private SingletonCompoundMessage compoundMessage;
-    
-    /**
-     * 构造一个指定值的骰子
-     *
-     * @param value 骰子的值
-     * @throws IllegalArgumentException value 不合法
-     */
     Dice(int value) {
-        Preconditions.argument(value >= 1 && value <= 6);
-        
         this.value = value;
     }
     
     /**
-     * 根据骰子值获得骰子
+     * 获取一个指定值的骰子
      *
-     * @param code 骰子值
+     * @param value 骰子值
      * @return 骰子
-     * @throws IndexOutOfBoundsException code < 0 或 code >= 6
+     * @throws IllegalArgumentException value < 1 或 value > 6
      */
-    public static Dice of(int code) {
-        Preconditions.objectIndex(code, 6, "dice index");
-        return values()[code];
-    }
+    public static Dice of(int value) {
+        Preconditions.element(value >= 1 && value < 6,
+            "dice value must be bigger or equals than 1, and smaller or equals than 6!");
     
-    /**
-     * 随机获取一个骰子
-     *
-     * @return 一个骰子
-     */
-    public static Dice random() {
-        final Dice[] values = values();
-        final int index = Randoms.nextInt(values.length);
-        return values[index];
-    }
-    
-    @Override
-    public String serializeToMessageCode() {
-        return "[dice:" + value + "]";
-    }
-    
-    @Override
-    public String getName() {
-        return NAME;
-    }
-    
-    @Override
-    public String serializeToSummary() {
-        return SUMMARY;
+        return INSTANCES[value - 1];
     }
     
     @Override
     public CompoundMessage asCompoundMessage() {
         if (Objects.isNull(compoundMessage)) {
-            compoundMessage = new SingletonCompoundMessage(this);
+            compoundMessage = XiaoMing.get().newCompoundMessageBuilder();
         }
         return compoundMessage;
+    }
+    
+    @Override
+    public String getName() {
+        return "[骰子]";
     }
 }

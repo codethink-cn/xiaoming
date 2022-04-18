@@ -2,6 +2,8 @@ package cn.codethink.xiaoming.event;
 
 import cn.codethink.xiaoming.contact.ContactOrBot;
 import cn.codethink.xiaoming.contact.Sender;
+import cn.codethink.xiaoming.message.Message;
+import cn.codethink.xiaoming.message.compound.CompoundMessage;
 
 /**
  * 和在线消息相关的事件
@@ -10,6 +12,16 @@ import cn.codethink.xiaoming.contact.Sender;
  */
 public interface OnlineMessageEvent
     extends MessageEvent {
+    
+    /**
+     * 获取收到的消息。
+     *
+     * 如果是在线消息，必定有消息源，因此是具备元数据的消息，则必然是复合消息。
+     *
+     * @return 复合消息
+     */
+    @Override
+    CompoundMessage getMessage();
     
     /**
      * 获取消息发送方

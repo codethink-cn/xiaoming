@@ -1,68 +1,89 @@
 package cn.codethink.xiaoming.message.basic;
 
-import cn.codethink.xiaoming.message.MessageCodeBuilder;
-import lombok.Data;
+import cn.codethink.xiaoming.message.AutoSerializable;
+import cn.codethink.xiaoming.message.AutoSummarizable;
+import cn.codethink.xiaoming.spi.XiaoMing;
 
 /**
- * 分享音乐
+ * <h1>音乐分享</h1>
+ *
+ * <p>消息码：{@code [music:share:$software:$title:$description:$summary:$jumpUrl:$coverUrl:$musicUrl]}</p>
  *
  * @author Chuanwise
  */
-@Data
-public class MusicShare
-    extends AbstractBasicMessage {
+public interface MusicShare
+    extends SingletonMessage, AutoSerializable, AutoSummarizable {
     
     /**
-     * 音乐软件类型
+     * 构造一个音乐分享消息
+     *
+     * @param softwareType 音乐软件类型
+     * @param title        标题
+     * @param description  描述
+     * @param summary      摘要
+     * @param jumpUrl      跳转 Url
+     * @param coverUrl     封面 Url
+     * @param musicUrl     音乐 Url
+     * @return 音乐分享消息
+     * @throws NullPointerException     softwareType, title, description, summary, jumpUrl, coverUrl 或 musicUrl 为 null
+     * @throws IllegalArgumentException title, description, summary, jumpUrl, coverUrl 或 musicUrl 为 ""
      */
-    private final MusicSoftwareType softwareType;
-    
-    /**
-     * 卡片标题
-     */
-    private final String title;
-    
-    /**
-     * 卡片描述
-     */
-    private final String description;
-    
-    /**
-     * 点击后跳转的页面
-     */
-    private final String jumpUrl;
-    
-    /**
-     * 封面图片 URL
-     */
-    private final String coverUrl;
-    
-    /**
-     * 音乐文件 URL
-     */
-    private final String musicUrl;
-    
-    /**
-     * 在消息列表中看到的内容
-     */
-    private final String summary;
-    
-    @Override
-    public String serializeToMessageCode() {
-        return new MessageCodeBuilder("music")
-            .argument("share")
-            .argument(softwareType.toString().toLowerCase())
-            .argument(title)
-            .argument(description)
-            .argument(jumpUrl)
-            .argument(coverUrl)
-            .argument(musicUrl)
-            .argument(summary)
-            .build();
+    static MusicShare newInstance(MusicSoftwareType softwareType,
+                                  String title,
+                                  String description,
+                                  String summary,
+                                  String jumpUrl,
+                                  String coverUrl,
+                                  String musicUrl) {
+        return XiaoMing.get().newMusicShare(softwareType, title, description, summary, jumpUrl, coverUrl, musicUrl);
     }
     
-    @Override
-    public String serializeToSummary() {
-        return null;
-    }
+    /**
+     * 获取音乐软件类型
+     *
+     * @return 音乐软件类型
+     */
+    MusicSoftwareType getSoftwareType();
+    
+    /**
+     * 获取标题
+     *
+     * @return 标题
+     */
+    String getTitle();
+    
+    /**
+     * 获取描述
+     *
+     * @return 描述
+     */
+    String getDescription();
+    
+    /**
+     * 获取摘要
+     *
+     * @return 摘要
+     */
+    String getSummary();
+    
+    /**
+     * 获取点击后跳转的 Url
+     *
+     * @return 点击后跳转的 Url
+     */
+    String getJumpUrl();
+    
+    /**
+     * 获取封面 Url
+     *
+     * @return 封面 Url
+     */
+    String getCoverUrl();
+    
+    /**
+     * 获取音乐文件 Url
+     *
+     * @return 音乐文件 Url
+     */
+    String getMusicUrl();
 }

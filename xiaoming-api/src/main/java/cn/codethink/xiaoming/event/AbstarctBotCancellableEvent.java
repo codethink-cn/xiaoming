@@ -1,9 +1,6 @@
 package cn.codethink.xiaoming.event;
 
-import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.Bot;
-import cn.codethink.xiaoming.AbstractBotObject;
-import cn.codethink.xiaoming.BotObject;
 import lombok.Data;
 
 /**
