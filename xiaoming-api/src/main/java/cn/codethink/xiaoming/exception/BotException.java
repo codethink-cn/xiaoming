@@ -7,11 +7,13 @@ import lombok.Data;
 
 /**
  * 机器人异常
+ *
+ * @author Chuanwise
  */
 @Data
 public class BotException
-        extends Exception
-        implements BotObject {
+    extends Exception
+    implements BotObject {
     
     protected final Bot bot;
     

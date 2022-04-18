@@ -76,7 +76,6 @@ public class XiaoMingSpi {
             xiaoMing = iterator.next();
         }
         
-        
         return xiaoMing;
     }
 }

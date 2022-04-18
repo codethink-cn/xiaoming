@@ -1,8 +1,12 @@
 package cn.codethink.xiaoming.spi;
 
 import cn.chuanwise.common.util.Preconditions;
+import cn.codethink.common.util.Numbers;
 import cn.codethink.xiaoming.annotation.InternalAPI;
 import cn.codethink.xiaoming.code.Code;
+import cn.codethink.xiaoming.code.IntCode;
+import cn.codethink.xiaoming.code.LongCode;
+import cn.codethink.xiaoming.code.StringCode;
 import cn.codethink.xiaoming.message.AutoSummarizable;
 import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.message.basic.*;
@@ -24,12 +28,14 @@ import cn.codethink.xiaoming.message.module.summary.SummaryContext;
 import cn.codethink.xiaoming.message.module.summary.SummaryContextImpl;
 import cn.codethink.xiaoming.property.SimpleProperty;
 import cn.codethink.xiaoming.resource.*;
+import cn.codethink.xiaoming.util.MessageCodeImpl;
 import com.google.auto.service.AutoService;
 
 import java.io.File;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.Function;
 
@@ -46,8 +52,68 @@ public class XiaoMingImpl
     static {
         
         // if no xiaoming present, set one
-        if (!XiaoMingSpi.isPresent()) {
-            XiaoMingSpi.setXiaoMing(new XiaoMingImpl());
+//        if (!XiaoMingSpi.isPresent()) {
+//            XiaoMingSpi.setXiaoMing(new XiaoMingImpl());
+//        }
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////
+    // message code
+    ///////////////////////////////////////////////////////////////////////////
+    
+    @Override
+    public CompoundMessage deserializeMessageCode(String messageCode, Map<Property<?>, Object> properties) {
+        return MessageCodeImpl.deserializeMessageCode(messageCode, properties);
+    }
+    
+    ///////////////////////////////////////////////////////////////////////////
+    // code
+    ///////////////////////////////////////////////////////////////////////////
+    
+    @Override
+    public Code getCode(int value) {
+        return IntCode.valueOf(value);
+    }
+    
+    @Override
+    public Code getCode(long code) {
+        return LongCode.valueOf(code);
+    }
+    
+    @Override
+    public Code getCode(String value) {
+        return new StringCode(value);
+    }
+    
+    @Override
+    public Code parseCode(String string) {
+        cn.codethink.common.util.Preconditions.objectArgumentNonEmpty(string, "string");
+    
+        final int delimiter = string.indexOf(',');
+        cn.codethink.common.util.Preconditions.argument(delimiter != -1, "code type required");
+        cn.codethink.common.util.Preconditions.argument(delimiter != string.length(), "code value required");
+    
+        final String type = string.substring(0, delimiter);
+        final String value = string.substring(delimiter + 1);
+    
+        switch (type) {
+            case "long":
+            case "l":
+                final Long longValue = Numbers.parseLong(value);
+                cn.codethink.common.util.Preconditions.nonNull(longValue);
+                return LongCode.valueOf(longValue);
+            case "string":
+            case "str":
+            case "s":
+                return new StringCode(value);
+            case "integer":
+            case "int":
+            case "i":
+                final Integer intValue = Numbers.parseInt(value);
+                cn.codethink.common.util.Preconditions.nonNull(intValue);
+                return IntCode.valueOf(intValue);
+            default:
+                throw new NoSuchElementException("unknown code type: " + type);
         }
     }
     

@@ -2,6 +2,7 @@ package cn.codethink.xiaoming.code;
 
 import cn.codethink.common.util.Numbers;
 import cn.codethink.common.util.Preconditions;
+import cn.codethink.xiaoming.spi.XiaoMing;
 
 import java.util.NoSuchElementException;
 
@@ -13,70 +14,46 @@ import java.util.NoSuchElementException;
 public interface Code {
     
     /**
-     * 创建一个 LongCode
+     * 获得一个代表 long 值的 Code
      *
      * @param code 值
      * @return 码
      */
     static Code ofLong(long code) {
-        return LongCode.valueOf(code);
+        return XiaoMing.get().getCode(code);
     }
     
     /**
-     * 创建一个 LongCode
+     * 获得一个代表 int 值的 Code
      *
      * @param code 值
      * @return 码
      */
     static Code ofInt(int code) {
-        return IntCode.valueOf(code);
+        return XiaoMing.get().getCode(code);
     }
     
     /**
-     * 创建一个 StringCode
+     * 获得一个代表字符串的 Code
      *
-     * @param code 值
+     * @param string 值
      * @return 码
+     * @throws NullPointerException string 为 null
      */
-    static Code ofString(String code) {
-        return new StringCode(code);
+    static Code ofString(String string) {
+        return XiaoMing.get().getCode(string);
     }
     
     /**
      * 反序列化标识码
      *
-     * @param input 标识码字符串
+     * @param string 标识码字符串
      * @return 标识码
+     * @throws NullPointerException string 为 null
+     * @throws IllegalArgumentException string 格式错误
      */
-    static Code parseCode(String input) {
-        Preconditions.objectArgumentNonEmpty(input, "input");
-    
-        final int delimiter = input.indexOf(',');
-        Preconditions.argument(delimiter != -1, "code type required");
-        Preconditions.argument(delimiter != input.length(), "code value required");
-        
-        final String type = input.substring(0, delimiter);
-        final String value = input.substring(delimiter + 1);
-    
-        switch (type) {
-            case "long":
-            case "l":
-                final Long longValue = Numbers.parseLong(value);
-                Preconditions.nonNull(longValue);
-                return LongCode.valueOf(longValue);
-            case "string":
-            case "str":
-            case "s":
-                return new StringCode(value);
-            case "integer":
-            case "int":
-            case "i":
-                final Integer intValue = Numbers.parseInt(value);
-                Preconditions.nonNull(intValue);
-                return IntCode.valueOf(intValue);
-            default:
-                throw new NoSuchElementException("unknown code type: " + type);
-        }
+    static Code parseCode(String string) {
+        return XiaoMing.get().parseCode(string);
     }
     
     /**

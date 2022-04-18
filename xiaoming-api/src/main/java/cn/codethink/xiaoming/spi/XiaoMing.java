@@ -30,6 +30,50 @@ import java.util.function.Function;
 public interface XiaoMing {
     
     /**
+     * 反序列化消息码为消息体
+     *
+     * @param messageCode 消息码
+     * @param properties  相关属性
+     * @return 消息体
+     */
+    CompoundMessage deserializeMessageCode(String messageCode, Map<Property<?>, Object> properties);
+    
+    /**
+     * 获得一个代表 long 值的 Code
+     *
+     * @param code 值
+     * @return 码
+     */
+    Code getCode(long code);
+    
+    /**
+     * 获得一个代表 int 值的 Code
+     *
+     * @param value 值
+     * @return 码
+     */
+    Code getCode(int value);
+    
+    /**
+     * 获得一个代表字符串的 Code
+     *
+     * @param value 值
+     * @return 码
+     * @throws NullPointerException value 为 null
+     */
+    Code getCode(String value);
+    
+    /**
+     * 反序列化标识码
+     *
+     * @param string 标识码字符串
+     * @return 标识码
+     * @throws NullPointerException string 为 null
+     * @throws IllegalArgumentException string 格式错误
+     */
+    Code parseCode(String string);
+    
+    /**
      * 由资源创建一个资源图片
      *
      * @param resource 资源
