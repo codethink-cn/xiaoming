@@ -100,23 +100,23 @@ public class MessageModuleImpl
             if (cn.chuanwise.common.util.Collections.nonEmpty(list)) {
                 return list;
             }
-            
-            serialize(Priority.HIGH, context);
+    
+            list = serialize(Priority.HIGH, context);
             if (cn.chuanwise.common.util.Collections.nonEmpty(list)) {
                 return list;
             }
-            
-            serialize(Priority.NORMAL, context);
+    
+            list = serialize(Priority.NORMAL, context);
             if (cn.chuanwise.common.util.Collections.nonEmpty(list)) {
                 return list;
             }
-            
-            serialize(Priority.LOW, context);
+    
+            list = serialize(Priority.LOW, context);
             if (cn.chuanwise.common.util.Collections.nonEmpty(list)) {
                 return list;
             }
-            
-            serialize(Priority.LOWEST, context);
+    
+            list = serialize(Priority.LOWEST, context);
             if (cn.chuanwise.common.util.Collections.nonEmpty(list)) {
                 return list;
             }
@@ -125,7 +125,7 @@ public class MessageModuleImpl
             throw new IllegalArgumentException("serialize failed for " + context.getSource(), e);
         }
     
-        throw new IllegalArgumentException("no serializer present");
+        throw new IllegalArgumentException("no serializer present for " + context.getSource());
     }
     
     private static List<String> serialize(Priority priority, SerializeContext context) throws Exception {
@@ -173,7 +173,6 @@ public class MessageModuleImpl
             if (Objects.nonNull(object)) {
                 return object;
             }
-        
         } catch (Exception e) {
             throw new IllegalArgumentException("deserialize failed for " + context.getArguments(), e);
         }

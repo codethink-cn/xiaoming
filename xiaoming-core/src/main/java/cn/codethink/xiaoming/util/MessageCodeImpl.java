@@ -135,7 +135,7 @@ public class MessageCodeImpl
                     break;
                 }
                 case ARGUMENT: {
-                    if (ch == ',') {
+                    if (ch == ':') {
                         final String argument = stringBuilder.toString();
                         stringBuilder.setLength(0);
                         

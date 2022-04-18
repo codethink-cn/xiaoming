@@ -73,7 +73,7 @@ public class XiaoMingSpi {
             final Iterator<XiaoMing> iterator = ServiceLoader.load(XiaoMing.class).iterator();
             Preconditions.element(iterator.hasNext(), "no xiaoming present");
             
-            xiaoMing = iterator.next();
+            setXiaoMing(iterator.next());
         }
         
         return xiaoMing;

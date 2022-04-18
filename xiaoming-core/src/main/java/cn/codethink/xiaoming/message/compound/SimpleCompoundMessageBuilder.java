@@ -96,9 +96,32 @@ public class SimpleCompoundMessageBuilder
         if (message instanceof BasicMessage) {
             final BasicMessage basicMessage = (BasicMessage) message;
     
+            // if this is starts with space
+            // can skip it
+            if (basicMessage instanceof Text) {
+                final Text text = (Text) basicMessage;
+                if (text.getText().startsWith(" ")) {
+                    basicMessages.add(basicMessage);
+                    return this;
+                }
+            }
+    
             if (!basicMessages.isEmpty()) {
                 // check the last basic message
                 final BasicMessage lastBasicMessage = basicMessages.get(basicMessages.size() - 1);
+    
+                // if the last basic message is an instance of Text,
+                // and it ends with at least one space, just append,
+                // or else append a space text (Text.SPACE)
+                if (lastBasicMessage instanceof Text) {
+                    final Text text = (Text) lastBasicMessage;
+        
+                    // append a text
+                    if (text.getText().endsWith(" ")) {
+                        basicMessages.add(basicMessage);
+                        return this;
+                    }
+                }
                 
                 // if the last basic message is an instance of SpacedMessage,
                 // append a Text.SPACE firstly
@@ -106,20 +129,10 @@ public class SimpleCompoundMessageBuilder
                     
                     basicMessages.add(Text.SPACE);
                 } else if (basicMessage instanceof SpacedMessage) {
-                    
-                    // if the last basic message is an instance of Text,
-                    // and it ends with at least one space, just append,
-                    // or else append a space text (Text.SPACE)
-                    if (lastBasicMessage instanceof Text) {
-                        final Text text = (Text) lastBasicMessage;
-        
-                        // append a text
-                        if (!text.getText().endsWith(" ")) {
-                            basicMessages.add(Text.SPACE);
-                        }
-                    }
+                    basicMessages.add(Text.SPACE);
                 }
             }
+            
             basicMessages.add(basicMessage);
             return this;
         }

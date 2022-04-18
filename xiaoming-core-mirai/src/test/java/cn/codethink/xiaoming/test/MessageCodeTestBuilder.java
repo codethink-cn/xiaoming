@@ -1,6 +1,8 @@
 package cn.codethink.xiaoming.test;
 
+import cn.codethink.xiaoming.MiraiBot;
 import cn.codethink.xiaoming.message.compound.CompoundMessage;
+import cn.codethink.xiaoming.spi.XiaoMing;
 import cn.codethink.xiaoming.util.MessageCode;
 import cn.codethink.xiaoming.util.Mirais;
 import net.mamoe.mirai.message.data.*;
@@ -26,7 +28,10 @@ public class MessageCodeTestBuilder {
     }
     
     @Test
-    void testConvert() {
+    void testConvert() throws ClassNotFoundException {
+        System.out.println(Class.forName("cn.codethink.xiaoming.MiraiBot"));
+        System.out.println(XiaoMing.get());
+        
         final MessageChain messageChain = asMessageChain(
             new PlainText("test\\ [ ; \n: plain text"),
             new At(1437100907),
@@ -40,6 +45,6 @@ public class MessageCodeTestBuilder {
         System.out.println(compoundMessage.serializeToMessageSummary());
     
         final CompoundMessage deserializedCompoundMessage = MessageCode.deserializeMessageCode(messageCode, Collections.emptyMap());
-        Assertions.assertEquals(compoundMessage, deserializedCompoundMessage);
+        Assertions.assertEquals(compoundMessage.serializeToMessageCode(), deserializedCompoundMessage.serializeToMessageCode());
     }
 }
