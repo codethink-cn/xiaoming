@@ -1,20 +1,12 @@
 package cn.codethink.xiaoming.event;
 
-import cn.codethink.xiaoming.AbstractBotObject;
-import cn.codethink.xiaoming.Bot;
-import lombok.Data;
+import cn.codethink.xiaoming.BotObject;
 
 /**
  * Bot 登录事件
  *
  * @author Chuanwise
  */
-@Data
-@SuppressWarnings("all")
-public class BotOnlineEvent
-        extends AbstractBotEvent {
-    
-    public BotOnlineEvent(Bot bot) {
-        super(bot);
-    }
+public interface BotOnlineEvent
+    extends Event, BotObject {
 }

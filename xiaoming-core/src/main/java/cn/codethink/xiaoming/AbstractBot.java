@@ -4,10 +4,7 @@ import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.concurrent.Scheduler;
 import cn.codethink.xiaoming.concurrent.ThreadPoolScheduler;
 import cn.codethink.xiaoming.configuration.BotConfiguration;
-import cn.codethink.xiaoming.event.BotStartEvent;
-import cn.codethink.xiaoming.event.BotStopEvent;
-import cn.codethink.xiaoming.event.EventManager;
-import cn.codethink.xiaoming.event.SimpleEventManager;
+import cn.codethink.xiaoming.event.*;
 import cn.codethink.xiaoming.exception.BotStopException;
 import cn.codethink.xiaoming.logger.Logger;
 import lombok.Data;
@@ -150,7 +147,7 @@ public abstract class AbstractBot
             state = State.STARTED;
         
             // 发出事件
-            final BotStartEvent botStartEvent = new BotStartEvent(this);
+            final BotStartEvent botStartEvent = new BotStartEventImpl(this);
             eventManager.broadcastEvent(botStartEvent);
         
             logger.info("成功启动机器人");
@@ -188,7 +185,7 @@ public abstract class AbstractBot
             logger.info("正在关闭机器人");
         
             // 发出事件
-            final BotStopEvent botStopEvent = new BotStopEvent(this);
+            final BotStopEvent botStopEvent = new BotStopEventImpl(this);
             eventManager.broadcastEvent(botStopEvent);
         
             // 关闭 Bot

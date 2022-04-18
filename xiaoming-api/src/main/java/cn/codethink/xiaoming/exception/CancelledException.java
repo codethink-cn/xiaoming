@@ -1,4 +1,4 @@
-package cn.codethink.xiaoming.event;
+package cn.codethink.xiaoming.exception;
 
 import cn.codethink.xiaoming.Bot;
 import cn.codethink.xiaoming.exception.BotRuntimeException;

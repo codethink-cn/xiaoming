@@ -1,37 +1,26 @@
 package cn.codethink.xiaoming.event;
 
-import cn.codethink.common.util.Preconditions;
-import cn.codethink.xiaoming.AbstractBotObject;
-import cn.codethink.xiaoming.Bot;
-import lombok.Data;
+import cn.codethink.xiaoming.BotObject;
 
 /**
  * Bot 修改昵称
  *
  * @author Chuanwise
  */
-@Data
-@SuppressWarnings("all")
-public class BotNameChangedEvent
-    extends AbstractBotEvent {
+public interface BotNameChangedEvent
+    extends Event, BotObject {
     
     /**
-     * 修改前的名称
+     * 获取修改前的昵称
+     *
+     * @return 修改前的昵称
      */
-    private final String previousName;
+    String getPreviousName();
     
     /**
-     * 修改后的名称
+     * 获取修改后的昵称
+     *
+     * @return 修改后的昵称
      */
-    private final String currentName;
-    
-    public BotNameChangedEvent(Bot bot, String previousName, String currentName) {
-        super(bot);
-    
-        Preconditions.objectArgumentNonEmpty(previousName, "previous name");
-        Preconditions.objectArgumentNonEmpty(currentName, "current name");
-        
-        this.previousName = previousName;
-        this.currentName = currentName;
-    }
+    String getCurrentName();
 }

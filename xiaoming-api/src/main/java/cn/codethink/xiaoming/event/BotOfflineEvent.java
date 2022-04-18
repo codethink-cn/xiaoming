@@ -1,26 +1,19 @@
 package cn.codethink.xiaoming.event;
 
-import cn.codethink.xiaoming.Bot;
-import lombok.Data;
+import cn.codethink.xiaoming.BotObject;
 
 /**
  * Bot 离线事件
  *
  * @author Chuanwise
  */
-@Data
-@SuppressWarnings("all")
-public class BotOfflineEvent
-        extends AbstractBotEvent {
+public interface BotOfflineEvent
+    extends Event, BotObject {
     
     /**
-     * 是否需要重新登录 Bot
+     * 询问是否需要重新登录
+     *
+     * @return 是否需要重新登录
      */
-    private final boolean relogin;
-    
-    public BotOfflineEvent(Bot bot, boolean relogin) {
-        super(bot);
-        
-        this.relogin = relogin;
-    }
+    boolean isRelogin();
 }

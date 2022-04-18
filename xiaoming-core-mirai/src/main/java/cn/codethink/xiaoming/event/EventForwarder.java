@@ -44,13 +44,13 @@ public class EventForwarder
     
     @EventHandler
     public void onBotOnline(BotOnlineEvent event) {
-        final cn.codethink.xiaoming.event.Event newEvent = new cn.codethink.xiaoming.event.BotOnlineEvent(bot);
+        final cn.codethink.xiaoming.event.Event newEvent = new BotOnlineEventImpl(bot);
         bot.getEventManager().broadcastEvent(newEvent);
     }
     
     @EventHandler
     public void onBotOffline(BotOfflineEvent event) {
-        final cn.codethink.xiaoming.event.Event newEvent = new cn.codethink.xiaoming.event.BotOfflineEvent(bot, event.getReconnect());
+        final cn.codethink.xiaoming.event.Event newEvent = new BotOfflineEventImpl(bot, event.getReconnect());
         bot.getEventManager().broadcastEvent(newEvent);
     }
     
@@ -65,7 +65,7 @@ public class EventForwarder
         final String currentAvatarUrl = bot.getAvatarUrl();
         this.avatarUrl = currentAvatarUrl;
         
-        final cn.codethink.xiaoming.event.Event newEvent = new cn.codethink.xiaoming.event.BotAvatarChangedEvent(
+        final cn.codethink.xiaoming.event.Event newEvent = new BotAvatarChangedEventImpl(
             bot,
             previousAvatarUrl,
             currentAvatarUrl
@@ -75,7 +75,7 @@ public class EventForwarder
     
     @EventHandler
     public void onBotNickChanged(BotNickChangedEvent event) {
-        final cn.codethink.xiaoming.event.Event newEvent = new BotNameChangedEvent(bot, event.getFrom(), event.getTo());
+        final cn.codethink.xiaoming.event.Event newEvent = new BotNameChangedEventImpl(bot, event.getFrom(), event.getTo());
         bot.getEventManager().broadcastEvent(newEvent);
     }
     
@@ -122,7 +122,7 @@ public class EventForwarder
         }
     
         final CompoundMessage compoundMessage = Mirais.toXiaoMing(event.getMessage(), Collections.singletonMap(Property.CONTACT, group));
-        final Event newEvent = new ReceiveGroupMessageEvent(
+        final Event newEvent = new ReceiveGroupMessageEventImpl(
             sender,
             compoundMessage,
             TimeUnit.SECONDS.toMillis(event.getTime())
@@ -140,7 +140,7 @@ public class EventForwarder
             .getMemberOrFail(Code.ofLong(event.getSender().getId()));
     
         final CompoundMessage compoundMessage = Mirais.toXiaoMing(event.getMessage(), Collections.singletonMap(Property.CONTACT, member));
-        final Event newEvent = new ReceiveGroupMemberMessageEvent(
+        final Event newEvent = new ReceiveGroupMemberMessageEventImpl(
             member,
             compoundMessage,
             TimeUnit.SECONDS.toMillis(event.getTime())
@@ -157,7 +157,7 @@ public class EventForwarder
         final Friend friend = bot.getFriendOrFail(Code.ofLong(event.getFriend().getId()));
         final CompoundMessage compoundMessage = Mirais.toXiaoMing(event.getMessage(), Collections.singletonMap(Property.CONTACT, friend));
         
-        final Event newEvent = new ReceiveFriendMessageEvent(
+        final Event newEvent = new ReceiveFriendMessageEventImpl(
             friend,
             compoundMessage,
             TimeUnit.SECONDS.toMillis(event.getTime())
@@ -189,7 +189,7 @@ public class EventForwarder
     
         final GroupMember sender = group.getMemberOrFail(Code.ofLong(event.getAuthorId()));
     
-        final Event newEvent = new GroupMessageRecallEvent(
+        final Event newEvent = new GroupMessageRecallEventImpl(
             group,
             messageCache.remove(new IntArray(event.getMessageIds())),
             sender,
@@ -204,7 +204,7 @@ public class EventForwarder
         // friend
         final Friend friend = bot.getFriendOrFail(Code.ofLong(event.getAuthorId()));
         
-        final Event newEvent = new FriendMessageRecallEvent(
+        final Event newEvent = new FriendMessageRecallEventImpl(
             friend,
             messageCache.remove(new IntArray(event.getMessageIds())),
             TimeUnit.SECONDS.toMillis(event.getMessageTime())

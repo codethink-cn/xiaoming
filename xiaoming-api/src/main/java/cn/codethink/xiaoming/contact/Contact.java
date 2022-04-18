@@ -1,6 +1,7 @@
 package cn.codethink.xiaoming.contact;
 
 import cn.codethink.common.util.Preconditions;
+import cn.codethink.xiaoming.exception.CancelledException;
 import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.property.Property;
 import cn.codethink.xiaoming.util.MessageCode;
@@ -21,7 +22,7 @@ public interface Contact
      *
      * @param message 消息内容
      * @return 消息回执
-     * @throws cn.codethink.xiaoming.event.CancelledException 对应的发送消息事件 {@link cn.codethink.xiaoming.event.PostSendMessageEvent}
+     * @throws CancelledException 对应的发送消息事件 {@link cn.codethink.xiaoming.event.PostSendMessageEvent}
      *                                                        被取消（{@link cn.codethink.xiaoming.event.CancellableEvent#cancel(boolean)}）时
      */
     MessageReceipt sendMessage(Message message);

@@ -1,29 +1,23 @@
 package cn.codethink.xiaoming.event;
 
-import cn.codethink.xiaoming.contact.*;
-import cn.codethink.xiaoming.message.Message;
-import cn.codethink.xiaoming.message.compound.CompoundMessage;
+import cn.codethink.xiaoming.contact.Group;
+import cn.codethink.xiaoming.contact.GroupSender;
 
 /**
  * 收到群消息事件
  *
  * @author Chuanwise
  */
-public class ReceiveGroupMessageEvent
-    extends AbstractOnlineMessageEvent
-    implements ReceiveMassMessageEvent {
-    
-    public ReceiveGroupMessageEvent(GroupSender sender, CompoundMessage message, long timestamp) {
-        super(sender, message, sender.getMass(), timestamp);
-    }
+@SuppressWarnings("all")
+public interface ReceiveGroupMessageEvent
+    extends ReceiveMassMessageEvent, GroupEvent {
     
     @Override
-    public GroupSender getSender() {
-        return (GroupSender) super.getSender();
-    }
+    GroupSender getSender();
     
     @Override
-    public Group getTarget() {
-        return (Group) super.getTarget();
-    }
+    Group getTarget();
+    
+    @Override
+    Group getMass();
 }

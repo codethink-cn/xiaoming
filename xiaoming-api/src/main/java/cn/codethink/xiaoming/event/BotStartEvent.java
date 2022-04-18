@@ -1,17 +1,12 @@
 package cn.codethink.xiaoming.event;
 
-import cn.codethink.xiaoming.AbstractBotObject;
-import cn.codethink.xiaoming.Bot;
+import cn.codethink.xiaoming.BotObject;
 
 /**
  * 机器人启动时发出
  *
  * @author Chuanwise
  */
-public class BotStartEvent
-        extends AbstractBotEvent {
-    
-    public BotStartEvent(Bot bot) {
-        super(bot);
-    }
+public interface BotStartEvent
+    extends Event, BotObject {
 }

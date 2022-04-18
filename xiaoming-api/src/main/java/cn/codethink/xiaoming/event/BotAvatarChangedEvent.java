@@ -1,37 +1,26 @@
 package cn.codethink.xiaoming.event;
 
-import cn.codethink.common.util.Preconditions;
-import cn.codethink.xiaoming.AbstractBotObject;
-import cn.codethink.xiaoming.Bot;
-import lombok.Data;
+import cn.codethink.xiaoming.BotObject;
 
 /**
- * Bot 修改头像
+ * Bot 修改头像事件
  *
  * @author Chuanwise
  */
-@Data
-@SuppressWarnings("all")
-public class BotAvatarChangedEvent
-        extends AbstractBotEvent {
+public interface BotAvatarChangedEvent
+    extends Event, BotObject {
     
     /**
-     * 修改前的头像
+     * 获取修改前的头像 url
+     *
+     * @return 修改前的头像 url
      */
-    private final String previousAvatarUrl;
+    String getPreviousAvatarUrl();
     
     /**
-     * 修改后的头像
+     * 获取修改后的头像 url
+     *
+     * @return 修改后的头像 url
      */
-    private final String currentAvatarUrl;
-    
-    public BotAvatarChangedEvent(Bot bot, String previousAvatarUrl, String currentAvatarUrl) {
-        super(bot);
-    
-        Preconditions.objectArgumentNonEmpty(previousAvatarUrl, "previous avatar url");
-        Preconditions.objectArgumentNonEmpty(currentAvatarUrl, "current avatar url");
-        
-        this.previousAvatarUrl = previousAvatarUrl;
-        this.currentAvatarUrl = currentAvatarUrl;
-    }
+    String getCurrentAvatarUrl();
 }
