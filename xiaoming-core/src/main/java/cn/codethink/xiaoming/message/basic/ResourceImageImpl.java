@@ -1,8 +1,6 @@
 package cn.codethink.xiaoming.message.basic;
 
 import cn.chuanwise.common.util.Preconditions;
-import cn.codethink.xiaoming.exception.ResourceException;
-import cn.codethink.xiaoming.message.MessageCodeBuilder;
 import cn.codethink.xiaoming.resource.Resource;
 import lombok.Data;
 
@@ -10,8 +8,6 @@ import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -32,7 +28,7 @@ public class ResourceImageImpl
     
     private final long size;
     
-    private final ImageType imageType;
+    private final ImageCodec imageCodec;
     
     public ResourceImageImpl(Resource resource) {
         Preconditions.objectNonNull(resource, "resource");
@@ -42,7 +38,7 @@ public class ResourceImageImpl
         int tempHeight = 0;
         int tempWeight = 0;
         int tempSize = 0;
-        ImageType tempImageType = null;
+        ImageCodec tempImageCodec = null;
         
         try (ImageInputStream imageInputStream = ImageIO.createImageInputStream(resource.open())) {
             
@@ -56,9 +52,9 @@ public class ResourceImageImpl
             // get image type
             final String formatName = reader.getFormatName();
             try {
-                tempImageType = ImageType.of(formatName);
+                tempImageCodec = ImageCodec.of(formatName);
             } catch (NoSuchElementException e) {
-                tempImageType = new ImageTypeImpl(formatName);
+                tempImageCodec = new ImageCodecImpl(formatName);
             }
     
             // get height, weight, size
@@ -72,18 +68,18 @@ public class ResourceImageImpl
             this.height = tempHeight;
             this.width = tempWeight;
             this.size = tempSize;
-            this.imageType = tempImageType;
+            this.imageCodec = tempImageCodec;
         }
     }
     
-    public ResourceImageImpl(Resource resource, int width, int height, int size, ImageType imageType) {
+    public ResourceImageImpl(Resource resource, int width, int height, int size, ImageCodec imageCodec) {
         Preconditions.objectNonNull(resource, "resource");
-        Preconditions.objectNonNull(imageType, "image type");
+        Preconditions.objectNonNull(imageCodec, "image type");
         
         this.resource = resource;
         this.width = width;
         this.height = height;
         this.size = size;
-        this.imageType = imageType;
+        this.imageCodec = imageCodec;
     }
 }

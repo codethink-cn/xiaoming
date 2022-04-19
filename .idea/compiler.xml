@@ -30,8 +30,8 @@
           <entry name="$PROJECT_DIR$/../../../tool/gradle/home/caches/modules-2/files-2.1/org.apache.commons/commons-collections4/4.4/62ebe7544cb7164d87e0637a2a6a2bdc981395e8/commons-collections4-4.4.jar" />
           <entry name="$PROJECT_DIR$/../../../tool/maven/repository/cn/chuanwise/chuanwise-common/1.0-SNAPSHOT/chuanwise-common-1.0-SNAPSHOT.jar" />
         </processorPath>
-        <module name="cn.codethink.xiaoming.xiaoming-core-mirai.test" />
-        <module name="cn.codethink.xiaoming.xiaoming-core-mirai.main" />
+        <module name="xiaoming.xiaoming-core-qq.main" />
+        <module name="xiaoming.xiaoming-core-qq.test" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel target="1.8" />

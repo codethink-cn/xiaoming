@@ -307,18 +307,18 @@ public class XiaoMingImpl
     ///////////////////////////////////////////////////////////////////////////
     
     @Override
-    public ImageType newImageType(String extension) {
-        return new ImageTypeImpl(extension);
+    public ImageCodec newImageType(String extension) {
+        return new ImageCodecImpl(extension);
     }
     
     @Override
-    public ImageType getImageType(String extension) {
-        return ImageTypeImpl.getImageType(extension);
+    public ImageCodec getImageType(String extension) {
+        return ImageCodecImpl.getImageType(extension);
     }
     
     @Override
-    public Set<ImageType> getImageTypes() {
-        return ImageTypeImpl.getInstances();
+    public Set<ImageCodec> getImageTypes() {
+        return ImageCodecImpl.getInstances();
     }
     
     ///////////////////////////////////////////////////////////////////////////

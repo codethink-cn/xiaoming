@@ -1,7 +1,7 @@
 **xiaoming**
 # XiaoMing - a generic lib for IM bots
 
-XiaoMing is a generic, effective and simple lib for IM bots, based on [Mirai](https://github.com/mamoe/mirai) (an effective lib for QQ) currently (other IM software supports are comming soon).
+XiaoMing is a generic, effective and simple lib for IM bots, based on [Qq](https://github.com/mamoe/qq) (an effective lib for QQ) currently (other IM software supports are comming soon).
 
 **[中文文档](./docs/zh-cn/README.md)**
 

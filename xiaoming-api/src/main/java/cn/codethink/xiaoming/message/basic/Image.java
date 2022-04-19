@@ -26,7 +26,7 @@ public interface Image
      *
      * @return 图片的类型或 null
      */
-    ImageType getImageType();
+    ImageCodec getImageCodec();
     
     /**
      * 获取图片的宽度，无法获取时返回 0。

@@ -15,8 +15,8 @@ import cn.codethink.xiaoming.property.Property;
  * <p>消息源可能是和 Bot 相关的，如 Bot 收到、Bot 发送的消息。这类消息源是在线消息源 {@link OnlineMessageSource}。
  * 可以打开相关会话和对象（{@link OnlineMessageSource#getSender()} 和 {@link OnlineMessageSource#getTarget()}）。</p>
  *
- * <p>在线消息源是平台相关的，序列化规范是 {@code [source:core,arguments...]}。例如在 mirai 平台上可以序列化为
- * {@code [source:mirai,online,outgoing,friend,$botId,$timestamp,$ids,$internalIds,$fromId,$toId,$message]}</p>。
+ * <p>在线消息源是平台相关的，序列化规范是 {@code [source:core,arguments...]}。例如在 qq 平台上可以序列化为
+ * {@code [source:qq,online,outgoing,friend,$botId,$timestamp,$ids,$internalIds,$fromId,$toId,$message]}</p>。
  *
  * <h2>{@link OfflineMessageSource} - 离线消息源</h2>
  *

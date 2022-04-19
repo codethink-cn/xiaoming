@@ -19,10 +19,10 @@ import java.util.RandomAccess;
  * <h1>复合消息</h1>
  *
  * <p>复合消息是多个基础消息 {@link BasicMessage} 前后连接在一起形成的链。用于表示一些较为复杂的消息内容。
- * 在各个通讯软件机器人平台上都能看到类似的设计，例如在 qq 机器人 mirai 上，MessageChain 是复合消息。</p>
+ * 在各个通讯软件机器人平台上都能看到类似的设计，例如在 qq 机器人 qq 上，MessageChain 是复合消息。</p>
  *
- * <p>各个平台会实现自己的复合消息，当中会缓存一个平台相关的消息，如小明对 qq 机器人 mirai 的支持核心中实现
- * 了 MiraiCompoundMessage，当中包含一个 MessageChain，便于再次发送消息。</p>
+ * <p>各个平台会实现自己的复合消息，当中会缓存一个平台相关的消息，如小明对 qq 机器人 qq 的支持核心中实现
+ * 了 QqCompoundMessage，当中包含一个 MessageChain，便于再次发送消息。</p>
  *
  * <p>复合消息是不可变的，调用相关的 {@link #plus(CharSequence)} 等方法会返回一个新的复合消息，多次调用
  * 是低效的。建议使用消息构建器 {@link #}</p>

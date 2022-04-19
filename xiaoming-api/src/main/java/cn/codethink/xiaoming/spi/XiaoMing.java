@@ -157,7 +157,7 @@ public interface XiaoMing {
      * @throws NullPointerException     extension 为 null
      * @throws IllegalArgumentException extension 已被创建或为 ""
      */
-    ImageType newImageType(String extension);
+    ImageCodec newImageType(String extension);
     
     /**
      * 创建一个新的消息构建器
@@ -207,14 +207,14 @@ public interface XiaoMing {
      * @throws IllegalArgumentException         extension 为 ""
      * @throws java.util.NoSuchElementException 没有找到图片类型
      */
-    ImageType getImageType(String extension);
+    ImageCodec getImageType(String extension);
     
     /**
      * 获取全部图片类型
      *
      * @return 图片类型
      */
-    Set<ImageType> getImageTypes();
+    Set<ImageCodec> getImageTypes();
     
     /**
      * 获取提及所有成员消息

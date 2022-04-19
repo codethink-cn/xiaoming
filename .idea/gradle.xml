@@ -14,7 +14,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/xiaoming-api" />
             <option value="$PROJECT_DIR$/xiaoming-core" />
-            <option value="$PROJECT_DIR$/xiaoming-core-mirai" />
+            <option value="$PROJECT_DIR$/xiaoming-core-qq" />
           </set>
         </option>
       </GradleProjectSettings>
