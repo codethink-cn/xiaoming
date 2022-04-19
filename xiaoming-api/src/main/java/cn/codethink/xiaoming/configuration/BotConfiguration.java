@@ -1,64 +1,98 @@
 package cn.codethink.xiaoming.configuration;
 
-import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.logger.LoggerFactory;
-import cn.codethink.xiaoming.logger.Slf4jLoggerFactory;
 import cn.codethink.xiaoming.protocol.Protocol;
-import lombok.Data;
 
 import java.io.File;
-import java.util.Objects;
 
 /**
  * 机器人配置
  *
  * @author Chuanwise
  */
-@Data
-public class BotConfiguration {
-    
-    private static final String DEVICE_INFO_FILE_NAME = "device.json";
+public interface BotConfiguration {
     
     /**
-     * 核心线程池大小
+     * 设置机器人工作目录，修改后重启生效。
+     *
+     * @param workingDirectory 机器人工作目录
      */
-    protected int threadCount = 20;
+    void setWorkingDirectory(File workingDirectory);
     
     /**
-     * 工作目录
+     * 获取机器人工作目录
+     *
+     * @return 机器人工作目录
      */
-    protected File workingDirectory = new File(System.getProperty("user.dir"));
+    File getWorkingDirectory();
     
     /**
-     * 设备信息文件，null 表示不启用
+     * 获取核心线程池线程数
+     *
+     * @return 核心线程池线程数
      */
-    protected File deviceInfoFile = new File(workingDirectory, DEVICE_INFO_FILE_NAME);
+    int getThreadCount();
     
     /**
-     * 登录协议
+     * 设置核心线程池线程数，修改后重启生效
+     *
+     * @param threadCount 核心线程池线程数
      */
-    protected Protocol protocol = Protocol.ANDROID_PHONE;
-    
-    public void setWorkingDirectory(File workingDirectory) {
-        Preconditions.nonNull(workingDirectory, "working directory");
-    
-        if (Objects.equals(workingDirectory, this.workingDirectory)) {
-            return;
-        }
-        if (Objects.equals(new File(this.workingDirectory, DEVICE_INFO_FILE_NAME), deviceInfoFile)) {
-            deviceInfoFile = new File(workingDirectory, DEVICE_INFO_FILE_NAME);
-        }
-        
-        this.workingDirectory = workingDirectory;
-    }
+    void setThreadCount(int threadCount);
     
     /**
-     * 隐藏实现框架的 Log
+     * 获取设备信息文件
+     *
+     * @return 设备信息文件
      */
-    protected boolean hideImplementBotLog = true;
+    File getDeviceInfoFile();
     
     /**
-     * Log 工厂
+     * 设置设备信息文件，修改后重启生效
+     *
+     * @param deviceInfoFile 设备信息文件
      */
-    protected LoggerFactory loggerFactory = new Slf4jLoggerFactory();
+    void setDeviceInfoFile(File deviceInfoFile);
+    
+    /**
+     * 获取登录协议
+     *
+     * @return 登录协议
+     */
+    Protocol getProtocol();
+    
+    /**
+     * 设置登录协议，修改后重启生效
+     *
+     * @param protocol 登录协议
+     */
+    void setProtocol(Protocol protocol);
+    
+    /**
+     * 是否隐藏实现机器人的日志，修改后重启生效
+     *
+     * @return 隐藏实现机器人的日志
+     */
+    boolean isHideImplementBotLog();
+    
+    /**
+     * 设置是否隐藏实现机器人的日志，修改后重启生效
+     *
+     * @param hideImplementBotLog 是否隐藏实现机器人的日志
+     */
+    void setHideImplementBotLog(boolean hideImplementBotLog);
+    
+    /**
+     * 获取日志工厂
+     *
+     * @return 日志工厂
+     */
+    LoggerFactory getLoggerFactory();
+    
+    /**
+     * 设置日志工厂
+     *
+     * @param loggerFactory 日志工厂
+     */
+    void setLoggerFactory(LoggerFactory loggerFactory);
 }

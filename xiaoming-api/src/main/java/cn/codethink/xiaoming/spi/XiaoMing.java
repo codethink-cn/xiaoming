@@ -2,6 +2,7 @@ package cn.codethink.xiaoming.spi;
 
 import cn.codethink.xiaoming.annotation.InternalAPI;
 import cn.codethink.xiaoming.code.Code;
+import cn.codethink.xiaoming.logger.Logger;
 import cn.codethink.xiaoming.message.AutoSummarizable;
 import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.message.basic.*;

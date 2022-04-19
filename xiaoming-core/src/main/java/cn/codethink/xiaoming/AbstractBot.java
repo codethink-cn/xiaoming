@@ -4,6 +4,7 @@ import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.concurrent.Scheduler;
 import cn.codethink.xiaoming.concurrent.ThreadPoolScheduler;
 import cn.codethink.xiaoming.configuration.BotConfiguration;
+import cn.codethink.xiaoming.configuration.BotConfigurationImpl;
 import cn.codethink.xiaoming.event.*;
 import cn.codethink.xiaoming.exception.BotStopException;
 import cn.codethink.xiaoming.logger.Logger;
@@ -60,7 +61,7 @@ public abstract class AbstractBot
     protected EventManager eventManager;
     
     public AbstractBot() {
-        this(new BotConfiguration());
+        this(new BotConfigurationImpl());
     }
     
     @SuppressWarnings("all")

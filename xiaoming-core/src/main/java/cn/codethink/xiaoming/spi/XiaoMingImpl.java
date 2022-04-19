@@ -7,6 +7,7 @@ import cn.codethink.xiaoming.code.Code;
 import cn.codethink.xiaoming.code.IntCode;
 import cn.codethink.xiaoming.code.LongCode;
 import cn.codethink.xiaoming.code.StringCode;
+import cn.codethink.xiaoming.logger.Logger;
 import cn.codethink.xiaoming.message.AutoSummarizable;
 import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.message.basic.*;

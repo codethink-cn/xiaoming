@@ -7,7 +7,7 @@ package cn.codethink.xiaoming.logger;
  * @see LoggerFactory
  */
 public class SimpleLoggerFactory
-        extends LoggerFactory {
+    extends LoggerFactory {
 
     /** @see LoggerFactory#getLogger(String) */
     @Override

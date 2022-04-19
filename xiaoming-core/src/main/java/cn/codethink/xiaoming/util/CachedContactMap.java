@@ -5,8 +5,10 @@ import cn.codethink.xiaoming.annotation.InternalAPI;
 import cn.codethink.xiaoming.code.Code;
 import cn.codethink.xiaoming.contact.Cached;
 
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -43,12 +45,12 @@ public class CachedContactMap<T, U extends Cached> {
     /**
      * 有效缓存表
      */
-    protected final Map<Code, U> available = new ConcurrentHashMap<>();
+    protected final Map<Code, U> available = Collections.synchronizedMap(new WeakHashMap<>());
     
     /**
      * 无效缓存表
      */
-    protected final Map<Code, U> unavailable = new ConcurrentHashMap<>();
+    protected final Map<Code, U> unavailable = Collections.synchronizedMap(new WeakHashMap<>());
     
     public CachedContactMap(Function<T, U> translator,
                             Consumer<U> availableModifier,
