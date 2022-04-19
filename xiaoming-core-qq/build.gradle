@@ -15,10 +15,10 @@ dependencies {
     implementation 'org.apache.commons:commons-collections4:4.4'
 
     // qq
-    implementation 'net.mamoe:qq-core-api:2.10.1'
+    implementation 'net.mamoe:mirai-core-api:2.10.1'
 
-    testImplementation 'net.mamoe:qq-core:2.10.1'
-    testImplementation 'net.mamoe:qq-logging-slf4j:2.10.1'
+    testImplementation 'net.mamoe:mirai-core:2.10.1'
+    testImplementation 'net.mamoe:mirai-logging-slf4j:2.10.1'
     testAnnotationProcessor project(':xiaoming-core')
     testImplementation project(':xiaoming-core')
 
