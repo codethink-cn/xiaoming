@@ -8,11 +8,11 @@ import java.util.Objects;
 /**
  * @author Chuanwise
  *
- * @see Mention
- * @see AllAccountMention
+ * @see At
+ * @see AllAccountAt
  */
-public enum AllAccountMentionImpl
-    implements AllAccountMention {
+public enum AllAccountAtImpl
+    implements AllAccountAt {
     
     /**
      * 全局唯一实例

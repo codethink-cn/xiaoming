@@ -7,16 +7,16 @@ import lombok.Data;
 /**
  * @author Chuanwise
  *
- * @see SingletonAccountMention
+ * @see SingletonAccountAt
  */
 @Data
-public class SingletonAccountMentionImpl
+public class SingletonAccountAtImpl
     extends AbstractBasicMessage
-    implements SingletonAccountMention {
+    implements SingletonAccountAt {
     
     private final Code targetCode;
     
-    public SingletonAccountMentionImpl(Code targetCode) {
+    public SingletonAccountAtImpl(Code targetCode) {
         Preconditions.objectNonNull(targetCode, "target code");
         
         this.targetCode = targetCode;

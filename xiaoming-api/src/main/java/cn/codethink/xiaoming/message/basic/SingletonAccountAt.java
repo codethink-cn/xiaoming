@@ -11,12 +11,12 @@ import cn.codethink.xiaoming.spi.XiaoMing;
  *
  * <p>单个账户提及是<b>通讯软件相关</b>的。有些平台使用数字作为编号，有些平台使用文本。</p>
  *
- * <p>消息码：{@code [mention:account:singleton:$code]}</p>
+ * <p>消息码：{@code [at:account:singleton:$code]}</p>
  *
  * @author Chuanwise
  */
-public interface SingletonAccountMention
-    extends AccountMention, AutoSerializable, AutoSummarizable {
+public interface SingletonAccountAt
+    extends AccountAt, AutoSerializable, AutoSummarizable {
     
     /**
      * 构造提及单人账号消息
@@ -25,10 +25,10 @@ public interface SingletonAccountMention
      * @return 提及单人账号消息
      * @throws NullPointerException targetCode 为 null
      */
-    static SingletonAccountMention newInstance(Code targetCode) {
+    static SingletonAccountAt newInstance(Code targetCode) {
         Preconditions.objectNonNull(targetCode, "target code");
         
-        return XiaoMing.get().newSingletonAccountMention(targetCode);
+        return XiaoMing.get().newSingletonAccountAt(targetCode);
     }
     
     /**

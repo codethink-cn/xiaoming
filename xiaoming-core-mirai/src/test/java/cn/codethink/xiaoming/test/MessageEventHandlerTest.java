@@ -9,7 +9,7 @@ import cn.codethink.xiaoming.annotation.EventHandler;
 import cn.codethink.xiaoming.contact.*;
 import cn.codethink.xiaoming.event.GroupMessageRecallEvent;
 import cn.codethink.xiaoming.event.ReceiveGroupMessageEvent;
-import cn.codethink.xiaoming.message.basic.AccountMention;
+import cn.codethink.xiaoming.message.basic.AccountAt;
 import cn.codethink.xiaoming.message.metadata.MessageMetadataType;
 import cn.codethink.xiaoming.message.compound.CompoundMessage;
 import cn.codethink.xiaoming.message.compound.CompoundMessageBuilder;
@@ -71,7 +71,7 @@ public class MessageEventHandlerTest {
                 final CompoundMessage compoundMessage = Quote.of(reference)
                     .plus(message)
                     .asBuilder()
-//                    .plus(AccountMention.singleton(groupSender.getCode()))
+//                    .plus(AccountAt.singleton(groupSender.getCode()))
                     .build();
                 
                 event.getTarget().sendMessage(compoundMessage);
@@ -88,7 +88,7 @@ public class MessageEventHandlerTest {
     
                 final Group group = event.getTarget();
                 final CompoundMessageBuilder messageBuilder = CompoundMessageBuilder.newInstance()
-                    .plus(AccountMention.singleton(sender.getCode()))
+                    .plus(AccountAt.singleton(sender.getCode()))
                     .plus("你刚才是不是撤回了一条消息");
     
                 if (Objects.isNull(message)) {

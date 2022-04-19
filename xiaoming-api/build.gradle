@@ -1,7 +1,0 @@
-dependencies {
-    // logger
-    api 'org.slf4j:slf4j-api:1.7.36'
-
-    // collection
-    implementation 'org.apache.commons:commons-collections4:4.4'
-}

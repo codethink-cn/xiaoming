@@ -16,7 +16,7 @@ subprojects {
     apply plugin: 'com.github.johnrengelman.shadow'
 
     group 'cn.codethink'
-    version '5.0-SNAPSHOT'
+    version '5.0.1-SNAPSHOT'
 
     // install script if the file is exists
     if (mirrorScriptFile.isFile()) {
@@ -33,12 +33,8 @@ subprojects {
 
         // codethink maven
         maven {
-            name 'codethink maven'
-
-            // set to true for ignoring warning
-            allowInsecureProtocol true
-
-            url 'http://121.4.253.187:8081/repository/maven-public/'
+            name 'codethink repo'
+            url 'https://repo.codethink.top/public/'
         }
     }
 
@@ -61,12 +57,12 @@ subprojects {
         useJUnitPlatform()
     }
 
-//    shadowJar {
-//        exclude "META-INF/*.SF"
-//        exclude "META-INF/*.DSA"
-//        exclude "META-INF/*.RSA"
-//        exclude "META-INF/LICENSE"
-//
-//        archiveName project.name + '-' + version + '.' + extension
-//    }
+    shadowJar {
+        exclude "META-INF/*.SF"
+        exclude "META-INF/*.DSA"
+        exclude "META-INF/*.RSA"
+        exclude "META-INF/LICENSE"
+
+        archiveName project.name + '-' + version + '.' + extension
+    }
 }

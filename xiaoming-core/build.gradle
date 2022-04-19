@@ -2,6 +2,12 @@ dependencies {
     // api
     api project(':xiaoming-api')
 
+    // logger
+    api 'org.slf4j:slf4j-api:1.7.36'
+
+    // collection
+    implementation 'org.apache.commons:commons-collections4:4.4'
+
     // for parsing image metadata
 //    implementation 'com.drewnoakes:metadata-extractor:2.17.0'
 

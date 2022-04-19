@@ -2,7 +2,6 @@ package cn.codethink.xiaoming.spi;
 
 import cn.codethink.xiaoming.annotation.InternalAPI;
 import cn.codethink.xiaoming.code.Code;
-import cn.codethink.xiaoming.logger.Logger;
 import cn.codethink.xiaoming.message.AutoSummarizable;
 import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.message.basic.*;
@@ -222,7 +221,7 @@ public interface XiaoMing {
      *
      * @return 提及所有成员消息
      */
-    AllAccountMention getAllAccountMention();
+    AllAccountAt getAllAccountAt();
     
     /**
      * 构建一个文本消息
@@ -288,7 +287,7 @@ public interface XiaoMing {
      * @return 提及单人账号消息
      * @throws NullPointerException targetCode 为 null
      */
-    SingletonAccountMention newSingletonAccountMention(Code targetCode);
+    SingletonAccountAt newSingletonAccountAt(Code targetCode);
     
     /**
      * 构造一个音乐分享消息

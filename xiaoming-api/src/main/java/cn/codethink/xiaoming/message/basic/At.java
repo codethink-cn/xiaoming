@@ -9,10 +9,10 @@ import cn.codethink.xiaoming.message.Summarizable;
  *
  * @author Chuanwise
  *
- * @see AccountMention
- * @see SingletonAccountMention
- * @see AllAccountMention
+ * @see AccountAt
+ * @see SingletonAccountAt
+ * @see AllAccountAt
  */
-public interface Mention
+public interface At
     extends BasicMessage, Summarizable, SpacedMessage {
 }

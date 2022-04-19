@@ -1,15 +1,17 @@
 package cn.codethink.xiaoming.logger;
 
+import org.slf4j.LoggerFactory;
+
 /**
  * 通过 Slf4j 构造日志记录器
  *
  * @author Chuanwise
  */
 public class Slf4jLoggerFactory
-    extends LoggerFactory {
+    extends AbstractLoggerFactory {
     
     @Override
-    public Logger generateLogger(String name) {
-        return new Slf4jLogger(org.slf4j.LoggerFactory.getLogger(name));
+    protected Logger getLogger0(String name) {
+        return new Slf4jLogger(LoggerFactory.getLogger(name));
     }
 }

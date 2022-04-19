@@ -7,7 +7,6 @@ import cn.codethink.xiaoming.code.Code;
 import cn.codethink.xiaoming.code.IntCode;
 import cn.codethink.xiaoming.code.LongCode;
 import cn.codethink.xiaoming.code.StringCode;
-import cn.codethink.xiaoming.logger.Logger;
 import cn.codethink.xiaoming.message.AutoSummarizable;
 import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.message.basic.*;
@@ -185,13 +184,13 @@ public class XiaoMingImpl
     }
     
     @Override
-    public AllAccountMention getAllAccountMention() {
-        return AllAccountMentionImpl.INSTANCE;
+    public AllAccountAt getAllAccountAt() {
+        return AllAccountAtImpl.INSTANCE;
     }
     
     @Override
-    public SingletonAccountMention newSingletonAccountMention(Code targetCode) {
-        return new SingletonAccountMentionImpl(targetCode);
+    public SingletonAccountAt newSingletonAccountAt(Code targetCode) {
+        return new SingletonAccountAtImpl(targetCode);
     }
     
     @Override
@@ -334,7 +333,7 @@ public class XiaoMingImpl
         MessageModuleImpl.registerModule(new FlashImageModules());
         MessageModuleImpl.registerModule(new ForwardModules());
         MessageModuleImpl.registerModule(new ImageModules());
-        MessageModuleImpl.registerModule(new MentionModules());
+        MessageModuleImpl.registerModule(new AtModules());
         MessageModuleImpl.registerModule(new MetadataModules());
         MessageModuleImpl.registerModule(new MusicShareModules());
         MessageModuleImpl.registerModule(new ResourceModules());
@@ -349,7 +348,7 @@ public class XiaoMingImpl
         MessageModuleImpl.unregisterModule(FlashImageModules.class);
         MessageModuleImpl.unregisterModule(ForwardModules.class);
         MessageModuleImpl.unregisterModule(ImageModules.class);
-        MessageModuleImpl.unregisterModule(MentionModules.class);
+        MessageModuleImpl.unregisterModule(AtModules.class);
         MessageModuleImpl.unregisterModule(MetadataModules.class);
         MessageModuleImpl.unregisterModule(MusicShareModules.class);
         MessageModuleImpl.unregisterModule(ResourceModules.class);

@@ -30,6 +30,7 @@ import cn.codethink.xiaoming.util.Mirais;
 import lombok.Data;
 import net.mamoe.mirai.message.code.MiraiCode;
 import net.mamoe.mirai.message.data.*;
+import net.mamoe.mirai.message.data.At;
 import net.mamoe.mirai.message.data.MarketFace;
 import net.mamoe.mirai.message.data.MessageSource;
 
@@ -167,21 +168,21 @@ public class MiraiModules {
     ///////////////////////////////////////////////////////////////////////////
     
     @Convertor(At.class)
-    SingletonAccountMention toXiaoMing(At at) {
-        return (SingletonAccountMention) AccountMention.singleton(Code.ofLong(at.getTarget()));
+    SingletonAccountAt toXiaoMing(At at) {
+        return (SingletonAccountAt) AccountAt.singleton(Code.ofLong(at.getTarget()));
     }
     
-    @Convertor(SingletonAccountMention.class)
-    At toMirai(SingletonAccountMention mention) {
-        return new At(mention.getTargetCode().asLong());
+    @Convertor(SingletonAccountAt.class)
+    At toMirai(SingletonAccountAt at) {
+        return new At(at.getTargetCode().asLong());
     }
     
     @Convertor(AtAll.class)
-    AllAccountMention toXiaoMing() {
-        return AllAccountMention.getInstance();
+    AllAccountAt toXiaoMing() {
+        return AllAccountAt.getInstance();
     }
     
-    @Convertor(AllAccountMention.class)
+    @Convertor(AllAccountAt.class)
     AtAll toMirai() {
         return AtAll.INSTANCE;
     }

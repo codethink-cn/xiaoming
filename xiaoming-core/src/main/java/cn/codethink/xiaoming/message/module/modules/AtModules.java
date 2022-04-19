@@ -5,8 +5,9 @@ import cn.codethink.xiaoming.code.Code;
 import cn.codethink.xiaoming.contact.Contact;
 import cn.codethink.xiaoming.contact.Mass;
 import cn.codethink.xiaoming.contact.Member;
-import cn.codethink.xiaoming.message.basic.AllAccountMention;
-import cn.codethink.xiaoming.message.basic.SingletonAccountMention;
+import cn.codethink.xiaoming.message.basic.AllAccountAt;
+import cn.codethink.xiaoming.message.basic.At;
+import cn.codethink.xiaoming.message.basic.SingletonAccountAt;
 import cn.codethink.xiaoming.message.module.deserialize.Deserializer;
 import cn.codethink.xiaoming.message.module.deserialize.DeserializerValue;
 import cn.codethink.xiaoming.message.module.serialize.Serializer;
@@ -17,33 +18,33 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @see cn.codethink.xiaoming.message.basic.Mention
+ * @see At
  *
  * @author Chuanwise
  */
-public class MentionModules {
+public class AtModules {
     
     ///////////////////////////////////////////////////////////////////////////
-    // mention singleton account
+    // at singleton account
     ///////////////////////////////////////////////////////////////////////////
     
-    @Serializer(SingletonAccountMention.class)
-    List<String> serializeSingletonAccountMention(SingletonAccountMention mention) {
+    @Serializer(SingletonAccountAt.class)
+    List<String> serializeSingletonAccountAt(SingletonAccountAt at) {
         return Collections.asUnmodifiableList(
-            "mention",
+            "at",
             "account",
             "singleton",
-            mention.getTargetCode().toString()
+            at.getTargetCode().toString()
         );
     }
     
-    @Deserializer("mention:account:singleton:??")
-    SingletonAccountMention deserializeSingletonAccountMention(@DeserializerValue String code) {
-        return SingletonAccountMention.newInstance(Code.parseCode(code));
+    @Deserializer("at:account:singleton:??")
+    SingletonAccountAt deserializeSingletonAccountAt(@DeserializerValue String code) {
+        return SingletonAccountAt.newInstance(Code.parseCode(code));
     }
     
-    @Summarizer(SingletonAccountMention.class)
-    String summarySingletonAccountMention(SingletonAccountMention mention,
+    @Summarizer(SingletonAccountAt.class)
+    String summarySingletonAccountAt(SingletonAccountAt at,
                                           SummaryContext context) {
         final Contact contact = context.getContact();
     
@@ -55,39 +56,39 @@ public class MentionModules {
                 
                 // if the member is in the contact
                 // display his sender name
-                final Member member = ((Mass) contact).getMember(mention.getTargetCode());
+                final Member member = ((Mass) contact).getMember(at.getTargetCode());
                 if (Objects.nonNull(member)) {
                     return "@" + member.getSenderName();
                 }
             }
         }
-        return "@" + mention.getTargetCode().asString();
+        return "@" + at.getTargetCode().asString();
     }
     
     ///////////////////////////////////////////////////////////////////////////
-    // mention all
+    // at all
     ///////////////////////////////////////////////////////////////////////////
     
-    final List<String> serializedAllAccountMention = Collections.asUnmodifiableList(
-        "mention",
+    final List<String> serializedAllAccountAt = Collections.asUnmodifiableList(
+        "at",
         "account",
         "all"
     );
     
-    final String summarizedAllAccountMention = "@全体成员";
+    final String summarizedAllAccountAt = "@全体成员";
     
-    @Serializer(AllAccountMention.class)
-    List<String> serializeAllAccountMention() {
-        return serializedAllAccountMention;
+    @Serializer(AllAccountAt.class)
+    List<String> serializeAllAccountAt() {
+        return serializedAllAccountAt;
     }
 
-    @Deserializer("mention:account:all")
-    AllAccountMention parseAllAccountMention() {
-        return AllAccountMention.getInstance();
+    @Deserializer("at:account:all")
+    AllAccountAt parseAllAccountAt() {
+        return AllAccountAt.getInstance();
     }
     
-    @Summarizer(AllAccountMention.class)
-    String summaryAllAccountMention() {
-        return summarizedAllAccountMention;
+    @Summarizer(AllAccountAt.class)
+    String summaryAllAccountAt() {
+        return summarizedAllAccountAt;
     }
 }

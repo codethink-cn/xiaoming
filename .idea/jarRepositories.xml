@@ -66,5 +66,10 @@
       <option name="name" value="MavenLocal" />
       <option name="url" value="file:/$PROJECT_DIR$/../../../tool/maven/repository/" />
     </remote-repository>
+    <remote-repository>
+      <option name="id" value="codethink repo" />
+      <option name="name" value="codethink repo" />
+      <option name="url" value="https://repo.codethink.top/public/" />
+    </remote-repository>
   </component>
 </project>
