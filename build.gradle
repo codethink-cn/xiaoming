@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '7.1.2'
+//    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 sourceCompatibility = '1.8'
@@ -13,10 +13,10 @@ def publishScriptFile = new File('publish.gradle')
 subprojects {
     apply plugin: 'java-library'
     apply plugin: 'java'
-    apply plugin: 'com.github.johnrengelman.shadow'
+//    apply plugin: 'com.github.johnrengelman.shadow'
 
     group 'cn.codethink'
-    version '5.0.1-SNAPSHOT'
+    version '5.0-SNAPSHOT'
 
     // install script if the file is exists
     if (mirrorScriptFile.isFile()) {
@@ -57,12 +57,12 @@ subprojects {
         useJUnitPlatform()
     }
 
-    shadowJar {
-        exclude "META-INF/*.SF"
-        exclude "META-INF/*.DSA"
-        exclude "META-INF/*.RSA"
-        exclude "META-INF/LICENSE"
-
-        archiveName project.name + '-' + version + '.' + extension
-    }
+//    shadowJar {
+//        exclude "META-INF/*.SF"
+//        exclude "META-INF/*.DSA"
+//        exclude "META-INF/*.RSA"
+//        exclude "META-INF/LICENSE"
+//
+//        archiveName project.name + '-' + version + '.' + extension
+//    }
 }

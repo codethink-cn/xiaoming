@@ -2,6 +2,7 @@ package cn.codethink.xiaoming.message.compound;
 
 import cn.chuanwise.common.util.Arrays;
 import cn.chuanwise.common.util.EmptyIterator;
+import cn.chuanwise.common.util.SingletonIterator;
 import cn.codethink.xiaoming.message.Message;
 import cn.codethink.xiaoming.message.basic.BasicMessage;
 import cn.codethink.common.util.Preconditions;
@@ -90,7 +91,7 @@ public class SingletonCompoundMessage
     
     @Override
     public Iterator<BasicMessage> iterator() {
-        return EmptyIterator.getInstance();
+        return new SingletonIterator<>(basicMessage);
     }
     
     @Override

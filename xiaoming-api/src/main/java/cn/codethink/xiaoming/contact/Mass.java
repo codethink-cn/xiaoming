@@ -3,7 +3,6 @@ package cn.codethink.xiaoming.contact;
 import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.BotObject;
 import cn.codethink.xiaoming.code.Code;
-import cn.codethink.xiaoming.concurrent.BotFuture;
 import cn.codethink.xiaoming.exception.NoSuchMemberException;
 
 import java.util.Map;
@@ -84,7 +83,7 @@ public interface Mass
      *
      * @return 退出的 Future
      */
-    BotFuture<Boolean> quit();
+    boolean quit();
     
     /**
      * 获取集体号

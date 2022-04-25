@@ -68,6 +68,19 @@ public class SimpleCompoundMessageBuilder
     }
     
     @Override
+    public CompoundMessageBuilder plus(CompoundMessage compoundMessage) {
+        Preconditions.objectArgumentNonEmpty(compoundMessage, "compound message");
+        
+        if (singleton) {
+            return this;
+        }
+        compoundMessage.forEach(basicMessages::add);
+        metadata.putAll(compoundMessage.getMetadata());
+        
+        return this;
+    }
+    
+    @Override
     public CompoundMessageBuilder plus(MessageMetadata messageMetadata) {
         Preconditions.objectNonNull(messageMetadata, "message metadata");
         

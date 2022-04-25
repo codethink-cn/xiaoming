@@ -184,13 +184,13 @@ public class XiaoMingImpl
     }
     
     @Override
-    public AllAccountAt getAllAccountAt() {
-        return AllAccountAtImpl.INSTANCE;
+    public AtAll getAllAccountAt() {
+        return AtAllImpl.INSTANCE;
     }
     
     @Override
-    public SingletonAccountAt newSingletonAccountAt(Code targetCode) {
-        return new SingletonAccountAtImpl(targetCode);
+    public SingletonAt newSingletonAccountAt(Code targetCode) {
+        return new SingletonAtImpl(targetCode);
     }
     
     @Override

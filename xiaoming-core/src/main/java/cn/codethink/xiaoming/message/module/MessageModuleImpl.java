@@ -1,7 +1,9 @@
 package cn.codethink.xiaoming.message.module;
 
+import cn.chuanwise.common.space.Pair;
 import cn.chuanwise.common.util.Maps;
 import cn.chuanwise.common.util.Preconditions;
+import cn.chuanwise.common.util.Types;
 import cn.codethink.xiaoming.Priority;
 import cn.codethink.xiaoming.message.AutoSummarizable;
 import cn.codethink.xiaoming.message.module.convert.ConvertContext;
@@ -73,20 +75,43 @@ public class MessageModuleImpl
     private static Object convert(Priority priority, ConvertContext context) throws Exception {
         final List<MethodConvertHandler> convertors = CONVERTORS.get(priority);
         final Object source = context.getSource();
+        final Class<?> targetClass = context.getTargetClass();
     
         if (cn.chuanwise.common.util.Collections.nonEmpty(convertors)) {
+            final List<Pair<Integer, MethodConvertHandler>> convertableConvertors = new ArrayList<>();
+            
             for (MethodConvertHandler convertor : convertors) {
                 
                 if (!convertor.getSourceClass().isInstance(source)) {
                     continue;
                 }
     
-                if (!cn.chuanwise.common.util.Arrays.containsIf(convertor.getTargetClasses(), context.getTargetClass()::isAssignableFrom)) {
+                final Class<?>[] targetClasses = convertor.getTargetClasses();
+                int distance = Integer.MAX_VALUE;
+    
+                for (Class<?> thisTargetClass : targetClasses) {
+                    if (!targetClass.isAssignableFrom(thisTargetClass)) {
+                        continue;
+                    }
+                    
+                    distance = Math.min(distance, Types.getTypeDistanceTo(thisTargetClass, targetClass));
+                }
+                
+                if (distance == Integer.MAX_VALUE) {
                     continue;
                 }
-    
-                return convertor.convert(context);
+                convertableConvertors.add(Pair.of(distance, convertor));
             }
+    
+            if (convertableConvertors.isEmpty()) {
+                return null;
+            }
+            if (convertableConvertors.size() == 1) {
+                return convertableConvertors.get(0).getValue().convert(context);
+            }
+            
+            convertableConvertors.sort(Comparator.comparingInt(Pair::getKey));
+            return convertableConvertors.get(0).getValue().convert(context);
         }
         
         return null;

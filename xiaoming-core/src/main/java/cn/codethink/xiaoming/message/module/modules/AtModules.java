@@ -5,9 +5,8 @@ import cn.codethink.xiaoming.code.Code;
 import cn.codethink.xiaoming.contact.Contact;
 import cn.codethink.xiaoming.contact.Mass;
 import cn.codethink.xiaoming.contact.Member;
-import cn.codethink.xiaoming.message.basic.AllAccountAt;
-import cn.codethink.xiaoming.message.basic.At;
-import cn.codethink.xiaoming.message.basic.SingletonAccountAt;
+import cn.codethink.xiaoming.message.basic.AtAll;
+import cn.codethink.xiaoming.message.basic.SingletonAt;
 import cn.codethink.xiaoming.message.module.deserialize.Deserializer;
 import cn.codethink.xiaoming.message.module.deserialize.DeserializerValue;
 import cn.codethink.xiaoming.message.module.serialize.Serializer;
@@ -18,7 +17,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * @see At
+ * @see cn.codethink.xiaoming.message.basic.At
  *
  * @author Chuanwise
  */
@@ -28,24 +27,23 @@ public class AtModules {
     // at singleton account
     ///////////////////////////////////////////////////////////////////////////
     
-    @Serializer(SingletonAccountAt.class)
-    List<String> serializeSingletonAccountAt(SingletonAccountAt at) {
+    @Serializer(SingletonAt.class)
+    List<String> serializeSingletonAccountAt(SingletonAt at) {
         return Collections.asUnmodifiableList(
             "at",
-            "account",
             "singleton",
             at.getTargetCode().toString()
         );
     }
     
-    @Deserializer("at:account:singleton:??")
-    SingletonAccountAt deserializeSingletonAccountAt(@DeserializerValue String code) {
-        return SingletonAccountAt.newInstance(Code.parseCode(code));
+    @Deserializer("at:singleton:??")
+    SingletonAt deserializeSingletonAccountAt(@DeserializerValue String code) {
+        return SingletonAt.newInstance(Code.parseCode(code));
     }
     
-    @Summarizer(SingletonAccountAt.class)
-    String summarySingletonAccountAt(SingletonAccountAt at,
-                                          SummaryContext context) {
+    @Summarizer(SingletonAt.class)
+    String summarySingletonAccountAt(SingletonAt at,
+                                     SummaryContext context) {
         final Contact contact = context.getContact();
     
         if (Objects.nonNull(contact)) {
@@ -71,23 +69,22 @@ public class AtModules {
     
     final List<String> serializedAllAccountAt = Collections.asUnmodifiableList(
         "at",
-        "account",
         "all"
     );
     
     final String summarizedAllAccountAt = "@全体成员";
     
-    @Serializer(AllAccountAt.class)
+    @Serializer(AtAll.class)
     List<String> serializeAllAccountAt() {
         return serializedAllAccountAt;
     }
 
-    @Deserializer("at:account:all")
-    AllAccountAt parseAllAccountAt() {
-        return AllAccountAt.getInstance();
+    @Deserializer("at:all")
+    AtAll parseAllAccountAt() {
+        return AtAll.getInstance();
     }
     
-    @Summarizer(AllAccountAt.class)
+    @Summarizer(AtAll.class)
     String summaryAllAccountAt() {
         return summarizedAllAccountAt;
     }

@@ -221,7 +221,7 @@ public interface XiaoMing {
      *
      * @return 提及所有成员消息
      */
-    AllAccountAt getAllAccountAt();
+    AtAll getAllAccountAt();
     
     /**
      * 构建一个文本消息
@@ -287,7 +287,7 @@ public interface XiaoMing {
      * @return 提及单人账号消息
      * @throws NullPointerException targetCode 为 null
      */
-    SingletonAccountAt newSingletonAccountAt(Code targetCode);
+    SingletonAt newSingletonAccountAt(Code targetCode);
     
     /**
      * 构造一个音乐分享消息

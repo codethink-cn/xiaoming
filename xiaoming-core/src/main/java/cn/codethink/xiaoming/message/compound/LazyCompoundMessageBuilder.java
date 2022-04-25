@@ -57,6 +57,15 @@ public class LazyCompoundMessageBuilder
     }
     
     @Override
+    public CompoundMessageBuilder plus(CompoundMessage compoundMessage) {
+        Preconditions.objectNonNull(compoundMessage, "compound message");
+        
+        ready().plus(compoundMessage);
+        
+        return this;
+    }
+    
+    @Override
     public CompoundMessageBuilder plus(MessageMetadata messageMetadata) {
         Preconditions.objectNonNull(messageMetadata, "message metadata");
         

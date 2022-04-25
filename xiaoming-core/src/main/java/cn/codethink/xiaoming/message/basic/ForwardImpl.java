@@ -1,9 +1,11 @@
 package cn.codethink.xiaoming.message.basic;
 
+import cn.codethink.xiaoming.property.Property;
 import lombok.Data;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Chuanwise

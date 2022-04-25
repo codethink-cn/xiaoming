@@ -16,6 +16,9 @@ public interface CompoundMessageBuilder
     extends CompoundMessage {
     
     @Override
+    CompoundMessageBuilder plus(CompoundMessage compoundMessage);
+    
+    @Override
     CompoundMessageBuilder plus(String text);
     
     @Override

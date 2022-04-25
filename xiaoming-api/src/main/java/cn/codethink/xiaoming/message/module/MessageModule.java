@@ -1,6 +1,7 @@
 package cn.codethink.xiaoming.message.module;
 
 import cn.codethink.xiaoming.message.AutoSummarizable;
+import cn.codethink.xiaoming.message.basic.AtAll;
 import cn.codethink.xiaoming.message.basic.Text;
 import cn.codethink.xiaoming.message.module.deserialize.Deserializer;
 import cn.codethink.xiaoming.property.Property;
@@ -15,25 +16,45 @@ import java.util.Map;
  *
  * <p>消息组件是用于注册序列化器、进行序列化、注册转换器和进行转换的组件。</p>
  *
- * <h2>消息序列化器</h2>
+ * <h2>序列化器</h2>
  *
- * <p>用于自定义一些序列化器，实现自定义消息码的反序列化。当然也能注册和消息码无关的序列化器，但是没有必要这么做。</p>
+ * <p>用于自定义一些序列化器，实现自定义消息码的反序列化。也能注册和消息码无关的序列化器，但是没有必要这么做。</p>
  *
  * <p>序列化时，对象将会序列化为一个字符串数组；反序列化时，将把字符串数组反序列化为某种类型的对象。用于自定义消息码；例如，
  * {@link cn.codethink.xiaoming.message.basic.ResourceImage} 资源图片中涉及的外部资源
  * {@link cn.codethink.xiaoming.resource.Resource} 可以序列化为字符串数组存入图片的消息码中。</p>
  *
+ * <p>例如：<pre>{@code
+ * // serialize a at all message to message code arguments
+ * final List<String> arguments = MessageModule.serialize(AtAll.getInstance());
+ *
+ * // the message code of at all must be [at:all], so that arguments are [ "at", "all" ]
+ * Assertions.assertEquals(Arrays.asList("at", "all"), arguments);
+ * }</pre></p>
+ *
  * <p>特别地，对于 {@link cn.codethink.xiaoming.message.basic.Text}，直接调用 {@link Text#serializeToMessageCode()}
- * 将获得比 {@link MessageModule#serialize(Object, Map)} 更简明的结果。</p>
+ * 将获得比 {@link MessageModule#serialize(Object, Map)} 更简明的结果。因此不建议对普通文本消息使用消息组件序列化。</p>
  *
- * <h2>消息转换器</h2>
+ * <h2>反序列化器</h2>
  *
- * <p>用于将小明可序列化对象转换为其他某种平台的对象。</p>
+ * <p>用于将参数数组转化为某一类型的对象。如 {@code [ "at", "all" ]} 转化为 {@link AtAll#getInstance()}</p>
+ *
+ * <h2>转换器</h2>
+ *
+ * <p>用于将小明可序列化对象转换为其他某种平台的对象。例如将 qq 平台的图片 Image 转化为小明使用的图片 {@link cn.codethink.xiaoming.message.basic.Image}。
+ * 也可以将小明的相关对象转化到平台实现层的对象，见 {@link #convert(Object, Class, Map)}。</p>
+ *
+ * <h2>摘要器</h2>
+ *
+ * <p>用于计算消息摘要。例如普通文本 {@link Text} 的摘要内容就是文本本身 {@link Text#getText()}，提及全体消息 {@link cn.codethink.xiaoming.message.basic.AtAll}
+ * 的摘要内容是 {@code [@全体成员]}（不同平台可能有些差异）。</p>
  *
  * @author Chuanwise
  *
  * @see cn.codethink.xiaoming.message.Serializable
- * @see Deserializer
+ * @see cn.codethink.xiaoming.message.Summarizable
+ * @see cn.codethink.xiaoming.message.AutoSerializable
+ * @see AutoSummarizable
  */
 public interface MessageModule {
     

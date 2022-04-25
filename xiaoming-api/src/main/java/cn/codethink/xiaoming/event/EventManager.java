@@ -3,7 +3,7 @@ package cn.codethink.xiaoming.event;
 import cn.chuanwise.common.api.ExceptionConsumer;
 import cn.codethink.xiaoming.BotObject;
 import cn.codethink.xiaoming.Priority;
-import cn.codethink.xiaoming.concurrent.BotFuture;
+import cn.codethink.xiaoming.concurrent.BotPromise;
 
 /**
  * 事件管理器
@@ -19,7 +19,7 @@ public interface EventManager
      * @param event 事件
      * @return 是否有事件监听器捕捉该事件
      */
-    BotFuture<Boolean> broadcastEvent(Event event);
+    BotPromise<Boolean> broadcastEvent(Event event);
     
     /**
      * 同步监听某个事件

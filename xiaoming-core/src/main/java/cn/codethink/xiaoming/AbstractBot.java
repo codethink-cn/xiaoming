@@ -2,7 +2,7 @@ package cn.codethink.xiaoming;
 
 import cn.codethink.common.util.Preconditions;
 import cn.codethink.xiaoming.concurrent.Scheduler;
-import cn.codethink.xiaoming.concurrent.ThreadPoolScheduler;
+import cn.codethink.xiaoming.concurrent.SchedulerImpl;
 import cn.codethink.xiaoming.configuration.BotConfiguration;
 import cn.codethink.xiaoming.configuration.BotConfigurationImpl;
 import cn.codethink.xiaoming.event.*;
@@ -122,7 +122,7 @@ public abstract class AbstractBot
             
             // logger
             logger = botConfiguration.getLoggerFactory().getLogger("bot");
-            logger.info("正在启动机器人");
+            logger.info("starting bot");
     
             // setup config
             setupBotConfiguration(botConfiguration);
@@ -130,17 +130,16 @@ public abstract class AbstractBot
             final File workingDirectory = botConfiguration.getWorkingDirectory();
             if (!workingDirectory.isDirectory() && !workingDirectory.mkdirs()) {
                 logger.error("can not create working directory: " + workingDirectory.getAbsolutePath());
-                logger.error("无法创建工作目录");
 
                 state = State.STOP_ERROR;
                 return false;
             }
             
             // 设置核心线程池
-            scheduler = new ThreadPoolScheduler(this, botConfiguration.getThreadCount());
+            scheduler = new SchedulerImpl(this, botConfiguration.getThreadCount());
         
             // 设置事件管理器
-            eventManager = new SimpleEventManager(this);
+            eventManager = new EventManagerImpl(this);
         
             // 回调
             start0();
@@ -151,7 +150,7 @@ public abstract class AbstractBot
             final BotStartEvent botStartEvent = new BotStartEventImpl(this);
             eventManager.broadcastEvent(botStartEvent);
         
-            logger.info("成功启动机器人");
+            logger.info("bot started successfully");
             
             return true;
         } catch (Throwable throwable) {
@@ -183,7 +182,7 @@ public abstract class AbstractBot
         try {
             state = State.STOPPING;
         
-            logger.info("正在关闭机器人");
+            logger.info("stopping bot");
         
             // 发出事件
             final BotStopEvent botStopEvent = new BotStopEventImpl(this);
@@ -199,7 +198,7 @@ public abstract class AbstractBot
             // 关闭事件管理器
             eventManager = null;
         
-            logger.info("已关闭机器人");
+            logger.info("bot stopped successfully");
         
             // 关闭日志记录器
             logger = null;
