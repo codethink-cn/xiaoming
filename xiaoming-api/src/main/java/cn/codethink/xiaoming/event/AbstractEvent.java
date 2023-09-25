@@ -32,7 +32,7 @@ public abstract class AbstractEvent
     implements Event {
 
     /**
-     * field to record if event is intercepted.
+     * Field to record if event is intercepted.
      */
     private volatile boolean intercepted = false;
 

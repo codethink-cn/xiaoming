@@ -33,14 +33,14 @@ public interface Event
     extends Cause {
 
     /**
-     * query if event is intercepted.
+     * Query if event is intercepted.
      *
      * @return if event is intercepted
      */
     boolean isIntercepted();
 
     /**
-     * set if event is intercepted.
+     * Set if event is intercepted.
      *
      * @param cancelled if event is intercepted
      */

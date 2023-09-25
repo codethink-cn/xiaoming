@@ -35,7 +35,7 @@ public abstract class AbstractCancellableEvent
     implements CancellableEvent {
 
     /**
-     * field to record if event is cancelled.
+     * Field to record if event is cancelled.
      */
     private volatile boolean cancelled = false;
 

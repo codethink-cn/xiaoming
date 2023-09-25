@@ -39,12 +39,12 @@ public final class BotApiFactory {
     }
 
     /**
-     * the global and unique instance of {@link BotApi}.
+     * The global and unique instance of {@link BotApi}.
      */
     private static volatile BotApi botApi;
 
     /**
-     * get the global and unique instance of {@link BotApi}.
+     * Get the global and unique instance of {@link BotApi}.
      *
      * @return instance of {@link BotApi}
      * @exception NoSuchElementException {@link BotApi} is not present
@@ -75,7 +75,7 @@ public final class BotApiFactory {
     }
 
     /**
-     * set the botApi instance manually.
+     * Set the botApi instance manually.
      *
      * @param botApi instance of {@link BotApi}
      * @exception NullPointerException botApi is null

@@ -29,14 +29,14 @@ public interface CancellableEvent
     extends Event {
 
     /**
-     * query if event is cancelled.
+     * Query if event is cancelled.
      *
      * @return if event is cancelled
      */
     boolean isCancelled();
 
     /**
-     * set if event is cancelled.
+     * Set if event is cancelled.
      *
      * @param cancelled if event is cancelled
      */
