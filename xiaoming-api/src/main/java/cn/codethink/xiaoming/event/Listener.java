@@ -18,6 +18,8 @@ package cn.codethink.xiaoming.event;
 
 import cn.codethink.xiaoming.Subject;
 
+import java.util.Set;
+
 /**
  * <h1>Listener</h1>
  *
@@ -27,6 +29,13 @@ import cn.codethink.xiaoming.Subject;
  * @author Chuanwise
  */
 public interface Listener {
+
+    /**
+     * Get event classes.
+     *
+     * @return event classes
+     */
+    Set<Class<? extends Event>> getEventClasses();
 
     /**
      * Handle event.
