@@ -23,10 +23,10 @@ import java.lang.annotation.RetentionPolicy;
 /**
  * <h1>Bot Internal Api</h1>
  *
- * <p>Bot internal api are very low-level api in xiaoming. They
+ * <p>Bot internal api is very low-level api in xiaoming. They
  * are written for developing xiaoming internal functions. </p>
  *
- * <p>This annotation is on functions, classes, interfaces and
+ * <p>This annotation on functions, classes, interfaces and
  * enumerate classes means they and related apis are internal. </p>
  *
  * @apiNote Don't call them directly unless you are developing
