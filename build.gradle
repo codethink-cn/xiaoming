@@ -2,3 +2,7 @@ allprojects {
     group = 'cn.codethink'
     version = '0.1.0-SNAPSHOT'
 }
+
+ext {
+    publishScriptFile = new File(rootDir, 'publish.gradle')
+}
