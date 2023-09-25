@@ -37,6 +37,13 @@ public interface Listener {
     void listen(Event event) throws Exception;
 
     /**
+     * Query if cancelled events are ignored by the listener.
+     *
+     * @return If cancelled events are ignored by the listener.
+     */
+    boolean isIgnoreCancelledEvent();
+
+    /**
      * Get subject.
      *
      * @return subject
