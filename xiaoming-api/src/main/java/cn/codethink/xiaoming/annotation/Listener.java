@@ -50,4 +50,11 @@ public @interface Listener {
      * @return order
      */
     Order order() default Order.DEFAULT;
+
+    /**
+     * Query if cancelled events are ignored by the listener.
+     *
+     * @return If cancelled events are ignored by the listener.
+     */
+    boolean ignoreCancelled() default true;
 }
