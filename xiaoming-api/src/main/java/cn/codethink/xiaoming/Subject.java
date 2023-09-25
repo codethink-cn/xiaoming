@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package cn.codethink.xiaoming.subject;
+package cn.codethink.xiaoming;
 
 /**
  * <h1>Subject</h1>
