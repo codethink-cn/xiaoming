@@ -56,5 +56,5 @@ public @interface Listener {
      *
      * @return If cancelled events are ignored by the listener.
      */
-    boolean ignoreCancelled() default true;
+    boolean ignoreCancelledEvent() default true;
 }
