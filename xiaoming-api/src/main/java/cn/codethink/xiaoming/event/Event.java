@@ -16,6 +16,8 @@
 
 package cn.codethink.xiaoming.event;
 
+import cn.codethink.xiaoming.cause.Cause;
+
 /**
  * <h1>Event</h1>
  *
@@ -27,7 +29,8 @@ package cn.codethink.xiaoming.event;
  *
  * @author Chuanwise
  */
-public interface Event {
+public interface Event
+    extends Cause {
 
     /**
      * query if event is intercepted.
