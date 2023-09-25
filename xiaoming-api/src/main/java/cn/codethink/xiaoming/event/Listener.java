@@ -16,6 +16,8 @@
 
 package cn.codethink.xiaoming.event;
 
+import cn.codethink.xiaoming.Subject;
+
 /**
  * <h1>Listener</h1>
  *
@@ -25,4 +27,26 @@ package cn.codethink.xiaoming.event;
  * @author Chuanwise
  */
 public interface Listener {
+
+    /**
+     * Handle event.
+     *
+     * @param event event
+     * @throws Exception exception thrown in handling event
+     */
+    void listen(Event event) throws Exception;
+
+    /**
+     * Get subject.
+     *
+     * @return subject
+     */
+    Subject getSubject();
+
+    /**
+     * Get order.
+     *
+     * @return order
+     */
+    Order getOrder();
 }
