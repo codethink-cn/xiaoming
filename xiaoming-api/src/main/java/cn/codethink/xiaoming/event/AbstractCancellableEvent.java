@@ -16,6 +16,8 @@
 
 package cn.codethink.xiaoming.event;
 
+import cn.codethink.xiaoming.cause.Cause;
+
 /**
  * <h1>Abstract Cancellable Event</h1>
  *
@@ -38,6 +40,13 @@ public abstract class AbstractCancellableEvent
      * Field to record if event is cancelled.
      */
     private volatile boolean cancelled = false;
+
+    public AbstractCancellableEvent(Cause cause) {
+        super(cause);
+    }
+
+    public AbstractCancellableEvent() {
+    }
 
     @Override
     public final boolean isCancelled() {
