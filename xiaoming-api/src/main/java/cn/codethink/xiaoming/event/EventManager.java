@@ -17,6 +17,7 @@
 package cn.codethink.xiaoming.event;
 
 import cn.codethink.xiaoming.Subject;
+import javafx.event.EventType;
 
 /**
  * <h1>Event Manager</h1>
@@ -34,6 +35,7 @@ public interface EventManager {
      *
      * @param listeners listeners
      * @param subject   subject
+     * @throws IllegalArgumentException illegal listeners present
      * @throws NullPointerException listeners or subject is null
      */
     void registerListeners(Listeners listeners, Subject subject);
