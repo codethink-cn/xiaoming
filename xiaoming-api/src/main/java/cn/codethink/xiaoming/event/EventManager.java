@@ -16,6 +16,7 @@
 
 package cn.codethink.xiaoming.event;
 
+import cn.codethink.xiaoming.Bot;
 import cn.codethink.xiaoming.Subject;
 import javafx.event.EventType;
 
@@ -39,4 +40,20 @@ public interface EventManager {
      * @throws NullPointerException listeners or subject is null
      */
     void registerListeners(Listeners listeners, Subject subject);
+
+    /**
+     * Publish an event.
+     *
+     * @param event event
+     * @param publisher publisher
+     * @throws NullPointerException event or publisher is null
+     */
+    void publishEvent(Event event, Subject publisher);
+
+    /**
+     * Get bot.
+     *
+     * @return bot
+     */
+    Bot getBot();
 }
