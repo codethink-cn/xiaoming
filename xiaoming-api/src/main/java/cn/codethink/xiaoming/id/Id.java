@@ -14,22 +14,22 @@
  * limitations under the License.
  */
 
-package cn.codethink.xiaoming;
+package cn.codethink.xiaoming.id;
 
 /**
- * <h1>Long Id</h1>
+ * <h1>Id</h1>
  *
- * <p>Long id is based on long integer. </p>
+ * <p>Id is the identifier of an object. Such as long integer id and string id. </p>
  *
  * @author Chuanwise
  */
-public interface LongId
-    extends Id {
+public interface Id {
 
     /**
-     * Convert long id to long integer value.
+     * Convert id to string
      *
-     * @return long integer value
+     * @return string
      */
-    long toLong();
+    @Override
+    String toString();
 }
