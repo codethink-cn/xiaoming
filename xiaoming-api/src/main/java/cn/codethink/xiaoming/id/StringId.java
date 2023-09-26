@@ -34,7 +34,7 @@ public interface StringId
      * @param value value
      * @return string id
      */
-    static StringId of(long value) {
+    static StringId of(String value) {
         return BotApiFactory.getBotApi().getStringId(value);
     }
 }
