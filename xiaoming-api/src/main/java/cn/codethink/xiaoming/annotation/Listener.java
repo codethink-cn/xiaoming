@@ -42,7 +42,7 @@ public @interface Listener {
      *
      * @return classes
      */
-    Class<? extends Event>[] value() default {};
+    Class<?>[] value() default {};
 
     /**
      * Order of the listener.
