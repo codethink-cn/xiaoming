@@ -16,6 +16,14 @@
 
 package cn.codethink.xiaoming.api;
 
+import cn.codethink.xiaoming.id.LongId;
+import cn.codethink.xiaoming.id.LongIdImpl;
+
 public class BotApiImpl
     implements BotApi {
+
+    @Override
+    public LongId getLongId(long value) {
+        return new LongIdImpl(value);
+    }
 }

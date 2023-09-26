@@ -17,6 +17,7 @@
 package cn.codethink.xiaoming.api;
 
 import cn.codethink.xiaoming.annotation.BotInternalApi;
+import cn.codethink.xiaoming.id.LongId;
 
 /**
  * <h1>Bot Api</h1>
@@ -27,4 +28,6 @@ import cn.codethink.xiaoming.annotation.BotInternalApi;
  */
 @BotInternalApi
 public interface BotApi {
+
+    LongId getLongId(long value);
 }

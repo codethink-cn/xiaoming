@@ -16,6 +16,8 @@
 
 package cn.codethink.xiaoming.id;
 
+import cn.codethink.xiaoming.api.BotApiFactory;
+
 /**
  * <h1>Long Id</h1>
  *
@@ -24,7 +26,17 @@ package cn.codethink.xiaoming.id;
  * @author Chuanwise
  */
 public interface LongId
-    extends Id {
+    extends Id, Comparable<LongId> {
+
+    /**
+     * Construct a long integer id with provided value.
+     *
+     * @param value value
+     * @return long integer id
+     */
+    static LongId of(long value) {
+        return BotApiFactory.getBotApi().getLongId(value);
+    }
 
     /**
      * Convert long id to long integer value.
