@@ -40,10 +40,10 @@ public interface Listener {
     /**
      * Handle event.
      *
-     * @param event event
+     * @param context event handling context
      * @throws Exception exception thrown in handling event
      */
-    void listen(Event event) throws Exception;
+    void listen(EventListeningContext context) throws Exception;
 
     /**
      * Query if cancelled events are ignored by the listener.
