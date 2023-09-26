@@ -14,22 +14,27 @@
  * limitations under the License.
  */
 
-package cn.codethink.xiaoming.api;
+package cn.codethink.xiaoming.id;
 
-import cn.codethink.xiaoming.annotation.BotInternalApi;
-import cn.codethink.xiaoming.id.LongId;
-import cn.codethink.xiaoming.id.StringId;
+import cn.codethink.xiaoming.api.BotApiFactory;
 
 /**
- * <h1>Bot Api</h1>
+ * <h1>String Id</h1>
  *
- * <p>Bot api is the bridge between xiaoming bot api and core. </p>
+ * <p>String id is based on string. </p>
  *
  * @author Chuanwise
  */
-@BotInternalApi
-public interface BotApi {
+public interface StringId
+    extends Id, Comparable<StringId> {
 
-    LongId getLongId(long value);
-    StringId getStringId(String value);
+    /**
+     * Construct a string id with provided value.
+     *
+     * @param value value
+     * @return string id
+     */
+    static StringId of(long value) {
+        return BotApiFactory.getBotApi().getStringId(value);
+    }
 }
