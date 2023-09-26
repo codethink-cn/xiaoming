@@ -16,6 +16,7 @@
 
 package cn.codethink.xiaoming.event;
 
+import cn.codethink.xiaoming.Bot;
 import cn.codethink.xiaoming.Subject;
 import com.google.common.base.Preconditions;
 
@@ -31,7 +32,7 @@ public class EventManagerImpl
     implements EventManager {
 
     private static class ReflectedListener
-        implements Listener {
+            implements Listener {
 
         private static final Object[] EMPTY_ARGUMENT_ARRAY = {};
 
@@ -91,9 +92,22 @@ public class EventManagerImpl
         }
     }
 
+    private static final Order[] ORDERS = {
+            Order.PRE, Order.AFTER_PRE, Order.FIRST, Order.EARLY, Order.DEFAULT,
+            Order.LATE, Order.LAST, Order.BEFORE_POST, Order.POST,
+    };
+
+    private final Bot bot;
+
     private final ReentrantReadWriteLock listenersLock = new ReentrantReadWriteLock();
 
     private final Map<Order, List<Listener>> listeners = new HashMap<>();
+
+    public EventManagerImpl(Bot bot) {
+        Preconditions.checkNotNull(bot, "Bot is null!");
+
+        this.bot = bot;
+    }
 
     @Override
     public void registerListeners(Listeners listeners, Subject subject) {
@@ -250,5 +264,45 @@ public class EventManagerImpl
         }
     }
 
+    @Override
+    public void publishEvent(Event event, Subject publisher) {
+        Preconditions.checkNotNull(event, "Event is null!");
+        Preconditions.checkNotNull(publisher, "Publisher is null!");
 
+        final EventListeningContext context = new EventListeningContextImpl(event, publisher, bot);
+        listenersLock.readLock().lock();
+        try {
+            for (Order order : ORDERS) {
+                final List<Listener> sameOrderListeners = listeners.get(order);
+                if (sameOrderListeners != null) {
+                    for (Listener listener : sameOrderListeners) {
+
+                        // check if there is an event class that this event can be assigned to
+                        boolean matches = true;
+                        for (Class<?> eventClass : listener.getEventClasses()) {
+                            if (!eventClass.isInstance(event)) {
+                                matches = false;
+                                break;
+                            }
+                        }
+
+                        if (matches) {
+                            try {
+                                listener.listen(context);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }
+                }
+            }
+        } finally {
+            listenersLock.readLock().unlock();
+        }
+    }
+
+    @Override
+    public Bot getBot() {
+        return bot;
+    }
 }
