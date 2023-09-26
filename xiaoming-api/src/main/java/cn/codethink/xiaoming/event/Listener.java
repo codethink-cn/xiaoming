@@ -35,7 +35,7 @@ public interface Listener {
      *
      * @return event classes
      */
-    Set<Class<? extends Event>> getEventClasses();
+    Set<Class<?>> getEventClasses();
 
     /**
      * Handle event.
