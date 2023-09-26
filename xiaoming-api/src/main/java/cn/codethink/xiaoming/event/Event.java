@@ -42,7 +42,14 @@ public interface Event
     /**
      * Set if event is intercepted.
      *
-     * @param cancelled if event is intercepted
+     * @param intercepted if event is intercepted
      */
-    void setIntercepted(boolean cancelled);
+    void setIntercepted(boolean intercepted);
+
+    /**
+     * Get cause.
+     *
+     * @return cause
+     */
+    Cause getCause();
 }
