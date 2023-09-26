@@ -17,6 +17,7 @@
 package cn.codethink.xiaoming.component;
 
 import cn.codethink.xiaoming.Bot;
+import cn.codethink.xiaoming.cause.Cause;
 
 /**
  * <h1>Component Enabling Context</h1>
@@ -29,9 +30,16 @@ import cn.codethink.xiaoming.Bot;
 public interface ComponentEnablingContext {
 
     /**
-     * Get bot
+     * Get bot.
      *
      * @return bot
      */
     Bot getBot();
+
+    /**
+     * Get cause.
+     *
+     * @return cause
+     */
+    Cause getCause();
 }
