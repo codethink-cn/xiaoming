@@ -49,7 +49,7 @@ public interface Time
      * @throws IllegalArgumentException seconds is illegal
      */
     static Time ofSeconds(long seconds) {
-
+        return BotApiFactory.getBotApi().getTimeOfSeconds(seconds);
     }
 
     /**
@@ -60,7 +60,7 @@ public interface Time
      * @throws IllegalArgumentException milliseconds is illegal
      */
     static Time ofMilliseconds(long milliseconds) {
-
+        return BotApiFactory.getBotApi().getTimeOfMilliseconds(milliseconds);
     }
 
     /**
