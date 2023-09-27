@@ -16,6 +16,7 @@
 
 package cn.codethink.xiaoming;
 
+import cn.codethink.xiaoming.event.EventManager;
 import cn.codethink.xiaoming.relation.Known;
 
 /**
@@ -27,4 +28,11 @@ import cn.codethink.xiaoming.relation.Known;
  */
 public interface Bot
     extends Known {
+
+    /**
+     * Get event manager.
+     *
+     * @return event manager
+     */
+    EventManager getEventManager();
 }
