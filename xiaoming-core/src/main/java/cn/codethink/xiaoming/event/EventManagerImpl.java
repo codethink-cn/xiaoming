@@ -38,7 +38,7 @@ public class EventManagerImpl
 
     private final ReentrantReadWriteLock listenersLock = new ReentrantReadWriteLock();
 
-    private final Map<Order, List<Listener>> listeners = new HashMap<>();
+    private final Map<Order, List<Listener<?>>> listeners = new HashMap<>();
 
     public EventManagerImpl(Bot bot) {
         Preconditions.checkNotNull(bot, "Bot is null!");
@@ -46,15 +46,12 @@ public class EventManagerImpl
         this.bot = bot;
     }
 
-    @Override
-    public void registerListeners(Listeners listeners, Subject subject) {
+    private void appendListenersToBuffer(Subject subject, Listeners listeners, Map<Order, List<Listener<?>>> listenersToBeRegistered) {
         Preconditions.checkNotNull(listeners, "Listeners are null!");
-        Preconditions.checkNotNull(subject, "Subject are null!");
 
         final Class<? extends Listeners> listenersClass = listeners.getClass();
         final Method[] methods = listenersClass.getDeclaredMethods();
 
-        final Map<Order, List<Listener>> listenersToBeRegistered = new HashMap<>();
         for (Method method : methods) {
             final cn.codethink.xiaoming.annotation.Listener listenerAnnotation =
                     method.getAnnotation(cn.codethink.xiaoming.annotation.Listener.class);
@@ -186,14 +183,16 @@ public class EventManagerImpl
             final boolean ignoreCancelledEvent = listenerAnnotation.ignoreCancelledEvent();
             final Order order = listenerAnnotation.order();
 
-            final Listener listener = new ReflectedListener(eventClasses, order, ignoreCancelledEvent, subject, listeners, method, parameterType);
-            final List<Listener> sameOrderListeners = listenersToBeRegistered.computeIfAbsent(order, ignored -> new ArrayList<>());
+            final Listener<?> listener = new ReflectedListener(eventClasses, order, ignoreCancelledEvent, subject, listeners, method, parameterType);
+            final List<Listener<?>> sameOrderListeners = listenersToBeRegistered.computeIfAbsent(order, ignored -> new ArrayList<>());
             sameOrderListeners.add(listener);
         }
+    }
 
+    private void registerListeners(Map<Order, List<Listener<?>>> listenersToBeRegistered) {
         listenersLock.writeLock().lock();
         try {
-            for (Map.Entry<Order, List<Listener>> entry : listenersToBeRegistered.entrySet()) {
+            for (Map.Entry<Order, List<Listener<?>>> entry : listenersToBeRegistered.entrySet()) {
                 this.listeners.computeIfAbsent(entry.getKey(), ignored -> new ArrayList<>()).addAll(entry.getValue());
             }
         } finally {
@@ -202,10 +201,49 @@ public class EventManagerImpl
     }
 
     @Override
-    public void registerListener(Listener listener) {
+    public void registerListeners(Subject subject, Listeners listeners) {
+        Preconditions.checkNotNull(subject, "Subject are null!");
+
+        final Map<Order, List<Listener<?>>> listenersToBeRegistered = new HashMap<>();
+        appendListenersToBuffer(subject, listeners, listenersToBeRegistered);
+        registerListeners(listenersToBeRegistered);
+    }
+
+    @Override
+    public void registerListeners(Subject subject, Listeners... listeners) {
+        Preconditions.checkNotNull(subject, "Subject are null!");
+
+        final Map<Order, List<Listener<?>>> listenersToBeRegistered = new HashMap<>();
+        for (Listeners listener : listeners) {
+            appendListenersToBuffer(subject, listener, listenersToBeRegistered);
+        }
+        registerListeners(listenersToBeRegistered);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void registerListener(Listener<?> listener) {
         Preconditions.checkNotNull(listener, "Listener is null!");
 
+        final Set<Class<?>> eventClasses = (Set<Class<?>>) listener.getEventClasses();
+
+        Preconditions.checkNotNull(eventClasses, "Event classes got from the listener " +
+                "by calling 'listener.getEventClasses()' is null!");
+        Preconditions.checkArgument(!eventClasses.isEmpty(), "Event classes got from the listener " +
+                "by calling 'listener.getEventClasses()' is empty!");
+        Preconditions.checkArgument(!eventClasses.contains(null), "Event classes got from the listener " +
+                "by calling 'listener.getEventClasses()' contains null!");
+        for (Class<?> eventClass : eventClasses) {
+            if (!isPossibleBeEventClass(eventClass)) {
+                throw new IllegalArgumentException("Event class '" + eventClass.getName() + "' in event classes " +
+                        "got from the listener by calling 'listener.getEventClasses()' is impossible to be a event class. " +
+                        "Make sure it matches at least 1 following conditions: 1. is an interface; 2. is an non-final class; " +
+                        "3. can be assigned to event interface. ");
+            }
+        }
+
         final Order order = listener.getOrder();
+        Preconditions.checkNotNull(order, "Order got from the listener by calling 'listener.getOrder()' is null!");
         listenersLock.writeLock().lock();
         try {
             listeners.computeIfAbsent(order, ignored -> new ArrayList<>()).add(listener);
@@ -214,18 +252,26 @@ public class EventManagerImpl
         }
     }
 
+    private static boolean isPossibleBeEventClass(Class<?> eventClass) {
+        final int eventClassModifiers = eventClass.getModifiers();
+        return Modifier.isInterface(eventClassModifiers)
+                || Event.class.isAssignableFrom(eventClass)
+                || !Modifier.isFinal(eventClassModifiers);
+    }
+
     @Override
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public void publishEvent(Event event, Subject publisher) {
         Preconditions.checkNotNull(event, "Event is null!");
         Preconditions.checkNotNull(publisher, "Publisher is null!");
 
-        final EventListeningContext context = new EventListeningContextImpl(event, publisher, bot);
+        final EventListeningContext<?> context = new EventListeningContextImpl<>(event, publisher, bot);
         listenersLock.readLock().lock();
         try {
             for (Order order : ORDERS) {
-                final List<Listener> sameOrderListeners = listeners.get(order);
+                final List<Listener<?>> sameOrderListeners = listeners.get(order);
                 if (sameOrderListeners != null) {
-                    for (Listener listener : sameOrderListeners) {
+                    for (Listener<?> listener : sameOrderListeners) {
 
                         // check if there is an event class that this event can be assigned to
                         boolean matches = true;
@@ -238,7 +284,7 @@ public class EventManagerImpl
 
                         if (matches) {
                             try {
-                                listener.listen(context);
+                                ((Listener) listener).listen(context);
                             } catch (Exception e) {
                                 throw new RuntimeException(e);
                             }

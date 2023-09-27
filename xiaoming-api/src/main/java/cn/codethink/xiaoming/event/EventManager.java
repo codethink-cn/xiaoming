@@ -34,12 +34,22 @@ public interface EventManager {
     /**
      * Register listeners in provided class.
      *
-     * @param listeners listeners
      * @param subject   subject
+     * @param listeners listeners
      * @throws IllegalArgumentException illegal listeners present
      * @throws NullPointerException listeners or subject is null
      */
-    void registerListeners(Listeners listeners, Subject subject);
+    void registerListeners(Subject subject, Listeners listeners);
+
+    /**
+     * Register listeners in provided class.
+     *
+     * @param subject   subject
+     * @param listeners listeners
+     * @throws IllegalArgumentException illegal listeners present
+     * @throws NullPointerException listeners or subject is null
+     */
+    void registerListeners(Subject subject, Listeners... listeners);
 
     /**
      * Register listener.
@@ -47,7 +57,7 @@ public interface EventManager {
      * @param listener listener
      * @throws NullPointerException listeners is null
      */
-    void registerListener(Listener listener);
+    void registerListener(Listener<?> listener);
 
     /**
      * Publish an event.
