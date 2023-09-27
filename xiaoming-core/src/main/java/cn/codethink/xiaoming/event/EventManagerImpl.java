@@ -24,73 +24,10 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Parameter;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class EventManagerImpl
     implements EventManager {
-
-    private static class ReflectedListener
-            implements Listener {
-
-        private static final Object[] EMPTY_ARGUMENT_ARRAY = {};
-
-        private final Set<Class<?>> eventClasses;
-        private final boolean ignoreCancelledEvent;
-        private final Order order;
-        private final Subject subject;
-        private final Listeners object;
-        private final Method method;
-        private final Class<?> parameterType;
-
-        public ReflectedListener(Set<Class<?>> eventClasses, Order order, boolean ignoreCancelledEvent, Subject subject,
-                                 Listeners listeners, Method method, Class<?> parameterType) {
-
-            this.eventClasses = eventClasses;
-            this.ignoreCancelledEvent = ignoreCancelledEvent;
-            this.order = order;
-            this.subject = subject;
-            this.object = listeners;
-            this.method = method;
-            this.parameterType = parameterType;
-        }
-
-        @Override
-        public Set<Class<?>> getEventClasses() {
-            return eventClasses;
-        }
-
-        @Override
-        public void listen(EventListeningContext context) throws Exception {
-            Preconditions.checkNotNull(context, "Event listening context is null!");
-
-            final Object[] arguments;
-            if (parameterType == null) {
-                arguments = EMPTY_ARGUMENT_ARRAY;
-            } else {
-                arguments = new Object[1];
-                arguments[0] = context.getEvent();
-            }
-
-            method.invoke(object, arguments);
-        }
-
-        @Override
-        public boolean isIgnoreCancelledEvent() {
-            return ignoreCancelledEvent;
-        }
-
-        @Override
-        public Subject getSubject() {
-            return subject;
-        }
-
-        @Override
-        public Order getOrder() {
-            return order;
-        }
-    }
 
     private static final Order[] ORDERS = {
             Order.PRE, Order.AFTER_PRE, Order.FIRST, Order.EARLY, Order.DEFAULT,
