@@ -17,6 +17,7 @@
 package cn.codethink.xiaoming.api;
 
 import cn.codethink.xiaoming.annotation.BotInternalApi;
+import cn.codethink.xiaoming.event.Listener;
 import cn.codethink.xiaoming.id.LongId;
 import cn.codethink.xiaoming.id.StringId;
 
@@ -32,4 +33,6 @@ public interface BotApi {
 
     LongId getLongId(long value);
     StringId getStringId(String value);
+
+    Listener.Builder<?> getListenerBuilder();
 }

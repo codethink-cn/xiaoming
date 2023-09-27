@@ -16,6 +16,8 @@
 
 package cn.codethink.xiaoming.api;
 
+import cn.codethink.xiaoming.event.FunctionalListener;
+import cn.codethink.xiaoming.event.Listener;
 import cn.codethink.xiaoming.id.LongId;
 import cn.codethink.xiaoming.id.LongIdImpl;
 import cn.codethink.xiaoming.id.StringId;
@@ -32,5 +34,10 @@ public class BotApiImpl
     @Override
     public StringId getStringId(String value) {
         return new StringIdImpl(value);
+    }
+
+    @Override
+    public Listener.Builder<?> getListenerBuilder() {
+        return new FunctionalListener.BuilderImpl<>();
     }
 }

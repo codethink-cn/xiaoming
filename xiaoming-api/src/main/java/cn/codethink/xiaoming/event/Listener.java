@@ -17,6 +17,7 @@
 package cn.codethink.xiaoming.event;
 
 import cn.codethink.xiaoming.Subject;
+import cn.codethink.xiaoming.api.BotApiFactory;
 
 import java.util.Set;
 
@@ -42,13 +43,20 @@ public interface Listener<T> {
 
         Builder<T> order(Order order);
 
-        Builder<T> action(ListenerAction<T> listenerAction);
+        Builder<T> action(ListenerAction<T> action);
+
+        Builder<T> subject(Subject subject);
 
         Listener<T> build();
     }
 
+    /**
+     * Get a listener builder.
+     *
+     * @return listener builder
+     */
     static Builder<?> builder() {
-
+        return BotApiFactory.getBotApi().getListenerBuilder();
     }
 
     /**

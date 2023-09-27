@@ -19,11 +19,67 @@ package cn.codethink.xiaoming.event;
 import cn.codethink.xiaoming.Subject;
 import com.google.common.base.Preconditions;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
 public class FunctionalListener<T>
     extends AbstractListener<T> {
+
+    public static class BuilderImpl<T>
+        implements Builder<T> {
+
+        private Set<Class<? extends T>> eventClasses = Collections.emptySet();
+        private boolean ignoreCancelledEvent;
+        private Order order;
+        private ListenerAction<T> action;
+        private Subject subject;
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <U> Builder<U> eventClasses(Class<? extends U>... eventClasses) {
+            this.eventClasses = (Set<Class<? extends T>>) new HashSet<>(Arrays.asList(eventClasses));
+            return (Builder<U>) this;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public <U> Builder<U> eventClass(Class<U> eventClass) {
+            this.eventClasses = Collections.singleton((Class<? extends T>) eventClass);
+            return (Builder<U>) this;
+        }
+
+        @Override
+        public Builder<T> ignoreCancelledEvent(boolean ignoreCancelledEvent) {
+            this.ignoreCancelledEvent = ignoreCancelledEvent;
+            return this;
+        }
+
+        @Override
+        public Builder<T> order(Order order) {
+            this.order = order;
+            return this;
+        }
+
+        @Override
+        public Builder<T> action(ListenerAction<T> action) {
+            this.action = action;
+            return this;
+        }
+
+        @Override
+        public Builder<T> subject(Subject subject) {
+            this.subject = subject;
+            return this;
+        }
+
+        @Override
+        public Listener<T> build() {
+            return new FunctionalListener<>(eventClasses, order, ignoreCancelledEvent, subject, action);
+        }
+    }
     private final ListenerAction<T> action;
 
     public FunctionalListener(Set<Class<? extends T>> eventClasses, Order order, boolean ignoreCancelledEvent, Subject subject,
