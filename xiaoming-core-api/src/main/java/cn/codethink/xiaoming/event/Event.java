@@ -45,11 +45,4 @@ public interface Event
      * @param intercepted if event is intercepted
      */
     void setIntercepted(boolean intercepted);
-
-    /**
-     * Get cause.
-     *
-     * @return cause
-     */
-    Cause getCause();
 }
