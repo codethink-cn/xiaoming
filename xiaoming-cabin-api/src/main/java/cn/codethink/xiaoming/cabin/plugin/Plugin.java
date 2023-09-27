@@ -48,6 +48,13 @@ public interface Plugin
     PluginScanner getScanner();
 
     /**
+     * Get class loader.
+     *
+     * @return class loader
+     */
+    PluginClassLoader getClassLoader();
+
+    /**
      * Load plugin.
      *
      * @param cause cause
