@@ -13,7 +13,6 @@ repositories {
 
 dependencies {
     api project(':xiaoming-core-api')
-
     implementation 'com.google.guava:guava:32.1.2-jre'
 
     testImplementation platform('org.junit:junit-bom:5.9.1')

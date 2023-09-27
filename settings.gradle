@@ -1,4 +1,6 @@
 rootProject.name = 'xiaoming'
-include 'xiaoming-api'
+include 'xiaoming-core-api'
 include 'xiaoming-core'
+include 'xiaoming-cabin-api'
+include 'xiaoming-cabin'
 
