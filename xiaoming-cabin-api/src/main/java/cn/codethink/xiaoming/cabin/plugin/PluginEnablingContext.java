@@ -42,4 +42,11 @@ public interface PluginEnablingContext {
      * @return cabin
      */
     Cabin getCabin();
+
+    /**
+     * Get plugin.
+     *
+     * @return plugin
+     */
+    Plugin getPlugin();
 }

@@ -42,4 +42,11 @@ public interface PluginLoadingContext {
      * @return cabin
      */
     Cabin getCabin();
+
+    /**
+     * Get plugin.
+     *
+     * @return plugin
+     */
+    Plugin getPlugin();
 }
