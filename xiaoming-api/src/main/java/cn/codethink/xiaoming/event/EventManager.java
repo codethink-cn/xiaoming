@@ -42,6 +42,14 @@ public interface EventManager {
     void registerListeners(Listeners listeners, Subject subject);
 
     /**
+     * Register listener.
+     *
+     * @param listener listener
+     * @throws NullPointerException listeners is null
+     */
+    void registerListener(Listener listener);
+
+    /**
      * Publish an event.
      *
      * @param event event

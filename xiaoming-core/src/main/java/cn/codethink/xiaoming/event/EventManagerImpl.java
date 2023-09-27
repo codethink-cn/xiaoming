@@ -265,6 +265,19 @@ public class EventManagerImpl
     }
 
     @Override
+    public void registerListener(Listener listener) {
+        Preconditions.checkNotNull(listener, "Listener is null!");
+
+        final Order order = listener.getOrder();
+        listenersLock.writeLock().lock();
+        try {
+            listeners.computeIfAbsent(order, ignored -> new ArrayList<>()).add(listener);
+        } finally {
+            listenersLock.writeLock().unlock();
+        }
+    }
+
+    @Override
     public void publishEvent(Event event, Subject publisher) {
         Preconditions.checkNotNull(event, "Event is null!");
         Preconditions.checkNotNull(publisher, "Publisher is null!");
