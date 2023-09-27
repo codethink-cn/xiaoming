@@ -19,7 +19,9 @@ package cn.codethink.xiaoming.cabin.plugin;
 /**
  * <h1>Plugin Main</h1>
  *
- * <p>Plugin main is the main class for a plugin. </p>
+ * <p>Plugin main is the main class for a plugin. Every plugin developer is
+ * required to provide a plugin main class implemented this interface
+ * directly or indirectly. </p>
  *
  * @author Chuanwise
  */
@@ -31,5 +33,24 @@ public interface PluginMain {
      * @param context context
      * @throws Exception exception thrown in loading plugin.
      */
-    void load(PluginLoadingContext context) throws Exception;
+    default void load(PluginLoadingContext context) throws Exception {
+    }
+
+    /**
+     * Enable plugin.
+     *
+     * @param context context
+     * @throws Exception exception thrown in enabling plugin.
+     */
+    default void enable(PluginEnablingContext context) throws Exception {
+    }
+
+    /**
+     * Disable plugin.
+     *
+     * @param context context
+     * @throws Exception exception thrown in disabling plugin.
+     */
+    default void disable(PluginDisablingContext context) throws Exception {
+    }
 }
