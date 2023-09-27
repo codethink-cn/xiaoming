@@ -35,7 +35,7 @@ import java.util.ServiceLoader;
 @BotInternalApi
 public final class BotApiFactory {
     private BotApiFactory() {
-        throw new UnsupportedOperationException("No cn.codethink.xiaoming.bot.api.BotApiFactory instances for you!");
+        throw new UnsupportedOperationException("No cn.codethink.xiaoming.api.BotApiFactory instances for you!");
     }
 
     /**
@@ -63,9 +63,10 @@ public final class BotApiFactory {
                     if (iterator.hasNext()) {
                         botApi = iterator.next();
                     } else {
-                        throw new NoSuchElementException("BotApi is not present! " +
-                                "Make sure module 'xiaoming-bot-core' is a runtime dependency. " +
-                                "If it is, use 'BotApiFactory.setBotApi(new BotApiImpl())' to fix it. ");
+                        throw new NoSuchElementException("Bot api is not present! " +
+                                "Make sure module 'xiaoming-bot' is a runtime dependency. " +
+                                "In the majority of situations it can be found automatically. " +
+                                "If it didn't, use 'BotApiFactory.setBotApi(new BotApiImpl())' to fix it manually. ");
                     }
                 }
             }
