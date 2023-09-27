@@ -16,6 +16,7 @@
 
 package cn.codethink.xiaoming.event;
 
+import cn.codethink.xiaoming.cause.AbstractCause;
 import cn.codethink.xiaoming.cause.Cause;
 import com.google.common.base.Preconditions;
 
@@ -32,6 +33,7 @@ import com.google.common.base.Preconditions;
  * @author Chuanwise
  */
 public abstract class AbstractEvent
+    extends AbstractCause
     implements Event {
 
     /**
@@ -39,19 +41,11 @@ public abstract class AbstractEvent
      */
     private volatile boolean intercepted = false;
 
-    /**
-     * Event cause.
-     */
-    private final Cause cause;
-
     public AbstractEvent(Cause cause) {
-        Preconditions.checkNotNull(cause, "Cause is null!");
-
-        this.cause = cause;
+        super(cause);
     }
 
     public AbstractEvent() {
-        this.cause = null;
     }
 
     public final boolean isIntercepted() {
@@ -60,10 +54,5 @@ public abstract class AbstractEvent
 
     public final void setIntercepted(boolean intercepted) {
         this.intercepted = intercepted;
-    }
-
-    @Override
-    public final Cause getCause() {
-        return cause;
     }
 }
