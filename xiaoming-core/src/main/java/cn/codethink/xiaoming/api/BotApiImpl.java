@@ -22,6 +22,9 @@ import cn.codethink.xiaoming.id.LongId;
 import cn.codethink.xiaoming.id.LongIdImpl;
 import cn.codethink.xiaoming.id.StringId;
 import cn.codethink.xiaoming.id.StringIdImpl;
+import cn.codethink.xiaoming.time.MillisecondTime;
+import cn.codethink.xiaoming.time.SecondTime;
+import cn.codethink.xiaoming.time.Time;
 
 public class BotApiImpl
     implements BotApi {
@@ -39,5 +42,20 @@ public class BotApiImpl
     @Override
     public Listener.Builder<?> getListenerBuilder() {
         return new FunctionalListener.BuilderImpl<>();
+    }
+
+    @Override
+    public Time getTimeOfNow() {
+        return new MillisecondTime(System.currentTimeMillis());
+    }
+
+    @Override
+    public Time getTimeOfSeconds(long seconds) {
+        return new SecondTime(seconds);
+    }
+
+    @Override
+    public Time getTimeOfMilliseconds(long milliseconds) {
+        return new MillisecondTime(milliseconds);
     }
 }

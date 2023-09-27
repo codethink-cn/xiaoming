@@ -20,6 +20,7 @@ import cn.codethink.xiaoming.annotation.BotInternalApi;
 import cn.codethink.xiaoming.event.Listener;
 import cn.codethink.xiaoming.id.LongId;
 import cn.codethink.xiaoming.id.StringId;
+import cn.codethink.xiaoming.time.Time;
 
 /**
  * <h1>Bot Api</h1>
@@ -35,4 +36,8 @@ public interface BotApi {
     StringId getStringId(String value);
 
     Listener.Builder<?> getListenerBuilder();
+
+    Time getTimeOfNow();
+    Time getTimeOfSeconds(long seconds);
+    Time getTimeOfMilliseconds(long milliseconds);
 }
