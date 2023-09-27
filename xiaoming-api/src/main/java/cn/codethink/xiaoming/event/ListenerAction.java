@@ -16,39 +16,23 @@
 
 package cn.codethink.xiaoming.event;
 
-import cn.codethink.xiaoming.Bot;
-import cn.codethink.xiaoming.Subject;
-import cn.codethink.xiaoming.cause.Cause;
-
 /**
- * <h1>Event Listening Context</h1>
+ * <h1>Listener Action</h1>
  *
- * <p>Event listening context provided information about the publishing
- * operation, including the instance of bot, cause, logger, etc. </p>
+ * <p>Listener action is an functional interface accepting {@link EventListeningContext}
+ * and allowed to throw checked exception. </p>
  *
  * @param <T> event class
  * @author Chuanwise
  */
-public interface EventListeningContext<T> {
+@FunctionalInterface
+public interface ListenerAction<T> {
 
     /**
-     * Get publisher.
+     * Handle event.
      *
-     * @return publisher
+     * @param context context
+     * @throws Exception exception thrown in handling event
      */
-    Subject getPublisher();
-
-    /**
-     * Get event.
-     *
-     * @return event
-     */
-    T getEvent();
-
-    /**
-     * Get bot.
-     *
-     * @return bot
-     */
-    Bot getBot();
+    void listen(EventListeningContext<T> context) throws Exception;
 }

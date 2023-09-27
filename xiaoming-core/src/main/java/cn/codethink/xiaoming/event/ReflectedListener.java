@@ -22,44 +22,29 @@ import com.google.common.base.Preconditions;
 import java.lang.reflect.Method;
 import java.util.Set;
 
-class ReflectedListener
-        implements Listener {
+public class ReflectedListener
+    extends AbstractListener<Event> {
 
     private static final Object[] EMPTY_ARGUMENT_ARRAY = {};
-
-    private final Set<Class<?>> eventClasses;
-    private final boolean ignoreCancelledEvent;
-    private final Order order;
-    private final Subject subject;
     private final Listeners object;
     private final Method method;
     private final Class<?> parameterType;
 
+    @SuppressWarnings("unchecked")
     public ReflectedListener(Set<Class<?>> eventClasses, Order order, boolean ignoreCancelledEvent, Subject subject,
                              Listeners listeners, Method method, Class<?> parameterType) {
+        super((Set<Class<? extends Event>>) eventClasses, order, ignoreCancelledEvent, subject);
 
-        Preconditions.checkNotNull(eventClasses, "Event classes are null!");
-        Preconditions.checkNotNull(order, "Order is null!");
-        Preconditions.checkNotNull(subject, "Subject is null!");
         Preconditions.checkNotNull(listeners, "Listeners are null!");
         Preconditions.checkNotNull(method, "Method is null!");
 
-        this.eventClasses = eventClasses;
-        this.ignoreCancelledEvent = ignoreCancelledEvent;
-        this.order = order;
-        this.subject = subject;
         this.object = listeners;
         this.method = method;
         this.parameterType = parameterType;
     }
 
     @Override
-    public Set<Class<?>> getEventClasses() {
-        return eventClasses;
-    }
-
-    @Override
-    public void listen(EventListeningContext context) throws Exception {
+    public void listen(EventListeningContext<Event> context) throws Exception {
         Preconditions.checkNotNull(context, "Event listening context is null!");
 
         final Object[] arguments;
@@ -71,20 +56,5 @@ class ReflectedListener
         }
 
         method.invoke(object, arguments);
-    }
-
-    @Override
-    public boolean isIgnoreCancelledEvent() {
-        return ignoreCancelledEvent;
-    }
-
-    @Override
-    public Subject getSubject() {
-        return subject;
-    }
-
-    @Override
-    public Order getOrder() {
-        return order;
     }
 }

@@ -26,16 +26,37 @@ import java.util.Set;
  * <p>Listener is a function will be called when corresponding events
  * are published. </p>
  *
+ * @param <T> event class
  * @author Chuanwise
  */
-public interface Listener {
+public interface Listener<T> {
+
+    interface Builder<T> {
+
+        @SuppressWarnings("all")
+        <U> Builder<U> eventClasses(Class<? extends U>... eventClasses);
+
+        <U> Builder<U> eventClass(Class<U> eventClass);
+
+        Builder<T> ignoreCancelledEvent(boolean ignoreCancelledEvent);
+
+        Builder<T> order(Order order);
+
+        Builder<T> action(ListenerAction<T> listenerAction);
+
+        Listener<T> build();
+    }
+
+    static Builder<?> builder() {
+
+    }
 
     /**
      * Get event classes.
      *
      * @return event classes
      */
-    Set<Class<?>> getEventClasses();
+    Set<Class<? extends T>> getEventClasses();
 
     /**
      * Handle event.
@@ -43,7 +64,7 @@ public interface Listener {
      * @param context event handling context
      * @throws Exception exception thrown in handling event
      */
-    void listen(EventListeningContext context) throws Exception;
+    void listen(EventListeningContext<T> context) throws Exception;
 
     /**
      * Query if cancelled events are ignored by the listener.

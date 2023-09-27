@@ -19,6 +19,7 @@ package cn.codethink.xiaoming.event;
 import cn.codethink.xiaoming.Subject;
 import com.google.common.base.Preconditions;
 
+import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -30,21 +31,22 @@ import java.util.Set;
  * <p>Not all listeners must be inherited from this class, but if you are
  * developing a simple listener, it's recommended to inherit from it. </p>
  *
+ * @param <T> event class
  * @see Listener
  * @author Chuanwise
  */
-public abstract class AbstractListener
-    implements Listener {
+public abstract class AbstractListener<T>
+    implements Listener<T> {
 
-    private final Set<Class<?>> eventClasses;
+    private final Set<Class<? extends T>> eventClasses;
     private final Order order;
     private final boolean ignoreCancelledEvent;
     private final Subject subject;
 
-    public AbstractListener(Set<Class<?>> eventClasses, Order order, boolean ignoreCancelledEvent, Subject subject) {
+    public AbstractListener(Set<Class<? extends T>> eventClasses, Order order, boolean ignoreCancelledEvent, Subject subject) {
         Preconditions.checkNotNull(eventClasses, "Event classes are null!");
         Preconditions.checkArgument(!eventClasses.isEmpty(), "Event classes are empty!");
-        Preconditions.checkArgument(eventClasses.contains(null), "Event classes contains null!");
+        Preconditions.checkArgument(!eventClasses.contains(null), "Event classes contains null!");
         Preconditions.checkNotNull(order, "Order is null!");
         Preconditions.checkNotNull(subject, "Subject is null!");
 
@@ -55,7 +57,7 @@ public abstract class AbstractListener
     }
 
     @Override
-    public final Set<Class<?>> getEventClasses() {
+    public final Set<Class<? extends T>> getEventClasses() {
         return eventClasses;
     }
 

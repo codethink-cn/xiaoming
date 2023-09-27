@@ -16,39 +16,29 @@
 
 package cn.codethink.xiaoming.event;
 
-import cn.codethink.xiaoming.Bot;
 import cn.codethink.xiaoming.Subject;
 import com.google.common.base.Preconditions;
 
-public class EventListeningContextImpl<T>
-    implements EventListeningContext<T> {
+import java.util.Set;
+import java.util.function.Consumer;
 
-    private final T event;
-    private final Subject publisher;
-    private final Bot bot;
+public class FunctionalListener<T>
+    extends AbstractListener<T> {
+    private final ListenerAction<T> action;
 
-    public EventListeningContextImpl(T event, Subject publisher, Bot bot) {
-        Preconditions.checkNotNull(event, "Event is null!");
-        Preconditions.checkNotNull(publisher, "Publisher is null!");
-        Preconditions.checkNotNull(bot, "Bot is null!");
+    public FunctionalListener(Set<Class<? extends T>> eventClasses, Order order, boolean ignoreCancelledEvent, Subject subject,
+                              ListenerAction<T> action) {
+        super(eventClasses, order, ignoreCancelledEvent, subject);
 
-        this.event = event;
-        this.publisher = publisher;
-        this.bot = bot;
+        Preconditions.checkNotNull(action, "Action is null!");
+
+        this.action = action;
     }
 
     @Override
-    public Subject getPublisher() {
-        return publisher;
-    }
+    public void listen(EventListeningContext<T> context) throws Exception {
+        Preconditions.checkNotNull(context, "Event listening context is null!");
 
-    @Override
-    public T getEvent() {
-        return event;
-    }
-
-    @Override
-    public Bot getBot() {
-        return bot;
+        action.listen(context);
     }
 }
