@@ -30,10 +30,10 @@ public class ReflectedListener
     private final Method method;
     private final Class<?> parameterType;
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"rawtypes", "unchecked"})
     public ReflectedListener(Set<Class<?>> eventClasses, Order order, boolean ignoreCancelledEvent, Subject subject,
                              Listeners listeners, Method method, Class<?> parameterType) {
-        super((Set<Class<? extends Event>>) eventClasses, order, ignoreCancelledEvent, subject);
+        super((Set) eventClasses, order, ignoreCancelledEvent, subject);
 
         Preconditions.checkNotNull(listeners, "Listeners are null!");
         Preconditions.checkNotNull(method, "Method is null!");

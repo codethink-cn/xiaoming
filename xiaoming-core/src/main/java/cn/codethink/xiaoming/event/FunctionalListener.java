@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 
 public class FunctionalListener<T>
     extends AbstractListener<T> {
@@ -38,9 +37,9 @@ public class FunctionalListener<T>
         private Subject subject;
 
         @Override
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"rawtypes", "unchecked"})
         public <U> Builder<U> eventClasses(Class<? extends U>... eventClasses) {
-            this.eventClasses = (Set<Class<? extends T>>) new HashSet<>(Arrays.asList(eventClasses));
+            this.eventClasses = (Set) new HashSet<>(Arrays.asList(eventClasses));
             return (Builder<U>) this;
         }
 
