@@ -16,34 +16,30 @@
 
 package cn.codethink.xiaoming.component;
 
-import cn.codethink.xiaoming.Subject;
+import cn.codethink.xiaoming.Bot;
+import cn.codethink.xiaoming.cause.Cause;
 
 /**
- * <h1>Component</h1>
+ * <h1>Component Enabling Context</h1>
  *
- * <p>Component is a set of functions related to a bot directly
- * and strongly. It always be low-level, such as protocol fixing. </p>
+ * <p>Component enabling context provided information about the enabling
+ * operation, including the instance of bot, cause, logger, etc. </p>
  *
  * @author Chuanwise
  */
-public interface Component
-    extends Subject {
+public interface ComponentUninstallingContext {
 
     /**
-     * Install component.
+     * Get bot.
      *
-     * @param context context
-     * @throws Exception exception thrown in installing context
+     * @return bot
      */
-    default void install(ComponentInstallingContext context) throws Exception {
-    }
+    Bot getBot();
 
     /**
-     * Uninstall component.
+     * Get cause.
      *
-     * @param context context
-     * @throws Exception exception thrown in uninstalling context
+     * @return cause
      */
-    default void uninstall(ComponentUninstallingContext context) throws Exception {
-    }
+    Cause getCause();
 }

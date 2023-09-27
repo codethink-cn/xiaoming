@@ -27,7 +27,7 @@ import cn.codethink.xiaoming.cause.Cause;
  *
  * @author Chuanwise
  */
-public interface ComponentEnablingContext {
+public interface ComponentInstallingContext {
 
     /**
      * Get bot.
