@@ -21,14 +21,14 @@ import cn.codethink.xiaoming.Subject;
 import java.util.Collection;
 
 /**
- * <h1>Scanner</h1>
+ * <h1>Plugin Scanner</h1>
  *
- * <p>Scanner is a module to scan all available plugins
+ * <p>Plugin scanner is a module to scan all available plugins
  * installed in the instance of xiaoming cabin. </p>
  *
  * @author Chuanwise
  */
-public interface Scanner {
+public interface PluginScanner {
 
     /**
      * Get subject.
