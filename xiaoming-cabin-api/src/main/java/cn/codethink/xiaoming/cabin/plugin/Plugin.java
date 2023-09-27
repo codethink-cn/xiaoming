@@ -19,6 +19,9 @@ package cn.codethink.xiaoming.cabin.plugin;
 import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.cause.Cause;
 
+import java.io.File;
+import java.nio.file.Path;
+
 /**
  * <h1>Plugin</h1>
  *
@@ -38,10 +41,47 @@ public interface Plugin
     PluginState getState();
 
     /**
+     * Get scanner.
+     *
+     * @return scanner
+     */
+    PluginScanner getScanner();
+
+    /**
      * Load plugin.
      *
      * @param cause cause
      * @throws Exception exception thrown in loading plugin.
      */
     void load(Cause cause) throws Exception;
+
+    /**
+     * Enable plugin.
+     *
+     * @param cause cause
+     * @throws Exception exception thrown in enabling plugin.
+     */
+    void enable(Cause cause) throws Exception;
+
+    /**
+     * Disable plugin.
+     *
+     * @param cause cause
+     * @throws Exception exception thrown in disabling plugin.
+     */
+    void disable(Cause cause) throws Exception;
+
+    /**
+     * Get data folder path.
+     *
+     * @return data folder path
+     */
+    Path getDataFolderPath();
+
+    /**
+     * Get data folder file.
+     *
+     * @return data folder file
+     */
+    File getDataFolderFile();
 }
