@@ -16,6 +16,9 @@
 
 package cn.codethink.xiaoming.cause;
 
+import java.util.List;
+import java.util.NoSuchElementException;
+
 /**
  * <h1>Cause</h1>
  *
@@ -24,4 +27,47 @@ package cn.codethink.xiaoming.cause;
  * @author Chuanwise
  */
 public interface Cause {
+
+    /**
+     * Get direct cause.
+     *
+     * @return cause or null
+     */
+    Cause getDirectCause();
+
+    /**
+     * Get direct cause.
+     *
+     * @return cause
+     * @throws NoSuchElementException cause isn't present
+     */
+    Cause getDirectCauseOrFail();
+
+    /**
+     * Get causes.
+     *
+     * @return causes
+     */
+    List<Cause> getCauses();
+
+    /**
+     * Get cause with provided class.
+     *
+     * @param causeClass cause class
+     * @param <T>        cause class
+     * @return cause or null
+     * @throws NullPointerException cause class is null
+     */
+    <T extends Cause> T getCause(Class<T> causeClass);
+
+    /**
+     * Get cause with provided class.
+     *
+     * @param causeClass cause class
+     * @param <T>        cause class
+     * @return cause
+     * @throws NullPointerException   cause class is null
+     * @throws NoSuchElementException cause with provided class isn't present
+     */
+    <T extends Cause> T getCauseOrFail(Class<T> causeClass);
 }
