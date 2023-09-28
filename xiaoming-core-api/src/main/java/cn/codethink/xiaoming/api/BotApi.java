@@ -17,6 +17,7 @@
 package cn.codethink.xiaoming.api;
 
 import cn.codethink.xiaoming.annotation.BotInternalApi;
+import cn.codethink.xiaoming.cause.ExceptionCause;
 import cn.codethink.xiaoming.event.Listener;
 import cn.codethink.xiaoming.id.LongId;
 import cn.codethink.xiaoming.id.StringId;
@@ -40,4 +41,6 @@ public interface BotApi {
     Time getTimeOfNow();
     Time getTimeOfSeconds(long seconds);
     Time getTimeOfMilliseconds(long milliseconds);
+
+    ExceptionCause getExceptionCause(Throwable exception, Time time);
 }

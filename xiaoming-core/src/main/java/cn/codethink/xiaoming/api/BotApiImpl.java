@@ -16,6 +16,8 @@
 
 package cn.codethink.xiaoming.api;
 
+import cn.codethink.xiaoming.cause.ExceptionCause;
+import cn.codethink.xiaoming.cause.ExceptionCauseImpl;
 import cn.codethink.xiaoming.event.FunctionalListener;
 import cn.codethink.xiaoming.event.Listener;
 import cn.codethink.xiaoming.id.LongId;
@@ -57,5 +59,10 @@ public class BotApiImpl
     @Override
     public Time getTimeOfMilliseconds(long milliseconds) {
         return new MillisecondTime(milliseconds);
+    }
+
+    @Override
+    public ExceptionCause getExceptionCause(Throwable exception, Time time) {
+        return new ExceptionCauseImpl(exception, time);
     }
 }
