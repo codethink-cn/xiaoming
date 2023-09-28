@@ -64,12 +64,17 @@ public class BotApiImpl
     }
 
     @Override
-    public ExceptionCause getExceptionCause(Throwable exception, Time time) {
-        return new ExceptionCauseImpl(exception, time);
+    public ExceptionCause getExceptionCause(Throwable exception, Time time, boolean retryable) {
+        return new ExceptionCauseImpl(exception, time, retryable);
     }
 
     @Override
     public Cause getDescriptionCause(String description) {
         return new DescriptionCause(description);
+    }
+
+    @Override
+    public Cause getDescriptionCause(String description, Cause cause) {
+        return new DescriptionCause(description, cause);
     }
 }
