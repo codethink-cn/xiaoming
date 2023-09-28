@@ -41,6 +41,13 @@ public interface Plugin
     PluginState getState();
 
     /**
+     * Get metadata.
+     *
+     * @return metadata
+     */
+    PluginMetadata getMetadata();
+
+    /**
      * Get scanner.
      *
      * @return scanner
