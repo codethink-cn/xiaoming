@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package cn.codethink.xiaoming.cabin.launcher;
+package cn.codethink.xiaoming.cabin;
 
 import cn.codethink.xiaoming.Subject;
+import cn.codethink.xiaoming.event.CancellableEvent;
 
 /**
- * <h1>Cabin Launcher</h1>
+ * <h1>Cabin Starting Event</h1>
  *
  * @author Chuanwise
  */
-public class CabinLauncher
-    implements Subject {
+public interface CabinStartingEvent
+    extends CancellableEvent, CabinEvent {
 
-
-
-    @Override
-    public String getName() {
-        return "cabin-launcher";
-    }
+    /**
+     * Get subject.
+     *
+     * @return subject
+     */
+    Subject getSubject();
 }
