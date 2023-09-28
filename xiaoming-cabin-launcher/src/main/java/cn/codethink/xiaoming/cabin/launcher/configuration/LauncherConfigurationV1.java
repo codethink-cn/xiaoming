@@ -18,4 +18,16 @@ package cn.codethink.xiaoming.cabin.launcher.configuration;
 
 public class LauncherConfigurationV1
     implements LauncherConfiguration {
+
+    private String name;
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
 }

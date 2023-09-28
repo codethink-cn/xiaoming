@@ -29,4 +29,11 @@ public interface LauncherConfiguration {
      * @return name
      */
     String getName();
+
+    /**
+     * Set name.
+     *
+     * @param name name
+     */
+    void setName(String name);
 }
