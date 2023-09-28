@@ -16,6 +16,7 @@
 
 package cn.codethink.xiaoming.cause;
 
+import cn.codethink.xiaoming.time.Time;
 import com.google.common.base.Preconditions;
 
 import java.util.*;
@@ -46,22 +47,40 @@ public class AbstractCause
     private List<Cause> causesCache;
 
     /**
-     * Construct a cause with provided direct cause.
-     *
-     * @param directCause direct cause
-     * @throws NullPointerException direct cause is null
+     * Time.
      */
+    private final Time time;
+
+    public AbstractCause(Cause directCause, Time time) {
+        Preconditions.checkNotNull(directCause, "Direct cause is null!");
+        Preconditions.checkNotNull(time, "Time is null!");
+
+        this.directCause = directCause;
+        this.time = time;
+    }
+
+    public AbstractCause(Time time) {
+        Preconditions.checkNotNull(time, "Time is null!");
+
+        this.directCause = null;
+        this.time = time;
+    }
+
     public AbstractCause(Cause directCause) {
         Preconditions.checkNotNull(directCause, "Direct cause is null!");
 
         this.directCause = directCause;
+        this.time = Time.now();
     }
 
-    /**
-     * Construct a cause without direct cause.
-     */
     public AbstractCause() {
         this.directCause = null;
+        this.time = Time.now();
+    }
+
+    @Override
+    public final Time getTime() {
+        return time;
     }
 
     @Override

@@ -16,6 +16,8 @@
 
 package cn.codethink.xiaoming.cause;
 
+import cn.codethink.xiaoming.time.Time;
+
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -27,6 +29,13 @@ import java.util.NoSuchElementException;
  * @author Chuanwise
  */
 public interface Cause {
+
+    /**
+     * Get time.
+     *
+     * @return time
+     */
+    Time getTime();
 
     /**
      * Get direct cause.

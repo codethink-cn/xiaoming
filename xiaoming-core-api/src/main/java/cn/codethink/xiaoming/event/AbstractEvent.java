@@ -18,6 +18,7 @@ package cn.codethink.xiaoming.event;
 
 import cn.codethink.xiaoming.cause.AbstractCause;
 import cn.codethink.xiaoming.cause.Cause;
+import cn.codethink.xiaoming.time.Time;
 import com.google.common.base.Preconditions;
 
 /**
@@ -40,6 +41,10 @@ public abstract class AbstractEvent
      * Field to record if event is intercepted.
      */
     private volatile boolean intercepted = false;
+
+    public AbstractEvent(Cause cause, Time time) {
+        super(cause, time);
+    }
 
     public AbstractEvent(Cause cause) {
         super(cause);
