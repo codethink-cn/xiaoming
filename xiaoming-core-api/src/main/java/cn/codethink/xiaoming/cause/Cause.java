@@ -16,6 +16,7 @@
 
 package cn.codethink.xiaoming.cause;
 
+import cn.codethink.xiaoming.api.BotApiFactory;
 import cn.codethink.xiaoming.time.Time;
 
 import java.util.List;
@@ -29,6 +30,25 @@ import java.util.NoSuchElementException;
  * @author Chuanwise
  */
 public interface Cause {
+
+    /**
+     * Construct a cause with provided description.
+     *
+     * @param description description
+     * @return cause
+     * @throws NullPointerException     description is null
+     * @throws IllegalArgumentException description is empty
+     */
+    static Cause of(String description) {
+        return BotApiFactory.getBotApi().getDescriptionCause(description);
+    }
+
+    /**
+     * Get description.
+     *
+     * @return description
+     */
+    String getDescription();
 
     /**
      * Get time.

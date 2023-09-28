@@ -16,6 +16,8 @@
 
 package cn.codethink.xiaoming.api;
 
+import cn.codethink.xiaoming.cause.Cause;
+import cn.codethink.xiaoming.cause.DescriptionCause;
 import cn.codethink.xiaoming.cause.ExceptionCause;
 import cn.codethink.xiaoming.cause.ExceptionCauseImpl;
 import cn.codethink.xiaoming.event.FunctionalListener;
@@ -64,5 +66,10 @@ public class BotApiImpl
     @Override
     public ExceptionCause getExceptionCause(Throwable exception, Time time) {
         return new ExceptionCauseImpl(exception, time);
+    }
+
+    @Override
+    public Cause getDescriptionCause(String description) {
+        return new DescriptionCause(description);
     }
 }

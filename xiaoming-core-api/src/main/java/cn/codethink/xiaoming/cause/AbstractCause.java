@@ -33,7 +33,7 @@ import java.util.*;
  * @see Cause
  * @author Chuanwise
  */
-public class AbstractCause
+public abstract class AbstractCause
     implements Cause {
 
     /**
