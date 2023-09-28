@@ -17,11 +17,11 @@
 package cn.codethink.xiaoming.cabin.launcher;
 
 /**
- * <h1>Cabin Launcher Main</h1>
+ * <h1>Launcher Main</h1>
  *
  * @author Chuanwise
  */
-public class CabinLauncherMain {
+public class LauncherMain {
     public static void main(String[] args) {
 
         // TODO: parse arguments
