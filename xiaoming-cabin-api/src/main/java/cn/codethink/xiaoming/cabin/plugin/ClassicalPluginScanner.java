@@ -23,8 +23,7 @@ import cn.codethink.xiaoming.cabin.api.CabinApiFactory;
  *
  * <p>Classical plugin scanner is a scanner scanning all legal jar files
  * located in directory './plugins', and extracting the resource file
- * '/META-INF/services/cn.codethink.xiaoming.cabin.plugin.PluginMain'
- * to load plugin. </p>
+ * '/xiaoming/plugin.yml' to load plugin. </p>
  *
  * @author Chuanwise
  */
