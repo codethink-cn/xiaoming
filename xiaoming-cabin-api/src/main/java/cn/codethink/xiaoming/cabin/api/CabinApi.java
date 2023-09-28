@@ -17,6 +17,7 @@
 package cn.codethink.xiaoming.cabin.api;
 
 import cn.codethink.xiaoming.cabin.annotation.CabinInternalApi;
+import cn.codethink.xiaoming.cabin.plugin.ClassicalPluginScanner;
 import cn.codethink.xiaoming.cabin.view.View;
 
 import java.util.function.Function;
@@ -35,4 +36,6 @@ public interface CabinApi {
 
     <T> View<T> getViewWith(Supplier<T> getter, Function<T, Boolean> setter, Predicate<T> filter);
     <T> View<T> getViewWith(Supplier<T> getter);
+
+    ClassicalPluginScanner getClassicalPluginScanner();
 }
