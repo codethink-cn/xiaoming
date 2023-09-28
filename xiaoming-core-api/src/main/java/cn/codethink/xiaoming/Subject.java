@@ -29,13 +29,6 @@ import cn.codethink.xiaoming.id.Id;
 public interface Subject {
 
     /**
-     * Get id.
-     *
-     * @return id
-     */
-    Id getId();
-
-    /**
      * get subject name
      *
      * @return subject name
