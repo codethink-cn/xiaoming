@@ -16,10 +16,16 @@
 
 package cn.codethink.xiaoming.cabin.launcher.configuration;
 
+import com.google.common.base.Preconditions;
+
+import java.io.File;
+import java.nio.file.Path;
+
 public class LauncherConfigurationV1
     implements LauncherConfiguration {
 
     private String name;
+    private Path workingDirectoryPath;
 
     @Override
     public String getName() {
@@ -29,5 +35,29 @@ public class LauncherConfigurationV1
     @Override
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public File getWorkingDirectoryFile() {
+        return workingDirectoryPath.toFile();
+    }
+
+    @Override
+    public Path getWorkingDirectoryPath() {
+        return workingDirectoryPath;
+    }
+
+    @Override
+    public void setWorkingDirectoryFile(File workingDirectoryFile) {
+        Preconditions.checkNotNull(workingDirectoryFile, "Working directory file is null!");
+
+        this.workingDirectoryPath = workingDirectoryFile.toPath();
+    }
+
+    @Override
+    public void setWorkingDirectoryPath(Path workingDirectoryPath) {
+        Preconditions.checkNotNull(workingDirectoryPath, "Working directory path is null!");
+
+        this.workingDirectoryPath = workingDirectoryPath;
     }
 }

@@ -16,6 +16,9 @@
 
 package cn.codethink.xiaoming.cabin.launcher.configuration;
 
+import java.io.File;
+import java.nio.file.Path;
+
 /**
  * <h1>Launcher Configuration</h1>
  *
@@ -36,4 +39,32 @@ public interface LauncherConfiguration {
      * @param name name
      */
     void setName(String name);
+
+    /**
+     * Get working directory file.
+     *
+     * @return working directory file
+     */
+    File getWorkingDirectoryFile();
+
+    /**
+     * Get working directory path.
+     *
+     * @return working directory path
+     */
+    Path getWorkingDirectoryPath();
+
+    /**
+     * Set working directory file.
+     *
+     * @param workingDirectoryFile working directory file
+     */
+    void setWorkingDirectoryFile(File workingDirectoryFile);
+
+    /**
+     * Set working directory path.
+     *
+     * @param workingDirectoryPath working directory path
+     */
+    void setWorkingDirectoryPath(Path workingDirectoryPath);
 }
