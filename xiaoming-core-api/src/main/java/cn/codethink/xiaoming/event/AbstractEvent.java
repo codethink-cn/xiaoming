@@ -41,6 +41,7 @@ public abstract class AbstractEvent
      * Field to record if event is intercepted.
      */
     private volatile boolean intercepted = false;
+    private String descriptionCache;
 
     public AbstractEvent(Cause cause, Time time) {
         super(cause, time);
@@ -59,5 +60,13 @@ public abstract class AbstractEvent
 
     public final void setIntercepted(boolean intercepted) {
         this.intercepted = intercepted;
+    }
+
+    @Override
+    public String getDescription() {
+        if (descriptionCache == null) {
+            descriptionCache = "Event '" + getClass().getSimpleName() + "'";
+        }
+        return descriptionCache;
     }
 }
