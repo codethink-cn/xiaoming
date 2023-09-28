@@ -13,6 +13,7 @@ repositories {
 
 dependencies {
     api project(':xiaoming-core-api')
+    runtimeOnly project(':xiaoming-core')
 
     implementation 'com.google.guava:guava:32.1.2-jre'
     implementation 'io.github.karlatemp:caller:1.0.1'
