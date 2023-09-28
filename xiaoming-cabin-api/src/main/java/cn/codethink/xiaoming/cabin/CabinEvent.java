@@ -21,11 +21,11 @@ import cn.codethink.xiaoming.event.Event;
 /**
  * <h1>Cabin Event</h1>
  *
- * <p>Cabin event is builtin event. </p>
+ * <p>Cabin event is cabin related event. </p>
  *
  * @author Chuanwise
  */
-public interface CabinBuiltinEvent
+public interface CabinEvent
     extends Event {
 
     /**
