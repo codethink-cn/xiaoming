@@ -16,29 +16,39 @@
 
 package cn.codethink.xiaoming.cabin;
 
-import cn.codethink.xiaoming.cabin.configuration.CabinConfiguration;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import cn.codethink.xiaoming.time.Time;
 
-public class CabinImpl
-    implements Cabin {
+/**
+ * <h1>Cabin State</h1>
+ *
+ * @author Chuanwise
+ */
+public interface CabinState {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(Cabin.class);
+    interface Error
+        extends CabinState {
 
-    private volatile CabinConfiguration configuration;
-
-    @Override
-    public CabinConfiguration getConfiguration() {
-        return configuration;
+        /**
+         * Get cause.
+         *
+         * @return cause
+         */
+        Throwable getCause();
     }
 
-    @Override
-    public String getName() {
-        return configuration.getName();
+    interface Normal
+        extends CabinState {
     }
 
-    @Override
-    public Logger getLogger() {
-        return LOGGER;
+    interface Stopped
+        extends CabinState {
+
     }
+
+    /**
+     * Get time.
+     *
+     * @return time
+     */
+    Time getTime();
 }

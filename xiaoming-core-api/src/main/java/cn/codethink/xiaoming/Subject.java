@@ -16,7 +16,7 @@
 
 package cn.codethink.xiaoming;
 
-import cn.codethink.xiaoming.id.Id;
+import org.slf4j.Logger;
 
 /**
  * <h1>Subject</h1>
@@ -29,9 +29,16 @@ import cn.codethink.xiaoming.id.Id;
 public interface Subject {
 
     /**
-     * get subject name
+     * Get subject name
      *
      * @return subject name
      */
     String getName();
+
+    /**
+     * Get logger.
+     *
+     * @return logger
+     */
+    Logger getLogger();
 }
