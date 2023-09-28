@@ -66,5 +66,5 @@ public interface CabinConfiguration {
      *
      * @param workingDirectoryPath working directory path
      */
-    void setWorkingDirectoryPath(File workingDirectoryPath);
+    void setWorkingDirectoryPath(Path workingDirectoryPath);
 }
