@@ -3,4 +3,5 @@ include 'xiaoming-core-api'
 include 'xiaoming-core'
 include 'xiaoming-cabin-api'
 include 'xiaoming-cabin'
+include 'xiaoming-cabin-launcher'
 
