@@ -30,6 +30,15 @@ public class DescriptionCause
         this.description = description;
     }
 
+    public DescriptionCause(String description, Cause cause) {
+        super(cause);
+
+        Preconditions.checkNotNull(description, "Description is null!");
+        Preconditions.checkArgument(!description.isEmpty(), "Description is empty!");
+
+        this.description = description;
+    }
+
     @Override
     public String getDescription() {
         return description;
