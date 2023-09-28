@@ -14,26 +14,40 @@
  * limitations under the License.
  */
 
-package cn.codethink.xiaoming.cabin.api;
+package cn.codethink.xiaoming.cabin.view;
 
-import cn.codethink.xiaoming.cabin.view.OperationView;
-import cn.codethink.xiaoming.cabin.view.ReadOnlyOperationView;
-import cn.codethink.xiaoming.cabin.view.View;
+import com.google.common.base.Preconditions;
 
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class CabinApiImpl
-    implements CabinApi {
+public class ReadOnlyOperationView<T>
+    extends AbstractView<T> {
 
-    @Override
-    public <T> View<T> getViewWith(Supplier<T> getter, Function<T, Boolean> setter, Predicate<T> filter) {
-        return new OperationView<>(getter, setter, filter);
+    private final Supplier<T> getter;
+
+    public ReadOnlyOperationView(Supplier<T> getter) {
+        Preconditions.checkNotNull(getter, "Getter is null!");
+
+        this.getter = getter;
     }
 
     @Override
-    public <T> View<T> getViewWith(Supplier<T> getter) {
-        return new ReadOnlyOperationView<>(getter);
+    public T get() {
+        return getter.get();
+    }
+
+    @Override
+    public boolean set(T value) {
+        return false;
+    }
+
+    @Override
+    public boolean setOrFail(T value) {
+        throw new UnsupportedOperationException("Value is read only!");
+    }
+
+    @Override
+    public boolean isLegal(T value) {
+        return false;
     }
 }

@@ -14,25 +14,37 @@
  * limitations under the License.
  */
 
-package cn.codethink.xiaoming.cabin.api;
+package cn.codethink.xiaoming.cabin.view;
 
-import cn.codethink.xiaoming.cabin.annotation.CabinInternalApi;
-import cn.codethink.xiaoming.cabin.view.View;
+import cn.codethink.xiaoming.time.Time;
 
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.io.Flushable;
 
 /**
- * <h1>Cabin Api</h1>
+ * <h1>Cached View</h1>
  *
- * <p>Cabin api is the bridge between xiaoming cabin api and core. </p>
- *
- * @author Chuanwise
+ * @param <T> view type
  */
-@CabinInternalApi
-public interface CabinApi {
+public interface CachedView<T>
+    extends View<T>, Flushable {
 
-    <T> View<T> getViewWith(Supplier<T> getter, Function<T, Boolean> setter, Predicate<T> filter);
-    <T> View<T> getViewWith(Supplier<T> getter);
+    /**
+     * Get last flushed time.
+     *
+     * @return last flushed time
+     */
+    Time getLastFlushedTime();
+
+    /**
+     * Flush cache manually.
+     */
+    @Override
+    void flush();
+
+    /**
+     * Try flush manually.
+     *
+     * @return if flushed
+     */
+    boolean tryFlush();
 }
