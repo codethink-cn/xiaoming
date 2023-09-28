@@ -19,6 +19,8 @@ package cn.codethink.xiaoming.cause;
 import cn.codethink.xiaoming.api.BotApiFactory;
 import cn.codethink.xiaoming.time.Time;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -44,11 +46,52 @@ public interface Cause {
     }
 
     /**
+     * Construct a cause with provided description and direct cause.
+     *
+     * @param description description
+     * @param cause cause
+     * @return cause
+     * @throws NullPointerException     description is null
+     * @throws IllegalArgumentException description is empty
+     */
+    static Cause of(String description, Cause cause) {
+        return BotApiFactory.getBotApi().getDescriptionCause(description, cause);
+    }
+
+    /**
      * Get description.
      *
      * @return description
      */
     String getDescription();
+
+    /**
+     * Get chained description.
+     *
+     * @return chained description.
+     */
+    String getChainedDescription();
+
+    /**
+     * Print chained description to a provided print stream.
+     *
+     * @param printStream print stream
+     * @throws NullPointerException print stream is null
+     */
+    void printChainedDescription(PrintStream printStream);
+
+    /**
+     * Print chained description to a provided print writer.
+     *
+     * @param printWriter print writer
+     * @throws NullPointerException print writer is null
+     */
+    void printChainedDescription(PrintWriter printWriter);
+
+    /**
+     * Print chained description to {@link System#out}.
+     */
+    void printChainedDescription();
 
     /**
      * Get time.

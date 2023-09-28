@@ -19,6 +19,9 @@ package cn.codethink.xiaoming.cause;
 import cn.codethink.xiaoming.time.Time;
 import com.google.common.base.Preconditions;
 
+import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.*;
 
 /**
@@ -162,5 +165,51 @@ public abstract class AbstractCause
     @Override
     public int hashCode() {
         return Objects.hash(directCause);
+    }
+
+    @Override
+    public void printChainedDescription() {
+        printChainedDescription(System.out);
+    }
+
+    @Override
+    public void printChainedDescription(PrintStream printStream) {
+        Preconditions.checkNotNull(printStream, "Print stream is null!");
+
+        printChainedDescription(new PrintWriter(printStream));
+    }
+
+    @Override
+    public void printChainedDescription(PrintWriter printWriter) {
+        Preconditions.checkNotNull(printWriter, "Print writer is null!");
+
+        printWriter.printf("Cause '%s': %s (at '%s') has ", getClass().getName(), getDescription(), time);
+
+        if (directCause == null) {
+            printWriter.print("no any deeper cause. ");
+        } else {
+            final List<Cause> causes = getCauses();
+            printWriter.print(causes.size());
+            printWriter.println(causes.size() > 1 ? " deeper causes: " : " deeper cause: ");
+
+            for (int i = 0; i < causes.size(); i++) {
+                final Cause cause = causes.get(i);
+                printWriter.printf("  (%d) '%s': %s (at '%s')\n", i + 1, cause.getClass().getName(), cause.getDescription(), cause.getTime());
+            }
+        }
+    }
+
+    @Override
+    public String getChainedDescription() {
+        final StringWriter stringWriter = new StringWriter();
+        try (final PrintWriter printWriter = new PrintWriter(stringWriter, true)) {
+            printChainedDescription(printWriter);
+        }
+        return stringWriter.getBuffer().toString();
+    }
+
+    @Override
+    public String toString() {
+        return "'" + getClass().getName() + "': " + getDescription();
     }
 }
