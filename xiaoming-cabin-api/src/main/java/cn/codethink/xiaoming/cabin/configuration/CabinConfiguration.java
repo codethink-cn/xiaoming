@@ -41,30 +41,9 @@ public interface CabinConfiguration {
     void setName(String name);
 
     /**
-     * Get working directory file.
+     * Get folder configuration.
      *
-     * @return working directory file
+     * @return folder configuration
      */
-    File getWorkingDirectoryFile();
-
-    /**
-     * Get working directory path.
-     *
-     * @return working directory path
-     */
-    Path getWorkingDirectoryPath();
-
-    /**
-     * Set working directory file.
-     *
-     * @param workingDirectoryFile working directory file
-     */
-    void setWorkingDirectoryFile(File workingDirectoryFile);
-
-    /**
-     * Set working directory path.
-     *
-     * @param workingDirectoryPath working directory path
-     */
-    void setWorkingDirectoryPath(Path workingDirectoryPath);
+    FolderConfiguration getFolderConfiguration();
 }
