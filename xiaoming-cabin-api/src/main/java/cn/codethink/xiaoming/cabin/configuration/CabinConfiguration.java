@@ -27,6 +27,20 @@ import java.nio.file.Path;
 public interface CabinConfiguration {
 
     /**
+     * Get name.
+     *
+     * @return name
+     */
+    String getName();
+
+    /**
+     * Set name.
+     *
+     * @param name name
+     */
+    void setName(String name);
+
+    /**
      * Get working directory file.
      *
      * @return working directory file
