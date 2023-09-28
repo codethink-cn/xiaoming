@@ -17,6 +17,7 @@
 package cn.codethink.xiaoming.cabin;
 
 import cn.codethink.xiaoming.Subject;
+import cn.codethink.xiaoming.cabin.configuration.CabinConfiguration;
 
 /**
  * <h1>Cabin</h1>
@@ -27,4 +28,11 @@ import cn.codethink.xiaoming.Subject;
  */
 public interface Cabin
     extends Subject {
+
+    /**
+     * Get configuration.
+     *
+     * @return configuration
+     */
+    CabinConfiguration getConfiguration();
 }
