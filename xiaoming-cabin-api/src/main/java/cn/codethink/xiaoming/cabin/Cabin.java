@@ -18,6 +18,7 @@ package cn.codethink.xiaoming.cabin;
 
 import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.cabin.configuration.CabinConfiguration;
+import cn.codethink.xiaoming.cause.Cause;
 
 /**
  * <h1>Cabin</h1>
@@ -35,4 +36,22 @@ public interface Cabin
      * @return configuration
      */
     CabinConfiguration getConfiguration();
+
+    /**
+     * Start cabin.
+     *
+     * @param cause   cause
+     * @param subject subject
+     * @throws Exception exception thrown in starting cabin.
+     */
+    void start(Cause cause, Subject subject) throws Exception;
+
+    /**
+     * Stop cabin.
+     *
+     * @param cause   cabin
+     * @param subject subject
+     * @throws Exception exception thrown in stopping cabin.
+     */
+    void stop(Cause cause, Subject subject) throws Exception;
 }
