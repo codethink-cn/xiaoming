@@ -27,28 +27,30 @@ import cn.codethink.xiaoming.time.Time;
  * @author Chuanwise
  */
 public interface ExceptionCause
-    extends Cause {
+    extends FailedCause {
 
     /**
      * Construct an exception cause with provided exception.
      *
      * @param exception exception
+     * @param retryable retryable
      * @return exception cause
      * @throws NullPointerException exception is null
      */
-    static ExceptionCause of(Throwable exception) {
-        return BotApiFactory.getBotApi().getExceptionCause(exception, Time.now());
+    static ExceptionCause of(Throwable exception, boolean retryable) {
+        return BotApiFactory.getBotApi().getExceptionCause(exception, Time.now(), retryable);
     }
 
     /**
      * Construct an exception cause with provided exception and time.
      *
      * @param exception exception
+     * @param retryable retryable
      * @return exception cause
      * @throws NullPointerException exception is null
      */
-    static ExceptionCause of(Throwable exception, Time time) {
-        return BotApiFactory.getBotApi().getExceptionCause(exception, time);
+    static ExceptionCause of(Throwable exception, Time time, boolean retryable) {
+        return BotApiFactory.getBotApi().getExceptionCause(exception, time, retryable);
     }
 
     /**
@@ -57,11 +59,4 @@ public interface ExceptionCause
      * @return exception
      */
     Throwable getException();
-
-    /**
-     * Get time.
-     *
-     * @return time
-     */
-    Time getTime();
 }
