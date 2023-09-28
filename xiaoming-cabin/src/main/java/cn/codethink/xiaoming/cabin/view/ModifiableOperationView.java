@@ -18,17 +18,25 @@ package cn.codethink.xiaoming.cabin.view;
 
 import com.google.common.base.Preconditions;
 
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
-public class ReadOnlyOperationView<T>
-    extends AbstractView<T> {
+public class ModifiableOperationView<T>
+    extends AbstractModifiableView<T> {
 
     private final Supplier<T> getter;
+    private final Function<T, Boolean> setter;
+    private final Predicate<T> filter;
 
-    public ReadOnlyOperationView(Supplier<T> getter) {
+    public ModifiableOperationView(Supplier<T> getter, Function<T, Boolean> setter, Predicate<T> filter) {
         Preconditions.checkNotNull(getter, "Getter is null!");
+        Preconditions.checkNotNull(setter, "Setter is null!");
+        Preconditions.checkNotNull(filter, "Filter is null!");
 
         this.getter = getter;
+        this.setter = setter;
+        this.filter = filter;
     }
 
     @Override
@@ -38,16 +46,22 @@ public class ReadOnlyOperationView<T>
 
     @Override
     public boolean set(T value) {
-        return false;
+        if (!filter.test(value)) {
+            return false;
+        }
+        return setter.apply(value);
     }
 
     @Override
     public boolean setOrFail(T value) {
-        throw new UnsupportedOperationException("Value is read only!");
+        if (!filter.test(value)) {
+            throw new IllegalArgumentException("Value is illegal!");
+        }
+        return setter.apply(value);
     }
 
     @Override
-    public boolean isLegal(T value) {
-        return false;
+    public boolean test(T value) {
+        return filter.test(value);
     }
 }
