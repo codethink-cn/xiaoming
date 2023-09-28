@@ -16,6 +16,8 @@
 
 package cn.codethink.xiaoming;
 
+import cn.codethink.xiaoming.id.Id;
+
 /**
  * <h1>Subject</h1>
  *
@@ -25,6 +27,13 @@ package cn.codethink.xiaoming;
  * @author Chuanwise
  */
 public interface Subject {
+
+    /**
+     * Get id.
+     *
+     * @return id
+     */
+    Id getId();
 
     /**
      * get subject name
