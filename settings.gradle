@@ -4,4 +4,6 @@ include 'xiaoming-core'
 include 'xiaoming-cabin-api'
 include 'xiaoming-cabin'
 include 'xiaoming-cabin-launcher'
+include 'jackson-datatype-xiaoming-core'
+include 'jackson-datatype-xiaoming-cabin'
 
