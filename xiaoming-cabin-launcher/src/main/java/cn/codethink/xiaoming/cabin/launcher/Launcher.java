@@ -48,7 +48,7 @@ public class Launcher
     /**
      * Launcher state.
      */
-    private volatile LauncherState state = LauncherState.DISABLED;
+    private volatile LauncherState state = new LauncherState(LauncherState.Type.READY, Cause.of("Constructing launcher"));
 
     @Override
     public String getName() {
