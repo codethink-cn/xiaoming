@@ -16,8 +16,9 @@
 
 package cn.codethink.xiaoming.cabin.api;
 
+import cn.codethink.xiaoming.cabin.plugin.ClassicalPluginScanner;
+import cn.codethink.xiaoming.cabin.view.ModifiableOperationView;
 import cn.codethink.xiaoming.cabin.view.OperationView;
-import cn.codethink.xiaoming.cabin.view.ReadOnlyOperationView;
 import cn.codethink.xiaoming.cabin.view.View;
 
 import java.util.function.Function;
@@ -29,11 +30,16 @@ public class CabinApiImpl
 
     @Override
     public <T> View<T> getViewWith(Supplier<T> getter, Function<T, Boolean> setter, Predicate<T> filter) {
-        return new OperationView<>(getter, setter, filter);
+        return new ModifiableOperationView<>(getter, setter, filter);
     }
 
     @Override
     public <T> View<T> getViewWith(Supplier<T> getter) {
-        return new ReadOnlyOperationView<>(getter);
+        return new OperationView<>(getter);
+    }
+
+    @Override
+    public ClassicalPluginScanner getClassicalPluginScanner() {
+        return ClassicalPluginScanner.;
     }
 }
