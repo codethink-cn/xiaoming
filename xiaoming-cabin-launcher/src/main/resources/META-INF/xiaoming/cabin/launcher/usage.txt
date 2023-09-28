@@ -1,0 +1,10 @@
+usage: cl [--version|-v] [--help|-h] [--directory|-d=<directory>]
+Launch a Cabin instance and open a console terminal (if the standard input is available)
+
+  -A, --agree-all-eula     agree eula of using cabin-launcher, cabin and xaioming.
+  -a, --agree-eula         just agree eula of using cabin-launcher
+
+  -h, --help               show cabin-launcher help
+
+Examples:
+  cl -h      print cabin-launcher help
