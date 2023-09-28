@@ -30,7 +30,7 @@ import java.net.URLClassLoader;
  *
  * @author Chuanwise
  */
-public final class PluginClassLoader
+public class PluginClassLoader
     extends URLClassLoader {
 
     /**
@@ -49,6 +49,10 @@ public final class PluginClassLoader
         Preconditions.checkNotNull(plugin, "Plugin is null!");
 
         this.plugin = plugin;
+    }
+
+    public Plugin getPlugin() {
+        return plugin;
     }
 
     @Override
