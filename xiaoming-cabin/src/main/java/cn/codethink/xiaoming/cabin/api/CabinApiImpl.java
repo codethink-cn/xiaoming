@@ -37,9 +37,4 @@ public class CabinApiImpl
     public <T> View<T> getViewWith(Supplier<T> getter) {
         return new OperationView<>(getter);
     }
-
-    @Override
-    public ClassicalPluginScanner getClassicalPluginScanner() {
-        return ClassicalPluginScanner.;
-    }
 }
