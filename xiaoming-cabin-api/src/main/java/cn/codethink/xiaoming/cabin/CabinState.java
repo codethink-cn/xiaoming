@@ -16,7 +16,7 @@
 
 package cn.codethink.xiaoming.cabin;
 
-import cn.codethink.xiaoming.time.Time;
+import cn.codethink.xiaoming.cause.Cause;
 
 /**
  * <h1>Cabin State</h1>
@@ -25,30 +25,71 @@ import cn.codethink.xiaoming.time.Time;
  */
 public interface CabinState {
 
-    interface Error
-        extends CabinState {
+    enum Type {
 
         /**
-         * Get cause.
-         *
-         * @return cause
+         * Ready for starting, but never been started after constructed.
          */
-        Throwable getCause();
-    }
+        READY(false, false),
 
-    interface Normal
-        extends CabinState {
-    }
+        /**
+         * Starting.
+         */
+        STARTING(true, false),
 
-    interface Stopped
-        extends CabinState {
+        /**
+         * Exception thrown in starting. Use {@link #getCause()} to get more details.
+         */
+        STARTING_FAILED(false, true),
 
+        /**
+         * Started.
+         */
+        STARTED(false, false),
+
+        /**
+         * Stopping.
+         */
+        STOPPING(true, false),
+
+        /**
+         * Exception thrown in stopping. Use {@link #getCause()} to get more details.
+         */
+        STOPPING_FAILED(false, true),
+
+        /**
+         * Exception thrown in starting.
+         */
+        STOPPED(false, false);
+
+        private final boolean doing;
+        private final boolean failed;
+
+        Type(boolean doing, boolean failed) {
+            this.doing = doing;
+            this.failed = failed;
+        }
+
+        public boolean isDoing() {
+            return doing;
+        }
+
+        public boolean isFailed() {
+            return failed;
+        }
     }
 
     /**
-     * Get time.
+     * Get type.
      *
-     * @return time
+     * @return type
      */
-    Time getTime();
+    Type getType();
+
+    /**
+     * Get cause.
+     *
+     * @return cause
+     */
+    Cause getCause();
 }
