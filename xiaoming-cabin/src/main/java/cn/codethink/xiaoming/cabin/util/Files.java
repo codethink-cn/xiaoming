@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package cn.codethink.xiaoming.util;
+package cn.codethink.xiaoming.cabin.util;
 
 import com.google.common.base.Preconditions;
 
@@ -30,6 +30,17 @@ import java.util.Arrays;
 public class Files {
     private Files() {
         throw new UnsupportedOperationException("No cn.codethink.xiaoming.util.Files instances for you! ");
+    }
+
+    /**
+     * Ensure the file is an existed directory.
+     *
+     * @param file file
+     * @return if the directory exist or created
+     */
+    public static boolean ensurePresentedDirectory(File file) {
+        Preconditions.checkNotNull(file, "File is null! ");
+        return file.isDirectory() || file.mkdirs();
     }
 
     /**
