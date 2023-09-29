@@ -85,14 +85,14 @@ public class FunctionalListener<T>
                               ListenerAction<T> action) {
         super(eventClasses, order, ignoreCancelledEvent, subject);
 
-        Preconditions.checkNotNull(action, "Action is null!");
+        Preconditions.checkNotNull(action, "Action is null! ");
 
         this.action = action;
     }
 
     @Override
     public void listen(EventListeningContext<T> context) throws Exception {
-        Preconditions.checkNotNull(context, "Event listening context is null!");
+        Preconditions.checkNotNull(context, "Event listening context is null! ");
 
         action.listen(context);
     }

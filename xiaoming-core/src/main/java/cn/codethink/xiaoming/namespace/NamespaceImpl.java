@@ -17,6 +17,7 @@
 package cn.codethink.xiaoming.namespace;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,7 +39,7 @@ public class NamespaceImpl
     }
 
     public static NamespaceImpl parse(String namespace) {
-        Preconditions.checkNotNull(namespace, "Namespace is null!");
+        Preconditions.checkNotNull(namespace, "Namespace is null! ");
         Preconditions.checkArgument(PATTERN.matcher(namespace).matches(), "Namespace is illegal! Make sure " +
                 "it matches the regexp: '" + PATTERN + "'! ");
 
@@ -61,6 +62,7 @@ public class NamespaceImpl
     }
 
     @Override
+    @NonNull
     public Iterator<String> iterator() {
         return segments.iterator();
     }

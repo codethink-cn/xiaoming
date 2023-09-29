@@ -82,7 +82,7 @@ public final class BotApiFactory {
      * @exception NullPointerException botApi is null
      */
     public static void setBotApi(BotApi botApi) {
-        Preconditions.checkNotNull(botApi, "Bot api is null!");
+        Preconditions.checkNotNull(botApi, "Bot api is null! ");
 
         BotApiFactory.botApi = botApi;
     }

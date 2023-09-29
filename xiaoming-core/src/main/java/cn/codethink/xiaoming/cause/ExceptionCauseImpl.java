@@ -32,8 +32,8 @@ public class ExceptionCauseImpl
     private Integer hashCodeCache;
 
     public ExceptionCauseImpl(Throwable exception, Time time, boolean retryable) {
-        Preconditions.checkNotNull(exception, "Exception is null!");
-        Preconditions.checkNotNull(time, "Time is null!");
+        Preconditions.checkNotNull(exception, "Exception is null! ");
+        Preconditions.checkNotNull(time, "Time is null! ");
 
         this.exception = exception;
         this.time = time;

@@ -19,8 +19,8 @@ package cn.codethink.xiaoming.cabin;
 import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.cabin.configuration.CabinConfiguration;
 import cn.codethink.xiaoming.cause.Cause;
-import cn.codethink.xiaoming.cause.ExceptionCause;
 import cn.codethink.xiaoming.cause.ErrorCause;
+import cn.codethink.xiaoming.cause.ExceptionCause;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,8 +43,8 @@ public class CabinImpl
 
     @Override
     public void start(Cause cause, Subject subject) throws Exception {
-        Preconditions.checkNotNull(cause, "Cause is null!");
-        Preconditions.checkNotNull(subject, "Subject is null!");
+        Preconditions.checkNotNull(cause, "Cause is null! ");
+        Preconditions.checkNotNull(subject, "Subject is null! ");
 
         // check if the cabin can be started now
         final CabinState.Type stateType = state.getType();

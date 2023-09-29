@@ -75,8 +75,8 @@ public abstract class AbstractModifiableView<T>
 
     @Override
     public <U> ModifiableView<U> map(Function<T, U> mapper, Function<U, T> reversedMapper) {
-        Preconditions.checkNotNull(mapper, "Mapper is null!");
-        Preconditions.checkNotNull(reversedMapper, "Reversed mapper is null!");
+        Preconditions.checkNotNull(mapper, "Mapper is null! ");
+        Preconditions.checkNotNull(reversedMapper, "Reversed mapper is null! ");
 
         return new MappedModifiableView<>(mapper, reversedMapper);
     }

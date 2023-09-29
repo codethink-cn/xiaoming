@@ -35,15 +35,15 @@ public class NamespaceIdImpl
     private String toStringCache;
 
     public NamespaceIdImpl(Namespace namespace, String name) {
-        Preconditions.checkNotNull(namespace, "Namespace is null!");
-        Preconditions.checkNotNull(name, "Name is null!");
+        Preconditions.checkNotNull(namespace, "Namespace is null! ");
+        Preconditions.checkNotNull(name, "Name is null! ");
 
         this.namespace = namespace;
         this.name = name;
     }
 
     public static NamespaceIdImpl parse(String namespaceId) {
-        Preconditions.checkNotNull(namespaceId, "Namespace id is null!");
+        Preconditions.checkNotNull(namespaceId, "Namespace id is null! ");
         Preconditions.checkArgument(PATTERN.matcher(namespaceId).matches(), "Namespace id '" + namespaceId + "' is illegal!");
 
         final String[] strings = namespaceId.split(Pattern.quote("."));

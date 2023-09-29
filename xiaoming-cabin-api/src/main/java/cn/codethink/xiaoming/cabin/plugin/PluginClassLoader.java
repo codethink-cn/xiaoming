@@ -46,7 +46,7 @@ public class PluginClassLoader
     public PluginClassLoader(Plugin plugin, ClassLoader parent) {
         super(EMPTY_URL_ARRAY, parent);
 
-        Preconditions.checkNotNull(plugin, "Plugin is null!");
+        Preconditions.checkNotNull(plugin, "Plugin is null! ");
 
         this.plugin = plugin;
     }
@@ -57,7 +57,7 @@ public class PluginClassLoader
 
     @Override
     public void addURL(URL url) {
-        Preconditions.checkNotNull(url, "URL is null!");
+        Preconditions.checkNotNull(url, "URL is null! ");
 
         super.addURL(url);
     }

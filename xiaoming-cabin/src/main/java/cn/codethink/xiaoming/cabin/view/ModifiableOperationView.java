@@ -30,9 +30,9 @@ public class ModifiableOperationView<T>
     private final Predicate<T> filter;
 
     public ModifiableOperationView(Supplier<T> getter, Function<T, Boolean> setter, Predicate<T> filter) {
-        Preconditions.checkNotNull(getter, "Getter is null!");
-        Preconditions.checkNotNull(setter, "Setter is null!");
-        Preconditions.checkNotNull(filter, "Filter is null!");
+        Preconditions.checkNotNull(getter, "Getter is null! ");
+        Preconditions.checkNotNull(setter, "Setter is null! ");
+        Preconditions.checkNotNull(filter, "Filter is null! ");
 
         this.getter = getter;
         this.setter = setter;

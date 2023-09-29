@@ -55,22 +55,22 @@ public abstract class AbstractCause
     private final Time time;
 
     public AbstractCause(Cause directCause, Time time) {
-        Preconditions.checkNotNull(directCause, "Direct cause is null!");
-        Preconditions.checkNotNull(time, "Time is null!");
+        Preconditions.checkNotNull(directCause, "Direct cause is null! ");
+        Preconditions.checkNotNull(time, "Time is null! ");
 
         this.directCause = directCause;
         this.time = time;
     }
 
     public AbstractCause(Time time) {
-        Preconditions.checkNotNull(time, "Time is null!");
+        Preconditions.checkNotNull(time, "Time is null! ");
 
         this.directCause = null;
         this.time = time;
     }
 
     public AbstractCause(Cause directCause) {
-        Preconditions.checkNotNull(directCause, "Direct cause is null!");
+        Preconditions.checkNotNull(directCause, "Direct cause is null! ");
 
         this.directCause = directCause;
         this.time = Time.now();
@@ -133,7 +133,7 @@ public abstract class AbstractCause
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Cause> T getCause(Class<T> causeClass) {
-        Preconditions.checkNotNull(causeClass, "Cause class is null!");
+        Preconditions.checkNotNull(causeClass, "Cause class is null! ");
 
         for (Cause cause : getCauses()) {
             if (causeClass.isInstance(cause)) {
@@ -174,14 +174,14 @@ public abstract class AbstractCause
 
     @Override
     public void printChainedDescription(PrintStream printStream) {
-        Preconditions.checkNotNull(printStream, "Print stream is null!");
+        Preconditions.checkNotNull(printStream, "Print stream is null! ");
 
         printChainedDescription(new PrintWriter(printStream));
     }
 
     @Override
     public void printChainedDescription(PrintWriter printWriter) {
-        Preconditions.checkNotNull(printWriter, "Print writer is null!");
+        Preconditions.checkNotNull(printWriter, "Print writer is null! ");
 
         printWriter.printf("Cause '%s': %s (at '%s') has ", getClass().getName(), getDescription(), time);
 

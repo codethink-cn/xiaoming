@@ -26,8 +26,8 @@ public class BotStateImpl
     private final Cause cause;
 
     public BotStateImpl(Type type, Cause cause) {
-        Preconditions.checkNotNull(type, "Type is null!");
-        Preconditions.checkNotNull(cause, "Cause is null!");
+        Preconditions.checkNotNull(type, "Type is null! ");
+        Preconditions.checkNotNull(cause, "Cause is null! ");
 
         this.type = type;
         this.cause = cause;

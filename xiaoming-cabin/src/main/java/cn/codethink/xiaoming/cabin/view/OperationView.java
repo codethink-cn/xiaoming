@@ -26,7 +26,7 @@ public class OperationView<T>
     private final Supplier<T> getter;
 
     public OperationView(Supplier<T> getter) {
-        Preconditions.checkNotNull(getter, "Getter is null!");
+        Preconditions.checkNotNull(getter, "Getter is null! ");
 
         this.getter = getter;
     }

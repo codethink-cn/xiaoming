@@ -28,9 +28,9 @@ public class EventListeningContextImpl<T>
     private final Bot bot;
 
     public EventListeningContextImpl(T event, Subject publisher, Bot bot) {
-        Preconditions.checkNotNull(event, "Event is null!");
-        Preconditions.checkNotNull(publisher, "Publisher is null!");
-        Preconditions.checkNotNull(bot, "Bot is null!");
+        Preconditions.checkNotNull(event, "Event is null! ");
+        Preconditions.checkNotNull(publisher, "Publisher is null! ");
+        Preconditions.checkNotNull(bot, "Bot is null! ");
 
         this.event = event;
         this.publisher = publisher;

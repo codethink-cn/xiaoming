@@ -82,7 +82,7 @@ public final class CabinApiFactory {
      * @exception NullPointerException cabinApi is null
      */
     public static void setCabinApi(CabinApi cabinApi) {
-        Preconditions.checkNotNull(cabinApi, "Cabin api is null!");
+        Preconditions.checkNotNull(cabinApi, "Cabin api is null! ");
 
         CabinApiFactory.cabinApi = cabinApi;
     }

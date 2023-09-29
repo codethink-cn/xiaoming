@@ -33,8 +33,8 @@ public class ClassicPluginMetadataV1
     private final Semver version;
 
     ClassicPluginMetadataV1(NamespaceId id, Semver version) {
-        Preconditions.checkNotNull(id, "Namespace id is null!");
-        Preconditions.checkNotNull(version, "Version is null!");
+        Preconditions.checkNotNull(id, "Namespace id is null! ");
+        Preconditions.checkNotNull(version, "Version is null! ");
 
         this.id = id;
         this.version = version;

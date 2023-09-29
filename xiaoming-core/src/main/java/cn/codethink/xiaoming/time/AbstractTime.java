@@ -17,6 +17,7 @@
 package cn.codethink.xiaoming.time;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.text.DateFormat;
 import java.util.Calendar;
@@ -48,7 +49,7 @@ public abstract class AbstractTime
 
     @Override
     public final Calendar toCalender(TimeZone timeZone) {
-        Preconditions.checkNotNull(timeZone, "Time zone is null!");
+        Preconditions.checkNotNull(timeZone, "Time zone is null! ");
 
         final Calendar calendar = Calendar.getInstance(timeZone);
         calendar.setTimeInMillis(toMilliseconds());
@@ -57,7 +58,7 @@ public abstract class AbstractTime
 
     @Override
     public final Calendar toCalender(Locale locale) {
-        Preconditions.checkNotNull(locale, "Locale is null!");
+        Preconditions.checkNotNull(locale, "Locale is null! ");
 
         final Calendar calendar = Calendar.getInstance(locale);
         calendar.setTimeInMillis(toMilliseconds());
@@ -66,8 +67,8 @@ public abstract class AbstractTime
 
     @Override
     public final Calendar toCalender(TimeZone timeZone, Locale locale) {
-        Preconditions.checkNotNull(timeZone, "Time zone is null!");
-        Preconditions.checkNotNull(locale, "Locale is null!");
+        Preconditions.checkNotNull(timeZone, "Time zone is null! ");
+        Preconditions.checkNotNull(locale, "Locale is null! ");
 
         final Calendar calendar = Calendar.getInstance(timeZone, locale);
         calendar.setTimeInMillis(toMilliseconds());
@@ -76,14 +77,14 @@ public abstract class AbstractTime
 
     @Override
     public final String format(DateFormat dateFormat) {
-        Preconditions.checkNotNull(dateFormat, "Date format is null!");
+        Preconditions.checkNotNull(dateFormat, "Date format is null! ");
 
         return dateFormat.format(toMilliseconds());
     }
 
     @Override
-    public int compareTo(Time o) {
-        Preconditions.checkNotNull(o, "Time is null!");
+    public int compareTo(@NonNull Time o) {
+        Preconditions.checkNotNull(o, "Time is null! ");
 
         return Long.compare(toMilliseconds(), o.toMilliseconds());
     }

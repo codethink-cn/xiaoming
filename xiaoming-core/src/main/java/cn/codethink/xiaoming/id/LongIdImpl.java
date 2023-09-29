@@ -17,6 +17,7 @@
 package cn.codethink.xiaoming.id;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class LongIdImpl
     implements LongId {
@@ -52,8 +53,8 @@ public class LongIdImpl
     }
 
     @Override
-    public int compareTo(LongId o) {
-        Preconditions.checkNotNull(o, "Long id is null!");
+    public int compareTo(@NonNull LongId o) {
+        Preconditions.checkNotNull(o, "Long id is null! ");
 
         return Long.compare(value, o.toLong());
     }

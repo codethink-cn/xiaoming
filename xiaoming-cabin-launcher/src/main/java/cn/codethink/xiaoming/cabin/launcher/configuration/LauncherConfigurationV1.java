@@ -49,14 +49,14 @@ public class LauncherConfigurationV1
 
     @Override
     public void setWorkingDirectoryFile(File workingDirectoryFile) {
-        Preconditions.checkNotNull(workingDirectoryFile, "Working directory file is null!");
+        Preconditions.checkNotNull(workingDirectoryFile, "Working directory file is null! ");
 
         this.workingDirectoryPath = workingDirectoryFile.toPath();
     }
 
     @Override
     public void setWorkingDirectoryPath(Path workingDirectoryPath) {
-        Preconditions.checkNotNull(workingDirectoryPath, "Working directory path is null!");
+        Preconditions.checkNotNull(workingDirectoryPath, "Working directory path is null! ");
 
         this.workingDirectoryPath = workingDirectoryPath;
     }

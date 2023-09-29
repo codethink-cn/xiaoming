@@ -27,8 +27,8 @@ public class CabinStateImpl
     private final Cause cause;
 
     public CabinStateImpl(Type type, Cause cause) {
-        Preconditions.checkNotNull(type, "Type is null!");
-        Preconditions.checkNotNull(cause, "Cause is null!");
+        Preconditions.checkNotNull(type, "Type is null! ");
+        Preconditions.checkNotNull(cause, "Cause is null! ");
 
         if (type.isError() && !(cause instanceof ErrorCause)) {
             throw new IllegalArgumentException("Cause must be an instance of 'FailedCause' if type is failed! ");

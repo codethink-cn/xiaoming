@@ -24,7 +24,7 @@ public class DescriptionCause
     private final String description;
 
     public DescriptionCause(String description) {
-        Preconditions.checkNotNull(description, "Description is null!");
+        Preconditions.checkNotNull(description, "Description is null! ");
         Preconditions.checkArgument(!description.isEmpty(), "Description is empty!");
 
         this.description = description;
@@ -33,7 +33,7 @@ public class DescriptionCause
     public DescriptionCause(String description, Cause cause) {
         super(cause);
 
-        Preconditions.checkNotNull(description, "Description is null!");
+        Preconditions.checkNotNull(description, "Description is null! ");
         Preconditions.checkArgument(!description.isEmpty(), "Description is empty!");
 
         this.description = description;

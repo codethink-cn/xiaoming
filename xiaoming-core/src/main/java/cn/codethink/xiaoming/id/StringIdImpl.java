@@ -17,6 +17,7 @@
 package cn.codethink.xiaoming.id;
 
 import com.google.common.base.Preconditions;
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 public class StringIdImpl
     implements StringId {
@@ -42,8 +43,8 @@ public class StringIdImpl
     }
 
     @Override
-    public int compareTo(StringId o) {
-        Preconditions.checkNotNull(o, "String id is null!");
+    public int compareTo(@NonNull StringId o) {
+        Preconditions.checkNotNull(o, "String id is null! ");
 
         return value.compareTo(o.toString());
     }

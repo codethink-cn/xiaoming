@@ -33,7 +33,7 @@ public class LauncherEnablingCause
     public LauncherEnablingCause(Cause cause, Launcher launcher) {
         super(cause);
 
-        Preconditions.checkNotNull(launcher, "Launcher is null!");
+        Preconditions.checkNotNull(launcher, "Launcher is null! ");
 
         this.launcher = launcher;
     }

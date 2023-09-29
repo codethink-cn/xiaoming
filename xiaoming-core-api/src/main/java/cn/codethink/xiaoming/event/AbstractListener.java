@@ -19,7 +19,6 @@ package cn.codethink.xiaoming.event;
 import cn.codethink.xiaoming.Subject;
 import com.google.common.base.Preconditions;
 
-import java.util.Collections;
 import java.util.Set;
 
 /**
@@ -44,11 +43,11 @@ public abstract class AbstractListener<T>
     private final Subject subject;
 
     public AbstractListener(Set<Class<? extends T>> eventClasses, Order order, boolean ignoreCancelledEvent, Subject subject) {
-        Preconditions.checkNotNull(eventClasses, "Event classes are null!");
+        Preconditions.checkNotNull(eventClasses, "Event classes are null! ");
         Preconditions.checkArgument(!eventClasses.isEmpty(), "Event classes are empty!");
         Preconditions.checkArgument(!eventClasses.contains(null), "Event classes contains null!");
-        Preconditions.checkNotNull(order, "Order is null!");
-        Preconditions.checkNotNull(subject, "Subject is null!");
+        Preconditions.checkNotNull(order, "Order is null! ");
+        Preconditions.checkNotNull(subject, "Subject is null! ");
 
         this.eventClasses = eventClasses;
         this.order = order;

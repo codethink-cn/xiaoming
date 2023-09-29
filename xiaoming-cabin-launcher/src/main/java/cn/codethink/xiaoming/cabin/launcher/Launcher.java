@@ -68,7 +68,7 @@ public class Launcher
      * @throws Exception exception thrown in enabling launcher
      */
     public void enable(Cause cause) throws Exception {
-        Preconditions.checkNotNull(cause, "Cause is null!");
+        Preconditions.checkNotNull(cause, "Cause is null! ");
 
         // TODO: can enable checking
 

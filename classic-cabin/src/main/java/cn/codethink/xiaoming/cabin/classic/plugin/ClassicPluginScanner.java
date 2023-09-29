@@ -55,7 +55,7 @@ public class ClassicPluginScanner
     private final View<File> pluginsDirectoryFileView;
 
     public ClassicPluginScanner(Cabin cabin) {
-        Preconditions.checkNotNull(cabin, "Cabin is null!");
+        Preconditions.checkNotNull(cabin, "Cabin is null! ");
 
         this.cabin = cabin;
         this.pluginsDirectoryFileView = View.with(
@@ -70,7 +70,7 @@ public class ClassicPluginScanner
 
     @Override
     public Collection<Plugin> scan(PluginScanningContext context) {
-        Preconditions.checkNotNull(context, "Plugin scanning context is null!");
+        Preconditions.checkNotNull(context, "Plugin scanning context is null! ");
 
         final File pluginsDirectoryFile = pluginsDirectoryFileView.get();
         if (!pluginsDirectoryFile.isDirectory()) {

@@ -35,8 +35,8 @@ public class ReflectedListener
                              Listeners listeners, Method method, Class<?> parameterType) {
         super((Set) eventClasses, order, ignoreCancelledEvent, subject);
 
-        Preconditions.checkNotNull(listeners, "Listeners are null!");
-        Preconditions.checkNotNull(method, "Method is null!");
+        Preconditions.checkNotNull(listeners, "Listeners are null! ");
+        Preconditions.checkNotNull(method, "Method is null! ");
 
         this.object = listeners;
         this.method = method;
@@ -45,7 +45,7 @@ public class ReflectedListener
 
     @Override
     public void listen(EventListeningContext<Event> context) throws Exception {
-        Preconditions.checkNotNull(context, "Event listening context is null!");
+        Preconditions.checkNotNull(context, "Event listening context is null! ");
 
         final Object[] arguments;
         if (parameterType == null) {

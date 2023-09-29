@@ -20,10 +20,6 @@ import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.cabin.view.ModifiableView;
 import cn.codethink.xiaoming.cause.Cause;
 import com.google.common.base.Preconditions;
-import org.slf4j.Logger;
-
-import java.io.File;
-import java.nio.file.Path;
 
 /**
  * <h1>Abstract Plugin</h1>
@@ -42,7 +38,7 @@ public abstract class AbstractPlugin
 
     @Override
     public void load(Cause cause, Subject subject) throws Exception {
-        Preconditions.checkNotNull(cause, "Cause is null!");
+        Preconditions.checkNotNull(cause, "Cause is null! ");
     }
 
     @Override

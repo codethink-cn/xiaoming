@@ -41,13 +41,13 @@ public class EventManagerImpl
     private final Map<Order, List<Listener<?>>> listeners = new HashMap<>();
 
     public EventManagerImpl(Bot bot) {
-        Preconditions.checkNotNull(bot, "Bot is null!");
+        Preconditions.checkNotNull(bot, "Bot is null! ");
 
         this.bot = bot;
     }
 
     private void appendListenersToBuffer(Subject subject, Listeners listeners, Map<Order, List<Listener<?>>> listenersToBeRegistered) {
-        Preconditions.checkNotNull(listeners, "Listeners are null!");
+        Preconditions.checkNotNull(listeners, "Listeners are null! ");
 
         final Class<? extends Listeners> listenersClass = listeners.getClass();
         final Method[] methods = listenersClass.getDeclaredMethods();
@@ -202,7 +202,7 @@ public class EventManagerImpl
 
     @Override
     public void registerListeners(Subject subject, Listeners listeners) {
-        Preconditions.checkNotNull(subject, "Subject are null!");
+        Preconditions.checkNotNull(subject, "Subject are null! ");
 
         final Map<Order, List<Listener<?>>> listenersToBeRegistered = new HashMap<>();
         appendListenersToBuffer(subject, listeners, listenersToBeRegistered);
@@ -211,7 +211,7 @@ public class EventManagerImpl
 
     @Override
     public void registerListeners(Subject subject, Listeners... listeners) {
-        Preconditions.checkNotNull(subject, "Subject are null!");
+        Preconditions.checkNotNull(subject, "Subject are null! ");
 
         final Map<Order, List<Listener<?>>> listenersToBeRegistered = new HashMap<>();
         for (Listeners listener : listeners) {
@@ -223,7 +223,7 @@ public class EventManagerImpl
     @Override
     @SuppressWarnings("unchecked")
     public void registerListener(Listener<?> listener) {
-        Preconditions.checkNotNull(listener, "Listener is null!");
+        Preconditions.checkNotNull(listener, "Listener is null! ");
 
         final Set<Class<?>> eventClasses = (Set<Class<?>>) listener.getEventClasses();
 
@@ -243,7 +243,7 @@ public class EventManagerImpl
         }
 
         final Order order = listener.getOrder();
-        Preconditions.checkNotNull(order, "Order got from the listener by calling 'listener.getOrder()' is null!");
+        Preconditions.checkNotNull(order, "Order got from the listener by calling 'listener.getOrder()' is null! ");
         listenersLock.writeLock().lock();
         try {
             listeners.computeIfAbsent(order, ignored -> new ArrayList<>()).add(listener);
@@ -262,8 +262,8 @@ public class EventManagerImpl
     @Override
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void publishEvent(Event event, Subject publisher) {
-        Preconditions.checkNotNull(event, "Event is null!");
-        Preconditions.checkNotNull(publisher, "Publisher is null!");
+        Preconditions.checkNotNull(event, "Event is null! ");
+        Preconditions.checkNotNull(publisher, "Publisher is null! ");
 
         final EventListeningContext<?> context = new EventListeningContextImpl<>(event, publisher, bot);
         listenersLock.readLock().lock();
