@@ -39,7 +39,7 @@ public final class LauncherState {
         STARTING(true, false),
 
         /**
-         * Exception thrown in starting. Use {@link #getCause()} to get more details.
+         * Error occurred in starting launcher.
          */
         STARTING_FAILED(false, true),
 
@@ -54,29 +54,29 @@ public final class LauncherState {
         STOPPING(true, false),
 
         /**
-         * Exception thrown in stopping. Use {@link #getCause()} to get more details.
+         * Error occurred in stopping launcher.
          */
         STOPPING_FAILED(false, true),
 
         /**
-         * Exception thrown in starting.
+         * Stopped.
          */
         STOPPED(false, false);
 
         private final boolean doing;
-        private final boolean failed;
+        private final boolean error;
 
-        Type(boolean doing, boolean failed) {
+        Type(boolean doing, boolean error) {
             this.doing = doing;
-            this.failed = failed;
+            this.error = error;
         }
 
         public boolean isDoing() {
             return doing;
         }
 
-        public boolean isFailed() {
-            return failed;
+        public boolean isError() {
+            return error;
         }
     }
 

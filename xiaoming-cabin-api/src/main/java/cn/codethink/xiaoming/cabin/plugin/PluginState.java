@@ -16,6 +16,9 @@
 
 package cn.codethink.xiaoming.cabin.plugin;
 
+import cn.codethink.xiaoming.BotState;
+import cn.codethink.xiaoming.cause.Cause;
+
 /**
  * <h1>Plugin State</h1>
  *
@@ -23,65 +26,107 @@ package cn.codethink.xiaoming.cabin.plugin;
  *
  * @author Chuanwise
  */
-public enum PluginState {
+public interface PluginState {
 
     /**
-     * Unloaded.
+     * Type of bot state.
      */
-    UNLOADED,
+    enum Type {
+
+        /**
+         * Ready for loading, but never been started after constructed.
+         */
+        READY(false, false),
+
+        /**
+         * Loading.
+         */
+        LOADING(false, false),
+
+        /**
+         * Error occurred in loading plugin.
+         */
+        LOADING_ERROR(false, false),
+
+        /**
+         * Loaded.
+         */
+        LOADED(false, false),
+
+        /**
+         * Enabling.
+         */
+        ENABLING(false, false),
+
+        /**
+         * Error occurred in enabling plugin.
+         */
+        ENABLING_ERROR(false, false),
+
+        /**
+         * Enabled.
+         */
+        ENABLED(false, false),
+
+        /**
+         * Disabling.
+         */
+        DISABLING(false, false),
+
+        /**
+         * Error occurred in disabling plugin.
+         */
+        DISABLING_ERROR(false, false),
+
+        /**
+         * Disabled.
+         */
+        DISABLED(false, false),
+
+        /**
+         * Unloading.
+         */
+        UNLOADING(false, false),
+
+        /**
+         * Error occurred in unloading plugin.
+         */
+        UNLOADING_ERROR(false, false),
+
+        /**
+         * Unloaded.
+         */
+        UNLOADED(false, false);
+
+        private final boolean doing;
+
+        private final boolean error;
+
+        Type(boolean doing, boolean error) {
+            this.doing = doing;
+            this.error = error;
+        }
+
+        public boolean isDoing() {
+            return doing;
+        }
+
+        public boolean isError() {
+            return error;
+        }
+    }
 
     /**
-     * Loading.
+     * Get type.
+     *
+     * @return type
      */
-    LOADING,
+    BotState.Type getType();
 
     /**
-     * Exception thrown in loading.
+     * Get cause.
+     *
+     * @return cause
      */
-    LOADING_ERROR,
-
-    /**
-     * Loaded.
-     */
-    LOADED,
-
-    /**
-     * Enabling.
-     */
-    ENABLING,
-
-    /**
-     * Exception thrown in enabling.
-     */
-    ENABLING_ERROR,
-
-    /**
-     * Enabled.
-     */
-    ENABLED,
-
-    /**
-     * Disabling.
-     */
-    DISABLING,
-
-    /**
-     * Exception thrown in disabling.
-     */
-    DISABLING_ERROR,
-
-    /**
-     * Disabled.
-     */
-    DISABLED,
-
-    /**
-     * Unloading.
-     */
-    UNLOADING,
-
-    /**
-     * Exception thrown in unloading.
-     */
-    UNLOADING_ERROR,
+    Cause getCause();
 }

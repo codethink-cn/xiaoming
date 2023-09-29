@@ -38,9 +38,9 @@ public interface CabinState {
         STARTING(true, false),
 
         /**
-         * Exception thrown in starting. Use {@link #getCause()} to get more details.
+         * Fail to start cabin. Use {@link #getCause()} to get more details.
          */
-        STARTING_FAILED(false, true),
+        STARTING_ERROR(false, true),
 
         /**
          * Started.
@@ -53,9 +53,9 @@ public interface CabinState {
         STOPPING(true, false),
 
         /**
-         * Exception thrown in stopping. Use {@link #getCause()} to get more details.
+         * Fail to stop cabin. Use {@link #getCause()} to get more details.
          */
-        STOPPING_FAILED(false, true),
+        STOPPING_ERROR(false, true),
 
         /**
          * Exception thrown in starting.
@@ -63,19 +63,19 @@ public interface CabinState {
         STOPPED(false, false);
 
         private final boolean doing;
-        private final boolean failed;
+        private final boolean error;
 
-        Type(boolean doing, boolean failed) {
+        Type(boolean doing, boolean error) {
             this.doing = doing;
-            this.failed = failed;
+            this.error = error;
         }
 
         public boolean isDoing() {
             return doing;
         }
 
-        public boolean isFailed() {
-            return failed;
+        public boolean isError() {
+            return error;
         }
     }
 

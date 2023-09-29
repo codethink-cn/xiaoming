@@ -17,7 +17,7 @@
 package cn.codethink.xiaoming.cabin;
 
 import cn.codethink.xiaoming.cause.Cause;
-import cn.codethink.xiaoming.cause.FailedCause;
+import cn.codethink.xiaoming.cause.ErrorCause;
 import com.google.common.base.Preconditions;
 
 public class CabinStateImpl
@@ -30,7 +30,7 @@ public class CabinStateImpl
         Preconditions.checkNotNull(type, "Type is null!");
         Preconditions.checkNotNull(cause, "Cause is null!");
 
-        if (type.isFailed() && !(cause instanceof FailedCause)) {
+        if (type.isError() && !(cause instanceof ErrorCause)) {
             throw new IllegalArgumentException("Cause must be an instance of 'FailedCause' if type is failed! ");
         }
 

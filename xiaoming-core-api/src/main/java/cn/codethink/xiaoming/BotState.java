@@ -26,6 +26,9 @@ import cn.codethink.xiaoming.time.Time;
  */
 public interface BotState {
 
+    /**
+     * Type of bot state.
+     */
     enum Type {
 
         /**
@@ -39,7 +42,7 @@ public interface BotState {
         STARTING(true, false),
 
         /**
-         * Exception thrown in starting. Use {@link #getCause()} to get more details.
+         * Error occurred in starting bot.
          */
         STARTING_ERROR(false, true),
 
@@ -54,12 +57,12 @@ public interface BotState {
         STOPPING(true, false),
 
         /**
-         * Exception thrown in stopping. Use {@link #getCause()} to get more details.
+         * Error occurred in stopping bot.
          */
         STOPPING_ERROR(false, true),
 
         /**
-         * Exception thrown in starting.
+         * Stopped.
          */
         STOPPED(false, false);
 

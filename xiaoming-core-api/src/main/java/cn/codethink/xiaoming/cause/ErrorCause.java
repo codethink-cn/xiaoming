@@ -17,13 +17,13 @@
 package cn.codethink.xiaoming.cause;
 
 /**
- * <h1>Failed Cause</h1>
+ * <h1>Error Cause</h1>
  *
- * <p>Failed cause is for testing if related operations can be retried. </p>
+ * <p>Error cause is for testing if related operations can be retried. </p>
  *
  * @author Chuanwise
  */
-public interface FailedCause
+public interface ErrorCause
     extends Cause {
 
     /**
