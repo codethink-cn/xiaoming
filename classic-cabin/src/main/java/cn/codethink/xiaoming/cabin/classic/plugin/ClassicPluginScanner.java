@@ -36,10 +36,18 @@ import java.util.Collections;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
+/**
+ * <h1>Classic Plugin Scanner</h1>
+ *
+ * <p>Classic plugin scanner can scan all files in directory 'plugins'. </p>
+ *
+ * @author Chuanwise
+ * @see ClassicPluginMetadata
+ */
 public class ClassicPluginScanner
     implements PluginScanner {
 
-    private static final String METADATA_FILE_PATH = "xiaoming/plugin.yml";
+    private static final String METADATA_FILE_PATH = "META-INF/xiaoming/cabin/classic/plugin.yml";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ClassicPluginScanner.class);
 
@@ -61,7 +69,7 @@ public class ClassicPluginScanner
     }
 
     @Override
-    public Collection<Plugin> scan(PluginScanningContext context)  {
+    public Collection<Plugin> scan(PluginScanningContext context) {
         Preconditions.checkNotNull(context, "Plugin scanning context is null!");
 
         final File pluginsDirectoryFile = pluginsDirectoryFileView.get();
@@ -140,7 +148,7 @@ public class ClassicPluginScanner
                                     "the one in plugins directory will be ignored. ");
                         }
                     } else {
-                        if (!fileInPluginDirectory.renameTo(pluginJarInJarsDirectoryFile)){
+                        if (!fileInPluginDirectory.renameTo(pluginJarInJarsDirectoryFile)) {
                             LOGGER.warn("Can not move the plugin file '" + fileInPluginDirectoryName + "' in plugins directory to its plugin directory " +
                                     "'" + pluginMetadata.getId() + "'! This plugin will be ignored. ");
                         }
