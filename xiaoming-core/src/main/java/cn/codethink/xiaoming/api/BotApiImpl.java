@@ -16,12 +16,12 @@
 
 package cn.codethink.xiaoming.api;
 
+import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.cause.Cause;
 import cn.codethink.xiaoming.cause.DescriptionCause;
 import cn.codethink.xiaoming.cause.ExceptionCause;
 import cn.codethink.xiaoming.cause.ExceptionCauseImpl;
-import cn.codethink.xiaoming.event.FunctionalListener;
-import cn.codethink.xiaoming.event.Listener;
+import cn.codethink.xiaoming.event.*;
 import cn.codethink.xiaoming.id.*;
 import cn.codethink.xiaoming.namespace.Namespace;
 import cn.codethink.xiaoming.namespace.NamespaceImpl;
@@ -85,5 +85,15 @@ public class BotApiImpl
     @Override
     public NamespaceId parseNamespaceId(String namespaceId) {
         return NamespaceIdImpl.parse(namespaceId);
+    }
+
+    @Override
+    public CancellationStateOperation getCancellationStateOperation(boolean cancelled, Event event, Cause cause, Subject subject) {
+        return new CancellationStateOperationImpl(cancelled, event, cause, subject);
+    }
+
+    @Override
+    public InterceptionStateOperation getInterceptionStateOperation(boolean intercepted, Event event, Cause cause, Subject subject) {
+        return new InterceptionStateOperationImpl(intercepted, event, cause, subject);
     }
 }

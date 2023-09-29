@@ -16,9 +16,13 @@
 
 package cn.codethink.xiaoming.api;
 
+import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.annotation.BotInternalApi;
 import cn.codethink.xiaoming.cause.Cause;
 import cn.codethink.xiaoming.cause.ExceptionCause;
+import cn.codethink.xiaoming.event.CancellationStateOperation;
+import cn.codethink.xiaoming.event.Event;
+import cn.codethink.xiaoming.event.InterceptionStateOperation;
 import cn.codethink.xiaoming.event.Listener;
 import cn.codethink.xiaoming.id.LongId;
 import cn.codethink.xiaoming.id.NamespaceId;
@@ -51,4 +55,8 @@ public interface BotApi {
 
     Namespace parseNamespace(String namespace);
     NamespaceId parseNamespaceId(String namespaceId);
+
+    CancellationStateOperation getCancellationStateOperation(boolean cancelled, Event event, Cause cause, Subject subject);
+
+    InterceptionStateOperation getInterceptionStateOperation(boolean intercepted, Event event, Cause cause, Subject subject);
 }
