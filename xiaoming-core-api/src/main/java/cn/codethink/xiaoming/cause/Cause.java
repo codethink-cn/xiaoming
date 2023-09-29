@@ -66,32 +66,32 @@ public interface Cause {
     String getDescription();
 
     /**
-     * Get chained description.
+     * Get cause trace.
      *
-     * @return chained description.
+     * @return cause trace.
      */
-    String getChainedDescription();
+    String getCauseTrace();
 
     /**
-     * Print chained description to a provided print stream.
+     * Print cause trace to a provided print stream.
      *
      * @param printStream print stream
      * @throws NullPointerException print stream is null
      */
-    void printChainedDescription(PrintStream printStream);
+    void printCauseTrace(PrintStream printStream);
 
     /**
-     * Print chained description to a provided print writer.
+     * Print cause trace to a provided print writer.
      *
      * @param printWriter print writer
      * @throws NullPointerException print writer is null
      */
-    void printChainedDescription(PrintWriter printWriter);
+    void printCauseTrace(PrintWriter printWriter);
 
     /**
-     * Print chained description to {@link System#out}.
+     * Print cause trace to {@link System#out}.
      */
-    void printChainedDescription();
+    void printCauseTrace();
 
     /**
      * Get time.

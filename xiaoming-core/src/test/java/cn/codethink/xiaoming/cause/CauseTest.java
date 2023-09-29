@@ -16,7 +16,6 @@
 
 package cn.codethink.xiaoming.cause;
 
-import cn.codethink.xiaoming.cause.Cause;
 import org.junit.jupiter.api.Test;
 
 public class CauseTest {
@@ -27,6 +26,6 @@ public class CauseTest {
         final Cause commandExecuted = Cause.of("Command executed", groupMessageReceived);
         final Cause botStopped = Cause.of("Bot stopped", commandExecuted);
 
-        botStopped.printChainedDescription();
+        botStopped.printCauseTrace();
     }
 }
