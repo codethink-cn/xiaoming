@@ -16,7 +16,6 @@
 
 package cn.codethink.xiaoming.cabin.plugin;
 
-import cn.codethink.xiaoming.BotState;
 import cn.codethink.xiaoming.cause.Cause;
 
 /**
@@ -121,7 +120,7 @@ public interface PluginState {
      *
      * @return type
      */
-    BotState.Type getType();
+    Type getType();
 
     /**
      * Get cause.
