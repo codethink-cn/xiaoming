@@ -65,25 +65,28 @@ public interface Plugin
      * Load plugin.
      *
      * @param cause cause
+     * @param subject subject
      * @throws Exception exception thrown in loading plugin.
      */
-    void load(Cause cause) throws Exception;
+    void load(Cause cause, Subject subject) throws Exception;
 
     /**
      * Enable plugin.
      *
      * @param cause cause
+     * @param subject subject
      * @throws Exception exception thrown in enabling plugin.
      */
-    void enable(Cause cause) throws Exception;
+    void enable(Cause cause, Subject subject) throws Exception;
 
     /**
      * Disable plugin.
      *
      * @param cause cause
+     * @param subject subject
      * @throws Exception exception thrown in disabling plugin.
      */
-    void disable(Cause cause) throws Exception;
+    void disable(Cause cause, Subject subject) throws Exception;
 
     /**
      * Get data folder path.
