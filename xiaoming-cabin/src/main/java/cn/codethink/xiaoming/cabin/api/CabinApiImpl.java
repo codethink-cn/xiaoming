@@ -16,7 +16,6 @@
 
 package cn.codethink.xiaoming.cabin.api;
 
-import cn.codethink.xiaoming.cabin.plugin.ClassicalPluginScanner;
 import cn.codethink.xiaoming.cabin.view.ModifiableOperationView;
 import cn.codethink.xiaoming.cabin.view.OperationView;
 import cn.codethink.xiaoming.cabin.view.View;
