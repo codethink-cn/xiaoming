@@ -21,7 +21,9 @@ import cn.codethink.xiaoming.cause.Cause;
 import cn.codethink.xiaoming.cause.ExceptionCause;
 import cn.codethink.xiaoming.event.Listener;
 import cn.codethink.xiaoming.id.LongId;
+import cn.codethink.xiaoming.id.NamespaceId;
 import cn.codethink.xiaoming.id.StringId;
+import cn.codethink.xiaoming.namespace.Namespace;
 import cn.codethink.xiaoming.time.Time;
 
 /**
@@ -46,4 +48,7 @@ public interface BotApi {
     ExceptionCause getExceptionCause(Throwable exception, Time time, boolean retryable);
     Cause getDescriptionCause(String description);
     Cause getDescriptionCause(String description, Cause cause);
+
+    Namespace parseNamespace(String namespace);
+    NamespaceId parseNamespaceId(String namespaceId);
 }

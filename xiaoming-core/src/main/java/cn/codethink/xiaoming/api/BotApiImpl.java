@@ -22,10 +22,9 @@ import cn.codethink.xiaoming.cause.ExceptionCause;
 import cn.codethink.xiaoming.cause.ExceptionCauseImpl;
 import cn.codethink.xiaoming.event.FunctionalListener;
 import cn.codethink.xiaoming.event.Listener;
-import cn.codethink.xiaoming.id.LongId;
-import cn.codethink.xiaoming.id.LongIdImpl;
-import cn.codethink.xiaoming.id.StringId;
-import cn.codethink.xiaoming.id.StringIdImpl;
+import cn.codethink.xiaoming.id.*;
+import cn.codethink.xiaoming.namespace.Namespace;
+import cn.codethink.xiaoming.namespace.NamespaceImpl;
 import cn.codethink.xiaoming.time.MillisecondTime;
 import cn.codethink.xiaoming.time.SecondTime;
 import cn.codethink.xiaoming.time.Time;
@@ -76,5 +75,15 @@ public class BotApiImpl
     @Override
     public Cause getDescriptionCause(String description, Cause cause) {
         return new DescriptionCause(description, cause);
+    }
+
+    @Override
+    public Namespace parseNamespace(String namespace) {
+        return NamespaceImpl.parse(namespace);
+    }
+
+    @Override
+    public NamespaceId parseNamespaceId(String namespaceId) {
+        return NamespaceIdImpl.parse(namespaceId);
     }
 }
