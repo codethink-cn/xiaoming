@@ -41,4 +41,9 @@ public class LauncherEnablingCause
     public Launcher getLauncher() {
         return launcher;
     }
+
+    @Override
+    public String getDescription() {
+        return "Launcher '" + launcher.getName() + "' enabling";
+    }
 }
