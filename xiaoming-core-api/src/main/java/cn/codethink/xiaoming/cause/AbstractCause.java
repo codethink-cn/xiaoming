@@ -159,7 +159,8 @@ public abstract class AbstractCause
             return false;
         }
         final Cause cause = (Cause) obj;
-        return Objects.equals(directCause, cause.getDirectCause());
+        return Objects.equals(directCause, cause.getDirectCause())
+                && time.equals(cause.getTime());
     }
 
     @Override
@@ -168,19 +169,19 @@ public abstract class AbstractCause
     }
 
     @Override
-    public void printChainedDescription() {
-        printChainedDescription(System.out);
+    public void printCauseTrace() {
+        printCauseTrace(System.out);
     }
 
     @Override
-    public void printChainedDescription(PrintStream printStream) {
+    public void printCauseTrace(PrintStream printStream) {
         Preconditions.checkNotNull(printStream, "Print stream is null! ");
 
-        printChainedDescription(new PrintWriter(printStream));
+        printCauseTrace(new PrintWriter(printStream));
     }
 
     @Override
-    public void printChainedDescription(PrintWriter printWriter) {
+    public void printCauseTrace(PrintWriter printWriter) {
         Preconditions.checkNotNull(printWriter, "Print writer is null! ");
 
         printWriter.printf("Cause '%s': %s (at '%s') has ", getClass().getName(), getDescription(), time);
@@ -200,10 +201,10 @@ public abstract class AbstractCause
     }
 
     @Override
-    public String getChainedDescription() {
+    public String getCauseTrace() {
         final StringWriter stringWriter = new StringWriter();
         try (final PrintWriter printWriter = new PrintWriter(stringWriter, true)) {
-            printChainedDescription(printWriter);
+            printCauseTrace(printWriter);
         }
         return stringWriter.getBuffer().toString();
     }
