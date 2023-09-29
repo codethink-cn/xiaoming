@@ -34,6 +34,13 @@ public interface Plugin
     extends Subject {
 
     /**
+     * Get main.
+     *
+     * @return main
+     */
+    PluginMain getMain();
+
+    /**
      * Get state.
      *
      * @return state
