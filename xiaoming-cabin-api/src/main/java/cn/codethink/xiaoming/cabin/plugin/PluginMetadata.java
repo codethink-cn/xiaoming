@@ -16,11 +16,9 @@
 
 package cn.codethink.xiaoming.cabin.plugin;
 
-import cn.codethink.xiaoming.id.Id;
+import cn.codethink.xiaoming.id.NamespaceId;
 import cn.codethink.xiaoming.namespace.Namespace;
 import org.semver4j.Semver;
-
-import java.util.regex.Pattern;
 
 /**
  * <h1>Plugin Metadata</h1>
@@ -36,7 +34,7 @@ public interface PluginMetadata {
      *
      * @return id
      */
-    Id getId();
+    NamespaceId getId();
 
     /**
      * Get name.
