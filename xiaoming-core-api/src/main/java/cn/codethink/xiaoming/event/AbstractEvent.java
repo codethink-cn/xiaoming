@@ -16,10 +16,17 @@
 
 package cn.codethink.xiaoming.event;
 
+import cn.codethink.xiaoming.OperationCancelledException;
+import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.cause.AbstractCause;
 import cn.codethink.xiaoming.cause.Cause;
 import cn.codethink.xiaoming.time.Time;
 import com.google.common.base.Preconditions;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * <h1>Abstract Event</h1>
@@ -37,10 +44,14 @@ public abstract class AbstractEvent
     extends AbstractCause
     implements Event {
 
-    /**
-     * Field to record if event is intercepted.
-     */
-    private volatile boolean intercepted = false;
+    private final ReentrantReadWriteLock interceptionStateLock = new ReentrantReadWriteLock();
+
+    private final List<InterceptionStateOperation> interceptionStateOperations = new ArrayList<>();
+
+    private final List<InterceptionStateOperation> unmodifiableInterceptionStateOperations =
+            Collections.unmodifiableList(interceptionStateOperations);
+
+    private boolean intercepted = false;
     private String descriptionCache;
 
     public AbstractEvent(Cause cause, Time time) {
@@ -54,12 +65,44 @@ public abstract class AbstractEvent
     public AbstractEvent() {
     }
 
+    @Override
     public final boolean isIntercepted() {
-        return intercepted;
+        try {
+            interceptionStateLock.readLock().lockInterruptibly();
+        } catch (InterruptedException e) {
+            throw new OperationCancelledException("Acquiring the read lock of interception state is interrupted! ", e);
+        }
+        try {
+            return intercepted;
+        } finally {
+            interceptionStateLock.readLock().unlock();
+        }
     }
 
-    public final void setIntercepted(boolean intercepted) {
-        this.intercepted = intercepted;
+    @Override
+    public InterceptionStateOperation setIntercepted(boolean intercepted, Cause cause, Subject subject) {
+        Preconditions.checkNotNull(cause, "Cause is null! ");
+        Preconditions.checkNotNull(subject, "Subject is null! ");
+
+        final InterceptionStateOperation operation = InterceptionStateOperation.of(intercepted, this, cause, subject);
+
+        try {
+            interceptionStateLock.writeLock().lockInterruptibly();
+        } catch (final InterruptedException e) {
+            throw new OperationCancelledException("Acquiring the write lock of interception state is interrupted! ", e);
+        }
+        try {
+            interceptionStateOperations.add(operation);
+            this.intercepted = intercepted;
+            return operation;
+        } finally {
+            interceptionStateLock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public List<InterceptionStateOperation> getInterceptionStateOperations() {
+        return unmodifiableInterceptionStateOperations;
     }
 
     @Override

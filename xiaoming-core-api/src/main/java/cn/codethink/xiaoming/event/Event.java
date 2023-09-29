@@ -16,7 +16,10 @@
 
 package cn.codethink.xiaoming.event;
 
+import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.cause.Cause;
+
+import java.util.List;
 
 /**
  * <h1>Event</h1>
@@ -33,6 +36,13 @@ public interface Event
     extends Cause {
 
     /**
+     * Get interception state operations.
+     *
+     * @return interception state operations
+     */
+    List<InterceptionStateOperation> getInterceptionStateOperations();
+
+    /**
      * Query if event is intercepted.
      *
      * @return if event is intercepted
@@ -42,7 +52,12 @@ public interface Event
     /**
      * Set if event is intercepted.
      *
+     * @param cause       cause
      * @param intercepted if event is intercepted
+     * @param subject     subject
+     * @return interception state operation
+     * @throws NullPointerException cause or subject is null
      */
-    void setIntercepted(boolean intercepted);
+    InterceptionStateOperation setIntercepted(boolean intercepted, Cause cause, Subject subject);
 }
+

@@ -16,7 +16,15 @@
 
 package cn.codethink.xiaoming.event;
 
+import cn.codethink.xiaoming.OperationCancelledException;
+import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.cause.Cause;
+import com.google.common.base.Preconditions;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * <h1>Abstract Cancellable Event</h1>
@@ -36,10 +44,16 @@ public abstract class AbstractCancellableEvent
     extends AbstractEvent
     implements CancellableEvent {
 
-    /**
-     * Field to record if event is cancelled.
-     */
-    private volatile boolean cancelled = false;
+    private final ReentrantReadWriteLock cancellationStateLock = new ReentrantReadWriteLock();
+
+    private final List<CancellationStateOperation> cancellationStateOperations = new CopyOnWriteArrayList<>();
+
+    private final List<CancellationStateOperation> unmodifiableCancellationStateOperations =
+            Collections.unmodifiableList(cancellationStateOperations);
+
+    private boolean cancelled;
+
+    private volatile Cause cancellationCause;
 
     public AbstractCancellableEvent(Cause cause) {
         super(cause);
@@ -49,12 +63,43 @@ public abstract class AbstractCancellableEvent
     }
 
     @Override
-    public final boolean isCancelled() {
-        return cancelled;
+    public boolean isCancelled() {
+        try {
+            cancellationStateLock.readLock().lockInterruptibly();
+        } catch (InterruptedException e) {
+            throw new OperationCancelledException("Acquiring the read lock of cancellation state is interrupted! ", e);
+        }
+        try {
+            return cancelled;
+        } finally {
+            cancellationStateLock.readLock().unlock();
+        }
     }
 
     @Override
-    public final void setCancelled(boolean cancelled) {
-        this.cancelled = cancelled;
+    public CancellationStateOperation setCancelled(boolean cancelled, Cause cause, Subject subject) {
+        Preconditions.checkNotNull(cause, "Cause is null! ");
+        Preconditions.checkNotNull(subject, "Subject is null! ");
+
+        final CancellationStateOperation operation = CancellationStateOperation.of(cancelled, this, cause, subject);
+
+        try {
+            cancellationStateLock.writeLock().lockInterruptibly();
+        } catch (final InterruptedException e) {
+            throw new OperationCancelledException("Acquiring the write lock of cancellation state is interrupted! ", e);
+        }
+        try {
+            cancellationStateOperations.add(operation);
+            this.cancelled = cancelled;
+            return operation;
+        } finally {
+            cancellationStateLock.writeLock().unlock();
+        }
+
+    }
+
+    @Override
+    public List<CancellationStateOperation> getCancellationStateOperations() {
+        return unmodifiableCancellationStateOperations;
     }
 }

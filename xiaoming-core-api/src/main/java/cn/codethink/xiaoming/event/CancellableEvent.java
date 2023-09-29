@@ -16,6 +16,11 @@
 
 package cn.codethink.xiaoming.event;
 
+import cn.codethink.xiaoming.Subject;
+import cn.codethink.xiaoming.cause.Cause;
+
+import java.util.List;
+
 /**
  * <h1>Cancellable Event</h1>
  *
@@ -29,6 +34,13 @@ public interface CancellableEvent
     extends Event {
 
     /**
+     * Get cancellation state operations.
+     *
+     * @return cancellation state operation
+     */
+    List<CancellationStateOperation> getCancellationStateOperations();
+
+    /**
      * Query if event is cancelled.
      *
      * @return if event is cancelled
@@ -36,9 +48,13 @@ public interface CancellableEvent
     boolean isCancelled();
 
     /**
-     * Set if event is cancelled.
+     * Set cancellation state of event.
      *
-     * @param cancelled if event is cancelled
+     * @param cancelled cancelled
+     * @param cause     cause
+     * @param subject   canceller
+     * @return cancellation state operation
+     * @throws NullPointerException cause or subject is null
      */
-    void setCancelled(boolean cancelled);
+    CancellationStateOperation setCancelled(boolean cancelled, Cause cause, Subject subject);
 }
