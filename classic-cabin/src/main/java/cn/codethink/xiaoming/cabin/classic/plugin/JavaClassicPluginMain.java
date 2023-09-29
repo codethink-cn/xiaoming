@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package cn.codethink.xiaoming.cabin.plugin
+package cn.codethink.xiaoming.cabin.classic.plugin;
 
 /**
- * # Kotlin Classical Plugin Main
+ * <h1>Java Classic Plugin Main</h1>
  *
  * @author Chuanwise
  */
-class KotlinClassicalPluginMain: ClassicalPluginMain() {
+public class JavaClassicPluginMain
+    extends ClassicPluginMain {
 
     // reserved for future necessary changes.
 }

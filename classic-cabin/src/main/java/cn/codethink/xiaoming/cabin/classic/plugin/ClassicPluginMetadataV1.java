@@ -14,52 +14,58 @@
  * limitations under the License.
  */
 
-package cn.codethink.xiaoming.cabin.plugin;
+package cn.codethink.xiaoming.cabin.classic.plugin;
 
-import cn.codethink.xiaoming.id.Id;
+import cn.codethink.xiaoming.cabin.plugin.PluginMetadata;
+import cn.codethink.xiaoming.id.NamespaceId;
 import cn.codethink.xiaoming.namespace.Namespace;
 import com.google.common.base.Preconditions;
 import org.semver4j.Semver;
 
 import java.util.regex.Pattern;
 
-public class ClassicalPluginMetadataV1
+public class ClassicPluginMetadataV1
     implements PluginMetadata {
 
     Pattern NAME_PATTERN = Pattern.compile("[\\w$\\-]+");
 
-    private final Namespace namespace;
-    private final String name;
+    private final NamespaceId id;
     private final Semver version;
 
-    ClassicalPluginMetadataV1(Namespace namespace, String name, Semver version) {
-        Preconditions.checkNotNull(namespace, "Namespace is null!");
-        Preconditions.checkNotNull(name, "Name is null!");
+    ClassicPluginMetadataV1(NamespaceId id, Semver version) {
+        Preconditions.checkNotNull(id, "Namespace id is null!");
         Preconditions.checkNotNull(version, "Version is null!");
-        Preconditions.checkArgument(!name.isEmpty(), "Name is empty! ");
 
-        this.namespace = namespace;
-        this.name = name;
+        this.id = id;
         this.version = version;
     }
 
     @Override
-    public Id getId() {
-        return null;
+    public NamespaceId getId() {
+        return id;
     }
 
     @Override
     public String getName() {
-        return null;
+        return id.getName();
     }
 
     @Override
     public Namespace getNamespace() {
-        return null;
+        return id.getNamespace();
     }
 
     @Override
     public Semver getVersion() {
-        return null;
+        return version;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof ClassicPluginMetadataV1)) {
+            return false;
+        }
+        final ClassicPluginMetadataV1 classicPluginMetadataV1 = (ClassicPluginMetadataV1) obj;
+        throw new UnsupportedOperationException();
     }
 }

@@ -14,15 +14,18 @@
  * limitations under the License.
  */
 
-package cn.codethink.xiaoming.cabin.plugin;
+package cn.codethink.xiaoming.cabin.classic;
 
 /**
- * <h1>Classical Plugin Main</h1>
+ * <h1>Classic Plugin Configuration</h1>
  *
  * @author Chuanwise
  */
-public class ClassicalPluginMain
-    implements PluginMain {
+public interface ClassicPluginConfiguration {
 
-    // reserved for future necessary changes.
+    /**
+     * Query if delete same file in plugins directory in classic plugin installing.
+     * @return if delete same file in plugins directory in classic plugin installing
+     */
+    boolean isDeleteSameFileInPluginsDirectoryInClassicPluginInstalling();
 }
