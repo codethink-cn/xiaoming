@@ -158,3 +158,5 @@ publish.gradle
 
 .idea/inspectionProfiles/*
 .idea/inspectionProfiles/Project_Default.xml
+
+.idea/kotlinc.xml
