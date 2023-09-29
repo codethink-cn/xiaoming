@@ -18,6 +18,7 @@ package cn.codethink.xiaoming.cabin.launcher;
 
 import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.cabin.Cabin;
+import cn.codethink.xiaoming.cabin.CabinImpl;
 import cn.codethink.xiaoming.cabin.launcher.configuration.LauncherConfiguration;
 import cn.codethink.xiaoming.cabin.launcher.configuration.LauncherConfigurationV1;
 import cn.codethink.xiaoming.cause.Cause;
@@ -72,6 +73,7 @@ public class Launcher
         // TODO: can enable checking
 
         final LauncherEnablingCause launcherEnablingCause = new LauncherEnablingCause(cause, this);
-
+        cabin = new CabinImpl();
+        cabin.getConfiguration().getFolderConfiguration().setWorkingDirectoryPath(launcherConfiguration.getWorkingDirectoryPath());
     }
 }
