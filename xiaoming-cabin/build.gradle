@@ -13,7 +13,7 @@ repositories {
 
 dependencies {
     api project(':xiaoming-cabin-api')
-    runtimeOnly project(':xiaoming-core')
+    implementation project(':xiaoming-core')
 
     implementation 'com.google.guava:guava:32.1.2-jre'
 
