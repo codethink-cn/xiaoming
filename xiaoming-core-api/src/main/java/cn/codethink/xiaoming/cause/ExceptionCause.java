@@ -27,7 +27,7 @@ import cn.codethink.xiaoming.time.Time;
  * @author Chuanwise
  */
 public interface ExceptionCause
-    extends ErrorCause {
+        extends Cause {
 
     /**
      * Construct an exception cause with provided exception.
