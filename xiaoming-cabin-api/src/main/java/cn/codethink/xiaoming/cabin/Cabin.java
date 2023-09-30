@@ -18,7 +18,9 @@ package cn.codethink.xiaoming.cabin;
 
 import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.cabin.configuration.CabinConfiguration;
+import cn.codethink.xiaoming.cabin.event.EventManager;
 import cn.codethink.xiaoming.cause.Cause;
+import cn.codethink.xiaoming.state.StateHolder;
 
 /**
  * <h1>Cabin</h1>
@@ -28,7 +30,7 @@ import cn.codethink.xiaoming.cause.Cause;
  * @author Chuanwise
  */
 public interface Cabin
-    extends Subject {
+        extends Subject, StateHolder<CabinStateType> {
 
     /**
      * Get configuration.
@@ -36,6 +38,13 @@ public interface Cabin
      * @return configuration
      */
     CabinConfiguration getConfiguration();
+
+    /**
+     * Get event manager.
+     *
+     * @return event manager
+     */
+    EventManager getEventManager();
 
     /**
      * Start cabin.
