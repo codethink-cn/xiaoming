@@ -28,6 +28,8 @@ import cn.codethink.xiaoming.id.LongId;
 import cn.codethink.xiaoming.id.NamespaceId;
 import cn.codethink.xiaoming.id.StringId;
 import cn.codethink.xiaoming.namespace.Namespace;
+import cn.codethink.xiaoming.state.State;
+import cn.codethink.xiaoming.state.StateType;
 import cn.codethink.xiaoming.time.Time;
 
 /**
@@ -55,6 +57,8 @@ public interface BotApi {
 
     Namespace parseNamespace(String namespace);
     NamespaceId parseNamespaceId(String namespaceId);
+
+    <T extends StateType> State<T> getState(T type, Cause cause);
 
     CancellationStateOperation getCancellationStateOperation(boolean cancelled, Event event, Cause cause, Subject subject);
 

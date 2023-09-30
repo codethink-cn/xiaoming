@@ -25,6 +25,9 @@ import cn.codethink.xiaoming.event.*;
 import cn.codethink.xiaoming.id.*;
 import cn.codethink.xiaoming.namespace.Namespace;
 import cn.codethink.xiaoming.namespace.NamespaceImpl;
+import cn.codethink.xiaoming.state.State;
+import cn.codethink.xiaoming.state.StateImpl;
+import cn.codethink.xiaoming.state.StateType;
 import cn.codethink.xiaoming.time.MillisecondTime;
 import cn.codethink.xiaoming.time.SecondTime;
 import cn.codethink.xiaoming.time.Time;
@@ -85,6 +88,11 @@ public class BotApiImpl
     @Override
     public NamespaceId parseNamespaceId(String namespaceId) {
         return NamespaceIdImpl.parse(namespaceId);
+    }
+
+    @Override
+    public <T extends StateType> State<T> getState(T type, Cause cause) {
+        return new StateImpl<>(type, cause);
     }
 
     @Override

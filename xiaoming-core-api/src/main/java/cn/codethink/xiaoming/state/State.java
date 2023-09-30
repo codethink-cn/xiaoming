@@ -16,6 +16,7 @@
 
 package cn.codethink.xiaoming.state;
 
+import cn.codethink.xiaoming.api.BotApiFactory;
 import cn.codethink.xiaoming.cause.Cause;
 
 /**
@@ -27,6 +28,19 @@ import cn.codethink.xiaoming.cause.Cause;
  * @author Chuanwise
  */
 public interface State<T extends StateType> {
+
+    /**
+     * Construct a state with provided type and cause.
+     *
+     * @param type  type
+     * @param cause cause
+     * @param <T>   state type
+     * @return state
+     * @throws NullPointerException type or cause is null
+     */
+    static <T extends StateType> State<T> of(T type, Cause cause) {
+        return BotApiFactory.getBotApi().getState(type, cause);
+    }
 
     /**
      * Get type.
