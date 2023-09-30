@@ -9,5 +9,5 @@ include 'xiaoming-cabin'
 include 'xiaoming-cabin-launcher'
 include 'jackson-datatype-xiaoming-core'
 include 'jackson-datatype-xiaoming-cabin'
-include 'classic-cabin'
+include 'xiaoming-cabin-classic'
 

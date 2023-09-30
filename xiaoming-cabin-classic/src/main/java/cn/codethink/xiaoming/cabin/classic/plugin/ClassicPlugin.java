@@ -16,6 +16,7 @@
 
 package cn.codethink.xiaoming.cabin.classic.plugin;
 
+import cn.codethink.xiaoming.cabin.Cabin;
 import cn.codethink.xiaoming.cabin.plugin.*;
 import org.slf4j.Logger;
 
@@ -23,7 +24,13 @@ import java.io.File;
 import java.nio.file.Path;
 
 public class ClassicPlugin
-    extends AbstractPlugin {
+        extends AbstractPlugin
+        implements ScannedPlugin {
+
+    @Override
+    public Cabin getCabin() {
+        return null;
+    }
 
     @Override
     public PluginMain getMain() {
