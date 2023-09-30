@@ -18,6 +18,7 @@ package cn.codethink.xiaoming;
 
 import cn.codethink.xiaoming.event.EventManager;
 import cn.codethink.xiaoming.relation.Known;
+import cn.codethink.xiaoming.state.StateHolder;
 
 /**
  * <h1>Bot</h1>
@@ -27,7 +28,7 @@ import cn.codethink.xiaoming.relation.Known;
  * @author Chuanwise
  */
 public interface Bot
-    extends Known {
+        extends Known, StateHolder<BotStateType> {
 
     /**
      * Get event manager.
