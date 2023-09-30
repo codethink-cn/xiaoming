@@ -17,7 +17,7 @@
 package cn.codethink.xiaoming.state;
 
 import cn.codethink.xiaoming.Subject;
-import cn.codethink.xiaoming.event.CancellableEvent;
+import cn.codethink.xiaoming.event.Event;
 
 /**
  * <h1>State Switching Event</h1>
@@ -25,17 +25,25 @@ import cn.codethink.xiaoming.event.CancellableEvent;
  * <p>State switching event is event will be published when
  * the state of something will be changed. </p>
  *
+ * @param <T> state type
  * @author Chuanwise
  */
-public interface StateSwitchingEvent
-        extends CancellableEvent {
+public interface StateSwitchingEvent<T extends StateType>
+        extends Event {
+
+    /**
+     * Get next state type.
+     *
+     * @return next state type
+     */
+    T getNextStateType();
 
     /**
      * Get holder.
      *
      * @return holder
      */
-    Stated getHolder();
+    StateHolder<T> getHolder();
 
     /**
      * Get switcher.

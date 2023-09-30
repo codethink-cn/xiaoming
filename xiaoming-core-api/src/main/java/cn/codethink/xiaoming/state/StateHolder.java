@@ -22,14 +22,15 @@ package cn.codethink.xiaoming.state;
  *
  * <p>Stated means state holder. </p>
  *
+ * @param <T> state type
  * @author Chuanwise
  */
-public interface Stated {
+public interface StateHolder<T extends StateType> {
 
     /**
      * Get state.
      *
      * @return state
      */
-    State getState();
+    State<T> getState();
 }

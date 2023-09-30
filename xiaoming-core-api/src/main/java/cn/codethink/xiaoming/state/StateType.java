@@ -28,27 +28,27 @@ public interface StateType {
     int DONE_MASK = 1 << 2;
 
     /**
-     * Query if the state type is error.
+     * Query if the state type represents something error.
      *
-     * @return if the state type is error
+     * @return if the state type represents something error
      */
     default boolean isError() {
         return (getMask() & ERROR_MASK) == ERROR_MASK;
     }
 
     /**
-     * Query if the state type is doing.
+     * Query if the state type represents something doing.
      *
-     * @return if the state type is doing
+     * @return if the state type represents something doing
      */
     default boolean isDoing() {
         return (getMask() & DOING_MASK) == DOING_MASK;
     }
 
     /**
-     * Query if the state type is done.
+     * Query if the state type represents something done.
      *
-     * @return done
+     * @return if the state type represents something done
      */
     default boolean isDone() {
         return (getMask() & DONE_MASK) == DONE_MASK;

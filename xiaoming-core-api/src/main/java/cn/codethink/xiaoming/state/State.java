@@ -23,16 +23,17 @@ import cn.codethink.xiaoming.cause.Cause;
  *
  * <p>State is a attribute of a object. Such as bot and component. </p>
  *
+ * @param <T> state type
  * @author Chuanwise
  */
-public interface State {
+public interface State<T extends StateType> {
 
     /**
      * Get type.
      *
      * @return type
      */
-    StateType getType();
+    T getType();
 
     /**
      * Get cause.
