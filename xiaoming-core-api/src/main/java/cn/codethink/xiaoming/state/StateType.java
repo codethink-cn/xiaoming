@@ -25,20 +25,34 @@ public interface StateType {
 
     int ERROR_MASK = 1;
     int DOING_MASK = 1 << 1;
+    int DONE_MASK = 1 << 2;
 
     /**
      * Query if the state type is error.
      *
      * @return if the state type is error
      */
-    boolean isError();
+    default boolean isError() {
+        return (getMask() & ERROR_MASK) == ERROR_MASK;
+    }
 
     /**
      * Query if the state type is doing.
      *
      * @return if the state type is doing
      */
-    boolean isDoing();
+    default boolean isDoing() {
+        return (getMask() & DOING_MASK) == DOING_MASK;
+    }
+
+    /**
+     * Query if the state type is done.
+     *
+     * @return done
+     */
+    default boolean isDone() {
+        return (getMask() & DONE_MASK) == DONE_MASK;
+    }
 
     /**
      * Get mask.
