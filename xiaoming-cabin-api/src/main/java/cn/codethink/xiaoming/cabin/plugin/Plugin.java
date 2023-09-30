@@ -17,7 +17,9 @@
 package cn.codethink.xiaoming.cabin.plugin;
 
 import cn.codethink.xiaoming.Subject;
+import cn.codethink.xiaoming.cabin.Cabin;
 import cn.codethink.xiaoming.cause.Cause;
+import cn.codethink.xiaoming.state.StateHolder;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -31,7 +33,14 @@ import java.nio.file.Path;
  * @author Chuanwise
  */
 public interface Plugin
-    extends Subject {
+        extends Subject, StateHolder<PluginStateType> {
+
+    /**
+     * Get cabin.
+     *
+     * @return cabin
+     */
+    Cabin getCabin();
 
     /**
      * Get main.
@@ -41,25 +50,11 @@ public interface Plugin
     PluginMain getMain();
 
     /**
-     * Get state.
-     *
-     * @return state
-     */
-    PluginState getState();
-
-    /**
      * Get metadata.
      *
      * @return metadata
      */
     PluginMetadata getMetadata();
-
-    /**
-     * Get scanner.
-     *
-     * @return scanner
-     */
-    PluginScanner getScanner();
 
     /**
      * Get class loader.
