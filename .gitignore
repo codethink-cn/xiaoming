@@ -160,3 +160,4 @@ publish.gradle
 .idea/inspectionProfiles/Project_Default.xml
 
 .idea/kotlinc.xml
+!/.idea/codeStyles/
