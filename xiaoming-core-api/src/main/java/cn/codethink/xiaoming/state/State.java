@@ -16,6 +16,8 @@
 
 package cn.codethink.xiaoming.state;
 
+import cn.codethink.xiaoming.cause.Cause;
+
 /**
  * <h1>State</h1>
  *
@@ -33,9 +35,9 @@ public interface State {
     StateType getType();
 
     /**
-     * Get event.
+     * Get cause.
      *
-     * @return event
+     * @return cause
      */
-    StateSwitchingEvent getEvent();
+    Cause getCause();
 }
