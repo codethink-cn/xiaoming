@@ -18,9 +18,11 @@ package cn.codethink.xiaoming.cabin;
 
 import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.cabin.configuration.CabinConfiguration;
+import cn.codethink.xiaoming.cabin.event.EventManager;
+import cn.codethink.xiaoming.cabin.plugin.PluginManager;
 import cn.codethink.xiaoming.cause.Cause;
-import cn.codethink.xiaoming.cause.ErrorCause;
-import cn.codethink.xiaoming.cause.ExceptionCause;
+import cn.codethink.xiaoming.state.State;
+import cn.codethink.xiaoming.state.StateImpl;
 import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +32,7 @@ import java.util.concurrent.CancellationException;
 public class CabinImpl
     implements Cabin {
 
-    private volatile CabinState state = new CabinStateImpl(CabinState.Type.READY, Cause.of("Constructing cabin"));
+    private volatile State<CabinStateType> state = new StateImpl<>(CabinStateType.READY, Cause.of("Constructing cabin"));
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Cabin.class);
 
@@ -42,51 +44,34 @@ public class CabinImpl
     }
 
     @Override
+    public EventManager getEventManager() {
+        return null;
+    }
+
+    @Override
+    public PluginManager getPluginManager() {
+        return null;
+    }
+
+    @Override
     public void start(Cause cause, Subject subject) throws Exception {
         Preconditions.checkNotNull(cause, "Cause is null! ");
         Preconditions.checkNotNull(subject, "Subject is null! ");
 
         // check if the cabin can be started now
-        final CabinState.Type stateType = state.getType();
+        final CabinStateType stateType = state.getType();
         final Cause stateCause = state.getCause();
         switch (stateType) {
             case STOPPED:
             case READY:
+            case STARTING_ERROR:
                 break;
-            case STARTING: {
+            case STARTING:
                 throw new UnsupportedOperationException("Concurrent starting because '" + cause.getDescription() + "' " +
                         "at '" + stateCause.getTime() + "'! ");
-            }
-            case STARTING_ERROR: {
-                final ErrorCause errorCause = (ErrorCause) stateCause;
-                if (errorCause.isRetryable()) {
-                    break;
-                } else if (errorCause instanceof ExceptionCause) {
-                    final ExceptionCause exceptionCause = (ExceptionCause) errorCause;
-                    throw new UnsupportedOperationException("Error occurred during the last starting of cabin " +
-                            "'" + configuration.getName() + "' at " + errorCause.getTime() +  ", and it's not retryable! ", exceptionCause.getException());
-                } else {
-                    throw new UnsupportedOperationException("Error occurred during the last starting of cabin " +
-                            "'" + configuration.getName() + "' at " + errorCause.getTime() +  ", and it's not retryable! ");
-                }
-            }
             case STARTED: {
                 throw new UnsupportedOperationException("Cabin is already started because '" + stateCause.getDescription() + "' " +
                         "at " + stateCause.getTime() + "! ");
-            }
-            case STOPPING: {
-                throw new UnsupportedOperationException("Cabin is stopping because '' " + stateCause.getTime() + "! ");
-            }
-            case STOPPING_ERROR: {
-                final ErrorCause errorCause = (ErrorCause) stateCause;
-                if (errorCause.isRetryable()) {
-                    throw new UnsupportedOperationException("Cabin hadn't stopped completely because '" + cause.getDescription() + "' " +
-                            "at '" + stateCause.getTime() + "'! But it's retryable, use 'cabin.stop(cause, subject)' to retry becore " +
-                            "calling the start method. ");
-                } else {
-                    throw new UnsupportedOperationException("Error occurred during the last stopping of cabin " +
-                            "'" + configuration.getName() + "' at " + errorCause.getTime() +  ", and it's not retryable! ");
-                }
             }
             default:
                 throw new UnsupportedOperationException("Unexpected state type: '" + stateType + "'! ");
@@ -97,7 +82,7 @@ public class CabinImpl
             throw new CancellationException("Operation of cabin starting was cancelled by ''");
         }
 
-        state = new CabinStateImpl(CabinState.Type.STARTING, cause);
+        state = new StateImpl<>(CabinStateType.STARTING, cause);
     }
 
     @Override
@@ -113,5 +98,10 @@ public class CabinImpl
     @Override
     public Logger getLogger() {
         return LOGGER;
+    }
+
+    @Override
+    public State<CabinStateType> getState() {
+        return state;
     }
 }
