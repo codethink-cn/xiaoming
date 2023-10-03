@@ -16,12 +16,15 @@
 
 package cn.codethink.xiaoming.cabin;
 
+import cn.codethink.xiaoming.state.StateType;
+
 /**
  * <h1>Cabin State Type</h1>
  *
  * @author Chuanwise
  */
-public enum CabinStateType {
+public enum CabinStateType
+        implements StateType {
 
     /**
      * Ready for starting, but never been started after constructed.
