@@ -17,6 +17,7 @@
 package cn.codethink.xiaoming.cabin.plugin;
 
 import cn.codethink.xiaoming.event.CancellableEvent;
+import cn.codethink.xiaoming.state.StateSwitchingEvent;
 
 /**
  * <h1>Plugin Loading Event</h1>
@@ -24,7 +25,7 @@ import cn.codethink.xiaoming.event.CancellableEvent;
  * @author Chuanwise
  */
 public interface PluginLoadingEvent
-        extends PluginLoadingContext, CancellableEvent {
+        extends PluginLoadingContext, CancellableEvent, StateSwitchingEvent<PluginStateType> {
 
     /**
      * Get plugin.

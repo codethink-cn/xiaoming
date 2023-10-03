@@ -16,9 +16,11 @@
 
 package cn.codethink.xiaoming.cabin.plugin;
 
+import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.cabin.Cabin;
 import cn.codethink.xiaoming.cause.Cause;
 import cn.codethink.xiaoming.event.AbstractCancellableEvent;
+import cn.codethink.xiaoming.state.StateHolder;
 import com.google.common.base.Preconditions;
 
 public class PluginLoadingEventImpl
@@ -27,13 +29,16 @@ public class PluginLoadingEventImpl
 
     private final Cabin cabin;
     private final Plugin plugin;
+    private final Subject subject;
 
-    public PluginLoadingEventImpl(Cabin cabin, Plugin plugin) {
+    public PluginLoadingEventImpl(Cabin cabin, Plugin plugin, Subject subject) {
         Preconditions.checkNotNull(cabin, "Cabin is null! ");
         Preconditions.checkNotNull(plugin, "Plugin is null! ");
+        Preconditions.checkNotNull(subject, "Subject is null! ");
 
         this.cabin = cabin;
         this.plugin = plugin;
+        this.subject = subject;
     }
 
     @Override
@@ -49,5 +54,20 @@ public class PluginLoadingEventImpl
     @Override
     public Plugin getPlugin() {
         return plugin;
+    }
+
+    @Override
+    public PluginStateType getNextStateType() {
+        return PluginStateType.LOADED;
+    }
+
+    @Override
+    public StateHolder<PluginStateType> getHolder() {
+        return plugin;
+    }
+
+    @Override
+    public Subject getSwitcher() {
+        return subject;
     }
 }
