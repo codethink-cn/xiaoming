@@ -16,9 +16,6 @@
 
 package cn.codethink.xiaoming.cabin.configuration;
 
-import java.io.File;
-import java.nio.file.Path;
-
 /**
  * <h1>Cabin Configuration</h1>
  *
@@ -46,4 +43,11 @@ public interface CabinConfiguration {
      * @return folder configuration
      */
     FolderConfiguration getFolderConfiguration();
+
+    /**
+     * Get plugin configuration.
+     *
+     * @return plugin configuration
+     */
+    PluginConfiguration getPluginConfiguration();
 }
