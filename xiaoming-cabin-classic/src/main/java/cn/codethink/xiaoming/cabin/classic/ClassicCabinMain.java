@@ -16,5 +16,32 @@
 
 package cn.codethink.xiaoming.cabin.classic;
 
-public class ClassicCabinMain {
+import cn.codethink.xiaoming.cabin.classic.plugin.JavaPluginMain;
+import cn.codethink.xiaoming.cabin.plugin.PluginLoadingContext;
+
+import java.io.IOException;
+
+public class ClassicCabinMain
+        extends JavaPluginMain {
+
+    private static final ClassicCabinMain INSTANCE = new ClassicCabinMain();
+
+    public static ClassicCabinMain getInstance() {
+        return INSTANCE;
+    }
+
+    private volatile ClassicPluginConfiguration configuration;
+
+    public ClassicPluginConfiguration getConfiguration() {
+        return configuration;
+    }
+
+    @Override
+    public void load(PluginLoadingContext context) throws Exception {
+        super.load(context);
+    }
+
+    public void reloadData() throws IOException {
+
+    }
 }

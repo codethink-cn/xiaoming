@@ -17,12 +17,12 @@
 package cn.codethink.xiaoming.cabin.classic.plugin;
 
 /**
- * <h1>Java Classic Plugin Main</h1>
+ * <h1>Classic Plugin Main</h1>
  *
  * @author Chuanwise
  */
-public class JavaClassicPluginMain
-    extends ClassicPluginMain {
+public class AbstractPluginMain
+    implements PluginMain {
 
-    // reserved for future necessary changes.
+    // reserved for future needs.
 }

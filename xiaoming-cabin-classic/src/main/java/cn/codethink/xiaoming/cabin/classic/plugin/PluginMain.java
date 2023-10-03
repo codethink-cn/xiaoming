@@ -14,7 +14,11 @@
  * limitations under the License.
  */
 
-package cn.codethink.xiaoming.cabin.plugin;
+package cn.codethink.xiaoming.cabin.classic.plugin;
+
+import cn.codethink.xiaoming.cabin.plugin.PluginDisablingContext;
+import cn.codethink.xiaoming.cabin.plugin.PluginEnablingContext;
+import cn.codethink.xiaoming.cabin.plugin.PluginLoadingContext;
 
 /**
  * <h1>Plugin Main</h1>

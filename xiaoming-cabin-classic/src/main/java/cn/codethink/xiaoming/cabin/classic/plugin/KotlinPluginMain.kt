@@ -21,7 +21,7 @@ package cn.codethink.xiaoming.cabin.classic.plugin
  *
  * @author Chuanwise
  */
-class KotlinClassicPluginMain: ClassicPluginMain() {
+class KotlinPluginMain : AbstractPluginMain() {
 
     // reserved for future necessary changes.
 }

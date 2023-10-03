@@ -43,13 +43,6 @@ public interface Plugin
     Cabin getCabin();
 
     /**
-     * Get main.
-     *
-     * @return main
-     */
-    PluginMain getMain();
-
-    /**
      * Get metadata.
      *
      * @return metadata
@@ -66,7 +59,7 @@ public interface Plugin
     /**
      * Load plugin.
      *
-     * @param cause cause
+     * @param cause   cause
      * @param subject subject
      * @throws Exception exception thrown in loading plugin.
      */
@@ -75,7 +68,7 @@ public interface Plugin
     /**
      * Enable plugin.
      *
-     * @param cause cause
+     * @param cause   cause
      * @param subject subject
      * @throws Exception exception thrown in enabling plugin.
      */
@@ -84,7 +77,7 @@ public interface Plugin
     /**
      * Disable plugin.
      *
-     * @param cause cause
+     * @param cause   cause
      * @param subject subject
      * @throws Exception exception thrown in disabling plugin.
      */

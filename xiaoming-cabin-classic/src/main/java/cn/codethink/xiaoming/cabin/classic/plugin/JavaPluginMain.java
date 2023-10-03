@@ -16,15 +16,21 @@
 
 package cn.codethink.xiaoming.cabin.classic.plugin;
 
-import cn.codethink.xiaoming.cabin.plugin.PluginMain;
-
 /**
- * <h1>Classic Plugin Main</h1>
+ * <h1>Java Classic Plugin Main</h1>
  *
  * @author Chuanwise
  */
-public class ClassicPluginMain
-    implements PluginMain {
+public class JavaPluginMain
+        extends AbstractPluginMain {
 
-    // reserved for future necessary changes.
+    private volatile ClassicPlugin plugin;
+
+    public ClassicPlugin getPlugin() {
+        return plugin;
+    }
+
+    void setPlugin(ClassicPlugin plugin) {
+        this.plugin = plugin;
+    }
 }
