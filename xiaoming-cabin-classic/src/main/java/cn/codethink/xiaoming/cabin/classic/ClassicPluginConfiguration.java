@@ -16,12 +16,29 @@
 
 package cn.codethink.xiaoming.cabin.classic;
 
+import java.io.File;
+import java.nio.file.Path;
+
 /**
  * <h1>Classic Plugin Configuration</h1>
  *
  * @author Chuanwise
  */
 public interface ClassicPluginConfiguration {
+
+    /**
+     * Get plugins directory file.
+     *
+     * @return plugins directory file
+     */
+    File getPluginsDirectoryFile();
+
+    /**
+     * Get plugins directory path.
+     *
+     * @return plugins directory path
+     */
+    Path getPluginsDirectoryPath();
 
     /**
      * Query if delete same file in plugins directory in classic plugin installing.

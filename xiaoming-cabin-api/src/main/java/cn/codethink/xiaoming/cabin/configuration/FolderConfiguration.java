@@ -55,18 +55,4 @@ public interface FolderConfiguration {
      * @param workingDirectoryPath working directory path
      */
     void setWorkingDirectoryPath(Path workingDirectoryPath);
-
-    /**
-     * Get plugins directory path.
-     *
-     * @return plugins directory path
-     */
-    Path getPluginsDirectoryPath();
-
-    /**
-     * Get plugins directory file.
-     *
-     * @return plugins directory file
-     */
-    File getPluginsDirectoryFile();
 }
