@@ -19,6 +19,7 @@ package cn.codethink.xiaoming.cabin;
 import cn.codethink.xiaoming.Subject;
 import cn.codethink.xiaoming.cabin.configuration.CabinConfiguration;
 import cn.codethink.xiaoming.cabin.event.EventManager;
+import cn.codethink.xiaoming.cabin.plugin.PluginManager;
 import cn.codethink.xiaoming.cause.Cause;
 import cn.codethink.xiaoming.state.StateHolder;
 
@@ -45,6 +46,13 @@ public interface Cabin
      * @return event manager
      */
     EventManager getEventManager();
+
+    /**
+     * Get plugin manager.
+     *
+     * @return plugin manager
+     */
+    PluginManager getPluginManager();
 
     /**
      * Start cabin.
