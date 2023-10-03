@@ -51,7 +51,7 @@ public interface BotApi {
     Time getTimeOfSeconds(long seconds);
     Time getTimeOfMilliseconds(long milliseconds);
 
-    ExceptionCause getExceptionCause(Throwable exception, Time time, boolean retryable);
+    ExceptionCause getExceptionCause(Throwable exception, Time time);
     Cause getDescriptionCause(String description);
     Cause getDescriptionCause(String description, Cause cause);
 

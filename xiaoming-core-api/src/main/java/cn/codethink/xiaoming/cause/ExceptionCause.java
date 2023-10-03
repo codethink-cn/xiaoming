@@ -33,24 +33,22 @@ public interface ExceptionCause
      * Construct an exception cause with provided exception.
      *
      * @param exception exception
-     * @param retryable retryable
      * @return exception cause
      * @throws NullPointerException exception is null
      */
-    static ExceptionCause of(Throwable exception, boolean retryable) {
-        return BotApiFactory.getBotApi().getExceptionCause(exception, Time.now(), retryable);
+    static ExceptionCause of(Throwable exception) {
+        return BotApiFactory.getBotApi().getExceptionCause(exception, Time.now());
     }
 
     /**
      * Construct an exception cause with provided exception and time.
      *
      * @param exception exception
-     * @param retryable retryable
      * @return exception cause
      * @throws NullPointerException exception is null
      */
-    static ExceptionCause of(Throwable exception, Time time, boolean retryable) {
-        return BotApiFactory.getBotApi().getExceptionCause(exception, time, retryable);
+    static ExceptionCause of(Throwable exception, Time time) {
+        return BotApiFactory.getBotApi().getExceptionCause(exception, time);
     }
 
     /**

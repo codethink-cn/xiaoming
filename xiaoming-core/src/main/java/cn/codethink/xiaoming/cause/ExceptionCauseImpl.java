@@ -27,27 +27,20 @@ public class ExceptionCauseImpl
 
     private final Throwable exception;
     private final Time time;
-    private final boolean retryable;
     private String toStringCache;
     private Integer hashCodeCache;
 
-    public ExceptionCauseImpl(Throwable exception, Time time, boolean retryable) {
+    public ExceptionCauseImpl(Throwable exception, Time time) {
         Preconditions.checkNotNull(exception, "Exception is null! ");
         Preconditions.checkNotNull(time, "Time is null! ");
 
         this.exception = exception;
         this.time = time;
-        this.retryable = retryable;
     }
 
     @Override
     public Throwable getException() {
         return exception;
-    }
-
-    @Override
-    public boolean isRetryable() {
-        return retryable;
     }
 
     @Override
