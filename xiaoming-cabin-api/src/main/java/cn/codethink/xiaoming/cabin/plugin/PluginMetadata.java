@@ -20,6 +20,9 @@ import cn.codethink.xiaoming.id.NamespaceId;
 import cn.codethink.xiaoming.namespace.Namespace;
 import org.semver4j.Semver;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * <h1>Plugin Metadata</h1>
  *
@@ -28,6 +31,13 @@ import org.semver4j.Semver;
  * @author Chuanwise
  */
 public interface PluginMetadata {
+
+    /**
+     * Get dependencies.
+     *
+     * @return dependencies
+     */
+    Map<NamespaceId, PluginDependency> getDependencies();
 
     /**
      * Get id.
@@ -56,4 +66,11 @@ public interface PluginMetadata {
      * @return version
      */
     Semver getVersion();
+
+    /**
+     * Get authors.
+     *
+     * @return authors
+     */
+    List<String> getAuthors();
 }
