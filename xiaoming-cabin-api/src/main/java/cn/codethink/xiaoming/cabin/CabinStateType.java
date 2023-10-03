@@ -16,15 +16,12 @@
 
 package cn.codethink.xiaoming.cabin;
 
-import cn.codethink.xiaoming.state.StateType;
-
 /**
  * <h1>Cabin State Type</h1>
  *
  * @author Chuanwise
  */
-public enum CabinStateType
-        implements StateType {
+public enum CabinStateType {
 
     /**
      * Ready for starting, but never been started after constructed.
@@ -34,45 +31,30 @@ public enum CabinStateType
     /**
      * Starting.
      */
-    STARTING(DOING_MASK),
+    STARTING,
 
     /**
      * Fail to start cabin.
      */
-    STARTING_ERROR(ERROR_MASK),
+    STARTING_ERROR,
 
     /**
      * Started.
      */
-    STARTED(DONE_MASK),
+    STARTED,
 
     /**
      * Stopping.
      */
-    STOPPING(DOING_MASK),
+    STOPPING,
 
     /**
      * Fail to stop cabin.
      */
-    STOPPING_ERROR(ERROR_MASK),
+    STOPPING_ERROR,
 
     /**
      * Exception thrown in starting.
      */
-    STOPPED(DONE_MASK);
-
-    private final int mask;
-
-    CabinStateType(int mask) {
-        this.mask = mask;
-    }
-
-    CabinStateType() {
-        this.mask = 0;
-    }
-
-    @Override
-    public int getMask() {
-        return 0;
-    }
+    STOPPED
 }

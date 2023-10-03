@@ -35,75 +35,60 @@ public enum PluginStateType
     /**
      * Loading.
      */
-    LOADING(DOING_MASK),
+    LOADING,
 
     /**
      * Error occurred in loading plugin.
      */
-    LOADING_ERROR(ERROR_MASK),
+    LOADING_ERROR,
 
     /**
      * Loaded.
      */
-    LOADED(DONE_MASK),
+    LOADED,
 
     /**
      * Enabling.
      */
-    ENABLING(DOING_MASK),
+    ENABLING,
 
     /**
      * Error occurred in enabling plugin.
      */
-    ENABLING_ERROR(ERROR_MASK),
+    ENABLING_ERROR,
 
     /**
      * Enabled.
      */
-    ENABLED(DONE_MASK),
+    ENABLED,
 
     /**
      * Disabling.
      */
-    DISABLING(DOING_MASK),
+    DISABLING,
 
     /**
      * Error occurred in disabling plugin.
      */
-    DISABLING_ERROR(ERROR_MASK),
+    DISABLING_ERROR,
 
     /**
      * Disabled.
      */
-    DISABLED(DONE_MASK),
+    DISABLED,
 
     /**
      * Unloading.
      */
-    UNLOADING(DOING_MASK),
+    UNLOADING,
 
     /**
      * Error occurred in unloading plugin.
      */
-    UNLOADING_ERROR(ERROR_MASK),
+    UNLOADING_ERROR,
 
     /**
      * Unloaded.
      */
-    UNLOADED(DONE_MASK);
-
-    private final int mask;
-
-    PluginStateType(int mask) {
-        this.mask = mask;
-    }
-
-    PluginStateType() {
-        this.mask = 0;
-    }
-
-    @Override
-    public int getMask() {
-        return mask;
-    }
+    UNLOADED
 }

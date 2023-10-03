@@ -36,45 +36,30 @@ public enum BotStateType
     /**
      * Starting.
      */
-    STARTING(DOING_MASK),
+    STARTING,
 
     /**
      * Error occurred in starting bot.
      */
-    STARTING_ERROR(ERROR_MASK),
+    STARTING_ERROR,
 
     /**
      * Started.
      */
-    STARTED(DONE_MASK),
+    STARTED,
 
     /**
      * Stopping.
      */
-    STOPPING(DOING_MASK),
+    STOPPING,
 
     /**
      * Error occurred in stopping bot.
      */
-    STOPPING_ERROR(ERROR_MASK),
+    STOPPING_ERROR,
 
     /**
      * Stopped.
      */
-    STOPPED(DONE_MASK);
-
-    private final int mask;
-
-    BotStateType(int mask) {
-        this.mask = mask;
-    }
-
-    BotStateType() {
-        this.mask = 0;
-    }
-
-    @Override
-    public int getMask() {
-        return mask;
-    }
+    STOPPED
 }

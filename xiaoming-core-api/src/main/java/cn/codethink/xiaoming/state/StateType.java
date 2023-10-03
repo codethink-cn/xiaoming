@@ -22,42 +22,4 @@ package cn.codethink.xiaoming.state;
  * @author Chuanwise
  */
 public interface StateType {
-
-    int ERROR_MASK = 1;
-    int DOING_MASK = 1 << 1;
-    int DONE_MASK = 1 << 2;
-
-    /**
-     * Query if the state type represents something error.
-     *
-     * @return if the state type represents something error
-     */
-    default boolean isError() {
-        return (getMask() & ERROR_MASK) == ERROR_MASK;
-    }
-
-    /**
-     * Query if the state type represents something doing.
-     *
-     * @return if the state type represents something doing
-     */
-    default boolean isDoing() {
-        return (getMask() & DOING_MASK) == DOING_MASK;
-    }
-
-    /**
-     * Query if the state type represents something done.
-     *
-     * @return if the state type represents something done
-     */
-    default boolean isDone() {
-        return (getMask() & DONE_MASK) == DONE_MASK;
-    }
-
-    /**
-     * Get mask.
-     *
-     * @return mask
-     */
-    int getMask();
 }
