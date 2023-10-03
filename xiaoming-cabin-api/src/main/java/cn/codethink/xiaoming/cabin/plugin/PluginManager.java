@@ -17,6 +17,9 @@
 package cn.codethink.xiaoming.cabin.plugin;
 
 import cn.codethink.xiaoming.cabin.Cabin;
+import cn.codethink.xiaoming.id.NamespaceId;
+
+import java.util.Map;
 
 /**
  * <h1>Plugin Manager</h1>
@@ -34,4 +37,11 @@ public interface PluginManager {
      * @return cabin
      */
     Cabin getCabin();
+
+    /**
+     * Get plugins.
+     *
+     * @return plugins
+     */
+    Map<NamespaceId, Plugin> getPlugins();
 }
